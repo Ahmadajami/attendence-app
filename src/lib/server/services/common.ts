@@ -1,13 +1,12 @@
 import type { AuthUser } from '#lib/server/auth/session.js';
-import type { db } from '#lib/server/db/index.js';
 import { ForbiddenError } from '#lib/server/errors.js';
 import type { PermissionKey } from '#lib/server/rbac/permissions.js';
 
 /** Every service takes the caller's user and permissions so it can enforce and audit itself. */
 export type Actor = { user: AuthUser; permissions: ReadonlySet<PermissionKey> };
 
-/** One statement of a `db.batch([...])`: what CRUD write builders return. */
-export type BatchQuery = Parameters<typeof db.batch>[0][number];
+/** One statement of a `batch([...])`: what CRUD write builders return. */
+export type { BatchQuery } from '#lib/server/db/batch.js';
 
 /** Throws `ForbiddenError` (403) unless the actor holds every one of `keys`. */
 export function requireActorPermission(actor: Actor, ...keys: PermissionKey[]): void {

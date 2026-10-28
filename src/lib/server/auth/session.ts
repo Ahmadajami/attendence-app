@@ -92,7 +92,7 @@ function cappedExpiry(now: number, ttl: number, notAfter: Date | null): Date {
 
 /**
  * Build a new session. Returns the secret `token` (send it to the client, once) and the insert
- * `query`, which the caller runs inside its `db.batch([...])` with the audit / login-attempt rows.
+ * `query`, which the caller runs inside its `batch([...])` with the audit / login-attempt rows.
  * `notAfter` is the user's code expiry: a session never outlives the code it was opened with.
  */
 export function createSession(
@@ -184,12 +184,12 @@ export async function validateSession(
 	};
 }
 
-/** Delete one session. Await it, or pass it to `db.batch([...])`. */
+/** Delete one session. Await it, or pass it to `batch([...])`. */
 export function invalidateSession(sessionId: string) {
 	return db.delete(session).where(eq(session.id, sessionId));
 }
 
-/** Delete every expired session (all users). Await it, or pass it to `db.batch([...])`. */
+/** Delete every expired session (all users). Await it, or pass it to `batch([...])`. */
 export function deleteExpiredSessions() {
 	return db.delete(session).where(lt(session.expiresAt, new Date()));
 }

@@ -9,7 +9,7 @@ import {
 } from '#lib/server/auth/credentials.js';
 import { hashPassword } from '#lib/server/auth/password.js';
 import { invalidateUserSessions } from '#lib/server/auth/session.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import {
 	ConflictError,
 	ForbiddenError,
@@ -22,7 +22,7 @@ import { pgErrorCode, type Actor } from './common.js';
 
 // Account management (CLAUDE.md §8). Only admins (`user.manage`) use it today: they
 // create admin / operations-manager accounts and issue sign-in codes. Each function checks the
-// permission, applies the change, and writes the audit row in the same `db.batch([...])`.
+// permission, applies the change, and writes the audit row in the same `batch([...])`.
 
 export type { Actor } from './common.js';
 
@@ -133,7 +133,7 @@ export async function createAccount(
 	const id = randomUUID();
 
 	try {
-		await db.batch([
+		await batch([
 			db.insert(user).values({
 				id,
 				loginId: input.loginId,
@@ -191,7 +191,7 @@ export async function issueCode(
 	const { code, columns } = await codeColumns(validity);
 	const self = target.id === actor.user.id;
 
-	await db.batch([
+	await batch([
 		db.update(user).set(columns).where(eq(user.id, target.id)),
 		invalidateUserSessions(target.id, { except: self ? currentSessionId : undefined }),
 		auditInsert({
@@ -224,7 +224,7 @@ export async function setAccountActive(actor: Actor, userId: string, active: boo
 		}
 	}
 
-	await db.batch([
+	await batch([
 		db.update(user).set({ active }).where(eq(user.id, target.id)),
 		...(active ? [] : [invalidateUserSessions(target.id)]),
 		auditInsert({
@@ -251,7 +251,7 @@ export async function changeAccountRole(actor: Actor, userId: string, newRole: s
 		throw new ConflictError('last_admin', m.users_error_last_admin());
 	}
 
-	await db.batch([
+	await batch([
 		db
 			.update(user)
 			.set({ roleId: await roleIdFor(newRole) })

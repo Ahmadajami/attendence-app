@@ -1,6 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
 import { m } from '#lib/paraglide/messages.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import { user } from '#lib/server/db/schema/index.js';
 import { MAX_CONSECUTIVE_CODE_FAILURES } from './credentials.js';
 import { verifyDummyPassword, verifyPassword } from './password.js';
@@ -92,7 +92,7 @@ export async function authenticate(
 
 	if (!valid) {
 		const nowLocked = account.failedLoginCount + 1 >= MAX_CONSECUTIVE_CODE_FAILURES;
-		await db.batch([
+		await batch([
 			failed,
 			db
 				.update(user)
@@ -112,7 +112,7 @@ export async function authenticate(
 	}
 
 	const session = createSession(account.id, client, meta, account.passwordExpiresAt);
-	await db.batch([
+	await batch([
 		session.query,
 		recordLoginAttempt({ loginId, ip: meta.ip, success: true }),
 		db.update(user).set({ failedLoginCount: 0, lastLoginAt: now }).where(eq(user.id, account.id)),

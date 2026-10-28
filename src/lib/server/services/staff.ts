@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { asc, eq } from 'drizzle-orm';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import {
 	ConflictError,
 	ForbiddenError,
@@ -112,7 +112,7 @@ export async function createStaff(actor: Actor, input: StaffInput) {
 	const id = randomUUID();
 
 	try {
-		await db.batch([
+		await batch([
 			db.insert(staff).values({ id, ...input }),
 			...membershipChange(id, null, input.teamId, new Date()),
 			auditInsert({
@@ -141,7 +141,7 @@ export async function updateStaff(actor: Actor, id: string, input: StaffInput) {
 	await validateLookups(input);
 
 	try {
-		await db.batch([
+		await batch([
 			db.update(staff).set(input).where(eq(staff.id, id)),
 			...membershipChange(id, before.team?.id ?? null, input.teamId, new Date()),
 			auditInsert({
@@ -179,7 +179,7 @@ export async function setStaffTeam(actor: Actor, id: string, teamId: string | nu
 	if ((before.team?.id ?? null) === teamId) return before;
 	await validateLookups({ functionId: before.function.id, teamId });
 
-	await db.batch([
+	await batch([
 		db.update(staff).set({ teamId }).where(eq(staff.id, id)),
 		...membershipChange(id, before.team?.id ?? null, teamId, new Date()),
 		auditInsert({
@@ -200,7 +200,7 @@ export async function setStaffActive(actor: Actor, id: string, active: boolean) 
 	const before = await findStaff(id);
 	if (before.active === active) return before;
 
-	await db.batch([
+	await batch([
 		db
 			.update(staff)
 			.set({ active, ...(active ? {} : { teamId: null }) })

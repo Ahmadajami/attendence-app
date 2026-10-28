@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, asc, eq, gte, lt } from 'drizzle-orm';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import {
 	ConflictError,
 	ForbiddenError,
@@ -189,7 +189,7 @@ export async function createFlight(actor: Actor, input: FlightInput) {
 	const data = values(input);
 	const reason = overrideReason(data, input.overrideReason);
 
-	await db.batch([
+	await batch([
 		db.insert(flight).values({ id, ...data, source: 'manual' }),
 		auditInsert({
 			actor: actor.user,
@@ -219,7 +219,7 @@ export async function updateFlight(actor: Actor, id: string, input: FlightInput)
 			assignment.endsAt.getTime() !== data.handlingEndsAt.getTime());
 
 	try {
-		await db.batch([
+		await batch([
 			db.update(flight).set(data).where(eq(flight.id, id)),
 			...(cancelAssignment
 				? [
@@ -300,7 +300,7 @@ export async function cancelFlight(actor: Actor, id: string) {
 	if (before.status === 'cancelled') return before;
 	const assignment = before.assignments[0];
 
-	await db.batch([
+	await batch([
 		db.update(flight).set({ status: 'cancelled' }).where(eq(flight.id, id)),
 		...(assignment
 			? [

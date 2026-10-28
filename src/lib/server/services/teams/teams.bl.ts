@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import { ConflictError, NotFoundError } from '#lib/server/errors.js';
 import { damascusDayRange } from '#lib/server/time.js';
 import type { ShiftKind } from '#lib/schemas/enums.js';
@@ -77,7 +77,7 @@ export async function createTeam(actor: Actor, input: TeamInput): Promise<TeamRo
 	const id = randomUUID();
 
 	try {
-		await db.batch([
+		await batch([
 			insertTeam({ id, nameEn: input.nameEn, nameAr: input.nameAr }),
 			auditInsert({
 				actor: actor.user,
@@ -99,7 +99,7 @@ export async function renameTeam(actor: Actor, id: string, input: TeamInput): Pr
 	const before = await requireTeam(id);
 
 	try {
-		await db.batch([
+		await batch([
 			updateTeam(id, input),
 			auditInsert({
 				actor: actor.user,
@@ -134,7 +134,7 @@ export async function setTeamActive(actor: Actor, id: string, active: boolean): 
 		memberCount = await countActiveMembers(id);
 	}
 
-	await db.batch([
+	await batch([
 		updateTeam(id, { active }),
 		...(active ? [] : [unassignTeamMembers(id), closeTeamMemberships(id, new Date())]),
 		auditInsert({

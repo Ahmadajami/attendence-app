@@ -1,7 +1,8 @@
 // Shared helpers for the auth CLI scripts. They run outside SvelteKit (tsx), so they open their own
 // DB client and must not import anything that needs `$app/*`.
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { makeBatch } from '../src/lib/server/db/batch.js';
 import {
 	CODE_VALIDITY_HOURS,
 	DEFAULT_CODE_VALIDITY_HOURS,
@@ -34,10 +35,16 @@ export function parseValidity(days: string | undefined): CodeValidityHours {
 	return hours;
 }
 
+/** DB client for one CLI run, with the same atomic `batch()` as the app. Call `close()` when done. */
 export function connect() {
 	const url = process.env.DATABASE_URL;
 	if (!url) fail('DATABASE_URL is not set.');
-	return drizzle(neon(url), { schema });
+	const client = postgres(url, { max: 1 });
+	const database = drizzle(client, { schema });
+	return Object.assign(database, {
+		batch: makeBatch(database),
+		close: () => client.end()
+	});
 }
 
 /** A fresh code plus the columns that store it. The plain code is only ever printed once. */

@@ -39,14 +39,14 @@ export async function isLoginRateLimited(loginId: string, ip: string | null): Pr
 	return counts.byLoginId >= MAX_FAILURES_PER_LOGIN_ID || counts.byIp >= MAX_FAILURES_PER_IP;
 }
 
-/** Delete attempts past the retention period. Await it, or pass it to `db.batch([...])`. */
+/** Delete attempts past the retention period. Await it, or pass it to `batch([...])`. */
 export function deleteOldLoginAttempts() {
 	return db
 		.delete(loginAttempt)
 		.where(lt(loginAttempt.attemptedAt, new Date(Date.now() - RETENTION_MS)));
 }
 
-/** Insert query for one attempt. Await it, or pass it to `db.batch([...])`. */
+/** Insert query for one attempt. Await it, or pass it to `batch([...])`. */
 export function recordLoginAttempt(attempt: {
 	loginId: string;
 	ip: string | null;

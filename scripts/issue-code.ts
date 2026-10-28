@@ -55,3 +55,5 @@ printCode(
 	code,
 	columns.passwordExpiresAt
 );
+
+await db.close();

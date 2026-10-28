@@ -1,0 +1,26 @@
+# Local app database only. Real data: bound to 127.0.0.1, named volume,
+# password from ~/secure/syravia/attendance_app.env (never in the repo).
+#   docker compose --env-file ~/secure/syravia/attendance_app.env \
+#     -f docker-compose.dev.yml up -d
+name: attendance-app
+services:
+  db:
+    image: postgres:16
+    container_name: attendance-app-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: attendance_app
+      POSTGRES_DB: attendance_app
+      POSTGRES_PASSWORD: ${ATTENDANCE_DB_PASSWORD:?set ATTENDANCE_DB_PASSWORD via --env-file}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - attendance-app-pgdata:/var/lib/postgresql/data
+      - ./tools/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U attendance_app -d attendance_app"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  attendance-app-pgdata:

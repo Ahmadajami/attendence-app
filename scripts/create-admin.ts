@@ -76,3 +76,5 @@ await db.batch([
 ]);
 
 printCode(`Admin account created for ${fullName}.`, loginId, code, columns.passwordExpiresAt);
+
+await db.close();

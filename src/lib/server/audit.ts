@@ -17,7 +17,7 @@ export type AuditEntry = {
 };
 
 /**
- * Insert query for one audit row. Put it in the same `db.batch([...])` as the change it records,
+ * Insert query for one audit row. Put it in the same `batch([...])` as the change it records,
  * so the change and its audit trail commit (or fail) together. Never log password hashes or tokens.
  */
 export function auditInsert(entry: AuditEntry) {

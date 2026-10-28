@@ -2,7 +2,7 @@ import { relations } from 'drizzle-orm';
 import { index, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth.js';
 
-/** Insert-only. Written in the same `db.batch([...])` as the change it records (CLAUDE.md §6.3). */
+/** Insert-only. Written in the same `batch([...])` as the change it records (CLAUDE.md §6.3). */
 export const auditLog = pgTable(
 	'audit_log',
 	{

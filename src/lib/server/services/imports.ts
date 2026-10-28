@@ -3,7 +3,7 @@ import { desc, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { db } from '#lib/server/db/index.js';
+import { batch as runBatch, db } from '#lib/server/db/index.js';
 import {
 	ConflictError,
 	ForbiddenError,
@@ -119,7 +119,7 @@ export async function previewImport(actor: Actor, kind: string, file: File) {
 		targetId: row.targetId
 	}));
 
-	await db.batch([
+	await runBatch([
 		db.insert(importBatch).values({ id, kind, fileName, createdBy: actor.user.id, ...summary }),
 		...(rowValues.length > 0 ? [db.insert(importRow).values(rowValues)] : []),
 		auditInsert({
@@ -410,7 +410,7 @@ export async function commitImport(actor: Actor, batchId: string) {
 	else await commitFlights(actor, rows, statements);
 
 	try {
-		await db.batch(statements);
+		await runBatch(statements);
 	} catch (error) {
 		const code = pgErrorCode(error);
 		if (code === '23P01' || code === '23505') {

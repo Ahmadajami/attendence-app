@@ -1,5 +1,5 @@
 import { auditInsert } from '#lib/server/audit.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import { shiftStartsSchema, type ShiftStarts } from '#lib/schemas/settings.schema.js';
 import { requireActorPermission, type Actor } from '../common.js';
 import { findSetting, upsertSetting } from './settings.crud.js';
@@ -22,7 +22,7 @@ export async function getShiftStarts(actor: Actor): Promise<ShiftStarts | null> 
 export async function setShiftStarts(actor: Actor, input: ShiftStarts): Promise<ShiftStarts> {
 	requireActorPermission(actor, 'settings.manage');
 	const before = await loadShiftStarts();
-	await db.batch([
+	await batch([
 		upsertSetting('roster.shift_starts', input, actor.user.id),
 		auditInsert({
 			actor: actor.user,

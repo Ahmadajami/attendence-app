@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { db } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
 import { damascusDayRange, todayInDamascus } from '#lib/server/time.js';
 import { addDays, startOfDamascusDay } from '#lib/roster/cycle.js';
@@ -211,7 +211,7 @@ function requireFutureDate(date: string, field: string) {
  */
 async function commitVersionChange(audit: BatchQuery, changes: BatchQuery[]): Promise<void> {
 	try {
-		await db.batch([audit, ...changes]);
+		await batch([audit, ...changes]);
 	} catch (error) {
 		if (pgErrorCode(error) === '23P01')
 			throw new ConflictError('pattern_overlap', m.roster_error_overlap(), { cause: error });
@@ -336,7 +336,7 @@ export async function addTeamSupervisor(
 
 	const id = randomUUID();
 	try {
-		await db.batch([
+		await batch([
 			insertSupervisor({ id, teamId, staffId, addedBy: actor.user.id }),
 			auditInsert({
 				actor: actor.user,
@@ -366,7 +366,7 @@ export async function removeTeamSupervisor(
 	const row = await findActiveSupervisor(supervisorId);
 	if (!row || row.teamId !== teamId) throw new NotFoundError(m.roster_error_supervisor_not_found());
 	const person = await requirePerson(row.staffId);
-	await db.batch([
+	await batch([
 		removeSupervisor(row.id, actor.user.id),
 		auditInsert({
 			actor: actor.user,

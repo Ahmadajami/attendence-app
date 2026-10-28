@@ -291,16 +291,24 @@ needs B's connector → S1.6 waits for the user's file format.
       are unchanged, `pnpm install` succeeds
       > note: done 2026-10-28 on `app/main`; baseline `pnpm test` 63/63,
       > `pnpm check` 0 errors / 1 template warning; `.nvmrc` = 24.
-- [ ] S0.3 Local DB: `docker-compose.dev.yml` (`attendance-app-db`,
+- [x] S0.3 Local DB: `docker-compose.dev.yml` (`attendance-app-db`,
       `postgres:16`, `127.0.0.1:5433:5432`, named volume, healthcheck,
       project `attendance-app`); DBs `attendance_app`, `attendance_app_test`;
       `.env` from `~/secure/syravia/attendance_app.env`.
       **Done when** `ss -ltnp` shows 5433 on 127.0.0.1 only
-- [ ] S0.4 Driver + adapter: `postgres.js` (`src/lib/server/db/index.ts`,
+      > note: container `attendance-app-db` healthy; DBs `attendance_app`,
+      > `attendance_app_test` (init script `tools/db/init/10-test-db.sh`);
+      > password + JWT secret in `~/secure/syravia/attendance_app.env`.
+- [x] S0.4 Driver + adapter: `postgres.js` (`src/lib/server/db/index.ts`,
       `scripts/lib.ts`, `src/env.ts`, `.env.example`), 31 `db.batch` →
       `db.transaction` (audit in the same transaction), `adapter-node`,
       remove Neon/Vercel packages and files.
       **Done when** `pnpm check` passes
+      > note: `batch()` helper (`src/lib/server/db/batch.ts`) runs each
+      > query's SQL in one postgres.js transaction, so the 31 call sites only
+      > changed `db.batch` → `batch`; scripts get `connect().batch/close`.
+      > `pnpm check` 0 errors, 63/63 tests; template migrations apply on
+      > `attendance_app_test`.
 - [ ] S0.5 Remove the flight domain and `overtime_approval` (routes,
       services, imports, schema, messages, tests); **new migration baseline**
       + the template's custom SQL (btree_gist EXCLUDE, RBAC seed) as custom

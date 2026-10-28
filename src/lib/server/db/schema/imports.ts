@@ -13,7 +13,7 @@ import {
 import type { ImportIssue, ImportRowData } from '#lib/types/imports.js';
 import { user } from './auth.js';
 
-export const importKind = pgEnum('import_kind', ['staff', 'flights']);
+export const importKind = pgEnum('import_kind', ['staff']);
 
 export const importStatus = pgEnum('import_status', ['previewed', 'committed', 'failed']);
 

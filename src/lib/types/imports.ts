@@ -16,27 +16,8 @@ export type StaffImportData = {
 	teamId: string | null;
 };
 
-export type FlightImportData = {
-	airlineCode: string;
-	flightNo: string;
-	direction: 'arrival' | 'departure';
-	origin: string | null;
-	destination: string | null;
-	scheduledAt: string;
-	aircraftType: string | null;
-	stand: string | null;
-	gate: string | null;
-	imageUrl: string | null;
-	handlingStartsAt: string;
-	handlingEndsAt: string;
-	externalRef: string;
-	source: 'import';
-	/** Provided team to assign; `null` leaves any existing assignment unchanged. */
-	teamId: string | null;
-};
-
-/** `import_row.parsed`. The two shapes are told apart by `'employeeNo' in data` / `'flightNo' in data`. */
-export type ImportRowData = StaffImportData | FlightImportData;
+/** `import_row.parsed`. */
+export type ImportRowData = StaffImportData;
 
 export type ImportRowDraft = {
 	rowNo: number;

@@ -85,7 +85,6 @@
 						<Table.Head>{m.teams_col_members()}</Table.Head>
 						<Table.Head>{m.teams_col_cycle()}</Table.Head>
 						<Table.Head>{m.teams_col_supervisors()}</Table.Head>
-						<Table.Head>{m.teams_col_today()}</Table.Head>
 						<Table.Head>{m.teams_col_status()}</Table.Head>
 						<Table.Head><span class="sr-only">{m.teams_actions({ name: '' })}</span></Table.Head>
 					</Table.Row>
@@ -120,7 +119,6 @@
 									<span class="text-muted-foreground">—</span>
 								{/if}
 							</Table.Cell>
-							<Table.Cell>{team.todayFlights}</Table.Cell>
 							<Table.Cell>
 								<Badge variant={team.active ? 'secondary' : 'outline'}>
 									{team.active ? m.teams_status_active() : m.teams_status_inactive()}
@@ -166,7 +164,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={7} class="h-20 text-center text-muted-foreground">
+							<Table.Cell colspan={6} class="h-20 text-center text-muted-foreground">
 								{m.teams_empty()}
 							</Table.Cell>
 						</Table.Row>

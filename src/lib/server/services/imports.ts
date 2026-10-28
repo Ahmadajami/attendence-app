@@ -10,28 +10,20 @@ import {
 	InvalidInputError,
 	NotFoundError
 } from '#lib/server/errors.js';
-import {
-	auditLog,
-	flight,
-	importBatch,
-	importRow,
-	staff,
-	teamFlightAssignment
-} from '#lib/server/db/schema/index.js';
-import { buildFlightRows } from '#lib/server/imports/flight-import.js';
+import { auditLog, importBatch, importRow, staff } from '#lib/server/db/schema/index.js';
 import { buildStaffRows } from '#lib/server/imports/staff-import.js';
 import { parseUpload, type RawTable } from '#lib/server/imports/parse.js';
 import type { ImportIssue, ImportRowDraft } from '#lib/types/imports.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from './common.js';
 import { membershipChange } from './membership.js';
 
-export type ImportKind = 'staff' | 'flights';
+export type ImportKind = 'staff';
 
 /**
  * `import.run` lets someone upload; what an import writes also needs that domain's write
- * permission, so `import.run` alone never changes staff, flights or assignments.
+ * permission, so `import.run` alone never changes staff.
  */
-const WRITE_PERMISSION = { staff: 'staff.write', flights: 'flight.write' } as const;
+const WRITE_PERMISSION = { staff: 'staff.write' } as const;
 
 function requireImportRun(actor: Actor) {
 	if (!actor.permissions.has('import.run')) throw new ForbiddenError();
@@ -46,7 +38,7 @@ function requireBatchId(id: string): string {
 }
 
 function isKind(value: string): value is ImportKind {
-	return value === 'staff' || value === 'flights';
+	return value === 'staff';
 }
 
 function hasErrors(value: ImportIssue[] | null): boolean {
@@ -64,7 +56,7 @@ function counts(rows: ImportRowDraft[]) {
 }
 
 async function buildRows(kind: ImportKind, table: RawTable) {
-	return kind === 'staff' ? buildStaffRows(table) : buildFlightRows(table);
+	return buildStaffRows(table);
 }
 
 /** Recent uploads, newest first. */
@@ -210,168 +202,6 @@ async function commitStaff(
 	if (auditRows.length > 0) statements.push(db.insert(auditLog).values(auditRows));
 }
 
-async function commitFlights(
-	actor: Actor,
-	rows: (typeof importRow.$inferSelect)[],
-	statements: BatchQuery[]
-) {
-	const updates = rows.filter((row) => row.action === 'update' && row.targetId);
-	const targetIds = updates.map((row) => row.targetId as string);
-	const [existingFlights, assignments] = await Promise.all([
-		targetIds.length > 0
-			? db
-					.select({
-						id: flight.id,
-						airlineCode: flight.airlineCode,
-						flightNo: flight.flightNo,
-						direction: flight.direction,
-						origin: flight.origin,
-						destination: flight.destination,
-						scheduledAt: flight.scheduledAt,
-						aircraftType: flight.aircraftType,
-						stand: flight.stand,
-						gate: flight.gate,
-						imageUrl: flight.imageUrl,
-						handlingStartsAt: flight.handlingStartsAt,
-						handlingEndsAt: flight.handlingEndsAt
-					})
-					.from(flight)
-					.where(inArray(flight.id, targetIds))
-			: [],
-		targetIds.length > 0
-			? db
-					.select()
-					.from(teamFlightAssignment)
-					.where(inArray(teamFlightAssignment.flightId, targetIds))
-			: []
-	]);
-	const existingById = new Map(existingFlights.map((row) => [row.id, row]));
-	const assignmentByFlight = new Map(
-		assignments.filter((row) => row.status === 'assigned').map((row) => [row.flightId, row])
-	);
-	const auditRows: (typeof auditLog.$inferInsert)[] = [];
-
-	for (const row of rows) {
-		const data = row.parsed;
-		if (!data || !('flightNo' in data) || hasErrors(row.errors)) continue;
-		if (row.action !== 'create' && row.action !== 'update') continue;
-		const flightId = row.action === 'create' ? randomUUID() : row.targetId;
-		if (!flightId) continue;
-
-		const values = {
-			airlineCode: data.airlineCode,
-			flightNo: data.flightNo,
-			direction: data.direction,
-			origin: data.origin,
-			destination: data.destination,
-			scheduledAt: new Date(data.scheduledAt),
-			aircraftType: data.aircraftType,
-			stand: data.stand,
-			gate: data.gate,
-			imageUrl: data.imageUrl,
-			handlingStartsAt: new Date(data.handlingStartsAt),
-			handlingEndsAt: new Date(data.handlingEndsAt)
-		};
-
-		if (row.action === 'create') {
-			statements.push(
-				db.insert(flight).values({
-					id: flightId,
-					...values,
-					status: 'scheduled',
-					source: 'import',
-					externalRef: data.externalRef
-				})
-			);
-			auditRows.push({
-				actorUserId: actor.user.id,
-				action: 'flight.import_create',
-				entityType: 'flight',
-				entityId: flightId,
-				after: { ...values, status: 'scheduled', externalRef: data.externalRef }
-			});
-		} else {
-			statements.push(db.update(flight).set(values).where(eq(flight.id, flightId)));
-			auditRows.push({
-				actorUserId: actor.user.id,
-				action: 'flight.import_update',
-				entityType: 'flight',
-				entityId: flightId,
-				before: existingById.get(flightId) ?? null,
-				after: values
-			});
-		}
-
-		const current = assignmentByFlight.get(flightId);
-		const startsAt = new Date(data.handlingStartsAt);
-		const endsAt = new Date(data.handlingEndsAt);
-
-		// Same team (or none named): the active assignment follows the flight's window, so the
-		// overlap constraint always checks the real times (CLAUDE.md §6.2), as `updateFlight` does.
-		if (!data.teamId || data.teamId === current?.teamId) {
-			if (
-				current &&
-				(current.startsAt.getTime() !== startsAt.getTime() ||
-					current.endsAt.getTime() !== endsAt.getTime())
-			) {
-				statements.push(
-					db
-						.update(teamFlightAssignment)
-						.set({ startsAt, endsAt })
-						.where(eq(teamFlightAssignment.id, current.id))
-				);
-				auditRows.push({
-					actorUserId: actor.user.id,
-					action: 'assignment.import_move',
-					entityType: 'team_flight_assignment',
-					entityId: current.id,
-					before: { startsAt: current.startsAt, endsAt: current.endsAt },
-					after: { startsAt, endsAt }
-				});
-			}
-			continue;
-		}
-
-		if (current) {
-			statements.push(
-				db
-					.update(teamFlightAssignment)
-					.set({ status: 'cancelled' })
-					.where(eq(teamFlightAssignment.id, current.id))
-			);
-			auditRows.push({
-				actorUserId: actor.user.id,
-				action: 'assignment.import_cancel',
-				entityType: 'team_flight_assignment',
-				entityId: current.id,
-				before: { teamId: current.teamId, status: current.status },
-				after: { status: 'cancelled' }
-			});
-		}
-
-		const assignmentId = randomUUID();
-		statements.push(
-			db.insert(teamFlightAssignment).values({
-				id: assignmentId,
-				teamId: data.teamId,
-				flightId,
-				startsAt,
-				endsAt,
-				assignedBy: actor.user.id
-			})
-		);
-		auditRows.push({
-			actorUserId: actor.user.id,
-			action: 'assignment.import_assign',
-			entityType: 'team_flight_assignment',
-			entityId: assignmentId,
-			after: { teamId: data.teamId, flightId, startsAt, endsAt }
-		});
-	}
-
-	if (auditRows.length > 0) statements.push(db.insert(auditLog).values(auditRows));
-}
-
 /** Apply every create / update row, mark the batch committed and audit it in one transaction. */
 export async function commitImport(actor: Actor, batchId: string) {
 	requireImportRun(actor);
@@ -387,10 +217,6 @@ export async function commitImport(actor: Actor, batchId: string) {
 
 	const rows = batch.rows;
 	requireActorPermission(actor, WRITE_PERMISSION[batch.kind]);
-	const assignsTeams = rows.some(
-		(row) => row.parsed && 'flightNo' in row.parsed && row.parsed.teamId !== null
-	);
-	if (assignsTeams) requireActorPermission(actor, 'assignment.write');
 	const statements: [BatchQuery, ...BatchQuery[]] = [
 		db.update(importBatch).set({ status: 'committed' }).where(eq(importBatch.id, batchId)),
 		db.insert(auditLog).values({
@@ -406,8 +232,7 @@ export async function commitImport(actor: Actor, batchId: string) {
 		})
 	];
 
-	if (batch.kind === 'staff') await commitStaff(actor, rows, statements);
-	else await commitFlights(actor, rows, statements);
+	await commitStaff(actor, rows, statements);
 
 	try {
 		await runBatch(statements);

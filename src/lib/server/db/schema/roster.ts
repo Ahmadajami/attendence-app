@@ -3,7 +3,6 @@ import {
 	check,
 	date,
 	index,
-	integer,
 	pgEnum,
 	pgTable,
 	text,
@@ -133,40 +132,6 @@ export const rosterOverride = pgTable(
 	]
 );
 
-/**
- * An admin's approval of one person's overtime on one shift date (`overtime.approve`). `minutes` is
- * what was approved (rounded to 15 min); when later corrections change the computed overtime, the
- * day shows "changed since approval". Revoked, never deleted.
- */
-export const overtimeApproval = pgTable(
-	'overtime_approval',
-	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		staffId: uuid('staff_id')
-			.notNull()
-			.references(() => staff.id, { onDelete: 'restrict' }),
-		shiftDate: date('shift_date', { mode: 'string' }).notNull(),
-		shiftKind: shiftKind('shift_kind').notNull(),
-		minutes: integer('minutes').notNull(),
-		approvedBy: uuid('approved_by').references(() => user.id, { onDelete: 'set null' }),
-		approvedAt: timestamp('approved_at', { withTimezone: true }).notNull().defaultNow(),
-		revokedBy: uuid('revoked_by').references(() => user.id, { onDelete: 'set null' }),
-		revokedAt: timestamp('revoked_at', { withTimezone: true }),
-		updatedAt: timestamp('updated_at', { withTimezone: true })
-			.notNull()
-			.defaultNow()
-			.$onUpdate(() => new Date())
-	},
-	(t) => [
-		uniqueIndex('overtime_approval_active_unique')
-			.on(t.staffId, t.shiftDate)
-			.where(sql`${t.revokedAt} IS NULL`),
-		index('overtime_approval_date_idx').on(t.shiftDate),
-		check('overtime_approval_minutes', sql`${t.minutes} > 0 AND ${t.minutes} % 15 = 0`),
-		check('overtime_approval_worked_kind', sql`${t.shiftKind} <> 'off'`)
-	]
-);
-
 export const shiftPatternRelations = relations(shiftPattern, ({ one }) => ({
 	team: one(team, { fields: [shiftPattern.teamId], references: [team.id] }),
 	staff: one(staff, { fields: [shiftPattern.staffId], references: [staff.id] })
@@ -181,15 +146,9 @@ export const rosterOverrideRelations = relations(rosterOverride, ({ one }) => ({
 	staff: one(staff, { fields: [rosterOverride.staffId], references: [staff.id] })
 }));
 
-export const overtimeApprovalRelations = relations(overtimeApproval, ({ one }) => ({
-	staff: one(staff, { fields: [overtimeApproval.staffId], references: [staff.id] })
-}));
-
 export type ShiftPattern = typeof shiftPattern.$inferSelect;
 export type NewShiftPattern = typeof shiftPattern.$inferInsert;
 export type TeamSupervisor = typeof teamSupervisor.$inferSelect;
 export type NewTeamSupervisor = typeof teamSupervisor.$inferInsert;
 export type RosterOverride = typeof rosterOverride.$inferSelect;
 export type NewRosterOverride = typeof rosterOverride.$inferInsert;
-export type OvertimeApproval = typeof overtimeApproval.$inferSelect;
-export type NewOvertimeApproval = typeof overtimeApproval.$inferInsert;

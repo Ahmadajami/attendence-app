@@ -6,7 +6,7 @@ export type AuditActor = { id: string } | null;
 
 export type AuditEntry = {
 	actor: AuditActor;
-	/** Dotted verb, e.g. `user.create`, `user.password_reset`, `flight.cancel`. */
+	/** Dotted verb, e.g. `user.create`, `user.password_reset`, `team.rename`. */
 	action: string;
 	entityType: string;
 	entityId: string;

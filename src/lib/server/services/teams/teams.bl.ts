@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { batch, db } from '#lib/server/db/index.js';
+import { batch } from '#lib/server/db/index.js';
 import { ConflictError, NotFoundError } from '#lib/server/errors.js';
 import { damascusDayRange } from '#lib/server/time.js';
 import type { ShiftKind } from '#lib/schemas/enums.js';
@@ -12,8 +12,6 @@ import { listActiveSupervisors, listTeamPatternsOn } from '../roster/roster.crud
 import {
 	countActiveMembers,
 	countActiveMembersByTeam,
-	countFlightsByTeam,
-	countFutureAssignments,
 	findTeam,
 	insertTeam,
 	listTeams as listTeamRows,
@@ -24,7 +22,6 @@ import {
 
 export type TeamListItem = TeamRow & {
 	memberCount: number;
-	todayFlights: number;
 	/** The cycle in force today, or `null` when the team has none. */
 	cycle: ShiftKind[] | null;
 	supervisors: { staffId: string; fullName: string; fullNameAr: string | null }[];
@@ -44,27 +41,24 @@ function duplicateName(error: unknown): ConflictError | undefined {
 	});
 }
 
-/** Teams with active member count, flights today, today's cycle and supervisors (Damascus). */
+/** Teams with active member count, today's cycle and supervisors. */
 export async function listTeams(actor: Actor, day?: string): Promise<TeamListItem[]> {
 	requireActorPermission(actor, 'staff.write');
 	const range = damascusDayRange(day);
 
-	const [teams, members, flights, patterns, supervisors] = await Promise.all([
+	const [teams, members, patterns, supervisors] = await Promise.all([
 		listTeamRows(),
 		countActiveMembersByTeam(),
-		countFlightsByTeam(range.start, range.end),
 		listTeamPatternsOn(range.day),
 		listActiveSupervisors()
 	]);
 
 	const memberByTeam = new Map(members.map((row) => [row.teamId, row.count]));
-	const flightByTeam = new Map(flights.map((row) => [row.teamId, row.count]));
 	const cycleByTeam = new Map(patterns.map((row) => [row.teamId, row.cycle]));
 
 	return teams.map((row) => ({
 		...row,
 		memberCount: memberByTeam.get(row.id) ?? 0,
-		todayFlights: flightByTeam.get(row.id) ?? 0,
 		cycle: cycleByTeam.get(row.id) ?? null,
 		supervisors: supervisors
 			.filter((s) => s.teamId === row.id)
@@ -118,8 +112,7 @@ export async function renameTeam(actor: Actor, id: string, input: TeamInput): Pr
 }
 
 /**
- * Deactivating is blocked while the team still has a future active assignment, and clears the
- * team of its members. Never hard-deletes (CLAUDE.md §6.6).
+ * Deactivating clears the team of its members. Never hard-deletes (CLAUDE.md §6.6).
  */
 export async function setTeamActive(actor: Actor, id: string, active: boolean): Promise<TeamRow> {
 	requireActorPermission(actor, 'staff.write');
@@ -128,9 +121,6 @@ export async function setTeamActive(actor: Actor, id: string, active: boolean): 
 
 	let memberCount = 0;
 	if (!active) {
-		if ((await countFutureAssignments(id, new Date())) > 0) {
-			throw new ConflictError('has_future_assignments', m.teams_error_future_assignments());
-		}
 		memberCount = await countActiveMembers(id);
 	}
 

@@ -2,9 +2,6 @@
 // and adding a new seed migration (CLAUDE.md §7).
 
 export const PERMISSIONS = [
-	'flight.read',
-	'flight.write',
-	'assignment.write',
 	'attendance.record',
 	'staff.write',
 	'import.run',
@@ -14,8 +11,7 @@ export const PERMISSIONS = [
 	'user.issue_code',
 	'settings.manage',
 	'audit.read',
-	'roster.manage',
-	'overtime.approve'
+	'roster.manage'
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number];

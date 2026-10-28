@@ -1,4 +1,3 @@
-import type { OvertimeApproval } from '#lib/server/db/schema/index.js';
 import { LONG_DAY_WARNING_MINUTES, OVERTIME_ROUNDING_MINUTES, SHIFT_MINUTES } from './rules.js';
 
 export type Overtime = {
@@ -31,10 +30,13 @@ export function computeOvertime(workedMinutes: number, allOvertime: boolean): Ov
 /** `none`: nothing to approve; `pending`: not approved yet; `changed`: approved, then corrected. */
 export type ApprovalState = 'none' | 'pending' | 'approved' | 'changed';
 
-export function approvalState(
-	minutes: number,
-	approval: Pick<OvertimeApproval, 'minutes'> | null
-): ApprovalState {
+/**
+ * Minutes someone approved for a day. The template's `overtime_approval` table was removed (payroll
+ * uses the Odoo rules, plan D19); this shape stays until `src/lib/payroll/` replaces these rules.
+ */
+export type ApprovedOvertime = { minutes: number };
+
+export function approvalState(minutes: number, approval: ApprovedOvertime | null): ApprovalState {
 	if (approval) return approval.minutes === minutes ? 'approved' : 'changed';
 	return minutes > 0 ? 'pending' : 'none';
 }

@@ -3,7 +3,7 @@ import type { Path, ResolvedPathname } from '$app/types';
 import { localizeHref, type Locale } from '#lib/paraglide/runtime.js';
 
 /**
- * Every real URL path in the app with a leading slash, e.g. `/`, `/login`, `/flights/123`.
+ * Every real URL path in the app with a leading slash, e.g. `/`, `/login`, `/employees/123`.
  * Route groups like `(app)` are not part of it.
  */
 export type AppPath = `/${Path}`;

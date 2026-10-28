@@ -5,85 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1793002755403,
-      "tag": "0000_auth_rbac_audit",
+      "when": 1793179524220,
+      "tag": "0000_baseline",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1793002768098,
-      "tag": "0001_seed_rbac",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1793004701087,
-      "tag": "0002_session_client",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1793005660297,
-      "tag": "0003_user_credential_policy",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1793005661329,
-      "tag": "0004_seed_issue_code",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1793008727117,
-      "tag": "0005_drop_must_change_password",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1793015823457,
-      "tag": "0006_mixed_namora",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1793015832316,
-      "tag": "0007_operations_constraints_seed",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1793022027687,
-      "tag": "0008_closed_kylun",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1793022071888,
-      "tag": "0009_membership_constraints_backfill",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1793092711900,
-      "tag": "0010_crazy_leo",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1793092721897,
-      "tag": "0011_roster_constraints_seed",
+      "when": 1793179525157,
+      "tag": "0001_constraints_seed",
       "breakpoints": true
     }
   ]

@@ -1,7 +1,13 @@
 import type { AttendanceEventType } from '#lib/schemas/enums.js';
-import type { AttendanceEvent, OvertimeApproval } from '#lib/server/db/schema/index.js';
+import type { AttendanceEvent } from '#lib/server/db/schema/index.js';
 import { shiftWindow, type WorkKind } from './cycle.js';
-import { approvalState, computeOvertime, type ApprovalState, type Overtime } from './overtime.js';
+import {
+	approvalState,
+	computeOvertime,
+	type ApprovalState,
+	type ApprovedOvertime,
+	type Overtime
+} from './overtime.js';
 import type { RosterDay } from './roster.js';
 import {
 	ATTRIBUTION_AFTER_MINUTES,
@@ -137,7 +143,7 @@ export function shiftSummary(
 	day: RosterDay,
 	events: readonly AttendanceEntry[],
 	now: Date,
-	approval: Pick<OvertimeApproval, 'minutes'> | null = null
+	approval: ApprovedOvertime | null = null
 ): ShiftSummary {
 	const effective = effectiveEvents(events);
 	const scheduled = day.kind !== 'off' && day.start !== null;

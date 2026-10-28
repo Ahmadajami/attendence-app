@@ -15,7 +15,7 @@
 	let { data, form }: PageProps = $props();
 
 	function kindLabel(kind: string) {
-		return kind === 'staff' ? m.imports_kind_staff() : m.imports_kind_flights();
+		return kind === 'staff' ? m.imports_kind_staff() : kind;
 	}
 
 	function statusLabel(status: string) {
@@ -51,7 +51,6 @@
 							class="h-8 w-full rounded-none border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 dark:bg-input/30"
 						>
 							<option value="staff">{m.imports_kind_staff()}</option>
-							<option value="flights">{m.imports_kind_flights()}</option>
 						</select>
 					</div>
 
@@ -93,14 +92,6 @@
 				>
 					<FileArrowDownIcon data-icon="inline-start" />
 					{m.imports_template_staff()}
-				</Button>
-				<Button
-					variant="outline"
-					href={localizedHref('/imports/template/[kind]', { kind: 'flights' })}
-					download
-				>
-					<FileArrowDownIcon data-icon="inline-start" />
-					{m.imports_template_flights()}
 				</Button>
 			</Card.Content>
 		</Card.Root>

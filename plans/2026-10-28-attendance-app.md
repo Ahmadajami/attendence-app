@@ -309,12 +309,22 @@ needs B's connector → S1.6 waits for the user's file format.
       > changed `db.batch` → `batch`; scripts get `connect().batch/close`.
       > `pnpm check` 0 errors, 63/63 tests; template migrations apply on
       > `attendance_app_test`.
-- [ ] S0.5 Remove the flight domain and `overtime_approval` (routes,
+- [x] S0.5 Remove the flight domain and `overtime_approval` (routes,
       services, imports, schema, messages, tests); **new migration baseline**
       + the template's custom SQL (btree_gist EXCLUDE, RBAC seed) as custom
       migrations; header period/department filters (F1) as placeholders.
       **Done when** `pnpm db:migrate` works on an empty `attendance_app`;
       `pnpm check`, `pnpm lint` (touched), `pnpm test` green
+      > note: flight routes/services/schema/import/messages (85 keys) and
+      > `overtime_approval` removed; teams lost the "flights today" column
+      > and the future-assignment block. New baseline `0000_baseline` (19
+      > tables) + `0001_constraints_seed` (btree_gist, 4 EXCLUDE constraints,
+      > roles/permissions without flight keys, staff functions); applied on
+      > `attendance_app`; no schema drift. The template's `src/lib/roster/`
+      > attendance/overtime rules keep a local `ApprovedOvertime` type until
+      > the payroll engine replaces them. F1 header filters moved to S3.2
+      > (no data to filter yet). `attendance_app_test` still has the old
+      > template schema: reset it (ask first) before Playwright.
 - [ ] S0.6 `AUTH_MODE=local_single_user` (§8) + Vitest for the guard; merge
       the template conventions into `CLAUDE.md` §3 (drop flight/Neon/Vercel
       parts).

@@ -19,8 +19,7 @@
 	type Row = (typeof data.batch.rows)[number];
 
 	const KIND_LABEL = {
-		staff: m.imports_kind_staff,
-		flights: m.imports_kind_flights
+		staff: m.imports_kind_staff
 	};
 
 	const STATUS_LABEL = {
@@ -41,17 +40,7 @@
 		full_name_ar: m.imports_field_full_name_ar,
 		phone: m.imports_field_phone,
 		function: m.imports_field_function,
-		team: m.imports_field_team,
-		airline_code: m.imports_field_airline_code,
-		flight_no: m.imports_field_flight_no,
-		direction: m.imports_field_direction,
-		origin: m.imports_field_origin,
-		destination: m.imports_field_destination,
-		scheduled_at: m.imports_field_scheduled_at,
-		aircraft_type: m.imports_field_aircraft_type,
-		stand: m.imports_field_stand,
-		gate: m.imports_field_gate,
-		image_url: m.imports_field_image_url
+		team: m.imports_field_team
 	};
 
 	const ERROR_LABEL: Record<string, () => string> = {
@@ -59,10 +48,7 @@
 		invalid_employee_no: m.imports_error_invalid_employee_no,
 		duplicate_in_file: m.imports_error_duplicate_in_file,
 		unknown_function: m.imports_error_unknown_function,
-		unknown_team: m.imports_error_unknown_team,
-		invalid_datetime: m.imports_error_invalid_datetime,
-		invalid_direction: m.imports_error_invalid_direction,
-		invalid_url: m.imports_error_invalid_url
+		unknown_team: m.imports_error_unknown_team
 	};
 
 	function issues(row: Row): ImportIssue[] {
@@ -79,16 +65,7 @@
 
 	function rowLabel(row: Row) {
 		const value = row.parsed;
-		if (value && 'employeeNo' in value) return `${value.employeeNo} · ${value.fullName}`;
-		if (value && 'flightNo' in value) {
-			const direction =
-				value.direction === 'arrival'
-					? m.imports_direction_arrival()
-					: m.imports_direction_departure();
-			return `${value.airlineCode} ${value.flightNo} · ${direction} · ${formatDateTime(
-				new Date(value.scheduledAt)
-			)}`;
-		}
+		if (value) return `${value.employeeNo} · ${value.fullName}`;
 		return Object.values(row.raw ?? {})
 			.filter(Boolean)
 			.slice(0, 4)

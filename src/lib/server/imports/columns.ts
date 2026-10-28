@@ -9,19 +9,6 @@ export type ColumnSpec<Field extends string> = {
 export type StaffField =
 	'employee_no' | 'full_name' | 'full_name_ar' | 'phone' | 'function' | 'team';
 
-export type FlightField =
-	| 'airline_code'
-	| 'flight_no'
-	| 'direction'
-	| 'origin'
-	| 'destination'
-	| 'scheduled_at'
-	| 'aircraft_type'
-	| 'stand'
-	| 'gate'
-	| 'image_url'
-	| 'team';
-
 /**
  * The single place to edit for a real Odoo export. Headers are matched after normalisation
  * (case, spaces, underscores, punctuation and Arabic-Indic digits are ignored).
@@ -72,46 +59,6 @@ export const STAFF_COLUMNS: ColumnSpec<StaffField>[] = [
 			'القسم',
 			'المسمى الوظيفي'
 		]
-	},
-	{ field: 'team', headers: ['team', 'الفريق', 'فريق'] }
-];
-
-export const FLIGHT_COLUMNS: ColumnSpec<FlightField>[] = [
-	{
-		field: 'airline_code',
-		headers: ['airline_code', 'airline code', 'airline', 'carrier', 'رمز الشركة', 'شركة الطيران']
-	},
-	{
-		field: 'flight_no',
-		headers: ['flight_no', 'flight no', 'flight number', 'flight', 'رقم الرحلة', 'الرحلة']
-	},
-	{ field: 'direction', headers: ['direction', 'نوع الرحلة', 'الاتجاه'] },
-	{ field: 'origin', headers: ['origin', 'from', 'من', 'المصدر'] },
-	{ field: 'destination', headers: ['destination', 'to', 'إلى', 'الوجهة'] },
-	{
-		field: 'scheduled_at',
-		headers: [
-			'scheduled_at',
-			'scheduled at',
-			'scheduled',
-			'scheduled date time',
-			'datetime',
-			'date time',
-			'sta',
-			'std',
-			'الموعد المجدول',
-			'التاريخ والوقت'
-		]
-	},
-	{
-		field: 'aircraft_type',
-		headers: ['aircraft_type', 'aircraft type', 'aircraft', 'نوع الطائرة']
-	},
-	{ field: 'stand', headers: ['stand', 'الموقف'] },
-	{ field: 'gate', headers: ['gate', 'البوابة'] },
-	{
-		field: 'image_url',
-		headers: ['image_url', 'image url', 'image', 'logo', 'رابط الصورة', 'الصورة']
 	},
 	{ field: 'team', headers: ['team', 'الفريق', 'فريق'] }
 ];

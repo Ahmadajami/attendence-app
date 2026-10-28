@@ -15,7 +15,7 @@ export const staffFunction = pgTable('staff_function', {
 		.$onUpdate(() => new Date())
 });
 
-/** A group of staff assigned to flights as a unit. Deactivated, never deleted. */
+/** A group of staff that works and is rostered as a unit. Deactivated, never deleted. */
 export const team = pgTable('team', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	nameEn: text('name_en').notNull().unique(),
@@ -61,7 +61,7 @@ export const staff = pgTable(
 
 /**
  * Who was in which team, and when (OPERATIONS_PLAN X6). `staff.team_id` is the current team; this is
- * its history, so the daily report can tell who worked a flight after people move. `valid_to` is
+ * its history, so reports can tell who was in which team after people move. `valid_to` is
  * `null` while the membership is open. A custom migration adds `EXCLUDE USING gist (staff_id WITH =,
  * tstzrange(valid_from, valid_to, '[)') WITH &&)`, so one person is in one team at a time.
  * Insert / close only, in the same `db.batch` as the `staff.team_id` change.

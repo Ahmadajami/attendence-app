@@ -1,5 +1,16 @@
 import { relations, sql } from 'drizzle-orm';
-import { boolean, check, index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+	boolean,
+	check,
+	date,
+	index,
+	pgTable,
+	text,
+	timestamp,
+	unique,
+	uuid,
+	type AnyPgColumn
+} from 'drizzle-orm/pg-core';
 import { user } from './auth.js';
 
 /** Configurable lookup (ramp, baggage, check-in, gate…). Seeded in a custom migration. */
@@ -15,6 +26,38 @@ export const staffFunction = pgTable('staff_function', {
 		.$onUpdate(() => new Date())
 });
 
+/**
+ * The department tree, managed in the app (plan D25: seeded once from Odoo, `odoo_id` kept for
+ * seeded rows). A name is unique among its siblings. Deactivated, never deleted; the BL refuses
+ * moves that would make a department its own ancestor.
+ */
+export const department = pgTable(
+	'department',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		nameEn: text('name_en').notNull(),
+		nameAr: text('name_ar').notNull(),
+		parentId: uuid('parent_id').references((): AnyPgColumn => department.id, {
+			onDelete: 'restrict'
+		}),
+		managerStaffId: uuid('manager_staff_id').references((): AnyPgColumn => staff.id, {
+			onDelete: 'set null'
+		}),
+		active: boolean('active').notNull().default(true),
+		odooId: text('odoo_id').unique(),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		index('department_parent_id_idx').on(t.parentId),
+		unique('department_sibling_name_unique').on(t.parentId, t.nameEn).nullsNotDistinct(),
+		check('department_not_own_parent', sql`${t.parentId} IS NULL OR ${t.parentId} <> ${t.id}`)
+	]
+);
+
 /** A group of staff that works and is rostered as a unit. Deactivated, never deleted. */
 export const team = pgTable('team', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -28,7 +71,10 @@ export const team = pgTable('team', {
 		.$onUpdate(() => new Date())
 });
 
-/** A staff member. At most one team (`team_id`), deactivated instead of deleted. */
+/**
+ * A staff member (managed in the app, plan D25). New hires get a generated `employee_no` (D28).
+ * At most one team (`team_id`) and one department; deactivated instead of deleted.
+ */
 export const staff = pgTable(
 	'staff',
 	{
@@ -37,9 +83,13 @@ export const staff = pgTable(
 		fullName: text('full_name').notNull(),
 		fullNameAr: text('full_name_ar'),
 		phone: text('phone'),
-		functionId: uuid('function_id')
-			.notNull()
-			.references(() => staffFunction.id, { onDelete: 'restrict' }),
+		functionId: uuid('function_id').references(() => staffFunction.id, { onDelete: 'restrict' }),
+		departmentId: uuid('department_id').references((): AnyPgColumn => department.id, {
+			onDelete: 'restrict'
+		}),
+		/** Where Odoo sends this person's attendance emails (plan D26). */
+		workEmail: text('work_email'),
+		startDate: date('start_date', { mode: 'string' }),
 		teamId: uuid('team_id').references(() => team.id, { onDelete: 'set null' }),
 		userId: uuid('user_id')
 			.unique()
@@ -55,6 +105,7 @@ export const staff = pgTable(
 	(t) => [
 		index('staff_function_id_idx').on(t.functionId),
 		index('staff_team_id_idx').on(t.teamId),
+		index('staff_department_id_idx').on(t.departmentId),
 		check('staff_employee_no_digits', sql`${t.employeeNo} ~ '^[0-9]+$'`)
 	]
 );
@@ -94,6 +145,21 @@ export const staffFunctionRelations = relations(staffFunction, ({ many }) => ({
 	staff: many(staff)
 }));
 
+export const departmentRelations = relations(department, ({ one, many }) => ({
+	parent: one(department, {
+		fields: [department.parentId],
+		references: [department.id],
+		relationName: 'department_parent'
+	}),
+	children: many(department, { relationName: 'department_parent' }),
+	manager: one(staff, {
+		fields: [department.managerStaffId],
+		references: [staff.id],
+		relationName: 'department_manager'
+	}),
+	members: many(staff, { relationName: 'staff_department' })
+}));
+
 export const teamRelations = relations(team, ({ many }) => ({
 	members: many(staff),
 	memberships: many(staffTeamMembership)
@@ -105,6 +171,12 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 		references: [staffFunction.id]
 	}),
 	team: one(team, { fields: [staff.teamId], references: [team.id] }),
+	department: one(department, {
+		fields: [staff.departmentId],
+		references: [department.id],
+		relationName: 'staff_department'
+	}),
+	managedDepartments: many(department, { relationName: 'department_manager' }),
 	user: one(user, { fields: [staff.userId], references: [user.id] }),
 	memberships: many(staffTeamMembership)
 }));
@@ -116,6 +188,8 @@ export const staffTeamMembershipRelations = relations(staffTeamMembership, ({ on
 
 export type StaffFunction = typeof staffFunction.$inferSelect;
 export type NewStaffFunction = typeof staffFunction.$inferInsert;
+export type Department = typeof department.$inferSelect;
+export type NewDepartment = typeof department.$inferInsert;
 export type Team = typeof team.$inferSelect;
 export type NewTeam = typeof team.$inferInsert;
 export type Staff = typeof staff.$inferSelect;

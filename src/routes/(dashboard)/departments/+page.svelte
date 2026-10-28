@@ -1,0 +1,183 @@
+<script lang="ts">
+	import { tick } from 'svelte';
+	import { toast } from 'svelte-sonner';
+	import { enhance, type SubmitFunction } from '$app/forms';
+	import DotsThreeIcon from 'phosphor-svelte/lib/DotsThreeIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import ProhibitIcon from 'phosphor-svelte/lib/ProhibitIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
+	import { Badge } from '#lib/components/ui/badge/index.js';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
+	import * as Table from '#lib/components/ui/table/index.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { lookupName, personName } from '#lib/utils/locale.js';
+	import DepartmentFormSheet from './DepartmentFormSheet.svelte';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
+	type Department = (typeof data.departments)[number];
+
+	let formOpen = $state(false);
+	let target = $state<Department | null>(null);
+
+	function openCreate() {
+		target = null;
+		formOpen = true;
+	}
+
+	function openEdit(row: Department) {
+		target = row;
+		formOpen = true;
+	}
+
+	let activeForm: HTMLFormElement | null = $state(null);
+	let activeRequest = $state({ departmentId: '', active: 'false' });
+
+	async function setActive(row: Department, active: boolean) {
+		activeRequest = { departmentId: row.id, active: String(active) };
+		await tick();
+		activeForm?.requestSubmit();
+	}
+
+	const toastNotice: SubmitFunction = () => {
+		return async ({ result, update }) => {
+			if (result.type === 'success' || result.type === 'failure') {
+				const notice = result.data?.notice;
+				if (typeof notice === 'string') {
+					if (result.type === 'success') toast.success(notice);
+					else toast.error(notice);
+				}
+			}
+			await update();
+		};
+	};
+</script>
+
+<svelte:head>
+	<title>{m.departments_title()} · {m.app_name()}</title>
+</svelte:head>
+
+<section class="flex flex-col gap-4">
+	<div class="flex flex-wrap items-start justify-between gap-4">
+		<div class="flex flex-col gap-1">
+			<h2 class="text-2xl font-semibold tracking-tight">{m.departments_title()}</h2>
+			<p class="max-w-prose text-muted-foreground">{m.departments_description()}</p>
+		</div>
+		<Button onclick={openCreate}>
+			<PlusIcon data-icon="inline-start" />
+			{m.departments_new()}
+		</Button>
+	</div>
+
+	<Card.Root>
+		<Card.Content class="px-0">
+			<Table.Root>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head>{m.departments_col_name()}</Table.Head>
+						<Table.Head>{m.departments_col_manager()}</Table.Head>
+						<Table.Head>{m.departments_col_staff()}</Table.Head>
+						<Table.Head>{m.departments_col_status()}</Table.Head>
+						<Table.Head>
+							<span class="sr-only">{m.departments_actions({ name: '' })}</span>
+						</Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
+					{#each data.departments as row (row.id)}
+						<Table.Row class={row.active ? undefined : 'text-muted-foreground'}>
+							<Table.Cell class="font-medium">
+								<span
+									class="inline-flex flex-col"
+									style:padding-inline-start="{row.depth * 1.25}rem"
+								>
+									<span>{lookupName(row)}</span>
+									{#if row.activeChildCount > 0}
+										<span class="text-xs font-normal text-muted-foreground">
+											{m.departments_sub_count({ count: row.activeChildCount })}
+										</span>
+									{/if}
+								</span>
+							</Table.Cell>
+							<Table.Cell class="text-sm">
+								{row.manager ? personName(row.manager) : '—'}
+							</Table.Cell>
+							<Table.Cell>
+								<span class="inline-flex items-center gap-1.5 text-muted-foreground">
+									<UsersThreeIcon class="size-4" />
+									{row.staffCount}
+								</span>
+							</Table.Cell>
+							<Table.Cell>
+								<Badge variant={row.active ? 'secondary' : 'outline'}>
+									{row.active ? m.departments_status_active() : m.departments_status_inactive()}
+								</Badge>
+							</Table.Cell>
+							<Table.Cell class="text-end">
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger>
+										{#snippet child({ props })}
+											<Button
+												{...props}
+												variant="ghost"
+												size="icon"
+												aria-label={m.departments_actions({ name: lookupName(row) })}
+											>
+												<DotsThreeIcon />
+											</Button>
+										{/snippet}
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content align="end">
+										<DropdownMenu.Item onSelect={() => openEdit(row)}>
+											<PencilSimpleIcon />
+											{m.departments_edit()}
+										</DropdownMenu.Item>
+										<DropdownMenu.Separator />
+										{#if row.active}
+											<DropdownMenu.Item
+												variant="destructive"
+												onSelect={() => setActive(row, false)}
+											>
+												<ProhibitIcon />
+												{m.departments_deactivate()}
+											</DropdownMenu.Item>
+										{:else}
+											<DropdownMenu.Item onSelect={() => setActive(row, true)}>
+												<CheckCircleIcon />
+												{m.departments_activate()}
+											</DropdownMenu.Item>
+										{/if}
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</Table.Cell>
+						</Table.Row>
+					{:else}
+						<Table.Row>
+							<Table.Cell colspan={5} class="h-20 text-center text-muted-foreground">
+								{m.departments_empty()}
+							</Table.Cell>
+						</Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
+		</Card.Content>
+	</Card.Root>
+</section>
+
+<form bind:this={activeForm} method="POST" action="?/setActive" use:enhance={toastNotice} hidden>
+	<input type="hidden" name="departmentId" value={activeRequest.departmentId} />
+	<input type="hidden" name="active" value={activeRequest.active} />
+</form>
+
+<DepartmentFormSheet
+	data={data.form}
+	{target}
+	departments={data.departments}
+	managers={data.managers}
+	bind:open={formOpen}
+/>

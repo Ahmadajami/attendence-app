@@ -11,7 +11,12 @@
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { ID_DIGITS } from '#lib/schemas/auth.schema.js';
-	import type { StaffFunctionOption, StaffRow, TeamOption } from '#lib/types/workforce.js';
+	import type {
+		DepartmentOption,
+		StaffFunctionOption,
+		StaffRow,
+		TeamOption
+	} from '#lib/types/workforce.js';
 	import { endSide, lookupName, personName, teamName } from '#lib/utils/locale.js';
 	import { staffFormSchema, type StaffMessage } from './schema.js';
 
@@ -19,11 +24,12 @@
 		data: SuperValidated<Infer<typeof staffFormSchema>, StaffMessage>;
 		target: StaffRow | null;
 		functions: StaffFunctionOption[];
+		departments: DepartmentOption[];
 		teams: TeamOption[];
 		open: boolean;
 	};
 
-	let { data, target, functions, teams, open = $bindable() }: Props = $props();
+	let { data, target, functions, departments, teams, open = $bindable() }: Props = $props();
 
 	const form = superForm(
 		untrack(() => data),
@@ -49,11 +55,16 @@
 		$formData.fullName = target?.fullName ?? '';
 		$formData.fullNameAr = target?.fullNameAr ?? '';
 		$formData.phone = target?.phone ?? '';
-		$formData.functionId = target?.function.id ?? functions[0]?.id ?? '';
+		$formData.workEmail = target?.workEmail ?? '';
+		$formData.startDate = target?.startDate ?? '';
+		$formData.functionId = target?.function?.id ?? '';
+		$formData.departmentId = target?.department?.id ?? '';
 		$formData.teamId = target?.team?.id ?? '';
 	});
 
 	const teamValue = $derived($formData.teamId || 'none');
+	const departmentValue = $derived($formData.departmentId || 'none');
+	const functionValue = $derived($formData.functionId || 'none');
 
 	function digitsOnly(event: InputEvent) {
 		const text = event.data ?? event.dataTransfer?.getData('text/plain') ?? '';
@@ -85,10 +96,14 @@
 							inputmode="numeric"
 							autocomplete="off"
 							dir="ltr"
+							placeholder={target ? undefined : m.staff_employee_no_generated()}
 							onbeforeinput={digitsOnly}
 						/>
 					{/snippet}
 				</Form.Control>
+				{#if !target}
+					<Form.Description>{m.staff_employee_no_hint()}</Form.Description>
+				{/if}
 				<Form.FieldErrors />
 			</Form.Field>
 
@@ -122,20 +137,77 @@
 				<Form.FieldErrors />
 			</Form.Field>
 
+			<Form.Field {form} name="workEmail">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>{m.staff_field_work_email()}</Form.Label>
+						<Input
+							{...props}
+							bind:value={$formData.workEmail}
+							type="email"
+							dir="ltr"
+							autocomplete="off"
+						/>
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+
+			<Form.Field {form} name="startDate">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>{m.staff_field_start_date()}</Form.Label>
+						<Input {...props} bind:value={$formData.startDate} type="date" dir="ltr" />
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+
+			<Form.Field {form} name="departmentId">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>{m.staff_field_department()}</Form.Label>
+						<!-- "No department" is the `none` item only inside the select; post '' or an id. -->
+						<input type="hidden" name={props.name} value={$formData.departmentId} />
+						<Select.Root
+							type="single"
+							value={departmentValue}
+							onValueChange={(value) => ($formData.departmentId = value === 'none' ? '' : value)}
+						>
+							<Select.Trigger {...props} class="w-full">
+								{departmentValue === 'none'
+									? m.staff_no_department()
+									: lookupName(departments.find((d) => d.id === departmentValue) ?? departments[0])}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="none" label={m.staff_no_department()} />
+								{#each departments as dept (dept.id)}
+									<Select.Item value={dept.id} label={lookupName(dept)} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+
 			<Form.Field {form} name="functionId">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>{m.staff_field_function()}</Form.Label>
+						<input type="hidden" name={props.name} value={$formData.functionId} />
 						<Select.Root
 							type="single"
-							value={$formData.functionId}
-							onValueChange={(value) => ($formData.functionId = value)}
-							name={props.name}
+							value={functionValue}
+							onValueChange={(value) => ($formData.functionId = value === 'none' ? '' : value)}
 						>
 							<Select.Trigger {...props} class="w-full">
-								{lookupName(functions.find((f) => f.id === $formData.functionId) ?? functions[0])}
+								{functionValue === 'none'
+									? m.staff_no_function()
+									: lookupName(functions.find((f) => f.id === functionValue) ?? functions[0])}
 							</Select.Trigger>
 							<Select.Content>
+								<Select.Item value="none" label={m.staff_no_function()} />
 								{#each functions as fn (fn.id)}
 									<Select.Item value={fn.id} label={lookupName(fn)} />
 								{/each}

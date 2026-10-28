@@ -366,10 +366,22 @@ needs B's connector → S1.6 waits for the user's file format.
       night and see it on the right day.
       **Done when** punches entered by hand show on the roster and the
       employee page and survive a reload; a correction keeps the history
-- [ ] S1.5 Departments and employees **managed in the app**: create, edit,
+- [x] S1.5 Departments and employees **managed in the app**: create, edit,
       move, deactivate (audit); **new hire gets a generated employee
       number** (D28, unique, never reused); `/departments` tree,
       `/employees`
+      > note: `department` table (tree, manager, sibling-unique names,
+      > `odoo_id`), staff gets department / work email / start date, airport
+      > "function" optional (migration `0002_departments`). `/departments`
+      > (tree with depth, manager, active staff, sub-department count;
+      > create / edit / move / (de)activate with cycle, inactive-parent,
+      > has-staff and has-children rules; audited). Employee form: optional
+      > number → generated (`src/lib/workforce/employee-no.ts`, start 1000,
+      > never reused, retried on a clash). Pure helpers + 7 Vitest cases.
+      > Checked end-to-end on a synthetic DB `attendance_app_e2e` (created
+      > for runtime checks): generated 1000, manual 1500, next 1501; all
+      > refusals and audit rows as expected. Not yet: department-level
+      > settings/rules (S2.3), the employee page's department section.
 - [ ] S1.6 **Punch file import — later.** Blocked until the user provides
       the file format; then same preview/rules as §6, matching on the
       employee number.

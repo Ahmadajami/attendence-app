@@ -70,7 +70,7 @@
 					<Table.Head class="w-8"></Table.Head>
 					<Table.Head>{m.employees_col_no()}</Table.Head>
 					<Table.Head>{m.employees_col_name()}</Table.Head>
-					<Table.Head>{m.employees_col_function()}</Table.Head>
+					<Table.Head>{m.employees_col_department()}</Table.Head>
 					<Table.Head>{m.employees_col_team()}</Table.Head>
 					<Table.Head><span class="sr-only">{m.staff_actions({ name: '' })}</span></Table.Head>
 				</Table.Row>

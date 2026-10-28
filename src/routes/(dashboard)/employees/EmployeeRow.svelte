@@ -66,8 +66,8 @@
 			<Badge variant="secondary" class="ms-2">{m.roster_personal_badge()}</Badge>
 		{/if}
 	</Table.Cell>
-	<Table.Cell>
-		<Badge variant="outline">{lookupName(employee.function)}</Badge>
+	<Table.Cell class={employee.department ? undefined : 'text-muted-foreground'}>
+		{employee.department ? lookupName(employee.department) : '—'}
 	</Table.Cell>
 	{#if team !== undefined}
 		<Table.Cell class={team === null ? 'text-muted-foreground' : undefined}>

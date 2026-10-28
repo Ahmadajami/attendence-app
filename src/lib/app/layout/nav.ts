@@ -1,3 +1,4 @@
+import BuildingsIcon from 'phosphor-svelte/lib/BuildingsIcon';
 import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
 import SquaresFourIcon from 'phosphor-svelte/lib/SquaresFourIcon';
 import UploadSimpleIcon from 'phosphor-svelte/lib/UploadSimpleIcon';
@@ -20,6 +21,12 @@ export type NavItem = {
 /** Sidebar navigation for the `(dashboard)` area. */
 export const dashboardNav: NavItem[] = [
 	{ path: '/dashboard', label: m.nav_dashboard, icon: SquaresFourIcon },
+	{
+		path: '/departments',
+		label: m.nav_departments,
+		icon: BuildingsIcon,
+		permission: 'staff.write'
+	},
 	{ path: '/employees', label: m.nav_employees, icon: UsersThreeIcon },
 	{ path: '/teams', label: m.nav_teams, icon: UsersFourIcon, permission: 'staff.write' },
 	{ path: '/imports', label: m.nav_imports, icon: UploadSimpleIcon, permission: 'import.run' },

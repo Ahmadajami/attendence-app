@@ -14,13 +14,23 @@ export type TeamOption = {
 	active: boolean;
 };
 
+export type DepartmentOption = {
+	id: string;
+	nameEn: string;
+	nameAr: string;
+	active: boolean;
+};
+
 export type StaffRow = {
 	id: string;
 	employeeNo: string;
 	fullName: string;
 	fullNameAr: string | null;
 	phone: string | null;
+	workEmail: string | null;
+	startDate: string | null;
 	active: boolean;
-	function: StaffFunctionOption;
+	function: StaffFunctionOption | null;
+	department: DepartmentOption | null;
 	team: TeamOption | null;
 };

@@ -207,4 +207,11 @@
 	<input type="hidden" name="active" value={activeRequest.active} />
 </form>
 
-<StaffFormSheet data={data.form} {target} functions={data.functions} {teams} bind:open={formOpen} />
+<StaffFormSheet
+	data={data.form}
+	{target}
+	functions={data.functions}
+	departments={data.departments}
+	{teams}
+	bind:open={formOpen}
+/>

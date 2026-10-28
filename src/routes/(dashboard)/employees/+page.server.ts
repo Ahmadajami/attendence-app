@@ -8,6 +8,7 @@ import type { Actor } from '#lib/server/services/common.js';
 import { listPersonalPatternStaff } from '#lib/server/services/roster/roster.bl.js';
 import {
 	createStaff,
+	listActiveDepartments,
 	listActiveTeams,
 	listFunctions,
 	listStaff,
@@ -30,15 +31,17 @@ function actorFrom(locals: App.Locals): Actor {
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const actor = actorFrom(locals);
-	const [staff, teams, functions, personalPatternIds] = await Promise.all([
+	const [staff, teams, departments, functions, personalPatternIds] = await Promise.all([
 		listStaff(actor),
 		listActiveTeams(actor),
+		listActiveDepartments(actor),
 		listFunctions(actor),
 		listPersonalPatternStaff(actor)
 	]);
 	return {
 		employees: staff,
 		teams,
+		departments,
 		functions,
 		personalPatternIds,
 		form: await superValidate(zod4(staffFormSchema), { id: 'staff' })
@@ -56,11 +59,14 @@ export const actions: Actions = {
 		if (!form.valid) return fail(400, { form });
 
 		const input = {
-			employeeNo: form.data.employeeNo,
+			employeeNo: form.data.employeeNo || null,
 			fullName: form.data.fullName,
 			fullNameAr: form.data.fullNameAr || null,
 			phone: form.data.phone || null,
-			functionId: form.data.functionId,
+			functionId: form.data.functionId || null,
+			departmentId: form.data.departmentId || null,
+			workEmail: form.data.workEmail || null,
+			startDate: form.data.startDate || null,
 			teamId: form.data.teamId || null
 		};
 

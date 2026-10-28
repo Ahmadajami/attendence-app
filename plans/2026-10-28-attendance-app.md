@@ -7,8 +7,9 @@ project, that manages **departments, teams and employees**, plans **monthly
 rosters** (days off that change and move every month), imports **punches
 from files**, calculates every day with the **Odoo payroll rules**, and
 exports the **Payroll Period** and **Period Balance** Excel files exactly as
-Odoo does today. Odoo only sends the attendance emails, through a tiny
-connector.
+Odoo does today. **All data ends up in the app**; punches are **entered by
+hand** for now (file import comes later, format to be provided). After
+cut-over Odoo **only sends the attendance emails**, through a tiny connector.
 
 Overview with diagrams (EN/AR): `docs/architecture-guide.html`.
 UI/feature reference: `docs/mockup/attendance-builder.html` (demo data).
@@ -44,9 +45,10 @@ History: replaces `Roster/plans/2026-10-28-sveltekit-attendance-app.md`
 | D20 | Facility: a separate server next to Odoo, internal network only |
 | D22 | Teams are app-owned: one department each, a supervisor, dated members. Approver = supervisor, else the department manager, else HR |
 | **D23** | **Separate repo** (this one), sibling of Roster. The Roster repo keeps the old module, the Phase 0 reports and the Odoo-side work |
-| **D24** | **Punches come in by file** (CSV/XLSX import with preview), not by a live Odoo link. Re-importing is safe (no duplicates) |
-| **D25** | **Employees and departments are extracted from Odoo once, then managed in the app** (the app becomes their master). Each keeps its Odoo id and badge so punch files and emails still match. Replaces the earlier D15/D21 split |
-| **D26** | **Emails are still sent by Odoo** via the tiny `attendance_app_connector` module (one method, API key). The app calls it with the figures |
+| **D24** | ~~Punches by file~~ → revised 2026-10-28: punches are **entered by hand** in the app for now. A **file import comes later** (format to be provided by the user); it will write the same records. No live Odoo link |
+| **D25** | **The app is the master of all data.** Employees, departments, the old roster setup and historical punches are **extracted from Odoo once** (seed); after that everything is created and changed in the app. Replaces the D15/D21 split |
+| **D26** | **Emails are still sent by Odoo** via the tiny `attendance_app_connector` (one method, API key). The request carries the **recipient's email address** and the figures, so Odoo needs no employee records; the connector depends on `mail` only |
+| **D28** | **New hires are created in the app**, which **generates their employee number** (unique, never reused; format Q-A12). That number is what the later punch file import will match on |
 | **D27** | The Odoo-side pieces (connector, extraction tool) are built in the Roster repo, Lane B, under that repo's rules |
 
 Still valid from Phase 0/1 (`docs/reference/DECISIONS_PHASE0_1.md`): D5 (four
@@ -59,14 +61,14 @@ boxes), D12 (shift grace 0 = not set).
 
 | Concern | Odoo | Attendance App |
 |---|---|---|
-| BioTime punches arrive | ✅ (as today) | gets them by **file** |
-| Employees, departments | source of the **one-time extraction** | **Master after import** (create, edit, move, deactivate) |
+| Punches | until cut-over BioTime still feeds Odoo; history extracted once | **Master**: entered by hand now, file import later |
+| Employees, departments | source of the **one-time extraction** only | **Master** (create with generated number, edit, move, deactivate) |
 | Teams, supervisors, department settings | — | Owner |
 | Shifts, patterns, monthly roster, days off, swaps | — | Owner |
 | Holidays, manual states, credits, corrections | old data extracted once | Owner |
 | Day results, period close | old `roster.line` = golden reference | Owner (TypeScript engine) |
 | Payroll Period + Period Balance Excel | old files = golden reference | Owner, same columns and numbers |
-| Attendance emails | **Sends** (connector, MailHog in dev) | builds the figures, calls Odoo |
+| Attendance emails | **Sends only** (connector, MailHog in dev) | builds figures + recipient address, calls Odoo |
 
 ## 3. Environment
 
@@ -75,7 +77,7 @@ boxes), D12 (shift grace 0 = not set).
    ├─ Roster/tools/attendance_app/extract.py ──▶ CSV files ──▶ ~/secure/syravia/imports/
    └─ attendance_app_connector  ◀── POST /json/2/attendance.app.mail/send_batch ──┐
         └─ mail → MailHog 127.0.0.1:8025                                          │
- Attendance App (this repo; pnpm dev 127.0.0.1:5173) ── import files ── engine ──┘
+ Attendance App (this repo; pnpm dev 127.0.0.1:5173) ── seed import · manual punches · engine ──┘
    PostgreSQL attendance-app-db 127.0.0.1:5433: attendance_app (real) · attendance_app_test (synthetic)
 ```
 
@@ -100,7 +102,7 @@ preview. No real data in its tracked files (scanned 2026-10-28).
 
 | Keep | Change | Remove |
 |---|---|---|
-| stack, conventions, shell + RTL sidebar, i18n, error handling, service layer, audit, RBAC, code login (off, D17), teams/membership/supervisors, cycle versions, overrides/swaps, import preview machinery, employee/team pages | `neon-http` → `postgres.js` (31 `db.batch` → `db.transaction`); Vercel → `adapter-node`; env vars; `shift_kind` → **`shift` table** (D, N seeded); staff import → Odoo extraction format; attendance events → **corrections only**, punches in `punch`; template attendance/overtime rules → payroll engine; "team moves never backdated" → allowed **inside an open period** with reason + audit; hard-coded `Asia/Damascus` → timezone setting | flights, handling windows, staffing requirements, assignments, flight import/board/sheet, coverage, `overtime_approval`, Vercel/Neon files, template plans (kept only under `docs/template/`) |
+| stack, conventions, shell + RTL sidebar, i18n, error handling, service layer, audit, RBAC, code login (off, D17), teams/membership/supervisors, cycle versions, overrides/swaps, import preview machinery, employee/team pages | `neon-http` → `postgres.js` (31 `db.batch` → `db.transaction`); Vercel → `adapter-node`; env vars; `shift_kind` → **`shift` table** (D, N seeded); staff import → Odoo extraction format (seed); `attendance_event` = **the punch store** (manual entry now, seed/history, file import later); template attendance/overtime rules → payroll engine; "team moves never backdated" → allowed **inside an open period** with reason + audit; hard-coded `Asia/Damascus` → timezone setting | flights, handling windows, staffing requirements, assignments, flight import/board/sheet, coverage, `overtime_approval`, Vercel/Neon files, template plans (kept only under `docs/template/`) |
 
 ## 5. Tech stack
 
@@ -112,6 +114,7 @@ Paraglide en + ar; Vitest (pure, Node env) and Playwright (flows, synthetic DB).
 
 ## 6. File formats (the contract between Lane B and the app)
 
+**One-time seed** (and golden-master inputs), not the future punch import.
 All CSV: UTF-8, comma, header row, ISO dates; instants in **UTC with `Z`**.
 Produced by `Roster/tools/attendance_app/extract.py` (odoo shell, read-only,
 rolls back) into `~/secure/syravia/imports/<YYYY-MM-DD>/`.
@@ -119,21 +122,22 @@ rolls back) into `~/secure/syravia/imports/<YYYY-MM-DD>/`.
 | File | Columns |
 |---|---|
 | `departments.csv` | `odoo_id, name, parent_odoo_id, manager_employee_odoo_id, active, late_grace_minutes, biotime_commute_credit` |
-| `employees.csv` | `odoo_id, badge, name, name_ar, department_odoo_id, tz, active, start_date, contract_date_start, attendance_mode, late_grace_minutes, subtract_neg_balance_from_ot, use_fixed_schedule, fixed_required_minutes, report_seq, reception_seq` (no emails, phones or addresses) |
+| `employees.csv` | `odoo_id, badge, name, name_ar, department_odoo_id, tz, active, start_date, contract_date_start, attendance_mode, late_grace_minutes, subtract_neg_balance_from_ot, use_fixed_schedule, fixed_required_minutes, report_seq, reception_seq, work_email` (email needed for D26; no phones or addresses) |
 | `punches_<from>_<to>.csv` | `odoo_id, employee_odoo_id, badge, check_in_utc, check_out_utc` (empty = missing check-out) |
 | `shifts_old.csv`, `rosters_old.csv`, `employee_lines_old.csv`, `cycles_old.csv` | old `roster.shift.pattern` (times, grace, night, cycle fields) / `roster.shift` (department ids, date_from, date_to, state) / `roster.employee.line` (roster, employee, pattern, day_off_1/2, grace, start date, cycle anchor) / `roster.cycle` (employee, department, anchor, block size, day/night hours, sequence); **no free-text note/reason fields** |
 | `holidays_old.csv`, `holiday_assignments_old.csv` | windows (from, to, days allowed, type) / employee, date, is_overtime |
 | `day_inputs_<from>_<to>.csv` | per approved `roster.line`: id, employee_odoo_id, date, planned start/end, required, is_weekly_off, is_public_holiday, holiday overtime flag, manual_state, credits (mission/leave/sick/training), topup, sick_unpaid, suppress_ot, tardiness_applied, break_minutes, swap state — the golden master inputs |
 
-The punch importer also accepts (S1.4): the **Odoo standard Attendances
-export (xlsx)** with a timezone picker, and later **BioTime raw transactions**
-(single punches, paired by planned shift window, P18).
+Seed import rules: key = Odoo id → re-running updates, never duplicates;
+historical punches become `attendance_event` rows with `source = seed`;
+reject **future-dated** punches (26 exist today) and spans > 16 h, and report
+them; never invent a check-out; show counts per outcome before commit;
+`import_row.raw` purged after 30 days.
 
-Import rules (BRIEF R15–R16): key = Odoo id when present, else (badge,
-check_in) → re-import updates, never duplicates; unknown badge → held in
-preview; never invent a check-out; merge an artificial midnight split;
-reject spans > 16 h and **future-dated** punches (26 exist today); show
-counts per outcome before commit; `import_row.raw` purged after 30 days.
+**The punch file import (later, S1.6)** will use the format the user
+provides, the same rules (BRIEF R15–R16: merge an artificial midnight
+split, two segments → break, unknown employee number → held in preview),
+and match employees on the app's employee number (D28).
 
 ## 7. Data model (app database)
 
@@ -141,14 +145,16 @@ Template tables kept: `user`, `session`, `login_attempt`, `role`,
 `permission`, `role_permission`, `audit_log`, `team`, `staff_team_membership`,
 `team_supervisor`, `app_setting`, `import_batch`, `import_row`, `absence`
 (types: leave, sick, mission, training, excused, unpaid_off, ignore,
-no_show), `attendance_event` (manual corrections only, reason required),
-`shift_pattern`, `roster_override`.
+no_show), `shift_pattern`, `roster_override`, and **`attendance_event` as the
+punch store**: append-only `check_in` / `check_out` events with
+`occurred_at` (UTC), `shift_date` (the shift the punch belongs to),
+`source` (`manual | seed | import`), `recorded_by`; a change is a new
+correction event with a **reason** (template rule); pairs are derived.
 
 | Table | Purpose |
 |---|---|
-| `department` | **app master**: name en/ar, parent, manager (staff), active, `odoo_id` (nullable, unique) |
-| `staff` | **app master**: badge (`employee_no`), names en/ar, department, tz, active, start date, report/reception order, old flags (grace, subtract-negative-balance, fixed schedule), `odoo_id` (needed for emails) |
-| `punch` | check_in/out UTC, staff, `odoo_id` or (badge, check_in) unique, source file batch |
+| `department` | **app master**: name en/ar, parent, manager (staff), active, `odoo_id` (seeded rows only) |
+| `staff` | **app master**: `employee_no` (seeded = Odoo badge; new hires = **generated**, D28), names en/ar, department, tz, active, start/contract start date, report/reception order, old flags (grace, subtract-negative-balance, fixed schedule), `work_email` (for D26), `odoo_id` (seeded rows only) |
 | `shift` | code 1–3 (unique, `OFF` reserved), name en/ar, colour, start/end, **ends next day computed**, break (0), required (span − break, overridable), windows 180/360, night computed, grace (0 = not set). Seeds D 07–19, N 19–07 |
 | `shift_pattern` | `shift_id[]` (null = off); weekly 7 slots Sun→Sat or cycle 1–28 + anchor; owner staff / team / department; versions by effective date |
 | `roster_override` | one day: shift or off; `swap_group_id` |
@@ -176,7 +182,7 @@ computed; results stored.
 - Before S8: `AUTH_MODE=login`, HTTPS, template admin code `1234/123456`
   replaced, D5 roles.
 - Logs: IDs and counts. Exports stream to the browser. DB in a Docker named
-  volume. Import files read from `~/secure/syravia/imports/`, never copied
+  volume. Seed files read from `~/secure/syravia/imports/`, never copied
   into the repo.
 
 ## 9. Screens
@@ -184,7 +190,8 @@ computed; results stored.
 | Route | Screen | Key interactions |
 |---|---|---|
 | `/` | Home | current period, last imports, to-do (missing punches, unpublished months, pending changes) |
-| `/imports` | Imports | upload or pick a file, preview (new / updated / unchanged / held / rejected with reason), commit, history |
+| `/imports` | Imports | seed import now (preview: new / updated / unchanged / rejected with reason, commit, history); punch files later (S1.6) |
+| `/attendance/entry` | **Manual punch entry** | pick a date + department/team → employees planned that day with their shift; type check-in / check-out fast (keyboard, Tab); a check-out earlier than the check-in means next day; quick "absent / leave / sick"; save the batch; warnings for times outside the shift window, spans > 16 h, overlaps, future times |
 | `/dashboard` | 📊 Dashboard | KPIs, by department, top overtime |
 | `/roster/[period]` | 📅 Roster (**core**) | employee rows × days 21→20 (+ week view); paint; drag work day → off day in a row = swap request; tap → day popup; status dots, 🌙, ⚠ short rest, swap/manual markers, today, source line; copy last month + rotate; publish; virtualised ~312 × 31; mobile one team |
 | `/roster/[period]/plan` | Off-day planner | team/department off days, rotation preview, staffing per day |
@@ -192,7 +199,7 @@ computed; results stored.
 | `/shifts` | ⏰ Shifts | table + create with live "ends next day" hint |
 | `/departments`, `/departments/[id]` | 🏢 Departments (**managed here**) + 👤 schedules | tree: create, rename, move, manager, deactivate; settings; members' schedules (follow/own pattern, own off-day chips, crew start, reset) |
 | `/teams`, `/teams/[id]` | 👥 Teams & supervisors | supervisor, dated members, weighted OT, pending approvals |
-| `/employees`, `/employees/[id]` | Employees (**managed here**) | create/edit/move/deactivate; month calendar plan vs punches vs result; day drawer; manual states, credits, corrections; balance |
+| `/employees`, `/employees/[id]` | Employees (**managed here**) | create (new hire gets a generated number, D28) / edit / move / deactivate; month calendar plan vs punches vs result; add or correct punches per day (reason on corrections); manual states, credits; balance |
 | `/changes` | 🔄 Swaps | requests, week/month scope, pay as OT, approve/reject |
 | `/reports/overtime` | 💰 Overtime report | per-employee OT box, columns, CSV |
 | `/periods/[period]` | Period close | recompute, lock, **Payroll xlsx**, **Period Balance xlsx** |
@@ -255,12 +262,13 @@ computed; results stored.
 
 | Lane | Repo · branch | Tasks | Needs |
 |---|---|---|---|
-| **A · App** | this repo · `app/main` | S0, S1.2–S1.5, S2, S3, S4.2–S4.4, S5, S6.2, S7 | — |
+| **A · App** | this repo · `app/main` | S0, S1.2–S1.6, S2, S3, S4.2–S4.4, S5, S6.2, S7 | — |
 | **B · Odoo side** | **Roster repo** · `odoo/attendance-app` (plan `Roster/plans/2026-10-28-attendance-app-odoo-side.md`) | extraction tool (→ S1.1 here), connector (→ S6.1 here) | — |
 | **C · Payroll engine** | this repo · `app/payroll-engine` | S4.1 | S0.2 merged |
 
-Merge order: S0 → C any time → S1.2+ needs B's extraction files → S4.2 needs
-S4.1 → S5 needs S4.3 → S6.2 needs B's connector.
+Merge order: S0 → C any time → S1.2/S1.3 need B's extraction files (S1.4
+manual entry and S1.5 don't) → S4.2 needs S4.1 → S5 needs S4.3 → S6.2
+needs B's connector → S1.6 waits for the user's file format.
 
 ## 12. Tasks
 
@@ -304,21 +312,35 @@ S4.1 → S5 needs S4.3 → S6.2 needs B's connector.
       `http://127.0.0.1:5173` in en and ar
 - [ ] S0.7 Commit on `app/main`
 
-### S1 · Imports (Lane A; files from Lane B)
+### S1 · Seed, people and manual punches (Lane A; seed files from Lane B)
 - [ ] S1.1 (Lane B, Roster) extraction tool produces the §6 files.
       > Tracked in the Roster plan; tick here when the files exist.
 - [ ] S1.2 Seed import: `departments.csv` → `department` (tree), then
       `employees.csv` → `staff`, with preview and re-run safety (update by
       `odoo_id`).
-      **Done when** 30 departments and 312 active employees (347 total)
-      imported; a second run changes 0 rows
-- [ ] S1.3 Punch import (§6 rules) for `punches_*.csv`, `/imports` screen.
-      **Done when** 23,625 punches imported (minus rejected future-dated,
-      reported), a second run adds 0
-- [ ] S1.4 Odoo standard Attendances xlsx format with timezone picker
-      (preview shows converted examples)
+      **Done when** 30 departments and 347 employees (312 active) imported;
+      a second run changes 0 rows
+- [ ] S1.3 Seed historical punches (`punches_*.csv`) → `attendance_event`
+      (`source = seed`), for history and the golden master.
+      **Done when** 23,625 records imported minus the reported rejects
+      (future-dated); a second run adds 0
+- [ ] S1.4 **Manual punch entry** (`/attendance/entry`, employee page, day
+      popup): fast day sheet per department/team, next-day check-outs for
+      night shifts, validations (check-out after check-in, ≤ 16 h, no
+      overlap, no future time, warning outside the shift window),
+      corrections as new events with a reason, audit log. Vitest for the
+      validation and pairing helpers; Playwright: enter a 19:00 → 07:00
+      night and see it on the right day.
+      **Done when** punches entered by hand show on the roster and the
+      employee page and survive a reload; a correction keeps the history
 - [ ] S1.5 Departments and employees **managed in the app**: create, edit,
-      move, deactivate (audit); `/departments` tree, `/employees`
+      move, deactivate (audit); **new hire gets a generated employee
+      number** (D28, unique, never reused); `/departments` tree,
+      `/employees`
+- [ ] S1.6 **Punch file import — later.** Blocked until the user provides
+      the file format; then same preview/rules as §6, matching on the
+      employee number.
+      > note: waiting for the format (2026-10-28).
 
 ### S2 · Shifts, departments, teams, patterns (Lane A)
 - [ ] S2.1 `shift` table; generalise `shift_pattern`/`roster_override` and
@@ -354,9 +376,9 @@ S4.1 → S5 needs S4.3 → S6.2 needs B's connector.
 - [ ] S4.1 (Lane C) `src/lib/payroll/` + Vitest of §10. **Done when** all
       listed cases pass; no DB/SvelteKit import in `src/lib/payroll/`
 - [ ] S4.2 (Lane A) recompute changed employee-days (`inputs_hash`) after
-      imports/edits; store `day_result`; explanation drawer
-- [ ] S4.3 (Lane A) golden master with `day_inputs_*.csv` + punches for the
-      3 periods. **Done when** `docs/GOLDEN_MASTER_REPORT.md` shows 0
+      punch entry, imports and edits; store `day_result`; explanation drawer
+- [ ] S4.3 (Lane A) golden master with `day_inputs_*.csv` + the seeded
+      punches for the 3 periods. **Done when** `docs/GOLDEN_MASTER_REPORT.md` shows 0
       unexplained Final/Deduction differences
 - [ ] S4.4 (Lane A) day popup actuals, roster status dots, `/dashboard`
       (F6, F8, F14)
@@ -375,9 +397,10 @@ S4.1 → S5 needs S4.3 → S6.2 needs B's connector.
 - [ ] S6.1 (Lane B, Roster) connector with `send_batch`.
       > Tracked in the Roster plan; tick here when installed on
       > `syravia_night_shift`.
-- [ ] S6.2 (Lane A) `/emails/[period]`: preview, send via JSON-2, result.
-      **Done when** mails arrive in MailHog only; employees without
-      `odoo_id` are listed as "cannot send"
+- [ ] S6.2 (Lane A) `/emails/[period]`: preview, send via JSON-2 with each
+      recipient's `work_email`, result.
+      **Done when** mails arrive in MailHog only; employees without an
+      email are listed as "cannot send"
 
 ### S7 · Parallel run (user + HR)
 - [ ] S7.1 One full period in both systems; HR compares both pairs of Excel
@@ -385,8 +408,8 @@ S4.1 → S5 needs S4.3 → S6.2 needs B's connector.
 
 ### S8 · Facility (with facility IT; ask first)
 - [ ] S8.1 `AUTH_MODE=login`, HTTPS, rotated admin code, D5 roles, backups,
-      network path to Odoo only; how the facility produces the import files
-      (extraction tool run or Odoo export); `docs/DEPLOY.md`
+      network path to Odoo only; run the one-time extraction on the
+      production Odoo; punch file import in place (S1.6); `docs/DEPLOY.md`
 - [ ] S8.2 Delivery: Node build or Docker image + migrations; connector ZIP
 
 ## 13. Open questions (defaults used until answered)
@@ -402,8 +425,9 @@ S4.1 → S5 needs S4.3 → S6.2 needs B's connector.
 | Q-A8 | "Week only" swaps: Sun–Sat or Mon–Sun? | Sun–Sat |
 | Q-A9 | Weekly OT or minimum OT for any department? | no |
 | Q-A10 | No supervisor: department manager or HR approves? | department manager, else HR |
-| Q-A11 | At the facility, who produces the punch file each period (run the extraction tool, or Odoo's Attendances export)? | decide in S8; the app accepts both |
-| Q-A12 | New hires: created only in the app, or also in Odoo (needed for emails and BioTime badges)? | create in Odoo first, then add/import in the app with its `odoo_id` |
+| Q-A11 | Punch file format (source system, columns, one row per punch or per pair, timezone)? | user provides later; manual entry until then |
+| Q-A12 | Format of generated employee numbers for new hires (same style as today's badges? prefix? starting value)? | next integer after the highest existing number, never reused; changeable in settings |
+| Q-A13 | Must a new hire's number also be enrolled on BioTime so the future punch file can match? | yes (HR process) |
 
 Rule questions Q1–Q18: `docs/reference/OPEN_QUESTIONS.md` (defaults = old
 behaviour).

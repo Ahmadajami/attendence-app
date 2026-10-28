@@ -2,8 +2,9 @@
 
 Monthly rosters, attendance calculation and payroll exports for the
 airport's HR, as a standalone **SvelteKit** app. It replaces the Odoo module
-`roster_attendance` for planning and calculation; Odoo only keeps receiving
-punches from BioTime and sends the attendance emails.
+`roster_attendance`. **All data lives in this app** (seeded once from Odoo;
+punches entered by hand now, file import later; new hires get an
+app-generated employee number). Odoo **only sends the attendance emails**.
 
 **Start here:** `plans/2026-10-28-attendance-app.md` (decisions, lanes,
 tasks with "done when"). Plain-language overview with diagrams (EN/AR):
@@ -76,7 +77,7 @@ parts (removed in this app).
 | App DB | Docker container `attendance-app-db`, `127.0.0.1:5433`; DBs `attendance_app` (real data) and `attendance_app_test` (synthetic) |
 | Odoo (emails only) | `http://127.0.0.1:8069`, DB `syravia_night_shift`, module `attendance_app_connector`, MailHog `http://127.0.0.1:8025` |
 | Secrets | `~/secure/syravia/attendance_app.env` (DB password, Odoo API key) |
-| Import files | `~/secure/syravia/imports/` |
+| Seed files from Odoo (one-time) | `~/secure/syravia/imports/` |
 | Golden snapshot | `~/secure/syravia/golden/` |
 
 The Odoo side (connector module, extraction tool) lives in the Roster repo:

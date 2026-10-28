@@ -1,0 +1,66 @@
+<!doctype html>
+<!--
+	Fallback page for errors SvelteKit can't render with +error.svelte: errors in `handle` or in
+	the root layout. No app code runs here, so it is static and bilingual.
+-->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>%sveltekit.error.message%</title>
+		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #ffffff;
+				--fg: #0a0a0a;
+				--muted: #737373;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #0a0a0a;
+					--fg: #fafafa;
+					--muted: #a3a3a3;
+				}
+			}
+			body {
+				margin: 0;
+				min-height: 100svh;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 16px;
+				box-sizing: border-box;
+				background: var(--bg);
+				color: var(--fg);
+				font-family: system-ui, sans-serif;
+				text-align: center;
+			}
+			main {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+				max-width: 28rem;
+			}
+			h1 {
+				margin: 0;
+				font-size: 1.25rem;
+			}
+			p {
+				margin: 0;
+				color: var(--muted);
+			}
+			a {
+				color: inherit;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<p><bdi>%sveltekit.status%</bdi></p>
+			<h1>%sveltekit.error.message%</h1>
+			<p>Something went wrong. Reload the page or go back to the start.</p>
+			<p dir="rtl" lang="ar">حدث خطأ ما. أعد تحميل الصفحة أو عُد إلى البداية.</p>
+			<p><a href="/">Home · الرئيسية</a></p>
+		</main>
+	</body>
+</html>

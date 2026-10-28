@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Airport Staff Overview</title>
+		<style>
+			:root {
+				--bg: #f7f7f5;
+				--surface: #ffffff;
+				--surface-2: #f0efeb;
+				--text: #1c1c1a;
+				--muted: #66655f;
+				--border: #e2e0da;
+				--accent: #1f5f8b;
+				--accent-soft: #e3eef6;
+				--day: #c98a12;
+				--day-soft: #fbf0d9;
+				--night: #3d4f9e;
+				--night-soft: #e4e7f6;
+				--off: #8a8984;
+				--off-soft: #ecebe7;
+				--ok: #2f7d4f;
+				--ok-soft: #e1f1e7;
+				--warn: #b4441c;
+				--warn-soft: #f9e5dc;
+				--radius: 10px;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root:not([data-theme='light']) {
+					--bg: #141413;
+					--surface: #1d1d1b;
+					--surface-2: #262624;
+					--text: #ecebe6;
+					--muted: #a3a29b;
+					--border: #34332f;
+					--accent: #7db4dc;
+					--accent-soft: #1e3242;
+					--day: #e8b44d;
+					--day-soft: #3a2e14;
+					--night: #9fadf0;
+					--night-soft: #23284a;
+					--off: #8f8e88;
+					--off-soft: #2b2b28;
+					--ok: #6fcf97;
+					--ok-soft: #173325;
+					--warn: #f08a63;
+					--warn-soft: #3d2118;
+				}
+			}
+			:root[data-theme='dark'] {
+				--bg: #141413;
+				--surface: #1d1d1b;
+				--surface-2: #262624;
+				--text: #ecebe6;
+				--muted: #a3a29b;
+				--border: #34332f;
+				--accent: #7db4dc;
+				--accent-soft: #1e3242;
+				--day: #e8b44d;
+				--day-soft: #3a2e14;
+				--night: #9fadf0;
+				--night-soft: #23284a;
+				--off: #8f8e88;
+				--off-soft: #2b2b28;
+				--ok: #6fcf97;
+				--ok-soft: #173325;
+				--warn: #f08a63;
+				--warn-soft: #3d2118;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--text);
+				font:
+					16px/1.6 system-ui,
+					-apple-system,
+					'Segoe UI',
+					Roboto,
+					sans-serif;
+			}
+			main {
+				max-width: 960px;
+				margin: 0 auto;
+				padding: 32px 16px 80px;
+			}
+			h1 {
+				font-size: 2rem;
+				line-height: 1.2;
+				margin: 0 0 8px;
+			}
+			h2 {
+				font-size: 1.4rem;
+				margin: 0 0 12px;
+			}
+			h3 {
+				font-size: 1.05rem;
+				margin: 20px 0 8px;
+			}
+			p {
+				margin: 0 0 12px;
+			}
+			.lead {
+				color: var(--muted);
+				font-size: 1.05rem;
+				max-width: 70ch;
+			}
+			section {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				padding: 24px;
+				margin-top: 24px;
+			}
+			.num {
+				display: inline-block;
+				min-width: 28px;
+				color: var(--muted);
+				font-variant-numeric: tabular-nums;
+			}
+			nav.toc {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				margin-top: 20px;
+			}
+			nav.toc a {
+				font-size: 0.85rem;
+				color: var(--accent);
+				background: var(--accent-soft);
+				padding: 4px 10px;
+				border-radius: 999px;
+				text-decoration: none;
+			}
+			.legend {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 12px;
+				margin-top: 16px;
+				font-size: 0.9rem;
+			}
+			.tag {
+				display: inline-block;
+				font-size: 0.75rem;
+				font-weight: 600;
+				padding: 2px 8px;
+				border-radius: 999px;
+				white-space: nowrap;
+			}
+			.tag.built {
+				background: var(--ok-soft);
+				color: var(--ok);
+			}
+			.tag.next {
+				background: var(--accent-soft);
+				color: var(--accent);
+			}
+			.tag.later {
+				background: var(--off-soft);
+				color: var(--off);
+			}
+			.flow {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 8px;
+				margin: 16px 0;
+			}
+			.flow .step {
+				background: var(--surface-2);
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				padding: 8px 12px;
+				font-weight: 600;
+				font-size: 0.95rem;
+			}
+			.flow .step small {
+				display: block;
+				font-weight: 400;
+				color: var(--muted);
+				font-size: 0.78rem;
+			}
+			.flow .arrow {
+				color: var(--muted);
+			}
+			.grid {
+				display: grid;
+				gap: 12px;
+				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			}
+			.card {
+				background: var(--surface-2);
+				border-radius: 8px;
+				padding: 14px 16px;
+			}
+			.card h3 {
+				margin-top: 0;
+				display: flex;
+				justify-content: space-between;
+				gap: 8px;
+				align-items: center;
+			}
+			.card ul {
+				margin: 0;
+				padding-inline-start: 18px;
+			}
+			.card li {
+				margin-bottom: 4px;
+			}
+			.scroll {
+				overflow-x: auto;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 0.92rem;
+			}
+			th,
+			td {
+				text-align: start;
+				padding: 8px 10px;
+				border-bottom: 1px solid var(--border);
+				vertical-align: top;
+			}
+			th {
+				color: var(--muted);
+				font-weight: 600;
+				font-size: 0.8rem;
+				text-transform: uppercase;
+				letter-spacing: 0.03em;
+			}
+			td.n {
+				font-variant-numeric: tabular-nums;
+				white-space: nowrap;
+			}
+			.yes {
+				color: var(--ok);
+				font-weight: 600;
+			}
+			.no {
+				color: var(--off);
+			}
+			.callout {
+				background: var(--accent-soft);
+				border-radius: 8px;
+				padding: 12px 16px;
+				margin: 12px 0;
+			}
+			.callout.warn {
+				background: var(--warn-soft);
+			}
+			.ladder {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+				margin: 12px 0;
+			}
+			.ladder div {
+				display: flex;
+				gap: 12px;
+				align-items: baseline;
+				background: var(--surface-2);
+				border-radius: 8px;
+				padding: 8px 12px;
+			}
+			.ladder b {
+				min-width: 150px;
+			}
+			.ladder span {
+				color: var(--muted);
+				font-size: 0.9rem;
+			}
+			.cell {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 34px;
+				height: 34px;
+				border-radius: 6px;
+				font-weight: 700;
+				font-size: 0.85rem;
+				border: 1px solid transparent;
+			}
+			.cell.d {
+				background: var(--day-soft);
+				color: var(--day);
+				border-color: var(--day);
+			}
+			.cell.n {
+				background: var(--night-soft);
+				color: var(--night);
+				border-color: var(--night);
+			}
+			.cell.o {
+				background: var(--off-soft);
+				color: var(--off);
+			}
+			.painter {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				margin: 8px 0 12px;
+			}
+			.painter button.cell {
+				cursor: pointer;
+				font: inherit;
+				font-weight: 700;
+			}
+			.controls {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				align-items: end;
+				margin: 8px 0;
+			}
+			.controls label {
+				display: flex;
+				flex-direction: column;
+				font-size: 0.8rem;
+				color: var(--muted);
+				gap: 4px;
+			}
+			input,
+			select,
+			button {
+				font: inherit;
+				color: var(--text);
+			}
+			input,
+			select {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 6px 8px;
+			}
+			button.btn {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 6px 10px;
+				cursor: pointer;
+				font-size: 0.85rem;
+			}
+			button.btn:hover {
+				border-color: var(--accent);
+			}
+			.cal {
+				display: grid;
+				grid-template-columns: repeat(7, minmax(0, 1fr));
+				gap: 4px;
+				margin-top: 8px;
+			}
+			.cal .head {
+				font-size: 0.72rem;
+				color: var(--muted);
+				text-align: center;
+				font-weight: 600;
+			}
+			.cal .day {
+				border-radius: 6px;
+				padding: 4px;
+				text-align: center;
+				font-size: 0.72rem;
+				min-height: 48px;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				border: 1px solid transparent;
+			}
+			.cal .day b {
+				font-size: 0.95rem;
+			}
+			.cal .day.d {
+				background: var(--day-soft);
+				color: var(--day);
+				border-color: var(--day);
+			}
+			.cal .day.n {
+				background: var(--night-soft);
+				color: var(--night);
+				border-color: var(--night);
+			}
+			.cal .day.o {
+				background: var(--off-soft);
+				color: var(--off);
+			}
+			.cal .day.blank {
+				background: transparent;
+			}
+			.result {
+				display: grid;
+				gap: 8px;
+				grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+				margin-top: 12px;
+			}
+			.result div {
+				background: var(--surface-2);
+				border-radius: 8px;
+				padding: 10px 12px;
+			}
+			.result small {
+				display: block;
+				color: var(--muted);
+				font-size: 0.75rem;
+			}
+			.result b {
+				font-size: 1.25rem;
+				font-variant-numeric: tabular-nums;
+			}
+			.flags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				margin-top: 10px;
+			}
+			.flag {
+				font-size: 0.8rem;
+				font-weight: 600;
+				padding: 3px 10px;
+				border-radius: 999px;
+				background: var(--off-soft);
+				color: var(--muted);
+			}
+			.flag.on.bad {
+				background: var(--warn-soft);
+				color: var(--warn);
+			}
+			.flag.on.good {
+				background: var(--ok-soft);
+				color: var(--ok);
+			}
+			.timeline {
+				position: relative;
+				margin: 16px 0 8px;
+			}
+			.track {
+				position: relative;
+				height: 34px;
+				background: var(--surface-2);
+				border-radius: 6px;
+				overflow: hidden;
+			}
+			.track .seg {
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 0.75rem;
+				font-weight: 600;
+				white-space: nowrap;
+				overflow: hidden;
+			}
+			.ticks {
+				display: flex;
+				justify-content: space-between;
+				font-size: 0.72rem;
+				color: var(--muted);
+				margin-top: 4px;
+				font-variant-numeric: tabular-nums;
+			}
+			.phases {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			.phase {
+				display: grid;
+				grid-template-columns: 48px 1fr;
+				gap: 12px;
+				background: var(--surface-2);
+				border-radius: 8px;
+				padding: 10px 12px;
+			}
+			.phase .id {
+				font-weight: 700;
+				color: var(--accent);
+			}
+			.phase p {
+				margin: 0;
+				font-size: 0.92rem;
+			}
+			.phase p.t {
+				font-weight: 600;
+			}
+			footer {
+				color: var(--muted);
+				font-size: 0.85rem;
+				margin-top: 32px;
+			}
+			code {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 0.88em;
+				background: var(--surface-2);
+				padding: 1px 5px;
+				border-radius: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<header>
+				<h1>Damascus Airport Operations: what the system will do</h1>
+				<p class="lead">
+					A plain-language tour of the system after the roster plan: who signs in, how flights and
+					teams fit together, how shifts are built, how attendance is recorded, and how overtime is
+					calculated. Every rule here is a decision you made between 26 and 27 October 2026.
+				</p>
+				<div class="legend">
+					<span><span class="tag built">Built</span> already in the app</span>
+					<span><span class="tag next">Next</span> in the roster plan, being built</span>
+					<span><span class="tag later">Later</span> agreed, not in this round</span>
+				</div>
+				<nav class="toc" aria-label="Sections">
+					<a href="#flow">Big picture</a>
+					<a href="#people">Who uses it</a>
+					<a href="#today">Built today</a>
+					<a href="#shifts">Shifts &amp; cycles</a>
+					<a href="#roster">Whose shift is it?</a>
+					<a href="#moves">Team moves &amp; swaps</a>
+					<a href="#attendance">Attendance</a>
+					<a href="#overtime">Overtime</a>
+					<a href="#reports">Reports</a>
+					<a href="#rules">Always-on rules</a>
+					<a href="#later">Not now</a>
+					<a href="#build">Build order</a>
+				</nav>
+			</header>
+
+			<section id="flow">
+				<h2><span class="num">1</span>The big picture</h2>
+				<p>
+					The system replaces the operational parts of Odoo. It is <b>not</b> an HR system: no
+					payroll, leave balances, recruitment or performance reviews. Its job is to answer, for
+					every day: which flights are there, which team handles each one, who should be at work,
+					who actually came, and how much overtime they did.
+				</p>
+				<div class="flow" role="list">
+					<div class="step" role="listitem">Flights<small>entered or imported</small></div>
+					<span class="arrow" aria-hidden="true">→</span>
+					<div class="step" role="listitem">Teams<small>one team per flight</small></div>
+					<span class="arrow" aria-hidden="true">→</span>
+					<div class="step" role="listitem">Shift cycles<small>who should work when</small></div>
+					<span class="arrow" aria-hidden="true">→</span>
+					<div class="step" role="listitem">Attendance<small>who actually came</small></div>
+					<span class="arrow" aria-hidden="true">→</span>
+					<div class="step" role="listitem">Overtime<small>hours past 12 h</small></div>
+					<span class="arrow" aria-hidden="true">→</span>
+					<div class="step" role="listitem">Daily report<small>everything reconciles</small></div>
+				</div>
+				<p>
+					Attendance is the core. To know whether someone is late, missing or doing overtime, the
+					system must first know when they <i>should</i> be working, which is what the shift cycles
+					are for.
+				</p>
+			</section>
+
+			<section id="people">
+				<h2><span class="num">2</span>Who uses it</h2>
+				<p>
+					People sign in with their <b>ID number and a 6-digit code</b> that an admin issues. There
+					are no passwords. A code expires (7 days by default), five wrong tries lock the account,
+					and an admin can issue a new code at any time.
+				</p>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th>What</th>
+								<th>Admin</th>
+								<th>Operations manager</th>
+								<th>Supervisor</th>
+								<th>Employee</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Signs in</td>
+								<td class="yes">Yes</td>
+								<td class="yes">Yes</td>
+								<td class="no">Not yet</td>
+								<td class="no">No</td>
+							</tr>
+							<tr>
+								<td>Accounts &amp; codes</td>
+								<td class="yes">Yes</td>
+								<td class="no">No</td>
+								<td class="no">—</td>
+								<td class="no">—</td>
+							</tr>
+							<tr>
+								<td>Flights, teams, employees, imports, flight assignments</td>
+								<td class="yes">Yes</td>
+								<td class="yes">Yes</td>
+								<td class="no">—</td>
+								<td class="no">—</td>
+							</tr>
+							<tr>
+								<td>Shift times, cycles, team moves, swaps</td>
+								<td class="yes">Yes</td>
+								<td class="no">No</td>
+								<td class="no">—</td>
+								<td class="no">—</td>
+							</tr>
+							<tr>
+								<td>Attendance &amp; absences</td>
+								<td class="yes">Yes</td>
+								<td class="no">No (removed)</td>
+								<td class="no">—</td>
+								<td class="no">—</td>
+							</tr>
+							<tr>
+								<td>Approve overtime</td>
+								<td class="yes">Yes</td>
+								<td class="no">No</td>
+								<td class="no">—</td>
+								<td class="no">—</td>
+							</tr>
+							<tr>
+								<td>Reports</td>
+								<td class="yes">Yes</td>
+								<td class="yes">Yes</td>
+								<td class="no">—</td>
+								<td class="no">—</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="callout">
+					<b>Supervisors</b> are staff members listed on each team. For now they cannot sign in or
+					record anything; they get a different job later. They do appear in the roster, on their
+					own personal shift cycle.
+				</div>
+				<p>
+					Permissions are checked on the server for every page and every save. Hiding a button is
+					only cosmetic: an operations manager who sends an attendance request anyway gets
+					<b>403 Forbidden</b>.
+				</p>
+			</section>
+
+			<section id="today">
+				<h2><span class="num">3</span>What is built today</h2>
+				<div class="grid">
+					<div class="card">
+						<h3>Sign-in &amp; accounts <span class="tag built">Built</span></h3>
+						<ul>
+							<li>ID number + 6-digit code</li>
+							<li>Admin creates accounts and issues codes</li>
+							<li>Lockout and rate limits</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Teams &amp; employees <span class="tag built">Built</span></h3>
+						<ul>
+							<li>Teams with English and Arabic names</li>
+							<li>Employees, each in at most one team</li>
+							<li>Team history kept for every move</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Flights <span class="tag built">Built</span></h3>
+						<ul>
+							<li>Arrivals and departures, Damascus time</li>
+							<li>Handling window per flight</li>
+							<li>Import from Excel / Markdown (built, not tested yet)</li>
+						</ul>
+					</div>
+					<div class="card">
+						<h3>Safety nets <span class="tag built">Built</span></h3>
+						<ul>
+							<li>Audit log of every change</li>
+							<li>Nothing operational is ever deleted</li>
+							<li>English and Arabic (right-to-left)</li>
+						</ul>
+					</div>
+				</div>
+			</section>
+
+			<section id="shifts">
+				<h2><span class="num">4</span>Shifts and cycles <span class="tag next">Next</span></h2>
+				<h3>Only two shifts, both 12 hours</h3>
+				<p>
+					The admin enters the <b>Day start</b> and <b>Night start</b> once, for the whole airport.
+					Each shift ends 12 hours after it starts. A night shift ends the next morning but
+					<b>belongs to the date it starts</b>. The times below are an example; the admin sets the
+					real ones.
+				</p>
+				<div class="timeline" aria-label="Example day and night shift">
+					<div class="track">
+						<div
+							class="seg"
+							style="left: 0; width: 29.17%; background: var(--night-soft); color: var(--night)"
+						>
+							Night (from yesterday)
+						</div>
+						<div
+							class="seg"
+							style="left: 29.17%; width: 50%; background: var(--day-soft); color: var(--day)"
+						>
+							Day 07:00 → 19:00
+						</div>
+						<div
+							class="seg"
+							style="
+								left: 79.17%;
+								width: 20.83%;
+								background: var(--night-soft);
+								color: var(--night);
+							"
+						>
+							Night 19:00 →
+						</div>
+					</div>
+					<div class="ticks">
+						<span>00:00</span><span>07:00</span><span>12:00</span><span>19:00</span
+						><span>24:00</span>
+					</div>
+				</div>
+
+				<h3>A cycle is a repeating list of days</h3>
+				<p>
+					Each team gets a <b>cycle</b> of 1 to 28 days. Every day in it is <b>D</b> (Day),
+					<b>N</b> (Night) or <b>O</b> (Off). The admin paints it cell by cell and picks a
+					<b>start date</b> (cycle day 1). From then on it repeats forever, so there is nothing to
+					regenerate each month.
+				</p>
+				<p>
+					Try it: click a cell to switch it between D, N and O, change the length, or start from one
+					of the examples. The calendar shows the next four weeks.
+				</p>
+				<div class="controls">
+					<button class="btn" type="button" data-preset="DNO">Example D N O</button>
+					<button class="btn" type="button" data-preset="DNOO">Example D N O O</button>
+					<button class="btn" type="button" data-preset="DDNNOOOO">Example D D N N O O O O</button>
+					<button class="btn" type="button" id="cycle-add">+ day</button>
+					<button class="btn" type="button" id="cycle-remove">− day</button>
+					<label>Start date <input type="date" id="anchor" value="2026-11-02" /></label>
+				</div>
+				<div class="painter" id="painter" aria-label="Cycle cells"></div>
+				<p id="cycle-summary" style="color: var(--muted); font-size: 0.9rem"></p>
+				<div class="cal" id="calendar" aria-live="polite"></div>
+
+				<h3>Changes never rewrite the past</h3>
+				<p>
+					When the admin changes a cycle, they choose the date it takes effect. The old version
+					stays for every day before it, so last month's roster and reports look exactly as they
+					did. The same goes for shift times: each cycle keeps a copy of the times it was saved
+					with. The admin's changes go live directly; there is no approval step.
+				</p>
+			</section>
+
+			<section id="roster">
+				<h2><span class="num">5</span>Whose shift is it? <span class="tag next">Next</span></h2>
+				<p>
+					The roster is <b>calculated</b> when someone looks at it, never stored. For one person on
+					one date, the system checks these in order and takes the first that applies:
+				</p>
+				<div class="ladder">
+					<div>
+						<b>1. Absence</b><span>sick, leave, no-show or other: they are not expected</span>
+					</div>
+					<div>
+						<b>2. Override</b
+						><span>a one-off change for that date: extra shift, day off, or a swap</span>
+					</div>
+					<div>
+						<b>3. Personal cycle</b
+						><span>admin staff and supervisors follow their own cycle instead of the team's</span>
+					</div>
+					<div>
+						<b>4. Team cycle</b><span>the cycle of the team they belong to on that date</span>
+					</div>
+				</div>
+				<p>
+					Because everything is calculated, the admin's editor shows a live four-week preview for
+					every team member as they paint the cycle, with no waiting.
+				</p>
+			</section>
+
+			<section id="moves">
+				<h2>
+					<span class="num">6</span>Team moves, overrides and swaps
+					<span class="tag next">Next</span>
+				</h2>
+				<h3>Moving someone to another team</h3>
+				<p>
+					The admin picks the date the move takes effect: <b>today or later, never in the past</b>.
+					Before that date the person follows the old team's cycle; from it, the new team's. A
+					future move shows on the employee ("→ Team B from 3 Nov").
+				</p>
+				<h3>Overrides</h3>
+				<p>
+					For a single date the admin can give someone a Day shift, a Night shift, or a day Off,
+					with a reason. A Day or Night shift on a day they were meant to be off is an
+					<b>extra shift</b>, and all of it counts as overtime.
+				</p>
+				<h3>Swaps</h3>
+				<p>
+					Two people swapping shifts is <b>one action</b>: both sides are saved together, and
+					cancelling the swap cancels both. A swapped shift is a normal shift, <b>not</b> overtime,
+					because each person gives up a day in exchange.
+				</p>
+			</section>
+
+			<section id="attendance">
+				<h2><span class="num">7</span>Attendance <span class="tag next">Next</span></h2>
+				<p>
+					The admin opens <b>Attendance</b>, picks a date and a team, and sees everyone rostered on
+					each shift with one-tap buttons: <b>check-in</b>, <b>check-out</b>, <b>break start</b> and
+					<b>break end</b>. The page refreshes itself so the status stays current.
+				</p>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th>Status</th>
+								<th>Meaning</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Expected</td>
+								<td>Shift hasn't started and they haven't checked in</td>
+							</tr>
+							<tr>
+								<td>Present</td>
+								<td>Checked in on time (up to 15 min after the start)</td>
+							</tr>
+							<tr>
+								<td>Late</td>
+								<td>Checked in more than <b>15 min</b> after the start</td>
+							</tr>
+							<tr>
+								<td>Missing</td>
+								<td>Shift started, no check-in, no absence recorded</td>
+							</tr>
+							<tr>
+								<td>On break</td>
+								<td>Break started, not ended</td>
+							</tr>
+							<tr>
+								<td>Done</td>
+								<td>Checked out</td>
+							</tr>
+							<tr>
+								<td>Absent</td>
+								<td>An absence is recorded for the date</td>
+							</tr>
+							<tr>
+								<td>Off</td>
+								<td>Not rostered that day</td>
+							</tr>
+							<tr>
+								<td>Unscheduled</td>
+								<td>Checked in on an off day (allowed, with a reason)</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<h3>Rules</h3>
+				<ul>
+					<li>
+						<b>Breaks are paid.</b> Worked time is check-in to check-out; breaks are not subtracted.
+					</li>
+					<li>
+						A check-in or check-out belongs to a shift if it happens between
+						<b>2 h before it starts</b> and <b>7 h after it ends</b>. A night shift's 07:05
+						check-out counts for the previous evening's shift.
+					</li>
+					<li>
+						Records are never edited. A mistake is fixed by adding a correction with a reason; the
+						original stays visible.
+					</li>
+					<li>Under 12 hours on a rostered shift is flagged <b>short</b>.</li>
+				</ul>
+				<div class="callout" dir="rtl" lang="ar">
+					<h3 style="margin-top: 0">قواعد الحضور</h3>
+					<ul>
+						<li>
+							<b>الاستراحات مدفوعة الأجر.</b> يُحسب وقت العمل من تسجيل الدخول حتى تسجيل الخروج، ولا
+							تُخصم الاستراحات منه.
+						</li>
+						<li>
+							يُنسب تسجيل الدخول أو الخروج إلى الوردية إذا حدث بين <b>ساعتين قبل بدايتها</b> و<b
+								>7 ساعات بعد نهايتها</b
+							>. فتسجيل الخروج الساعة <bdi dir="ltr">07:05</bdi> صباحاً من وردية ليلية يُحسب لوردية
+							المساء السابق.
+						</li>
+						<li>
+							لا تُعدَّل السجلات أبداً. يُصحَّح الخطأ بإضافة تصحيح مع ذكر السبب، ويبقى السجل الأصلي
+							ظاهراً.
+						</li>
+						<li>إذا عمل الموظف أقل من 12 ساعة في وردية مجدولة، يُعلَّم يومه بأنه <b>ناقص</b>.</li>
+					</ul>
+				</div>
+			</section>
+
+			<section id="overtime">
+				<h2><span class="num">8</span>Overtime <span class="tag next">Next</span></h2>
+				<p>
+					Overtime is counted in <b>hours only</b> (no money), <b>per day</b>, with no legal rules
+					and nothing carried over from one day to the next.
+				</p>
+				<div class="grid">
+					<div class="card">
+						<h3>Normal rostered shift</h3>
+						<p>Overtime = time worked past 12 h.<br />12 h 40 m worked → 40 m.</p>
+					</div>
+					<div class="card">
+						<h3>Extra shift on an off day</h3>
+						<p>All of it is overtime.<br />A full 12 h extra shift → 12 h.</p>
+					</div>
+					<div class="card">
+						<h3>Rounding</h3>
+						<p>To the nearest 15 min.<br />7 m → 0 · 8 m → 15 m · 40 m → 45 m</p>
+					</div>
+					<div class="card">
+						<h3>Two categories</h3>
+						<p><b>Day</b> or <b>Night</b>, by the shift it belongs to. Shown as 2.25 h and 2:15.</p>
+					</div>
+				</div>
+				<div class="callout warn">
+					A warning (never a block) appears when someone works <b>more than 18 h</b> on one shift
+					date.
+				</div>
+				<p>
+					Only an <b>admin approves</b> overtime. The approval stores the hours approved. If a
+					correction later changes that day's hours, it shows <b>"changed since approval"</b> so
+					nothing slips through.
+				</p>
+
+				<h3>Try the calculator</h3>
+				<p style="color: var(--muted); font-size: 0.9rem">
+					Example shift times 07:00 (Day) and 19:00 (Night). A check-out earlier than the check-in
+					means the next day.
+				</p>
+				<div class="controls">
+					<label
+						>Shift
+						<select id="ot-kind">
+							<option value="day">Day, rostered</option>
+							<option value="night">Night, rostered</option>
+							<option value="extra-day">Day, extra shift on off day</option>
+							<option value="extra-night">Night, extra shift on off day</option>
+						</select>
+					</label>
+					<label>Check-in <input type="time" id="ot-in" value="07:00" /></label>
+					<label>Check-out <input type="time" id="ot-out" value="21:10" /></label>
+				</div>
+				<div class="result">
+					<div><small>Worked</small><b id="ot-worked">—</b></div>
+					<div><small>Overtime before rounding</small><b id="ot-raw">—</b></div>
+					<div><small>Overtime (rounded)</small><b id="ot-hm">—</b></div>
+					<div><small>Decimal hours</small><b id="ot-dec">—</b></div>
+				</div>
+				<div class="flags">
+					<span class="flag" id="f-cat">Day</span>
+					<span class="flag" id="f-late">Late</span>
+					<span class="flag" id="f-short">Short</span>
+					<span class="flag" id="f-warn">Over 18 h</span>
+				</div>
+
+				<h3>Worked examples</h3>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th>Case</th>
+								<th>In → out</th>
+								<th>Worked</th>
+								<th>Overtime</th>
+								<th>Notes</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Day, on time</td>
+								<td class="n">07:00 → 19:00</td>
+								<td class="n">12:00</td>
+								<td class="n">0</td>
+								<td>Exactly the shift</td>
+							</tr>
+							<tr>
+								<td>Day, stays 7 min</td>
+								<td class="n">07:00 → 19:07</td>
+								<td class="n">12:07</td>
+								<td class="n">0</td>
+								<td>7 m rounds down</td>
+							</tr>
+							<tr>
+								<td>Day, stays 8 min</td>
+								<td class="n">07:00 → 19:08</td>
+								<td class="n">12:08</td>
+								<td class="n">0.25 h</td>
+								<td>8 m rounds up to 15 m</td>
+							</tr>
+							<tr>
+								<td>Day, long stay, 1 h break</td>
+								<td class="n">07:00 → 21:10</td>
+								<td class="n">14:10</td>
+								<td class="n">2.25 h</td>
+								<td>Break is paid; 2:10 → 2:15</td>
+							</tr>
+							<tr>
+								<td>Night</td>
+								<td class="n">18:50 → 07:05</td>
+								<td class="n">12:15</td>
+								<td class="n">0.25 h Night</td>
+								<td>Counts for the evening's date</td>
+							</tr>
+							<tr>
+								<td>Day, late</td>
+								<td class="n">07:30 → 19:30</td>
+								<td class="n">12:00</td>
+								<td class="n">0</td>
+								<td>Late (30 m); staying later only makes up the time</td>
+							</tr>
+							<tr>
+								<td>Day, short</td>
+								<td class="n">07:00 → 18:00</td>
+								<td class="n">11:00</td>
+								<td class="n">0</td>
+								<td>Flagged short</td>
+							</tr>
+							<tr>
+								<td>Extra Day shift</td>
+								<td class="n">07:00 → 19:00</td>
+								<td class="n">12:00</td>
+								<td class="n">12 h</td>
+								<td>Off day, all of it counts</td>
+							</tr>
+							<tr>
+								<td>Day, very long</td>
+								<td class="n">07:00 → 01:30</td>
+								<td class="n">18:30</td>
+								<td class="n">6.5 h</td>
+								<td>Over-18 h warning</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section id="reports">
+				<h2><span class="num">9</span>Reports <span class="tag next">Next</span></h2>
+				<p>
+					The <b>daily attendance report</b> shows, per team and shift: how many were scheduled,
+					present, late, missing, absent, off and unscheduled; and per person, hours worked and
+					overtime (Day or Night, approved or pending). It prints cleanly in English and Arabic.
+				</p>
+				<p>
+					The totals always match the underlying records, and a past day's report never changes when
+					a cycle, shift time or team is changed afterwards.
+				</p>
+				<p>
+					Flights tie in too: when a team is assigned to a flight, the system will warn if the
+					handling window falls on that team's day off or outside its shift.
+				</p>
+			</section>
+
+			<section id="rules">
+				<h2><span class="num">10</span>Rules that always hold</h2>
+				<div class="grid">
+					<div class="card">
+						<h3>Server-checked permissions</h3>
+						<p>Every page and save checks the user's permission on the server.</p>
+					</div>
+					<div class="card">
+						<h3>Everything audited</h3>
+						<p>
+							Each change writes an audit record in the same step, with the reason when one is
+							needed.
+						</p>
+					</div>
+					<div class="card">
+						<h3>Nothing deleted</h3>
+						<p>
+							Flights are cancelled, people and teams deactivated, records corrected, never erased.
+						</p>
+					</div>
+					<div class="card">
+						<h3>No double-booking</h3>
+						<p>The database itself rejects a team on two overlapping flights.</p>
+					</div>
+					<div class="card">
+						<h3>Damascus time</h3>
+						<p>Stored as exact instants, always shown and entered in Damascus time.</p>
+					</div>
+					<div class="card">
+						<h3>English &amp; Arabic</h3>
+						<p>Every screen in both languages; times and flight numbers stay left-to-right.</p>
+					</div>
+				</div>
+			</section>
+
+			<section id="later">
+				<h2><span class="num">11</span>Not in this round</h2>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th>Feature</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Supervisor sign-in and supervisor duties</td>
+								<td><span class="tag later">Later</span></td>
+							</tr>
+							<tr>
+								<td>Aligning several teams' cycles so every shift is covered</td>
+								<td><span class="tag later">Later</span></td>
+							</tr>
+							<tr>
+								<td>Saved, named rotations to pick from</td>
+								<td><span class="tag later">Later</span></td>
+							</tr>
+							<tr>
+								<td>Public holidays as an overtime category</td>
+								<td><span class="tag later">Later</span></td>
+							</tr>
+							<tr>
+								<td>Overtime export to Odoo / payroll, locking paid periods</td>
+								<td><span class="tag later">Later</span></td>
+							</tr>
+							<tr>
+								<td>Coverage targets per shift</td>
+								<td><span class="tag later">Not needed</span></td>
+							</tr>
+							<tr>
+								<td>Minimum rest between shifts</td>
+								<td><span class="tag later">Not needed</span></td>
+							</tr>
+							<tr>
+								<td>Overtime pay, payroll, leave balances, forecasting, automatic optimisation</td>
+								<td><span class="tag later">Out of scope</span></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section id="build">
+				<h2><span class="num">12</span>Build order</h2>
+				<p>Each step ends with a checkpoint that must pass before the next one starts.</p>
+				<div class="phases">
+					<div class="phase">
+						<span class="id">RA</span>
+						<div>
+							<p class="t">Decisions &amp; docs</p>
+							<p>All questions answered. Update the project guide and add automated tests.</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RB</span>
+						<div>
+							<p class="t">Database</p>
+							<p>
+								Tables for settings, cycles, overrides, attendance, absences and overtime approvals;
+								admin-only permissions.
+							</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RC</span>
+						<div>
+							<p class="t">Roster engine</p>
+							<p>The calculations for cycles, attendance and overtime, each covered by tests.</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RD</span>
+						<div>
+							<p class="t">Settings &amp; cycle editor</p>
+							<p>
+								Shift times page, the cycle painter with live preview, personal cycles, supervisors
+								list.
+							</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RE</span>
+						<div>
+							<p class="t">Team moves</p>
+							<p>Moves with an effective date; team history becomes the single source of truth.</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RG</span>
+						<div>
+							<p class="t">Attendance &amp; overtime</p>
+							<p>The attendance page, swaps, absences, overtime and admin approval.</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RH</span>
+						<div>
+							<p class="t">Daily report</p>
+							<p>Per team and shift, with overtime; reconciles with the records.</p>
+						</div>
+					</div>
+					<div class="phase">
+						<span class="id">RI</span>
+						<div>
+							<p class="t">Integration &amp; hardening</p>
+							<p>Flight assignment warnings, staff import on the new model, security pass.</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<footer>Based on ROSTER_PLAN.md and OPERATIONS_PLAN.md, 27 October 2026.</footer>
+		</main>
+
+		<script>
+			(function () {
+				const KINDS = ['D', 'N', 'O'];
+				const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+				let cycle = ['D', 'N', 'O', 'O'];
+
+				const painter = document.getElementById('painter');
+				const calendar = document.getElementById('calendar');
+				const summary = document.getElementById('cycle-summary');
+				const anchorInput = document.getElementById('anchor');
+
+				function parseDay(value) {
+					const [y, m, d] = value.split('-').map(Number);
+					return new Date(Date.UTC(y, m - 1, d));
+				}
+
+				function renderPainter() {
+					painter.replaceChildren(
+						...cycle.map((kind, i) => {
+							const b = document.createElement('button');
+							b.type = 'button';
+							b.className = 'cell ' + kind.toLowerCase();
+							b.textContent = kind;
+							b.title = 'Cycle day ' + (i + 1) + ': click to change';
+							b.addEventListener('click', () => {
+								cycle[i] = KINDS[(KINDS.indexOf(kind) + 1) % KINDS.length];
+								render();
+							});
+							return b;
+						})
+					);
+				}
+
+				function renderCalendar() {
+					const anchor = parseDay(anchorInput.value || '2026-11-02');
+					const lead = (anchor.getUTCDay() + 6) % 7;
+					const cells = DAY_NAMES.map((name) => {
+						const h = document.createElement('div');
+						h.className = 'head';
+						h.textContent = name;
+						return h;
+					});
+					for (let i = 0; i < lead; i++) {
+						const blank = document.createElement('div');
+						blank.className = 'day blank';
+						cells.push(blank);
+					}
+					for (let i = 0; i < 28; i++) {
+						const date = new Date(anchor.getTime() + i * 86400000);
+						const kind = cycle[i % cycle.length];
+						const el = document.createElement('div');
+						el.className = 'day ' + kind.toLowerCase();
+						const label = document.createElement('span');
+						label.textContent = date.getUTCDate() + '/' + (date.getUTCMonth() + 1);
+						const k = document.createElement('b');
+						k.textContent = kind === 'O' ? 'Off' : kind;
+						el.append(label, k);
+						cells.push(el);
+					}
+					calendar.replaceChildren(...cells);
+				}
+
+				function renderSummary() {
+					const work = cycle.filter((k) => k !== 'O').length;
+					const avg = ((work * 12) / cycle.length) * 7;
+					summary.textContent =
+						cycle.length +
+						'-day cycle · ' +
+						work +
+						' working shift' +
+						(work === 1 ? '' : 's') +
+						' per cycle · about ' +
+						avg.toFixed(1) +
+						' h per week' +
+						(work === 0 ? ' · a cycle needs at least one working day' : '');
+				}
+
+				function render() {
+					renderPainter();
+					renderCalendar();
+					renderSummary();
+				}
+
+				document.querySelectorAll('[data-preset]').forEach((b) =>
+					b.addEventListener('click', () => {
+						cycle = b.dataset.preset.split('');
+						render();
+					})
+				);
+				document.getElementById('cycle-add').addEventListener('click', () => {
+					if (cycle.length < 28) cycle.push('O');
+					render();
+				});
+				document.getElementById('cycle-remove').addEventListener('click', () => {
+					if (cycle.length > 1) cycle.pop();
+					render();
+				});
+				anchorInput.addEventListener('input', renderCalendar);
+				render();
+
+				const kindSel = document.getElementById('ot-kind');
+				const inInput = document.getElementById('ot-in');
+				const outInput = document.getElementById('ot-out');
+				const START = { day: 7 * 60, night: 19 * 60 };
+
+				function minutes(value) {
+					const [h, m] = value.split(':').map(Number);
+					return h * 60 + m;
+				}
+				function hm(total) {
+					return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0');
+				}
+				function setFlag(id, on, tone, text) {
+					const el = document.getElementById(id);
+					el.className = 'flag' + (on ? ' on ' + tone : '');
+					if (text) el.textContent = text;
+				}
+
+				function calc() {
+					if (!inInput.value || !outInput.value) return;
+					const kind = kindSel.value;
+					const extra = kind.startsWith('extra');
+					const shift = kind.endsWith('night') ? 'night' : 'day';
+					const tin = minutes(inInput.value);
+					let tout = minutes(outInput.value);
+					if (tout <= tin) tout += 1440;
+					const worked = tout - tin;
+					const raw = Math.max(0, worked - (extra ? 0 : 720));
+					const rounded = Math.round(raw / 15) * 15;
+
+					let lateBy = tin - START[shift];
+					if (lateBy > 720) lateBy -= 1440;
+					if (lateBy < -720) lateBy += 1440;
+
+					document.getElementById('ot-worked').textContent = hm(worked);
+					document.getElementById('ot-raw').textContent = hm(raw);
+					document.getElementById('ot-hm').textContent = hm(rounded);
+					document.getElementById('ot-dec').textContent = (rounded / 60).toFixed(2) + ' h';
+					setFlag('f-cat', true, 'good', shift === 'day' ? 'Day overtime' : 'Night overtime');
+					setFlag(
+						'f-late',
+						lateBy > 15,
+						'bad',
+						lateBy > 15 ? 'Late ' + lateBy + ' min' : 'On time'
+					);
+					setFlag('f-short', !extra && worked < 720, 'bad', 'Short');
+					setFlag('f-warn', worked > 1080, 'bad', 'Over 18 h');
+				}
+
+				[kindSel, inInput, outInput].forEach((el) => el.addEventListener('input', calc));
+				kindSel.addEventListener('change', calc);
+				calc();
+			})();
+		</script>
+	</body>
+</html>

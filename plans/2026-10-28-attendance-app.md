@@ -277,7 +277,7 @@ needs B's connector → S1.6 waits for the user's file format.
       mockup, reference), `.gitignore`, versioned hook `tools/hooks/pre-commit`
       > note: done 2026-10-28 in the planning session (`git config
       > core.hooksPath tools/hooks` already set on this clone).
-- [ ] S0.2 Copy the template into this repo without overwriting our files:
+- [x] S0.2 Copy the template into this repo without overwriting our files:
       ```bash
       git -C ../Airport-Staff archive a99e348 | tar -x -C . \
         --exclude=CLAUDE.md --exclude=README.md --exclude=.gitignore \
@@ -289,6 +289,8 @@ needs B's connector → S1.6 waits for the user's file format.
       Write `docs/template/SOURCE.md` (path, commit, date).
       **Done when** the template tree is here, our CLAUDE.md/plan/.gitignore
       are unchanged, `pnpm install` succeeds
+      > note: done 2026-10-28 on `app/main`; baseline `pnpm test` 63/63,
+      > `pnpm check` 0 errors / 1 template warning; `.nvmrc` = 24.
 - [ ] S0.3 Local DB: `docker-compose.dev.yml` (`attendance-app-db`,
       `postgres:16`, `127.0.0.1:5433:5432`, named volume, healthcheck,
       project `attendance-app`); DBs `attendance_app`, `attendance_app_test`;

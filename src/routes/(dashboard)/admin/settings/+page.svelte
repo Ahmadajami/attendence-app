@@ -1,5 +1,8 @@
 <script lang="ts">
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
+	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 </script>
 
@@ -18,5 +21,11 @@
 			<Card.Title>{m.settings_shifts_title()}</Card.Title>
 			<Card.Description>{m.settings_shifts_description()}</Card.Description>
 		</Card.Header>
+		<Card.Content>
+			<Button href={localizedHref('/shifts')} variant="outline">
+				{m.settings_shifts_link()}
+				<ArrowRightIcon data-icon="inline-end" class="rtl:rotate-180" />
+			</Button>
+		</Card.Content>
 	</Card.Root>
 </section>

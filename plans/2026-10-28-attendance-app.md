@@ -407,9 +407,15 @@ needs B's connector → S1.6 waits for the user's file format.
       > `src/lib/payroll/schedule.ts` = port of `schedule_spec` (11 cases).
       > `pnpm test` 109/109 (76 before), every old roster case ported.
       > Previews checked by hand on `attendance_app_e2e`.
-- [ ] S2.2 `/shifts` (F12) + 24 h editor with live hint (F3).
+- [x] S2.2 `/shifts` (F12) + 24 h editor with live hint (F3).
       **Done when** 16:00→04:00 shows "ends next day", 720; `OFF`/duplicate
       codes refused
+      > note: 2026-10-28. `/shifts` (table + create/edit sheet, live hint,
+      > 8-colour palette, deactivate), P1 lock. 16:00→04:00 → ends next day,
+      > 720 (Vitest); `OFF` and a duplicate code refused (Vitest + seen on the
+      > action). Sub-plan's runtime check only partly done: a misdirected dev
+      > server wrote a made-up shift `E` + 1 audit row into `attendance_app`
+      > (left in place at the user's choice). `pnpm test` 118/118.
 - [ ] S2.3 Department settings and rules (F11), sub-departments inherit (D10).
       **Done when** a parent override shows as inherited on its child
 - [ ] S2.4 `/teams` (F13) and `/patterns` (F2–F4).

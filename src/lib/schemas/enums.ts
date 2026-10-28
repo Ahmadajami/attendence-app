@@ -16,3 +16,19 @@ export type AttendanceEventType = (typeof ATTENDANCE_EVENT_TYPES)[number];
 
 export const ABSENCE_TYPES = ['sick', 'leave', 'no_show', 'other'] as const;
 export type AbsenceType = (typeof ABSENCE_TYPES)[number];
+
+/**
+ * The shift palette (no free colour input). Mid-dark tones: white text reads on each, in light and
+ * dark mode. D and N are seeded with amber and indigo (`drizzle/0005_shift_constraints_seed.sql`).
+ */
+export const SHIFT_COLOURS = [
+	'#b45309', // amber
+	'#4338ca', // indigo
+	'#0369a1', // sky
+	'#047857', // emerald
+	'#be123c', // rose
+	'#6d28d9', // violet
+	'#0f766e', // teal
+	'#475569' // slate
+] as const;
+export type ShiftColour = (typeof SHIFT_COLOURS)[number];

@@ -208,15 +208,21 @@ Stop and ask before departing from any of these.
 
 ## S2.2 · `/shifts` (F12) + editor with live hint (F3)
 
-- [ ] `src/lib/schemas/shift.schema.ts` (shared zod): code `^[A-Z0-9]{1,3}$`,
+- [x] `src/lib/schemas/shift.schema.ts` (shared zod): code `^[A-Z0-9]{1,3}$`,
       not `OFF`; names en/ar required; times `HH:mm`; break 0–720; required
       (optional) 1–1440; windows 0–720; grace 0–120; colour from the palette.
-- [ ] `shifts.bl.ts`: `createShift`, `updateShift` (P1: refuse a change to
+      > note: the schema doesn't upper-case (so `ab` is refused); the code
+      > input upper-cases while typing.
+- [x] `shifts.bl.ts`: `createShift`, `updateShift` (P1: refuse a change to
       times/break/required when `isShiftUsed`, `ConflictError` with a clear
       message), `setShiftActive`. Duplicate code → `ConflictError` (catch the
       unique-violation code via `pgErrorCode`). Each write is
       `batch([write, auditInsert(...)])`, permission `roster.manage`.
-- [ ] Route `src/routes/(dashboard)/shifts/`: table (code chip in its colour,
+      > note: the lock follows P1 as written: code, times, break, required
+      > and windows are locked once used; names, colour and grace stay
+      > editable (`ConflictError` on the first changed field). The page lists
+      > shifts with `listShiftsWithUsage` (pattern count + used flag).
+- [x] Route `src/routes/(dashboard)/shifts/`: table (code chip in its colour,
       name, start → end, "ends next day" badge, span, required, break, night
       🌙, grace, active, used-by count) + create/edit sheet (superforms).
       **Live hint** under the times, from `schedule.ts` on the client:
@@ -224,17 +230,33 @@ Stop and ask before departing from any of these.
       locked with an explanation when the shift is used. Sidebar entry with a
       phosphor icon; `localizedHref()`; RTL-safe (logical utilities, `<bdi>`
       around times).
-- [ ] Colour palette: 8 swatches defined as tokens that read well in light and
+      > note: view with `staff.write`, writes with `roster.manage`. The hint is
+      > `#lib/app/shifts/hint.ts` + `ShiftHintText.svelte` (reused by S2.4's
+      > new-shift dialog). Settings page links to `/shifts`.
+- [x] Colour palette: 8 swatches defined as tokens that read well in light and
       dark (no free hex input).
-- [ ] Vitest: schema cases (OFF, `ab`, `ABCD`, valid `N2`), and the hint
+      > note: `SHIFT_COLOURS` in `src/lib/schemas/enums.ts` (mid-dark tones,
+      > white text); D = amber, N = indigo as seeded.
+- [x] Vitest: schema cases (OFF, `ab`, `ABCD`, valid `N2`), and the hint
       formatter (16:00→04:00 → next day, 720; 08:00→08:00 → 1440;
       00:00→08:00 → same day, 480).
+      > note: `shift.schema.test.ts` (3 cases) + `hint.test.ts` (6 cases);
+      > `pnpm test` 118/118.
 - [ ] Manual check on `_e2e`: create `E` 16:00→04:00 → the hint says ends next
       day, 720. Creating `OFF` or a second `E` is refused with a field error.
       Editing D's times is refused once D is in a pattern. Deactivate `E` →
       it disappears from the cycle editor palette.
       **Done when** all four checks hold and each write has an `audit_log` row
-- [ ] Tick S2.2 in the main plan; commit.
+      > note: NOT done. The check script's dev server (127.0.0.1:5174, DB set
+      > by env override to `_e2e`) fell back to `.env` after a vite reload,
+      > so its first write landed in the real-data DB `attendance_app`: one
+      > made-up shift `E` (Evening 16:00→04:00) + its `shift.create` audit
+      > row. The user chose to leave both rows, and no more runtime checks.
+      > Seen before stopping: create `E` succeeded with an audit row; `OFF` →
+      > 400 field error on `code`; second `E` → 409 field error on `code`.
+      > Not checked at runtime: D's time lock and E leaving the palette. The
+      > user tests the UI.
+- [x] Tick S2.2 in the main plan; commit.
 
 ## S1.4 · Manual punch entry
 

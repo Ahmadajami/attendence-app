@@ -1,4 +1,4 @@
-import { arrayContains, asc, eq } from 'drizzle-orm';
+import { arrayContains, asc, count, eq, isNotNull } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import {
 	attendanceEvent,
@@ -6,6 +6,7 @@ import {
 	shift,
 	shiftPattern
 } from '#lib/server/db/schema/index.js';
+import type { BatchQuery } from '../common.js';
 
 export const shiftColumns = {
 	id: shift.id,
@@ -55,4 +56,42 @@ export async function isShiftUsed(id: string): Promise<boolean> {
 			.limit(1)
 	]);
 	return found.some((rows) => rows.length > 0);
+}
+
+/** Per shift: pattern versions with a slot on it, overrides and punches that point at it. */
+export async function countShiftUsage(): Promise<
+	Map<string, { patterns: number; overrides: number; events: number }>
+> {
+	const [patterns, overrides, events] = await Promise.all([
+		db.select({ slots: shiftPattern.slots }).from(shiftPattern),
+		db
+			.select({ shiftId: rosterOverride.shiftId, n: count() })
+			.from(rosterOverride)
+			.where(isNotNull(rosterOverride.shiftId))
+			.groupBy(rosterOverride.shiftId),
+		db
+			.select({ shiftId: attendanceEvent.shiftId, n: count() })
+			.from(attendanceEvent)
+			.groupBy(attendanceEvent.shiftId)
+	]);
+	const usage = new Map<string, { patterns: number; overrides: number; events: number }>();
+	const entry = (id: string) => {
+		let row = usage.get(id);
+		if (!row) usage.set(id, (row = { patterns: 0, overrides: 0, events: 0 }));
+		return row;
+	};
+	// Patterns are few (one row per owner version): count their distinct slots here.
+	for (const { slots } of patterns)
+		for (const id of new Set(slots)) if (id !== null) entry(id).patterns += 1;
+	for (const { shiftId, n } of overrides) if (shiftId) entry(shiftId).overrides = n;
+	for (const { shiftId, n } of events) entry(shiftId).events = n;
+	return usage;
+}
+
+export function insertShift(values: typeof shift.$inferInsert): BatchQuery {
+	return db.insert(shift).values(values);
+}
+
+export function updateShift(id: string, values: Partial<typeof shift.$inferInsert>): BatchQuery {
+	return db.update(shift).set(values).where(eq(shift.id, id));
 }

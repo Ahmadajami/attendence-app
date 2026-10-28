@@ -32,3 +32,28 @@ export function formToasts<T extends Record<string, unknown>, M>(
 		}
 	};
 }
+
+/** The `{ kind, text }` status message most forms use (and `failForm` returns on an `AppError`). */
+export type StatusMessage = { kind: 'success' | 'error'; text: string };
+
+/**
+ * Like `formToasts`, for forms whose status message is a `StatusMessage`. `onSuccess` runs after
+ * the success toast (e.g. to close a sheet).
+ */
+export function statusToasts<T extends Record<string, unknown>>(
+	onSuccess?: () => void
+): Pick<FormOptions<T, StatusMessage>, 'onUpdated' | 'onError'> {
+	return {
+		onUpdated: ({ form }) => {
+			if (form.message?.kind === 'success') {
+				toast.success(form.message.text);
+				onSuccess?.();
+			} else if (form.message?.kind === 'error') {
+				toast.error(form.message.text);
+			}
+		},
+		onError: ({ result }) => {
+			toast.error(result.error.message);
+		}
+	};
+}

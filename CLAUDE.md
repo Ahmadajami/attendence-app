@@ -53,8 +53,9 @@ punches, sick days = health information).
 
 ## 3. Conventions
 
-The template's rules apply in full; read them in `docs/template/CLAUDE.md`
-§3 ("Stack & conventions", "UI rules", "Forms", "Service layer", "Shared zod
+The template's rules apply in full. The UI and Forms rules are copied
+below; read the rest in `docs/template/CLAUDE.md`
+§3 ("Stack & conventions", "Service layer", "Shared zod
 schemas", "Backend typing", "Services, errors & types", "Error handling"),
 §6 rules 1, 3, 4, 5, 6 (server-side permissions, audit every mutation, time
 as `timestamptz`, en+ar strings with logical/RTL utilities, never
@@ -67,6 +68,64 @@ internal link, every string through `m.*()` in **both** `messages/en.json` and
 audit, errors; the only thing routes import) and `<service>.crud.ts` (queries;
 writes return unexecuted queries), `AppError` subclasses for expected
 failures.
+
+### UI rules (from `docs/template/CLAUDE.md`; mandatory for every `.svelte` change)
+
+| Area | Rule |
+|---|---|
+| UI | Tailwind CSS 4 (`src/routes/layout.css`), shadcn-svelte (style `lyra`) in `#lib/components/ui`. Add components with `pnpm dlx shadcn-svelte@latest add <name>`. Use `cn()` from `#lib/utils.js`. |
+| Cards | Use `Card.*` from `#lib/components/ui/card` for any card/panel. **Never change a card's border**: no `border`/`ring`/`rounded` overrides on `Card.Root`, and no hand-rolled `border bg-card` look-alikes. |
+| Icons | **phosphor-svelte** (the `components.json` icon library), imported per icon: `import ListIcon from 'phosphor-svelte/lib/ListIcon'`. Don't add new lucide usages. |
+| Feedback | `svelte-sonner` toasts (`<Toaster />` is in the root layout); `mode-watcher` (`<ModeWatcher />` in the root layout) for dark mode. |
+| Dates | `@internationalized/date` for timezone-aware display/parsing. Show instants with `formatDateTime()` from `#lib/utils/datetime.js` (Asia/Damascus, current locale) inside `<bdi>`. |
+| i18n | Paraglide JS: `en` (base) + `ar`, strategy `['url', 'cookie', 'baseLocale']` (`/ar/...` prefix). Messages in `messages/{en,ar}.json`; use `m.key()` from `#lib/paraglide/messages.js`. `src/lib/paraglide/` is generated — never edit it. |
+| Links | Internal links are **always** `localizedHref('/route')` or `localizedHref('/route', 'ar')` from `#lib/i18n.js`, which returns `localizeHref(resolve(url), { locale })`. Never a plain `href="/x"` or `resolve()` alone (drops `/ar`). Dynamic routes take params: `localizedHref('/employees/[id]', { id })`. `paths.relative` is `false` so it works in SSR. |
+| Svelte MCP | For every `.svelte` / `.svelte.ts` file created or edited, run the Svelte MCP `svelte-autofixer` until it reports no issues. Use `get-documentation` for SvelteKit 3 / Svelte 5 APIs instead of guessing. |
+
+- **Markup.** Key every `{#each}` (`(item.id)`; the index only when nothing unique exists). Use declaration tags `{const x = …}` / `{let x = $state(…)}` (Svelte ≥ 5.56) instead of the legacy `{@const}`. Close snippets with `{/snippet}`.
+- **Spacing.** No `space-y-*` / `space-x-*`. Use `flex flex-col gap-*` or grid `gap-*`. Sibling-margin spacing breaks when children render conditionally.
+- **Colors.** Only tokens defined in `src/routes/layout.css`: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, `chart-1`…`chart-5`, `sidebar-*` (plus their `-foreground` pairs). No raw palette colors (`border-gray-200`). There is **no** `warning`/`success`/`info` token: use `destructive` with opacity (`bg-destructive/10`), or add the token to both `:root` and `.dark` in the same change as its first use. Separators use `<Separator />`.
+- **shadcn primitives.** Don't modify `#lib/components/ui/` for one feature. Wrap or compose the primitive in `#lib/app/` instead. Edit `ui/` only for a project-wide fix.
+- **Component props.** Type them with `svelte/elements` (`HTMLAttributes<HTMLDivElement>`, `HTMLButtonAttributes`), never `any`. `Snippet` and `Component` come from `svelte`. Merge classes with an array (`class={['base', className]}`) or `cn()`.
+- **Back buttons.** phosphor `ArrowLeftIcon` with `rtl:rotate-180`, `href={localizedHref(...)}`, label from `m.*()`. Never choose the icon by `getLocale()`.
+- **No template scaffolding.** Nav, user menu, and command items are wired to real routes, session data, and handlers: no placeholder avatars, "Upgrade" links, or fake lists.
+- **State components** (`#lib/app/state/`): `ErrorState` (done) renders an `App.Error` and backs `src/routes/+error.svelte` and `(dashboard)/+error.svelte`. `Empty`, `Unauthorized`, `Loader` are planned. Use them instead of ad-hoc empty/error markup.
+- **Performance.** No `backdrop-blur`/`blur` on repeated items or sticky/fixed bars. Use `transition-colors`/`-opacity`/`-transform`, not `transition-all`. No looping decorative animations (spinners are fine). A client library over ~10 KB gzip used by one feature (charts, spreadsheet parsing) loads with `import()` when used, never statically in a layout or page.
+- **Strings.** Every user-facing string is `m.*()`, including thrown error messages, `setError()` text, toasts, and **default prop values**. Keys are descriptive snake_case prefixed by feature (`flights_error_conflict`), never random phrase keys.
+
+**This app's additions:**
+
+- **Theme tokens added here:** `warning` (non-blocking notices, e.g. entry
+  sheet warnings) and the shift palette `shift-1`…`shift-8` +
+  `shift-foreground`. A shift stores a palette key (`SHIFT_COLOURS`); show it
+  with `shiftColourClass()` (`#lib/app/roster/colours.js`), never as an
+  inline colour.
+- **Toasts:** forms whose message is `{ kind, text }` (what `failForm`
+  returns) spread `statusToasts(onSuccess?)` from `#lib/utils/form-toasts.js`;
+  plain `{ notice }` actions use `toastNotice` (`#lib/utils/notice-toasts.js`).
+- **GET filter forms** (date, scope, preview range) are navigation, not
+  Superforms: a `<form method="GET">` with shadcn inputs/`Select` (`name` on
+  `Select.Root`) that submits on change, so the state lives in the URL.
+- **No native `<select>`**, no `bind:ref` into array slots (use an
+  `{@attach}` that stores the element), no hand-rolled `aria-invalid`.
+
+### Forms (Superforms + Formsnap; from the template)
+
+- The component that owns the form (each `*FormSheet.svelte`) calls `superForm(untrack(() => data.form), { validators: zod4Client(schema), … })`. The server uses `zod4(schema)`. Both import the same schema from `#lib/schemas/<service>.schema.js`. Export the schema type beside the schema (`export type FlightFormSchema = typeof flightFormSchema`).
+- Actions check `if (!form.valid) return fail(400, { form })` **before** calling the BL.
+- Status messages go through `onUpdated` / `onError` (`#lib/utils/form-toasts.js`). `onError` is mandatory. Never use `$effect` on `$message`.
+- **Loading state is Superforms' `delayed` store, not `submitting`:**
+  ```ts
+  const { form: formData, message, enhance, delayed } = form;
+  ```
+  Use `disabled={$delayed}` and `{#if $delayed}` for the spinner. `delayed` turns true only after `delayMs` (500 ms by default), so fast submits don't flash a spinner. Double submits are already blocked by `multipleSubmits: 'prevent'` (the default; don't change it). Don't copy loading into `$state` through callbacks or `$effect`.
+- Every field goes through Formsnap: `Form.Field` → `Form.Control` (spread its `props` onto the one focusable element) → `Form.Label` + `Form.FieldErrors`. No hand-rolled label/`aria-invalid`/error markup. Set a custom id on `<Form.Control id="…">`, never by overriding `id` in the spread. Labels that shouldn't show get `class="sr-only"`.
+- `Select`: `name={props.name}` and `bind:value` on `Select.Root`, `{...props}` on `Select.Trigger`, trigger text from a label map with an `m.*()` placeholder. **Exception, placeholder items:** when an item's value isn't a real field value (e.g. `none` for "No team", because an empty item value can't be selected), the root's hidden input would post the placeholder, which the server rejects. Then leave `name` off `Select.Root` and post the real value with `<input type="hidden" name={props.name} value={$formData.x} />` (see `StaffFormSheet.svelte`). `Checkbox`/`Switch`: `bind:checked` on a `z.boolean()` field.
+- Reusable inputs are form-agnostic (`value = $bindable()`, `...restProps`, no superforms import). A reusable field is generic: `<script lang="ts" generics="T extends Record<string, unknown>">` with `form: SuperForm<T>` and `name: FormPathLeaves<T>`.
+- Casted defaults: unselected enum `.default('' as 'first_value')`, empty number input `.default('' as unknown as number)`, must-check box `z.literal(true).default(false as true)`. Don't put a whole-object `.refine()` on a schema with casted defaults.
+- Arrays: `Form.Fieldset` + `Form.ElementField name="items[{i}]"`, bind through the index, add/remove by reassigning the array, give it a `.default([...])`. Nested objects need `dataType: 'json'` (and therefore `use:enhance`).
+- Proxies (`dateProxy`, `intProxy`, …) are created once from the whole `SuperForm`. Programmatic writes that aren't user edits use `fieldProxy(form, 'x', { taint: false })`.
+- One component per form. Two forms with the same schema on a page get distinct `superForm` `id`s.
 
 **Differences from the template (this app wins):**
 

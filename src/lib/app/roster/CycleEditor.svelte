@@ -12,6 +12,7 @@
 	import type { PatternType } from '#lib/schemas/enums.js';
 	import { cn } from '#lib/utils.js';
 	import ShiftChip from './ShiftChip.svelte';
+	import { shiftColourClass } from './colours.js';
 	import { shiftsById, slotLabel } from './labels.js';
 
 	type PaletteShift = Pick<
@@ -132,9 +133,8 @@
 				{disabled}
 				class={cn(
 					'flex size-11 touch-none flex-col items-center justify-center rounded-md text-sm font-semibold transition-colors select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50',
-					shift ? 'text-white' : 'bg-muted text-muted-foreground'
+					shift ? shiftColourClass(shift.colour) : 'bg-muted text-muted-foreground'
 				)}
-				style:background-color={shift?.colour}
 				aria-label={m.roster_cycle_cell({ day: cellName(index), kind: slotLabel(shift) })}
 				onpointerdown={(event) => startPaint(event, index)}
 				onpointerenter={() => painting && set(index, brush)}

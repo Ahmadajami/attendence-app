@@ -332,7 +332,7 @@ export async function correctEvent(actor: Actor, input: CorrectionInput): Promis
 	if (!shift) throw new NotFoundError(m.attendance_error_event());
 
 	let occurredAt = event.occurredAt;
-	if (input.time) {
+	if (!input.remove) {
 		const pairs = ctx.eventPairs(event.staffId);
 		const own = pairs.find((p) => p.checkIn?.id === event.id || p.checkOut?.id === event.id);
 		occurredAt =
@@ -374,12 +374,12 @@ export async function correctEvent(actor: Actor, input: CorrectionInput): Promis
 				source: 'manual',
 				correctsEventId: event.id,
 				reason: input.reason,
-				isVoid: !input.time
+				isVoid: input.remove
 			}
 		]),
 		auditInsert({
 			actor: actor.user,
-			action: input.time ? 'attendance.correct' : 'attendance.void',
+			action: input.remove ? 'attendance.void' : 'attendance.correct',
 			entityType: 'attendance_event',
 			entityId: event.id,
 			after: { correctionId: id }

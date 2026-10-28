@@ -64,17 +64,23 @@ export const addPairSchema = z.object({
 });
 export type AddPairInput = z.infer<typeof addPairSchema>;
 
-/** A correction: a new time for the event, or `''` to remove it (a void correction). */
-export const correctionSchema = z.object({
-	eventId: z.uuid(),
-	time: optionalClock.default(''),
-	reason: z
-		.string()
-		.trim()
-		.min(1, { error: () => m.roster_reason_required() })
-		.max(500)
-});
+/** A correction: a new time for the event, or `remove` (a void correction). */
+export const correctionSchema = z
+	.object({
+		eventId: z.uuid(),
+		time: optionalClock.default(''),
+		remove: z.boolean().default(false),
+		reason: z
+			.string()
+			.trim()
+			.min(1, { error: () => m.roster_reason_required() })
+			.max(500)
+	})
+	.superRefine((value, ctx) => {
+		if (!value.remove && !value.time)
+			ctx.addIssue({ code: 'custom', path: ['time'], message: m.attendance_time_required() });
+	});
 export type CorrectionInput = z.infer<typeof correctionSchema>;
 
-/** Superforms status message of the entry sheet. */
-export type AttendanceMessage = { kind: 'success' | 'error'; text: string };
+/** Superforms status message of the attendance forms. */
+export type { StatusMessage as AttendanceMessage } from '#lib/utils/form-toasts.js';

@@ -6,13 +6,17 @@ import { patternFormDefaults } from '#lib/app/roster/preview.js';
 import { m } from '#lib/paraglide/messages.js';
 import { addDays } from '#lib/roster/cycle.js';
 import { patternOn } from '#lib/roster/roster.js';
-import { addPairSchema, correctionSchema } from '#lib/schemas/attendance.schema.js';
+import {
+	addPairSchema,
+	correctionSchema,
+	type AttendanceMessage
+} from '#lib/schemas/attendance.schema.js';
 import {
 	endPatternFormSchema,
 	patternFormSchema,
 	type RosterMessage
 } from '#lib/schemas/roster.schema.js';
-import { failForm, failNotice } from '#lib/server/errors.js';
+import { failForm } from '#lib/server/errors.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import {
 	addPair,
@@ -99,32 +103,37 @@ export const actions: Actions = {
 
 	addPair: async ({ request, locals, params }) => {
 		const actor = actorFrom(locals);
-		const parsed = addPairSchema.safeParse({
-			...Object.fromEntries(await request.formData()),
-			staffId: staffId(params.id)
-		});
-		if (!parsed.success)
-			return fail(400, { notice: parsed.error.issues.map((i) => i.message).join(' ') });
+		const form = await superValidate<Infer<typeof addPairSchema>, AttendanceMessage>(
+			request,
+			zod4(addPairSchema)
+		);
+		if (!form.valid) return fail(400, { form });
 		try {
-			await addPair(actor, parsed.data);
-			return { notice: m.attendance_pair_saved() };
+			await addPair(actor, { ...form.data, staffId: staffId(params.id) });
+			return message(form, {
+				kind: 'success',
+				text: m.attendance_pair_saved()
+			} satisfies AttendanceMessage);
 		} catch (cause) {
-			return failNotice(cause);
+			return failForm(form, cause);
 		}
 	},
 
 	correctEvent: async ({ request, locals }) => {
 		const actor = actorFrom(locals);
-		const parsed = correctionSchema.safeParse(Object.fromEntries(await request.formData()));
-		if (!parsed.success)
-			return fail(400, { notice: parsed.error.issues.map((i) => i.message).join(' ') });
+		const form = await superValidate<Infer<typeof correctionSchema>, AttendanceMessage>(
+			request,
+			zod4(correctionSchema)
+		);
+		if (!form.valid) return fail(400, { form });
 		try {
-			await correctEvent(actor, parsed.data);
-			return {
-				notice: parsed.data.time ? m.attendance_corrected_saved() : m.attendance_removed_saved()
-			};
+			await correctEvent(actor, form.data);
+			return message(form, {
+				kind: 'success',
+				text: form.data.remove ? m.attendance_removed_saved() : m.attendance_corrected_saved()
+			} satisfies AttendanceMessage);
 		} catch (cause) {
-			return failNotice(cause);
+			return failForm(form, cause);
 		}
 	},
 

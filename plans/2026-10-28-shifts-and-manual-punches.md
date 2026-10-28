@@ -335,6 +335,13 @@ Stop and ask before departing from any of these.
       > `1900` / `7` shorthand normalised on blur. "Correct…" opens the
       > employee page's day panel for that date. Live checks in the browser
       > use the same `validatePair` as the service. Sidebar: "Punch entry".
+      > note (user test, 2026-10-28): the sheet crashed on load
+      > (`bind:ref={undefined}` on the check-in inputs); fixed with an
+      > `{@attach}`. The UI of S2.1–S1.4 was then brought in line with the
+      > template's UI + Forms rules, now copied into CLAUDE.md §3: Formsnap
+      > fields everywhere, shadcn `Select` (no native `<select>`), the
+      > correction and add-pair forms as Superforms components, theme tokens
+      > `warning` and `shift-1`…`8` instead of raw colours, all strings `m.*()`.
 - [x] `/employees/[id]`: a day panel (click a preview day) lists the effective
       events and the corrected ones (struck through, with the reason), with
       "add pair" and "correct". The preview cells show a punch dot + worked

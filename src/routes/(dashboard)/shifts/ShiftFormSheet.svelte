@@ -16,6 +16,7 @@
 	import { SHIFT_COLOURS } from '#lib/schemas/enums.js';
 	import { shiftFormSchema, type ShiftMessage } from '#lib/schemas/shift.schema.js';
 	import type { ShiftListItem } from '#lib/server/services/shifts/shifts.bl.js';
+	import { shiftColourClass } from '#lib/app/roster/colours.js';
 	import { cn } from '#lib/utils.js';
 	import { endSide, lookupName } from '#lib/utils/locale.js';
 
@@ -279,10 +280,10 @@
 							aria-checked={selected}
 							aria-label={m.shifts_colour_option({ number: index + 1 })}
 							class={cn(
-								'flex size-8 items-center justify-center rounded-md text-white ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+								'flex size-8 items-center justify-center rounded-md ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+								shiftColourClass(colour),
 								selected && 'ring-2 ring-ring ring-offset-2'
 							)}
-							style:background-color={colour}
 							onclick={() => ($formData.colour = colour)}
 						>
 							{#if selected}<CheckIcon class="size-4" />{/if}

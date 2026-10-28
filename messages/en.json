@@ -467,6 +467,7 @@
 	"attendance_col_notes": "Reason and checks",
 	"attendance_in_for": "Check-in of {name}",
 	"attendance_out_for": "Check-out of {name}",
+	"attendance_shift_for": "Shift of {name}",
 	"attendance_next_day": "+1 day",
 	"attendance_absence_no_show": "Absent",
 	"attendance_absence_leave": "Leave",
@@ -478,7 +479,9 @@
 	"attendance_saved": "Saved: {events} punches, {absences} absences.",
 	"attendance_correct_link": "Correct…",
 	"attendance_time_invalid": "Enter a time as HH:mm.",
+	"attendance_time_placeholder": "HH:mm",
 	"attendance_shift_required": "Choose a shift.",
+	"attendance_pick_shift": "Choose a shift",
 	"attendance_absence_and_times": "An absence can't have punch times.",
 	"attendance_check_in_required": "Enter the check-in too.",
 	"attendance_issue_span_too_long": "Longer than 16 hours.",
@@ -514,5 +517,8 @@
 	"attendance_pair_saved": "Punches saved.",
 	"attendance_corrected_saved": "Correction saved; the original is kept.",
 	"attendance_removed_saved": "Punch removed; the original is kept in the history.",
-	"roster_preview_punch_worked": "worked {time}"
+	"roster_preview_punch_worked": "worked {time}",
+	"attendance_time_required": "Enter the new time, or tick Remove.",
+	"attendance_absence_for": "Absence of {name}",
+	"attendance_reason_for": "Reason for {name}"
 }

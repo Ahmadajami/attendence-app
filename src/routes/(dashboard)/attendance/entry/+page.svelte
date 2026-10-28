@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { Input } from '#lib/components/ui/input/index.js';
+	import { tick } from 'svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
+	import { Input } from '#lib/components/ui/input/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import * as Select from '#lib/components/ui/select/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { lookupName } from '#lib/utils/locale.js';
 	import EntrySheetForm from './EntrySheetForm.svelte';
@@ -16,8 +19,24 @@
 				: `team:${data.sheet.scope.teamId}`
 	);
 
-	const submit = (event: Event & { currentTarget: HTMLInputElement | HTMLSelectElement }) =>
-		event.currentTarget.form?.requestSubmit();
+	const scopeLabel = (value: string) => {
+		const [kind, id] = value.split(':');
+		const row =
+			kind === 'department'
+				? data.sheet.departments.find((d) => d.id === id)
+				: data.sheet.teams.find((t) => t.id === id);
+		return row ? lookupName(row) : m.attendance_pick_scope();
+	};
+
+	let filter: HTMLFormElement | undefined = $state();
+	/** The picked scope; follows the URL after each navigation. */
+	let scope = $derived(scopeValue);
+
+	/** Date and scope live in the URL (GET form), so the sheet survives a reload. */
+	async function apply() {
+		await tick();
+		filter?.requestSubmit();
+	}
 </script>
 
 <svelte:head>
@@ -30,42 +49,49 @@
 		<p class="max-w-prose text-muted-foreground">{m.attendance_entry_description()}</p>
 	</div>
 
-	<!-- A GET form: date and scope live in the URL, so the sheet survives a reload. -->
-	<form method="GET" class="flex flex-wrap items-end gap-3" data-sveltekit-keepfocus>
-		<label class="flex flex-col gap-1 text-sm font-medium">
-			{m.attendance_field_date()}
+	<form
+		bind:this={filter}
+		method="GET"
+		class="flex flex-wrap items-end gap-3"
+		data-sveltekit-keepfocus
+	>
+		<div class="flex flex-col gap-2">
+			<Label for="entry-date">{m.attendance_field_date()}</Label>
 			<Input
+				id="entry-date"
 				type="date"
 				name="date"
 				value={data.sheet.shiftDate}
 				max={data.sheet.today}
-				onchange={submit}
+				onchange={apply}
 				class="w-44"
 			/>
-		</label>
-		<label class="flex flex-col gap-1 text-sm font-medium">
-			{m.attendance_field_scope()}
-			<select
-				name="scope"
-				value={scopeValue}
-				onchange={submit}
-				class="h-9 min-w-56 rounded-md border border-input bg-background px-2 text-sm font-normal focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-			>
-				<option value="">{m.attendance_pick_scope()}</option>
-				<optgroup label={m.nav_departments()}>
-					{#each data.sheet.departments as department (department.id)}
-						<option value={`department:${department.id}`}>
-							{' '.repeat(department.depth * 2)}{lookupName(department)}
-						</option>
-					{/each}
-				</optgroup>
-				<optgroup label={m.nav_teams()}>
-					{#each data.sheet.teams as team (team.id)}
-						<option value={`team:${team.id}`}>{lookupName(team)}</option>
-					{/each}
-				</optgroup>
-			</select>
-		</label>
+		</div>
+		<div class="flex flex-col gap-2">
+			<Label for="entry-scope">{m.attendance_field_scope()}</Label>
+			<Select.Root type="single" name="scope" bind:value={scope} onValueChange={apply}>
+				<Select.Trigger id="entry-scope" class="w-64">{scopeLabel(scope)}</Select.Trigger>
+				<Select.Content>
+					<Select.Group>
+						<Select.Label>{m.nav_departments()}</Select.Label>
+						{#each data.sheet.departments as department (department.id)}
+							<Select.Item
+								value={`department:${department.id}`}
+								label={lookupName(department)}
+								class="ps-[calc(0.5rem+var(--depth)*1rem)]"
+								style={`--depth: ${department.depth}`}
+							/>
+						{/each}
+					</Select.Group>
+					<Select.Group>
+						<Select.Label>{m.nav_teams()}</Select.Label>
+						{#each data.sheet.teams as team (team.id)}
+							<Select.Item value={`team:${team.id}`} label={lookupName(team)} />
+						{/each}
+					</Select.Group>
+				</Select.Content>
+			</Select.Root>
+		</div>
 		<noscript><button type="submit">{m.attendance_show()}</button></noscript>
 	</form>
 

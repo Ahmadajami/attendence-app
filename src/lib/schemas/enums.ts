@@ -22,8 +22,10 @@ export const ABSENCE_TYPES = ['sick', 'leave', 'no_show', 'other'] as const;
 export type AbsenceType = (typeof ABSENCE_TYPES)[number];
 
 /**
- * The shift palette (no free colour input). Mid-dark tones: white text reads on each, in light and
- * dark mode. D and N are seeded with amber and indigo (`drizzle/0005_shift_constraints_seed.sql`).
+ * The shift palette (no free colour input). The stored value is a palette key; the colour shown
+ * comes from the `shift-1`…`shift-8` theme tokens in `src/routes/layout.css` (same order, light and
+ * dark), via `shiftColourClass()`. D and N are seeded with the first two
+ * (`drizzle/0005_shift_constraints_seed.sql`).
  */
 export const SHIFT_COLOURS = [
 	'#b45309', // amber

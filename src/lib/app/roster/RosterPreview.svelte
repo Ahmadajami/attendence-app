@@ -5,6 +5,7 @@
 	import type { RosterDay } from '#lib/roster/roster.js';
 	import { isNightShift } from '#lib/roster/shift.js';
 	import { cn } from '#lib/utils.js';
+	import { shiftColourClass } from './colours.js';
 	import { formatPreviewDay, slotLabel } from './labels.js';
 	import type { PreviewRow } from './preview.js';
 
@@ -29,7 +30,7 @@
 	function cellClass(day: RosterDay): string {
 		if (otherTeam(day)) return 'text-muted-foreground/40';
 		if (day.source === 'absence') return 'bg-destructive/10 text-destructive';
-		if (day.shift) return 'text-white';
+		if (day.shift) return shiftColourClass(day.shift.colour);
 		return 'text-muted-foreground';
 	}
 
@@ -97,7 +98,6 @@
 										cellClass(day),
 										selectedDay === day.date && 'ring-2 ring-ring'
 									)}
-									style:background-color={coloured ? day.shift?.colour : undefined}
 									title={cellTitle(day)}
 								>
 									{#snippet content()}

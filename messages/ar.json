@@ -467,6 +467,7 @@
 	"attendance_col_notes": "السبب والتحقق",
 	"attendance_in_for": "دخول {name}",
 	"attendance_out_for": "خروج {name}",
+	"attendance_shift_for": "وردية {name}",
 	"attendance_next_day": "+1 يوم",
 	"attendance_absence_no_show": "غائب",
 	"attendance_absence_leave": "إجازة",
@@ -478,7 +479,9 @@
 	"attendance_saved": "حُفظ: {events} بصمات، {absences} غيابات.",
 	"attendance_correct_link": "تصحيح…",
 	"attendance_time_invalid": "أدخل الوقت بصيغة HH:mm.",
+	"attendance_time_placeholder": "HH:mm",
 	"attendance_shift_required": "اختر وردية.",
+	"attendance_pick_shift": "اختر وردية",
 	"attendance_absence_and_times": "لا يمكن أن يكون للغياب أوقات بصمة.",
 	"attendance_check_in_required": "أدخل وقت الدخول أيضًا.",
 	"attendance_issue_span_too_long": "أطول من 16 ساعة.",
@@ -514,5 +517,8 @@
 	"attendance_pair_saved": "حُفظت البصمات.",
 	"attendance_corrected_saved": "حُفظ التصحيح، والأصل محفوظ.",
 	"attendance_removed_saved": "حُذفت البصمة، والأصل محفوظ في السجل.",
-	"roster_preview_punch_worked": "العمل {time}"
+	"roster_preview_punch_worked": "العمل {time}",
+	"attendance_time_required": "أدخل الوقت الجديد، أو حدّد حذف.",
+	"attendance_absence_for": "غياب {name}",
+	"attendance_reason_for": "سبب {name}"
 }

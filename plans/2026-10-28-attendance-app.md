@@ -375,6 +375,12 @@ needs B's connector → S1.6 waits for the user's file format.
       night and see it on the right day.
       **Done when** punches entered by hand show on the roster and the
       employee page and survive a reload; a correction keeps the history
+      > note: 2026-10-28, built but not verified at runtime: `/attendance/entry`,
+      > employee day panel (add / correct / remove with reason), punch dot +
+      > worked time on the employee and team previews, migration
+      > `0006_punch_source`. Vitest 137/137. The Playwright spec
+      > (`tests/e2e/manual-entry.spec.ts`) is written; the user runs it
+      > (`E2E_DATABASE_URL` → `attendance_app_test`). Tick when it passes.
 - [x] S1.5 Departments and employees **managed in the app**: create, edit,
       move, deactivate (audit); **new hire gets a generated employee
       number** (D28, unique, never reused); `/departments` tree,

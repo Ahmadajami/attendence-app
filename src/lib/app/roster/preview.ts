@@ -1,10 +1,10 @@
 import { parseDate } from '@internationalized/date';
 import type { ResolvedPathname } from '$app/types';
 import { rosterRange, type RosterDay, type RosterPattern } from '#lib/roster/roster.js';
+import { rosterInputOf } from '#lib/roster/input.js';
 import { applyVersionChange } from '#lib/roster/versions.js';
 import type { PatternType } from '#lib/schemas/enums.js';
 import type { RosterPreviewData } from '#lib/server/services/roster/roster.bl.js';
-import { shiftsById } from './labels.js';
 
 /** One line of the roster preview grid. */
 export type PreviewRow = {
@@ -65,35 +65,19 @@ export function previewDays(
 	staffId: string,
 	draft: DraftVersion | null
 ): RosterDay[] {
-	let personalPatterns: RosterPattern[] = data.personalPatterns.filter(
-		(p) => p.staffId === staffId
-	);
-	let teamPatterns: RosterPattern[] = data.teamPatterns;
+	const input = rosterInputOf(data, staffId);
 	if (draft?.owner === 'personal' && draft.staffId === staffId) {
-		personalPatterns = applyVersionChange(personalPatterns, draft.version);
+		input.personalPatterns = applyVersionChange(input.personalPatterns, draft.version);
 	} else if (draft?.owner === 'team') {
-		teamPatterns = [
-			...teamPatterns.filter((p) => p.teamId !== draft.teamId),
+		input.teamPatterns = [
+			...input.teamPatterns.filter((p) => p.teamId !== draft.teamId),
 			...applyVersionChange(
-				teamPatterns.filter((p) => p.teamId === draft.teamId),
+				input.teamPatterns.filter((p) => p.teamId === draft.teamId),
 				draft.version
 			)
 		];
 	}
-	return rosterRange(
-		{
-			memberships: data.memberships.filter((m) => m.staffId === staffId),
-			personalPatterns,
-			teamPatterns,
-			departmentPatterns: data.departmentPatterns,
-			departmentChain: data.departmentChains[staffId] ?? [],
-			overrides: data.overrides.filter((o) => o.staffId === staffId),
-			absences: data.absences.filter((a) => a.staffId === staffId),
-			shifts: shiftsById(data.shifts)
-		},
-		data.from,
-		data.days
-	);
+	return rosterRange(input, data.from, data.days);
 }
 
 /**

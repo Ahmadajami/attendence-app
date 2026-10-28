@@ -60,7 +60,12 @@
 			<h3 class="font-medium">{m.roster_preview_title()}</h3>
 			<PreviewRange from={data.preview.from} days={data.preview.days} today={data.today} />
 		</div>
-		<RosterPreview rows={rows(version)} today={data.today} teamId={data.team.id} />
+		<RosterPreview
+			rows={rows(version)}
+			today={data.today}
+			teamId={data.team.id}
+			punches={data.punches}
+		/>
 	</div>
 {/snippet}
 

@@ -261,42 +261,51 @@ Stop and ask before departing from any of these.
 ## S1.4 · Manual punch entry
 
 ### Data
-- [ ] Migration: add `attendance_event.source` (`manual | seed | import`,
+- [x] Migration: add `attendance_event.source` (`manual | seed | import`,
       enum `punch_source`, NOT NULL default `manual`). `recorded_by` already
       exists. Add an index on `(staff_id, shift_date)`.
-- [ ] Absence quick actions use the existing types (`no_show` = absent,
+      > note: `0006_punch_source`; also `is_void` (CHECK: only on a
+      > correction) so a void correction needs no time while `occurred_at`
+      > stays NOT NULL; `effectiveEvents` drops voided events. Migrated on
+      > `attendance_app` and `attendance_app_test` (roster tables 0/0/0).
+      > NOT migrated: `attendance_app_e2e`, whose `shift_pattern` has 3 rows
+      > from the S2.1 check; waiting for the user's OK.
+- [x] Absence quick actions use the existing types (`no_show` = absent,
       `leave`, `sick`). Widening to the §7 list (mission, training, …) is left
       to S3/S4.
       > note: `absence.reason` is free text and may hold health details, so
       > keep it optional and never log it.
 
 ### Pure helpers (`src/lib/attendance/entry.ts` + tests)
-- [ ] `resolvePair(shiftDate, shift, inHHmm, outHHmm, tz)` → `{ checkIn, checkOut }`
+- [x] `resolvePair(shiftDate, shift, inHHmm, outHHmm, tz)` → `{ checkIn, checkOut }`
       instants. Check-in = the wall-clock time on the shift date. If the shift
       ends the next day and the time is before `start − window_before`, it is
       the next day instead. Check-out = the first instant at that time after
       the check-in, so **a check-out earlier than the check-in means the next
       day**. A missing check-out stays missing (never invented).
-- [ ] `validatePair(pair, ctx)` → `{ errors[], warnings[] }`. Errors: span over
+- [x] `validatePair(pair, ctx)` → `{ errors[], warnings[] }`. Errors: span over
       16 h, overlap with the person's other effective pairs (any shift date),
       a time in the future. Warnings: check-in or check-out outside the shift's
       attribution window, and a punch on an unplanned day (a reason is
       required then).
-- [ ] `pairsOf(events)`: effective events → pairs. Reuse `effectiveEvents`;
+- [x] `pairsOf(events)`: effective events → pairs. Reuse `effectiveEvents`;
       R16 (two segments → break) stays in the payroll engine.
-- [ ] Vitest: 19:00 → 07:00 on N = next-day check-out, 720 min; 07:00 → 19:00
+- [x] Vitest: 19:00 → 07:00 on N = next-day check-out, 720 min; 07:00 → 19:00
       on D; 16:00 → 03:30 on the 16→04 shift; 19:00 → 19:30 = 30 min, not
       next day; a 17 h span refused; overlap refused; a future time refused;
       a check-in at 02:00 typed for N belongs to the next calendar day; a
       missing check-out kept open.
+      > note: `src/lib/attendance/entry.test.ts` (20 cases incl.
+      > `normalizeClock` shorthand `1900` → `19:00`, `punchDays`); `pnpm test`
+      > 137/137. `clockOf`, `calendarDate`, `punchDays` helpers added.
 
 ### Service (`src/lib/server/services/attendance/`)
-- [ ] `attendance.schema.ts` (shared zod): an entry-sheet batch
+- [x] `attendance.schema.ts` (shared zod): an entry-sheet batch
       `{ shiftDate, rows: [{ staffId, shiftId, in?, out?, absence? }] }`, a
       single pair, and a correction `{ eventId, newTime | void, reason }`.
-- [ ] `attendance.crud.ts`: events for staff × date range, insert events
+- [x] `attendance.crud.ts`: events for staff × date range, insert events
       (unexecuted queries), and people planned for a date + department/team.
-- [ ] `attendance.bl.ts` (`attendance.record`): `getEntrySheet(date, scope)`
+- [x] `attendance.bl.ts` (`attendance.record`): `getEntrySheet(date, scope)`
       returns the people (their roster day via `rosterDay`, existing pairs,
       absences); `saveEntrySheet(batch)` validates every row server-side with
       the same helpers, refuses the whole batch on any error (row-indexed
@@ -306,9 +315,15 @@ Stop and ask before departing from any of these.
       required reason (a void correction = a correction with no new time);
       `addPair` handles a single day from the employee page. The audit stores
       event ids and counts only.
+      > note: the shared schema lives in `src/lib/schemas/attendance.schema.ts`.
+      > A refused batch throws `EntrySheetError` (row index + field), and the
+      > action maps it to Superforms field errors. `roster.bl`'s loader is now
+      > the exported `loadRosterData`; `src/lib/roster/input.ts`
+      > (`rosterInputOf`) is shared by previews and the service. An absence
+      > reason is stored on `absence` only, never in the audit.
 
 ### UI
-- [ ] `/attendance/entry`: pick a date (default today) and a department or
+- [x] `/attendance/entry`: pick a date (default today) and a department or
       team. Rows are the people planned that day (shift chip, planned
       start → end); "+ add person" adds someone unplanned, with a shift and a
       reason. Check-in/out inputs are typed `HH:mm` with fast Tab order and
@@ -316,22 +331,38 @@ Stop and ask before departing from any of these.
       lands on the next day. Each row has absent / leave / sick toggles,
       inline warnings and errors, and one Save for the batch. Rows that
       already have punches show them read-only with "correct…".
-- [ ] `/employees/[id]`: a day panel (click a preview day) lists the effective
+      > note: GET filter (date + department/team) keeps the sheet in the URL;
+      > `1900` / `7` shorthand normalised on blur. "Correct…" opens the
+      > employee page's day panel for that date. Live checks in the browser
+      > use the same `validatePair` as the service. Sidebar: "Punch entry".
+- [x] `/employees/[id]`: a day panel (click a preview day) lists the effective
       events and the corrected ones (struck through, with the reason), with
       "add pair" and "correct". The preview cells show a punch dot + worked
       time.
-- [ ] Day popup: the roster grid comes in S3.2, so it reuses this day panel
+      > note: `src/lib/app/attendance/DayPanel.svelte` (reused by S3.2). The
+      > team preview shows the same dot + worked time (server sends only a
+      > per-day summary).
+- [x] Day popup: the roster grid comes in S3.2, so it reuses this day panel
       component then. Nothing to build now.
       > note: "shows on the roster" in the main plan's done-when = the
       > `/teams/[id]` and `/employees/[id]` previews until S3.2 exists.
-- [ ] en + ar strings, `svelte-autofixer`, eslint + prettier, `pnpm check`.
+      > note: nothing built, as planned.
+- [x] en + ar strings, `svelte-autofixer`, eslint + prettier, `pnpm check`.
 
 ### Playwright (first e2e in this repo)
-- [ ] Add `@playwright/test`, `playwright.config.ts` (webServer = `pnpm dev`
+- [x] Add `@playwright/test`, `playwright.config.ts` (webServer = `pnpm dev`
       on 127.0.0.1 with `DATABASE_URL` → `attendance_app_test`, made-up people
       seeded by a `tests/e2e/seed.ts`), and a `pnpm test:e2e` script. Ask the
       user before installing the browser binaries if the download needs
       network access beyond npm.
+      > note: `@playwright/test` 1.64.1 added with browser downloads off.
+      > The user chose: never run e2e here, they run it themselves. The
+      > config uses the installed Chrome (`channel: 'chrome'`) and refuses
+      > unless `E2E_DATABASE_URL` points at `attendance_app_test`. It runs a
+      > production build (`node build`), so the server can't fall back to
+      > `.env` (see the S2.2 note). `tests/e2e/seed.ts` = made-up admin,
+      > person and N-every-day team, guarded the same way. Type-checked and
+      > linted; seed and spec not executed.
 - [ ] `tests/e2e/manual-entry.spec.ts`: a made-up person on N for a date
       enters 19:00 → 07:00 → after a reload, the pair shows on that shift date
       (not the next) with 12:00 worked; a correction to 07:30 with a reason
@@ -339,7 +370,13 @@ Stop and ask before departing from any of these.
       **Done when** punches entered by hand show on the employee page and the
       team preview and survive a reload; a correction keeps the history;
       `pnpm test` + `pnpm test:e2e` green
+      > note: NOT done. The spec is written; the user runs
+      > `E2E_DATABASE_URL=… pnpm test:e2e`. `pnpm test` is green (137/137).
+      > No runtime check of the entry sheet or day panel was made here (user's
+      > choice after the S2.2 incident).
 - [ ] Tick S1.4 in the main plan with notes (test counts); commit.
+      > note: committed, but the main-plan box stays open until the user's
+      > e2e run (or their manual test) confirms the done-when.
 
 ---
 

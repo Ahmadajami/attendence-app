@@ -4,6 +4,8 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { patternFormDefaults } from '#lib/app/roster/preview.js';
 import { m } from '#lib/paraglide/messages.js';
+import { punchDays } from '#lib/attendance/entry.js';
+import { addDays } from '#lib/roster/cycle.js';
 import { patternOn } from '#lib/roster/roster.js';
 import {
 	addSupervisorSchema,
@@ -13,6 +15,7 @@ import {
 } from '#lib/schemas/roster.schema.js';
 import { failForm, failNotice } from '#lib/server/errors.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
+import { listPeopleEvents } from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
 import {
 	addTeamSupervisor,
@@ -39,8 +42,19 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		url.searchParams.get('from')
 	);
 	const current = patternOn(roster.versions, roster.today) ?? roster.versions.at(-1);
+	const actor = actorFrom(locals);
+	const events = actor.permissions.has('attendance.record')
+		? await listPeopleEvents(
+				actor,
+				[...new Set(roster.members.map((member) => member.staffId))],
+				roster.preview.from,
+				addDays(roster.preview.from, roster.preview.days - 1)
+			)
+		: [];
 	return {
 		...roster,
+		/** Worked time per member and shift date: no punch details leave the server. */
+		punches: punchDays(events),
 		patternForm: await superValidate(
 			patternFormDefaults(current, roster.today, roster.preview.shifts),
 			zod4(patternFormSchema),

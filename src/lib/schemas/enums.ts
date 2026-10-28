@@ -14,6 +14,10 @@ export const ATTENDANCE_EVENT_TYPES = [
 ] as const;
 export type AttendanceEventType = (typeof ATTENDANCE_EVENT_TYPES)[number];
 
+/** Where a punch came from: typed in the app, the one-time Odoo seed, or a punch file (S1.6). */
+export const PUNCH_SOURCES = ['manual', 'seed', 'import'] as const;
+export type PunchSource = (typeof PUNCH_SOURCES)[number];
+
 export const ABSENCE_TYPES = ['sick', 'leave', 'no_show', 'other'] as const;
 export type AbsenceType = (typeof ABSENCE_TYPES)[number];
 

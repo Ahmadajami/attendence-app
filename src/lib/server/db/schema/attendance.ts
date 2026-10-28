@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+	boolean,
 	check,
 	date,
 	index,
@@ -10,7 +11,7 @@ import {
 	uuid,
 	type AnyPgColumn
 } from 'drizzle-orm/pg-core';
-import { ABSENCE_TYPES, ATTENDANCE_EVENT_TYPES } from '#lib/schemas/enums.js';
+import { ABSENCE_TYPES, ATTENDANCE_EVENT_TYPES, PUNCH_SOURCES } from '#lib/schemas/enums.js';
 import { user } from './auth.js';
 import { shift } from './roster.js';
 import { staff, team } from './workforce.js';
@@ -19,11 +20,15 @@ export const attendanceEventType = pgEnum('attendance_event_type', ATTENDANCE_EV
 
 export const absenceType = pgEnum('absence_type', ABSENCE_TYPES);
 
+export const punchSource = pgEnum('punch_source', PUNCH_SOURCES);
+
 /**
  * **Append-only** (CLAUDE.md §7): a check-in, check-out, break start or break end. `shift_date`,
  * `shift_id` and `team_id` record the shift it was counted for when it was recorded, so reports
  * never move when cycles or teams change later. A mistake is fixed by a new event that points at
- * the wrong one (`corrects_event_id`) with a `reason`; the original stays.
+ * the wrong one (`corrects_event_id`) with a `reason`; the original stays. A void correction
+ * (`is_void`) removes the event it corrects without a new time; its `occurred_at` repeats the
+ * original's.
  */
 export const attendanceEvent = pgTable(
 	'attendance_event',
@@ -41,19 +46,26 @@ export const attendanceEvent = pgTable(
 		/** The person's team on the shift date; `null` when they had none. */
 		teamId: uuid('team_id').references(() => team.id, { onDelete: 'restrict' }),
 		recordedBy: uuid('recorded_by').references(() => user.id, { onDelete: 'set null' }),
+		source: punchSource('source').notNull().default('manual'),
 		note: text('note'),
 		correctsEventId: uuid('corrects_event_id').references((): AnyPgColumn => attendanceEvent.id, {
 			onDelete: 'restrict'
 		}),
 		/** Required on a correction and on an unscheduled check-in (enforced by the service). */
 		reason: text('reason'),
+		isVoid: boolean('is_void').notNull().default(false),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(t) => [
 		index('attendance_event_staff_idx').on(t.staffId, t.occurredAt),
+		index('attendance_event_staff_date_idx').on(t.staffId, t.shiftDate),
 		index('attendance_event_team_date_idx').on(t.teamId, t.shiftDate),
 		index('attendance_event_date_idx').on(t.shiftDate),
 		index('attendance_event_corrects_idx').on(t.correctsEventId),
+		check(
+			'attendance_event_void_is_correction',
+			sql`NOT ${t.isVoid} OR ${t.correctsEventId} IS NOT NULL`
+		),
 		check(
 			'attendance_event_correction_reason',
 			sql`${t.correctsEventId} IS NULL OR length(trim(coalesce(${t.reason}, ''))) > 0`

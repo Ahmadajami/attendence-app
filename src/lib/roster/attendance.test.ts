@@ -68,7 +68,8 @@ const ev = (
 	type,
 	occurredAt: at(local),
 	shiftId,
-	correctsEventId
+	correctsEventId,
+	isVoid: false
 });
 
 describe('attributeEvent', () => {
@@ -168,6 +169,13 @@ describe('effectiveEvents', () => {
 		const out = ev('check_out', '2026-11-02T19:00');
 		const fix = ev('check_in', '2026-11-02T07:00', 'D', wrong.id);
 		expect(effectiveEvents([out, wrong, fix]).map((e) => e.id)).toEqual([fix.id, out.id]);
+	});
+
+	it('drops an event voided by a correction, and the void itself', () => {
+		const stray = ev('check_in', '2026-11-02T03:00');
+		const keep = ev('check_in', '2026-11-02T07:00');
+		const voided = { ...ev('check_in', '2026-11-02T03:00', 'D', stray.id), isVoid: true };
+		expect(effectiveEvents([stray, keep, voided]).map((e) => e.id)).toEqual([keep.id]);
 	});
 });
 

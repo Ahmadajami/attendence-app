@@ -1,5 +1,7 @@
 <script lang="ts">
+	import type { PunchDays } from '#lib/attendance/entry.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import type { RosterDay } from '#lib/roster/roster.js';
 	import { isNightShift } from '#lib/roster/shift.js';
 	import { cn } from '#lib/utils.js';
@@ -11,9 +13,14 @@
 		today: string;
 		/** On a team page: days on which the person was in another team (or none) are greyed out. */
 		teamId?: string;
+		/** Punches per person and shift date: a dot and the worked time under the code. */
+		punches?: PunchDays;
+		/** Makes each day a button (the employee page's day panel). */
+		onSelectDay?: (date: string) => void;
+		selectedDay?: string | null;
 	};
 
-	let { rows, today, teamId }: Props = $props();
+	let { rows, today, teamId, punches, onSelectDay, selectedDay = null }: Props = $props();
 
 	const dates = $derived(rows[0]?.days.map((d) => d.date) ?? []);
 
@@ -83,18 +90,53 @@
 							</th>
 							{#each row.days as day (day.date)}
 								{const coloured = day.shift !== null && !otherTeam(day)}
+								{const punch = punches?.[row.id]?.[day.date]}
 								<td
-									class={cn('h-7 rounded-sm px-0.5 text-center font-semibold', cellClass(day))}
+									class={cn(
+										'h-7 rounded-sm px-0.5 text-center font-semibold',
+										cellClass(day),
+										selectedDay === day.date && 'ring-2 ring-ring'
+									)}
 									style:background-color={coloured ? day.shift?.colour : undefined}
 									title={cellTitle(day)}
 								>
-									<span aria-hidden="true">
-										<bdi dir="ltr">{cellText(day)}</bdi
-										>{#if coloured && day.shift && isNightShift(day.shift)}<span
-												class="text-[0.6rem]">🌙</span
-											>{/if}{day.extra || day.source === 'override' ? '*' : ''}
-									</span>
-									<span class="sr-only">{cellTitle(day)}</span>
+									{#snippet content()}
+										<span aria-hidden="true">
+											<bdi dir="ltr">{cellText(day)}</bdi
+											>{#if coloured && day.shift && isNightShift(day.shift)}<span
+													class="text-[0.6rem]">🌙</span
+												>{/if}{day.extra || day.source === 'override' ? '*' : ''}
+										</span>
+										{#if punch}
+											<span
+												class="block text-[0.6rem] leading-tight font-normal"
+												aria-hidden="true"
+											>
+												●<bdi dir="ltr"
+													>{punch.worked === null ? '…' : formatHoursMinutes(punch.worked)}</bdi
+												>
+											</span>
+										{/if}
+										<span class="sr-only">
+											{cellTitle(day)}{#if punch}, {punch.worked === null
+													? m.roster_preview_punch_open()
+													: m.roster_preview_punch_worked({
+															time: formatHoursMinutes(punch.worked)
+														})}{/if}
+										</span>
+									{/snippet}
+									{#if onSelectDay}
+										<button
+											type="button"
+											class="block size-full rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+											aria-pressed={selectedDay === day.date}
+											onclick={() => onSelectDay(day.date)}
+										>
+											{@render content()}
+										</button>
+									{:else}
+										{@render content()}
+									{/if}
 								</td>
 							{/each}
 						</tr>

@@ -4,14 +4,21 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { patternFormDefaults } from '#lib/app/roster/preview.js';
 import { m } from '#lib/paraglide/messages.js';
+import { addDays } from '#lib/roster/cycle.js';
 import { patternOn } from '#lib/roster/roster.js';
+import { addPairSchema, correctionSchema } from '#lib/schemas/attendance.schema.js';
 import {
 	endPatternFormSchema,
 	patternFormSchema,
 	type RosterMessage
 } from '#lib/schemas/roster.schema.js';
-import { failForm } from '#lib/server/errors.js';
+import { failForm, failNotice } from '#lib/server/errors.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
+import {
+	addPair,
+	correctEvent,
+	listPersonEvents
+} from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
 import {
 	endPersonalPattern,
@@ -37,7 +44,15 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		url.searchParams.get('from')
 	);
 	const current = patternOn(roster.versions, roster.today) ?? roster.versions.at(-1);
-	const [patternForm, endForm] = await Promise.all([
+	const actor = actorFrom(locals);
+	const canRecord = actor.permissions.has('attendance.record');
+	const last = addDays(roster.preview.from, roster.preview.days - 1);
+	/** `?day=` opens the day panel when it is inside the preview window. */
+	const day = url.searchParams.get('day');
+	const [events, patternForm, endForm] = await Promise.all([
+		canRecord
+			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
+			: Promise.resolve([]),
 		superValidate(
 			patternFormDefaults(current, roster.today, roster.preview.shifts),
 			zod4(patternFormSchema),
@@ -50,6 +65,9 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	]);
 	return {
 		...roster,
+		canRecord,
+		events,
+		selectedDay: day && day >= roster.preview.from && day <= last ? day : null,
 		/** A personal version in force today or scheduled: the person doesn't follow their team. */
 		hasPersonalPattern: roster.versions.some(
 			(v) => v.effectiveTo === null || v.effectiveTo > roster.today
@@ -76,6 +94,37 @@ export const actions: Actions = {
 			} satisfies RosterMessage);
 		} catch (cause) {
 			return failForm(form, cause);
+		}
+	},
+
+	addPair: async ({ request, locals, params }) => {
+		const actor = actorFrom(locals);
+		const parsed = addPairSchema.safeParse({
+			...Object.fromEntries(await request.formData()),
+			staffId: staffId(params.id)
+		});
+		if (!parsed.success)
+			return fail(400, { notice: parsed.error.issues.map((i) => i.message).join(' ') });
+		try {
+			await addPair(actor, parsed.data);
+			return { notice: m.attendance_pair_saved() };
+		} catch (cause) {
+			return failNotice(cause);
+		}
+	},
+
+	correctEvent: async ({ request, locals }) => {
+		const actor = actorFrom(locals);
+		const parsed = correctionSchema.safeParse(Object.fromEntries(await request.formData()));
+		if (!parsed.success)
+			return fail(400, { notice: parsed.error.issues.map((i) => i.message).join(' ') });
+		try {
+			await correctEvent(actor, parsed.data);
+			return {
+				notice: parsed.data.time ? m.attendance_corrected_saved() : m.attendance_removed_saved()
+			};
+		} catch (cause) {
+			return failNotice(cause);
 		}
 	},
 

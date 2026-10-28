@@ -21,7 +21,7 @@ const MINUTE = 60_000;
 
 export type AttendanceEntry = Pick<
 	AttendanceEvent,
-	'id' | 'type' | 'occurredAt' | 'correctsEventId' | 'shiftId'
+	'id' | 'type' | 'occurredAt' | 'correctsEventId' | 'shiftId' | 'isVoid'
 >;
 
 /** The shift an event is counted for. `scheduled` is false on a day the person wasn't rostered. */
@@ -104,11 +104,16 @@ export function attributeEvent(
 	);
 }
 
-/** Events in time order with every corrected event replaced by its correction. */
-export function effectiveEvents<T extends AttendanceEntry>(events: readonly T[]): T[] {
+/**
+ * Events in time order with every corrected event replaced by its correction; a void correction
+ * removes the event it corrects.
+ */
+export function effectiveEvents<
+	T extends Pick<AttendanceEntry, 'id' | 'occurredAt' | 'correctsEventId' | 'isVoid'>
+>(events: readonly T[]): T[] {
 	const corrected = new Set(events.flatMap((e) => (e.correctsEventId ? [e.correctsEventId] : [])));
 	return events
-		.filter((e) => !corrected.has(e.id))
+		.filter((e) => !corrected.has(e.id) && !e.isVoid)
 		.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
 }
 

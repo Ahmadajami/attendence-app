@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import DayPanel from '#lib/app/attendance/DayPanel.svelte';
 	import PatternForm from '#lib/app/roster/PatternForm.svelte';
 	import PatternHistory from '#lib/app/roster/PatternHistory.svelte';
 	import PreviewRange from '#lib/app/roster/PreviewRange.svelte';
@@ -9,6 +11,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { localizedHref } from '#lib/i18n.js';
+	import { punchDays } from '#lib/attendance/entry.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { RosterPattern } from '#lib/roster/roster.js';
 	import { personName, teamName } from '#lib/utils/locale.js';
@@ -22,6 +25,15 @@
 		person.teamId && person.teamNameEn && person.teamNameAr
 			? { id: person.teamId, nameEn: person.teamNameEn, nameAr: person.teamNameAr }
 			: null
+	);
+
+	/** The day open in the day panel (from `?day=`, or a click on the preview). */
+	let selectedDay = $state<string | null>(untrack(() => data.selectedDay));
+	const punches = $derived(punchDays(data.events));
+	const panelDay = $derived(
+		selectedDay
+			? previewDays(data.preview, person.staffId, null).find((d) => d.date === selectedDay)
+			: undefined
 	);
 
 	function rows(version: RosterPattern | null): PreviewRow[] {
@@ -57,7 +69,13 @@
 			<h3 class="font-medium">{m.roster_preview_title()}</h3>
 			<PreviewRange from={data.preview.from} days={data.preview.days} today={data.today} />
 		</div>
-		<RosterPreview rows={rows(version)} today={data.today} />
+		<RosterPreview
+			rows={rows(version)}
+			today={data.today}
+			{punches}
+			{selectedDay}
+			onSelectDay={(date) => (selectedDay = selectedDay === date ? null : date)}
+		/>
 	</div>
 {/snippet}
 
@@ -109,6 +127,26 @@
 			{/if}
 		</Card.Content>
 	</Card.Root>
+
+	{#if panelDay}
+		<Card.Root>
+			<Card.Header>
+				<Card.Title>{m.attendance_day_title()}</Card.Title>
+				<Card.Description>{m.attendance_day_description()}</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				{#key panelDay.date}
+					<DayPanel
+						staffId={person.staffId}
+						day={panelDay}
+						events={data.events.filter((e) => e.shiftDate === panelDay.date)}
+						shifts={data.preview.shifts}
+						canRecord={data.canRecord}
+					/>
+				{/key}
+			</Card.Content>
+		</Card.Root>
+	{/if}
 
 	{#if data.canManage && data.hasPersonalPattern}
 		<Card.Root>

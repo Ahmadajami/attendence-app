@@ -96,17 +96,22 @@ async function listCycleSources(today: string): Promise<CycleSource[]> {
 
 type Owner = { teamId: string; staffId?: never } | { staffId: string; teamId?: never };
 
-type PreviewPerson = { staffId: string; departmentId: string | null };
+export type RosterPerson = { staffId: string; departmentId: string | null };
 
-async function loadPreview(
-	people: readonly PreviewPerson[],
+/**
+ * Everything `#lib/roster` needs to compute these people's roster for `days` dates from `from`
+ * (no permission check: for other services' reads and this service's pages).
+ */
+export async function loadRosterData(
+	people: readonly RosterPerson[],
 	from: string,
+	days: number = PREVIEW_DAYS,
 	extraTeamIds: string[] = []
 ): Promise<RosterPreviewData> {
 	const staffIds = [...new Set(people.map((p) => p.staffId))];
-	const last = addDays(from, PREVIEW_DAYS - 1);
+	const last = addDays(from, days - 1);
 	const start = startOfDamascusDay(from);
-	const end = startOfDamascusDay(addDays(from, PREVIEW_DAYS));
+	const end = startOfDamascusDay(addDays(from, days));
 	const [shifts, departments, memberships, personalPatterns, overrides, absences] =
 		await Promise.all([
 			loadShifts(),
@@ -126,7 +131,7 @@ async function loadPreview(
 	]);
 	return {
 		from,
-		days: PREVIEW_DAYS,
+		days,
 		shifts,
 		memberships,
 		teamPatterns,
@@ -171,7 +176,7 @@ export async function getTeamRoster(
 		listTeamSupervisors(teamId),
 		canManage ? listActiveStaffOptions() : Promise.resolve([]),
 		canManage ? listCycleSources(today) : Promise.resolve([]),
-		loadPreview(members, start, [teamId])
+		loadRosterData(members, start, PREVIEW_DAYS, [teamId])
 	]);
 	return {
 		team,
@@ -199,7 +204,7 @@ export async function getPersonRoster(
 	const canManage = actor.permissions.has('roster.manage');
 	const [cycleSources, preview] = await Promise.all([
 		canManage ? listCycleSources(today) : Promise.resolve([]),
-		loadPreview([person], start)
+		loadRosterData([person], start)
 	]);
 	return {
 		person,

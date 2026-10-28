@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attendance App Guide</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --odoo: #714b67; --odoo-soft: #f1e9ef; --app: #1f6f8b; --app-soft: #e3f1f6;
+    --db: #3d5a80; --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5; --night: #23305a; --night-soft: #dde3f5;
+    --accent: #f2a541;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --odoo: #c99bbd; --odoo-soft: #2c2230; --app: #6cc3df; --app-soft: #16303a;
+      --db: #8fb0d8; --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a; --night: #aab8ec; --night-soft: #222a45;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  }
+  [lang="ar"], .ar { font-family: "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif; }
+  header.top {
+    position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 10px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  }
+  header.top strong { font-size: 15px; }
+  .switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .switch button {
+    border: 0; background: transparent; color: var(--ink); padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .switch button[aria-pressed="true"] { background: var(--app); color: #fff; }
+  main { max-width: 1080px; margin: 0 auto; padding: 16px; }
+  section.card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 18px 0;
+  }
+  h1 { font-size: 28px; line-height: 1.25; margin: 6px 0 4px; }
+  h2 { font-size: 21px; margin: 0 0 12px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  h2 .num { color: var(--app); font-variant-numeric: tabular-nums; }
+  h3 { font-size: 17px; margin: 18px 0 6px; }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); }
+  /* bilingual blocks */
+  .bi { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .bi > [lang="ar"] { direction: rtl; text-align: right; }
+  body[data-show="en"] [lang="ar"]:not(.keep), body[data-show="ar"] [lang="en"]:not(.keep) { display: none; }
+  body[data-show="en"] .bi, body[data-show="ar"] .bi { grid-template-columns: 1fr; }
+  @media (max-width: 820px) { .bi { grid-template-columns: 1fr; } }
+  .pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 13px; border: 1px solid var(--line); }
+  .p-odoo { background: var(--odoo-soft); color: var(--odoo); border-color: transparent; }
+  .p-app { background: var(--app-soft); color: var(--app); border-color: transparent; }
+  .p-ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .p-warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+  .p-bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  /* tables */
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: start; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 14px; }
+  td.ar, th.ar { direction: rtl; text-align: right; }
+  /* diagrams */
+  figure { margin: 14px 0; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  svg text { fill: var(--ink); font-size: 14px; }
+  svg .small { font-size: 12px; fill: var(--muted); }
+  svg .title { font-weight: 700; font-size: 16px; }
+  svg .ar { direction: rtl; unicode-bidi: plaintext; }
+  svg .b-odoo { fill: var(--odoo-soft); stroke: var(--odoo); stroke-width: 2; }
+  svg .b-app { fill: var(--app-soft); stroke: var(--app); stroke-width: 2; }
+  svg .b-plain { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+  svg .b-ok { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2; }
+  svg .b-bad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2; }
+  svg .b-night { fill: var(--night-soft); stroke: none; }
+  svg .db { fill: var(--card); stroke: var(--db); stroke-width: 2; }
+  svg .arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrow); }
+  svg .arrow-app { stroke: var(--app); stroke-width: 2.5; fill: none; marker-end: url(#arrowApp); }
+  svg .arrow-odoo { stroke: var(--odoo); stroke-width: 2.5; fill: none; marker-end: url(#arrowOdoo); }
+  svg .tick { stroke: var(--line); stroke-width: 1; }
+  svg .bar-shift { fill: var(--app); }
+  svg .bar-punch { fill: var(--accent); }
+  svg .bar-ot { fill: var(--ok); }
+  /* step flow */
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; counter-reset: s; }
+  @media (max-width: 1100px) { .flow { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .flow { grid-template-columns: 1fr; } }
+  .flow .st { border: 1px solid var(--line); border-radius: 12px; padding: 12px; position: relative; background: var(--bg); }
+  .flow .st::before {
+    counter-increment: s; content: counter(s); position: absolute; top: -10px; inset-inline-start: 12px;
+    background: var(--app); color: #fff; border-radius: 999px; width: 24px; height: 24px; font-size: 13px;
+    display: grid; place-items: center; font-weight: 700;
+  }
+  .flow .st.odoo::before { background: var(--odoo); }
+  .flow .st p { margin: 4px 0; font-size: 14.5px; }
+  .flow .st [lang="ar"] { direction: rtl; text-align: right; }
+  /* pipeline */
+  .pipe { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+  .pipe .pc { flex: 1 1 150px; border: 2px solid var(--app); border-radius: 10px; padding: 8px 10px; background: var(--app-soft); font-size: 14px; }
+  .pipe .pc b { display: block; }
+  .pipe .pc [lang="ar"] { direction: rtl; text-align: right; display: block; }
+  .pipe .ar-r { align-self: center; color: var(--muted); font-size: 20px; }
+  /* roster grid mock */
+  .grid { border-collapse: separate; border-spacing: 3px; font-size: 13px; min-width: 640px; }
+  .grid th, .grid td { border: 0; padding: 0; text-align: center; }
+  .grid td.name { text-align: start; padding-inline-end: 8px; white-space: nowrap; color: var(--ink); }
+  .cell { width: 40px; height: 32px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; }
+  .c-D { background: #fde7b0; color: #6b4b00; }
+  .c-N { background: #c9d3f5; color: #1f2c66; }
+  .c-M { background: #cdebd8; color: #1d5a35; }
+  .c-O { background: transparent; border: 2px dashed var(--line); color: var(--muted); }
+  .c-moved { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .c-H { background: #f6cfe3; color: #6d1f47; }
+  /* timeline steps */
+  .phases { position: relative; padding-inline-start: 26px; }
+  .phases::before { content: ""; position: absolute; inset-inline-start: 10px; top: 4px; bottom: 4px; width: 3px; background: var(--line); border-radius: 3px; }
+  .ph { position: relative; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 12px 0; background: var(--bg); }
+  .ph::before {
+    content: attr(data-s); position: absolute; inset-inline-start: -30px; top: 12px; width: 26px; height: 26px; border-radius: 999px;
+    background: var(--app); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center;
+  }
+  .ph .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .ph .row > [lang="ar"] { direction: rtl; text-align: right; }
+  body[data-show="en"] .ph .row, body[data-show="ar"] .ph .row { grid-template-columns: 1fr; }
+  @media (max-width: 820px) { .ph .row { grid-template-columns: 1fr; } }
+  .ph h3 { margin: 0 0 4px; }
+  .ph .see { font-size: 14px; color: var(--muted); }
+  .cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 820px) { .cols3 { grid-template-columns: 1fr; } }
+  .box { border-radius: 12px; padding: 12px 14px; }
+  .box ul { margin: 6px 0; padding-inline-start: 20px; }
+  .box li { margin: 3px 0; font-size: 14.5px; }
+  .k-keep { background: var(--ok-soft); }
+  .k-change { background: var(--warn-soft); }
+  .k-remove { background: var(--bad-soft); }
+  .big-num { font-size: 22px; font-weight: 700; color: var(--app); }
+  .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 820px) { .facts { grid-template-columns: repeat(2, 1fr); } }
+  .fact { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--bg); font-size: 13.5px; }
+  footer { color: var(--muted); font-size: 13px; text-align: center; padding: 24px 16px 40px; }
+</style>
+</head>
+<body data-show="both">
+
+<header class="top">
+  <strong>Attendance App · تطبيق الحضور</strong>
+  <div class="switch" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="false">English</button>
+    <button type="button" data-lang="ar" aria-pressed="false">عربي</button>
+    <button type="button" data-lang="both" aria-pressed="true">Both · كلاهما</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ 0. Title ============ -->
+<section class="card">
+  <div class="bi">
+    <div lang="en">
+      <span class="pill p-app">Plan · 2026-10-28</span>
+      <h1>The new Attendance App, step by step</h1>
+      <p class="muted">What we will build, how the parts fit together, and what you will see after each step.</p>
+    </div>
+    <div lang="ar">
+      <span class="pill p-app">الخطة · 2026-10-28</span>
+      <h1>تطبيق الحضور الجديد، خطوة بخطوة</h1>
+      <p class="muted">ماذا سنبني، وكيف تترابط الأجزاء، وماذا سترى بعد كل خطوة.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 1. Goal ============ -->
+<section class="card">
+  <h2><span class="num">1</span><span lang="en">The goal in one minute</span><span lang="ar">الهدف في دقيقة</span></h2>
+  <div class="bi">
+    <div lang="en">
+      <p>We are building a <b>new, fast and easy app</b> for <b>monthly rosters</b> and <b>attendance</b>.</p>
+      <p>It plans <b>who works when</b>, including days off that change and move every month for each team and department. It <b>calculates every day</b> and makes the <b>same Payroll and Period Balance Excel files</b> that Odoo makes today, with the same numbers.</p>
+      <p>Employees and departments are <b>copied from Odoo once</b> and then <b>managed in the app</b>. Fingerprint punches come in <b>by file</b> (CSV or Excel). <b>Odoo still sends</b> the attendance emails.</p>
+    </div>
+    <div lang="ar">
+      <p>نبني <b>تطبيقاً جديداً، سريعاً وسهلاً</b> لـ<b>جداول المناوبات الشهرية</b> و<b>الحضور</b>.</p>
+      <p>يخطط <b>من يعمل ومتى</b>، بما في ذلك أيام العطلة التي تتغير وتتحرك كل شهر لكل فريق وقسم. و<b>يحسب كل يوم</b>، ويُخرج <b>نفس ملفي Excel للرواتب ورصيد الفترة</b> اللذين يُخرجهما Odoo اليوم، وبنفس الأرقام.</p>
+      <p>الموظفون والأقسام <b>يُنسخون من Odoo مرة واحدة</b> ثم <b>تتم إدارتهم في التطبيق</b>. بصمات الحضور تدخل <b>عبر ملف</b> (CSV أو Excel). و<b>يبقى Odoo هو من يرسل</b> رسائل الحضور بالبريد.</p>
+    </div>
+  </div>
+  <div class="facts" style="margin-top:12px">
+    <div class="fact"><div class="big-num">312</div><span lang="en">active employees</span> <span lang="ar">موظفاً نشطاً</span></div>
+    <div class="fact"><div class="big-num">30</div><span lang="en">departments</span> <span lang="ar">قسماً</span></div>
+    <div class="fact"><div class="big-num">21 → 20</div><span lang="en">payroll period</span> <span lang="ar">فترة الرواتب</span></div>
+    <div class="fact"><div class="big-num">2</div><span lang="en">Excel files must match Odoo</span> <span lang="ar">ملفان يجب أن يطابقا Odoo</span></div>
+  </div>
+</section>
+
+<!-- ============ 2. Why ============ -->
+<section class="card">
+  <h2><span class="num">2</span><span lang="en">Why we change</span><span lang="ar">لماذا نغيّر</span></h2>
+  <div class="bi">
+    <div lang="en">
+      <ul>
+        <li>Odoo screens are <b>slow and hard</b> for planning a whole month for many teams.</li>
+        <li>The old module has <b>four different ways</b> to build a schedule, and some <b>known problems</b> (for example, a night shift with the "night" box not ticked counts 0 required hours).</li>
+        <li>HR needs a <b>visual monthly grid</b>: paint shifts, move days off, see the whole team at once.</li>
+        <li>Every number should come with a <b>clear explanation</b>.</li>
+      </ul>
+    </div>
+    <div lang="ar">
+      <ul>
+        <li>شاشات Odoo <b>بطيئة وصعبة</b> عند تخطيط شهر كامل لعدة فرق.</li>
+        <li>الوحدة القديمة فيها <b>أربع طرق مختلفة</b> لبناء الجدول، وبعض <b>المشاكل المعروفة</b> (مثلاً: وردية ليلية بدون علامة "ليلي" تُحسب بصفر ساعات مطلوبة).</li>
+        <li>قسم الموارد البشرية يحتاج <b>جدولاً شهرياً مرئياً</b>: تلوين الورديات، تحريك أيام العطلة، ورؤية الفريق كاملاً دفعة واحدة.</li>
+        <li>كل رقم يجب أن يأتي مع <b>شرح واضح</b>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. Big picture ============ -->
+<section class="card">
+  <h2><span class="num">3</span><span lang="en">The big picture</span><span lang="ar">الصورة الكاملة</span></h2>
+  <div class="bi">
+    <p lang="en">Two systems work together. <span class="pill p-odoo">Odoo</span> receives the punches from BioTime and sends emails. We <b>export files</b> from Odoo (employees, departments, punches) and <b>import</b> them into the <span class="pill p-app">Attendance App</span>, which plans, calculates and exports Excel. A tiny connector lets the app ask Odoo to send the emails.</p>
+    <p lang="ar">نظامان يعملان معاً. <span class="pill p-odoo">Odoo</span> يستقبل البصمات من BioTime ويرسل البريد. نحن <b>نصدّر ملفات</b> من Odoo (الموظفون، الأقسام، البصمات) و<b>نستوردها</b> في <span class="pill p-app">تطبيق الحضور</span> الذي يخطط ويحسب ويُصدّر ملفات Excel. ووحدة ربط صغيرة تسمح للتطبيق بطلب إرسال البريد من Odoo.</p>
+  </div>
+  <figure>
+    <svg viewBox="0 0 960 470" role="img" aria-labelledby="d1t">
+      <title id="d1t">System diagram: BioTime to Odoo, Odoo connector to the Attendance App, outputs Excel and email</title>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8a94a6"/></marker>
+        <marker id="arrowApp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f6f8b"/></marker>
+        <marker id="arrowOdoo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#714b67"/></marker>
+      </defs>
+      <!-- BioTime -->
+      <rect class="b-plain" x="20" y="60" width="140" height="80" rx="12"/>
+      <text x="90" y="92" text-anchor="middle" class="title">BioTime</text>
+      <text x="90" y="112" text-anchor="middle" class="small">fingerprint devices</text>
+      <text x="90" y="129" text-anchor="middle" class="small ar">أجهزة البصمة</text>
+      <path class="arrow" d="M160,100 L218,100"/>
+      <!-- Odoo -->
+      <rect class="b-odoo" x="222" y="20" width="300" height="300" rx="16"/>
+      <text x="372" y="48" text-anchor="middle" class="title">Odoo (stays)</text>
+      <text x="372" y="68" text-anchor="middle" class="small ar">Odoo (يبقى كما هو)</text>
+      <rect class="b-plain" x="242" y="84" width="260" height="38" rx="8"/>
+      <text x="372" y="102" text-anchor="middle">Employees · Departments</text>
+      <text x="372" y="117" text-anchor="middle" class="small ar">الموظفون · الأقسام</text>
+      <rect class="b-plain" x="242" y="130" width="260" height="38" rx="8"/>
+      <text x="372" y="148" text-anchor="middle">Punches · Leaves</text>
+      <text x="372" y="163" text-anchor="middle" class="small ar">البصمات · الإجازات</text>
+      <rect class="b-plain" x="242" y="176" width="260" height="38" rx="8"/>
+      <text x="372" y="194" text-anchor="middle">Email sender</text>
+      <text x="372" y="209" text-anchor="middle" class="small ar">مرسل البريد</text>
+      <rect class="b-ok" x="242" y="226" width="260" height="38" rx="8"/>
+      <text x="372" y="244" text-anchor="middle">Connector (emails only)</text>
+      <text x="372" y="259" text-anchor="middle" class="small ar">وحدة الربط (للبريد فقط)</text>
+      <text x="372" y="292" text-anchor="middle" class="small">+ export tool → CSV files</text>
+      <text x="372" y="308" text-anchor="middle" class="small ar">+ أداة تصدير ← ملفات CSV</text>
+      <!-- arrows between -->
+      <path class="arrow-odoo" d="M502,236 L640,236"/>
+      <text x="571" y="222" text-anchor="middle" class="small">files: people, punches</text>
+      <text x="571" y="206" text-anchor="middle" class="small ar">ملفات: الموظفون، البصمات</text>
+      <path class="arrow-app" d="M640,262 L502,262"/>
+      <text x="571" y="282" text-anchor="middle" class="small">email figures</text>
+      <text x="571" y="298" text-anchor="middle" class="small ar">أرقام البريد</text>
+      <!-- App -->
+      <rect class="b-app" x="644" y="20" width="296" height="300" rx="16"/>
+      <text x="792" y="48" text-anchor="middle" class="title">Attendance App (new)</text>
+      <text x="792" y="68" text-anchor="middle" class="small ar">تطبيق الحضور (جديد)</text>
+      <rect class="b-plain" x="664" y="84" width="256" height="38" rx="8"/>
+      <text x="792" y="102" text-anchor="middle">Monthly roster · Teams</text>
+      <text x="792" y="117" text-anchor="middle" class="small ar">الجدول الشهري · الفرق</text>
+      <rect class="b-plain" x="664" y="130" width="256" height="38" rx="8"/>
+      <text x="792" y="148" text-anchor="middle">Day calculations</text>
+      <text x="792" y="163" text-anchor="middle" class="small ar">حسابات كل يوم</text>
+      <rect class="b-plain" x="664" y="176" width="256" height="38" rx="8"/>
+      <text x="792" y="194" text-anchor="middle">Excel exports</text>
+      <text x="792" y="209" text-anchor="middle" class="small ar">ملفات Excel</text>
+      <rect class="b-plain" x="664" y="226" width="256" height="38" rx="8"/>
+      <text x="792" y="244" text-anchor="middle">Employee page · Settings</text>
+      <text x="792" y="259" text-anchor="middle" class="small ar">صفحة الموظف · الإعدادات</text>
+      <!-- DBs -->
+      <g transform="translate(312,350)">
+        <ellipse class="db" cx="60" cy="10" rx="60" ry="12"/>
+        <path class="db" d="M0,10 v60 a60,12 0 0 0 120,0 v-60"/>
+        <text x="60" y="48" text-anchor="middle" class="small">Odoo database</text>
+        <text x="60" y="64" text-anchor="middle" class="small ar">قاعدة بيانات Odoo</text>
+      </g>
+      <path class="arrow" d="M372,320 L372,346"/>
+      <g transform="translate(732,350)">
+        <ellipse class="db" cx="60" cy="10" rx="60" ry="12"/>
+        <path class="db" d="M0,10 v60 a60,12 0 0 0 120,0 v-60"/>
+        <text x="60" y="44" text-anchor="middle" class="small">App database</text>
+        <text x="60" y="58" text-anchor="middle" class="small">local PostgreSQL</text>
+        <text x="60" y="74" text-anchor="middle" class="small ar">قاعدة بيانات التطبيق (محلية)</text>
+      </g>
+      <path class="arrow" d="M792,320 L792,346"/>
+      <!-- outputs -->
+      <rect class="b-ok" x="20" y="360" width="200" height="70" rx="12"/>
+      <text x="120" y="388" text-anchor="middle">📧 Emails to employees</text>
+      <text x="120" y="410" text-anchor="middle" class="small ar">رسائل البريد للموظفين</text>
+      <path class="arrow-odoo" d="M262,214 C150,240 120,300 120,356"/>
+      <rect class="b-ok" x="520" y="380" width="180" height="70" rx="12"/>
+      <text x="610" y="408" text-anchor="middle">📊 Excel for payroll</text>
+      <text x="610" y="430" text-anchor="middle" class="small ar">ملفات Excel للرواتب</text>
+      <path class="arrow-app" d="M664,200 C620,260 610,320 610,376"/>
+    </svg>
+    <figcaption><span lang="en">Files go from Odoo into the app; the app plans, calculates and exports; emails still leave from Odoo.</span> <span lang="ar">الملفات تنتقل من Odoo إلى التطبيق؛ التطبيق يخطط ويحسب ويُصدّر؛ والبريد يخرج من Odoo.</span></figcaption>
+  </figure>
+</section>
+
+<!-- ============ 4. Who owns what ============ -->
+<section class="card">
+  <h2><span class="num">4</span><span lang="en">Who is in charge of what</span><span lang="ar">من المسؤول عن ماذا</span></h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr>
+      <th lang="en">Thing</th><th class="ar" lang="ar">الشيء</th>
+      <th><span class="pill p-odoo">Odoo</span></th><th><span class="pill p-app">App · التطبيق</span></th>
+    </tr></thead>
+    <tbody>
+      <tr><td lang="en">Employees, departments, badges</td><td class="ar" lang="ar">الموظفون، الأقسام، أرقام البطاقات</td><td>📤 <span lang="en">copied once</span><span lang="ar">يُنسخ مرة واحدة</span></td><td>✅ <span lang="en">managed here after that</span><span lang="ar">تُدار هنا بعد ذلك</span></td></tr>
+      <tr><td lang="en">Fingerprint punches (BioTime)</td><td class="ar" lang="ar">بصمات الحضور (BioTime)</td><td>✅ <span lang="en">receives them</span><span lang="ar">يستقبلها</span></td><td>📥 <span lang="en">imported from a file, never changed</span><span lang="ar">تُستورد من ملف، ولا تُعدَّل</span></td></tr>
+      <tr><td lang="en">Shifts, cycles, teams, monthly roster, days off</td><td class="ar" lang="ar">الورديات، الدورات، الفرق، الجدول الشهري، أيام العطلة</td><td>—</td><td>✅ <span lang="en">owner</span><span lang="ar">المالك</span></td></tr>
+      <tr><td lang="en">Leave, sick, mission, corrections on a day</td><td class="ar" lang="ar">إجازة، مرض، مهمة، تصحيحات على اليوم</td><td>—</td><td>✅ <span lang="en">owner</span><span lang="ar">المالك</span></td></tr>
+      <tr><td lang="en">Day results (worked, overtime, shortage, deduction)</td><td class="ar" lang="ar">نتائج اليوم (العمل، الإضافي، النقص، الخصم)</td><td>📚 <span lang="en">old numbers = reference</span><span lang="ar">الأرقام القديمة = مرجع</span></td><td>✅ <span lang="en">owner</span><span lang="ar">المالك</span></td></tr>
+      <tr><td lang="en">Payroll + Period Balance Excel</td><td class="ar" lang="ar">ملفا الرواتب ورصيد الفترة</td><td>📚 <span lang="en">old files = reference</span><span lang="ar">الملفات القديمة = مرجع</span></td><td>✅ <span lang="en">makes them</span><span lang="ar">يُنتجهما</span></td></tr>
+      <tr><td lang="en">Attendance emails</td><td class="ar" lang="ar">رسائل الحضور بالبريد</td><td>✅ <span lang="en">sends</span><span lang="ar">يرسل</span></td><td>➡️ <span lang="en">gives the figures</span><span lang="ar">يعطي الأرقام</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 5. Template ============ -->
+<section class="card">
+  <h2><span class="num">5</span><span lang="en">We start from Airport-Staff (a template)</span><span lang="ar">نبدأ من مشروع Airport-Staff (قالب)</span></h2>
+  <div class="bi">
+    <p lang="en">We don't start from zero. We <b>copy the code</b> of the Airport-Staff project into a new folder and reuse what already works. The original project is <b>not changed</b>. Only code is copied: no passwords, no cloud settings, no history.</p>
+    <p lang="ar">لا نبدأ من الصفر. <b>ننسخ الكود</b> من مشروع Airport-Staff إلى مجلد جديد ونعيد استخدام ما يعمل جيداً. المشروع الأصلي <b>لا يتغير</b>. ننسخ الكود فقط: بدون كلمات مرور، وبدون إعدادات السحابة، وبدون السجل القديم.</p>
+  </div>
+  <figure>
+    <svg viewBox="0 0 960 200" role="img" aria-labelledby="d2t">
+      <title id="d2t">Copy diagram from Airport-Staff in the cloud to the local attendance app</title>
+      <rect class="b-plain" x="20" y="30" width="300" height="140" rx="14"/>
+      <text x="170" y="62" text-anchor="middle" class="title">Airport-Staff</text>
+      <text x="170" y="84" text-anchor="middle" class="small">flights + rosters · Neon cloud · Vercel</text>
+      <text x="170" y="104" text-anchor="middle" class="small ar">رحلات + مناوبات · سحابة Neon · Vercel</text>
+      <text x="170" y="140" text-anchor="middle" class="small">stays as it is</text>
+      <text x="170" y="158" text-anchor="middle" class="small ar">يبقى كما هو</text>
+      <path class="arrow-app" d="M320,100 L630,100"/>
+      <text x="475" y="84" text-anchor="middle">copy code only</text>
+      <text x="475" y="124" text-anchor="middle" class="ar">نسخ الكود فقط</text>
+      <rect class="b-app" x="636" y="30" width="304" height="140" rx="14"/>
+      <text x="788" y="62" text-anchor="middle" class="title">attendance-app</text>
+      <text x="788" y="84" text-anchor="middle" class="small">rosters + payroll · local database</text>
+      <text x="788" y="104" text-anchor="middle" class="small ar">مناوبات + رواتب · قاعدة بيانات محلية</text>
+      <text x="788" y="140" text-anchor="middle" class="small">on this laptop only (for now)</text>
+      <text x="788" y="158" text-anchor="middle" class="small ar">على هذا الحاسوب فقط (حالياً)</text>
+    </svg>
+  </figure>
+  <div class="cols3">
+    <div class="box k-keep">
+      <b>✅ <span lang="en">Keep</span> <span lang="ar">نحتفظ به</span></b>
+      <ul lang="en">
+        <li>Look and feel, menus, Arabic + right-to-left</li>
+        <li>Teams with dates, supervisors</li>
+        <li>Repeating cycles (1–28 days) with start dates</li>
+        <li>One-day changes and swaps</li>
+        <li>Employee and team pages, 4-week preview</li>
+        <li>Change history (audit log), login code (off for now)</li>
+      </ul>
+      <ul lang="ar" dir="rtl">
+        <li>الشكل والقوائم، العربية من اليمين لليسار</li>
+        <li>الفرق مع التواريخ، والمشرفون</li>
+        <li>الدورات المتكررة (1–28 يوماً) مع تاريخ البداية</li>
+        <li>تغييرات اليوم الواحد والتبديلات</li>
+        <li>صفحات الموظف والفريق، معاينة 4 أسابيع</li>
+        <li>سجل التغييرات، ونظام الدخول (مُطفأ حالياً)</li>
+      </ul>
+    </div>
+    <div class="box k-change">
+      <b>🔧 <span lang="en">Change</span> <span lang="ar">نغيّره</span></b>
+      <ul lang="en">
+        <li>Cloud database → <b>local database</b> (Docker)</li>
+        <li>Vercel → a normal server (Node)</li>
+        <li>Only Day/Night 12 h → <b>any shift</b> (e.g. 10:00–19:00)</li>
+        <li>Its overtime rules → <b>Odoo payroll rules</b></li>
+        <li>Staff import → <b>Odoo export files</b> (then managed here)</li>
+      </ul>
+      <ul lang="ar" dir="rtl">
+        <li>قاعدة بيانات سحابية ← <b>قاعدة بيانات محلية</b> (Docker)</li>
+        <li>Vercel ← خادم عادي (Node)</li>
+        <li>نهاري/ليلي 12 ساعة فقط ← <b>أي وردية</b> (مثل 10:00–19:00)</li>
+        <li>قواعد الإضافي فيه ← <b>قواعد رواتب Odoo</b></li>
+        <li>استيراد الموظفين ← <b>ملفات من Odoo</b> (ثم إدارتهم هنا)</li>
+      </ul>
+    </div>
+    <div class="box k-remove">
+      <b>🗑 <span lang="en">Remove</span> <span lang="ar">نحذفه</span></b>
+      <ul lang="en">
+        <li>Flights and flight boards</li>
+        <li>Staff assignments to flights</li>
+        <li>Overtime approval screen</li>
+      </ul>
+      <ul lang="ar" dir="rtl">
+        <li>الرحلات ولوحات الرحلات</li>
+        <li>توزيع الموظفين على الرحلات</li>
+        <li>شاشة اعتماد العمل الإضافي</li>
+      </ul>
+      <p class="muted" style="font-size:13px"><span lang="en">Airport-Staff keeps them.</span> <span lang="ar">تبقى في مشروع Airport-Staff.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. Monthly cycle ============ -->
+<section class="card">
+  <h2><span class="num">6</span><span lang="en">How one month works</span><span lang="ar">كيف يسير الشهر الواحد</span></h2>
+  <div class="bi">
+    <p lang="en">This is what HR will do every payroll period (21st → 20th). Purple steps happen in Odoo, blue steps in the app.</p>
+    <p lang="ar">هذا ما سيفعله قسم الموارد البشرية في كل فترة رواتب (من 21 إلى 20). الخطوات البنفسجية تحدث في Odoo، والزرقاء في التطبيق.</p>
+  </div>
+  <div class="flow" style="margin-top:16px">
+    <div class="st odoo"><p lang="en"><b>Punches arrive in Odoo</b> from BioTime, as today.</p><p lang="ar"><b>تصل البصمات إلى Odoo</b> من BioTime كما اليوم.</p></div>
+    <div class="st"><p lang="en"><b>Import:</b> load the punch file (CSV or Excel). A preview shows new, updated and rejected rows before saving.</p><p lang="ar"><b>الاستيراد:</b> تحميل ملف البصمات (CSV أو Excel). معاينة تُظهر الأسطر الجديدة والمعدّلة والمرفوضة قبل الحفظ.</p></div>
+    <div class="st"><p lang="en"><b>Plan the month:</b> shifts and days off for each team; copy last month and move days off.</p><p lang="ar"><b>تخطيط الشهر:</b> الورديات وأيام العطلة لكل فريق؛ نسخ الشهر الماضي وتحريك أيام العطلة.</p></div>
+    <div class="st"><p lang="en"><b>Publish</b> the roster.</p><p lang="ar"><b>نشر</b> الجدول.</p></div>
+    <div class="st"><p lang="en"><b>Calculate</b> every day automatically.</p><p lang="ar"><b>الحساب</b> لكل يوم بشكل تلقائي.</p></div>
+    <div class="st"><p lang="en"><b>Review:</b> add leave, sick, mission, corrections. Every number has an explanation.</p><p lang="ar"><b>المراجعة:</b> إضافة إجازة، مرض، مهمة، تصحيحات. لكل رقم شرح.</p></div>
+    <div class="st"><p lang="en"><b>Close the period</b> and lock it. Numbers stop moving.</p><p lang="ar"><b>إغلاق الفترة</b> وقفلها. تتوقف الأرقام عن التغير.</p></div>
+    <div class="st"><p lang="en"><b>Export</b> the Payroll and Period Balance Excel files.</p><p lang="ar"><b>تصدير</b> ملفي الرواتب ورصيد الفترة.</p></div>
+    <div class="st"><p lang="en"><b>Send emails:</b> the app hands the figures to Odoo.</p><p lang="ar"><b>إرسال البريد:</b> التطبيق يعطي الأرقام إلى Odoo.</p></div>
+    <div class="st odoo"><p lang="en"><b>Odoo sends</b> each employee their email.</p><p lang="ar"><b>Odoo يرسل</b> لكل موظف رسالته.</p></div>
+  </div>
+</section>
+
+<!-- ============ 7. Monthly roster screen ============ -->
+<section class="card">
+  <h2><span class="num">7</span><span lang="en">The monthly roster screen</span><span lang="ar">شاشة الجدول الشهري</span></h2>
+  <div class="bi">
+    <p lang="en">One row per employee, one column per day. Pick a shift like a paint brush and tap the days. Drag a day off to another day to move it. "Copy last month" starts the new month from the old one. (Example with made-up names.)</p>
+    <p lang="ar">صف لكل موظف، وعمود لكل يوم. اختر وردية كأنها فرشاة ألوان واضغط على الأيام. اسحب يوم العطلة إلى يوم آخر لتحريكه. زر "نسخ الشهر الماضي" يبدأ الشهر الجديد من القديم. (مثال بأسماء وهمية.)</p>
+  </div>
+  <div class="tbl-wrap" style="margin-top:10px">
+    <table class="grid" aria-label="Example roster grid">
+      <thead><tr>
+        <th></th>
+        <th>Sat<br>21</th><th>Sun<br>22</th><th>Mon<br>23</th><th>Tue<br>24</th><th>Wed<br>25</th><th>Thu<br>26</th><th>Fri<br>27</th><th>Sat<br>28</th><th>Sun<br>29</th><th>Mon<br>30</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="name">Team A · Employee 1</td>
+          <td><div class="cell c-D">D</div></td><td><div class="cell c-D">D</div></td><td><div class="cell c-N">N</div></td><td><div class="cell c-N">N</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-D">D</div></td><td><div class="cell c-D">D</div></td></tr>
+        <tr><td class="name">Team A · Employee 2</td>
+          <td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-D">D</div></td><td><div class="cell c-D">D</div></td><td><div class="cell c-N">N</div></td><td><div class="cell c-N">N</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td></tr>
+        <tr><td class="name">Office · Employee 3</td>
+          <td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-O c-moved">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td></tr>
+        <tr><td class="name">Office · Employee 4</td>
+          <td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-H">HOL</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-O">OFF</div></td><td><div class="cell c-M">M</div></td><td><div class="cell c-M">M</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:14px">
+    <span class="cell c-D" style="display:inline-grid;width:28px;height:22px">D</span> <span lang="en">Day 07:00→19:00</span><span lang="ar">نهاري</span> &nbsp;
+    <span class="cell c-N" style="display:inline-grid;width:28px;height:22px">N</span> <span lang="en">Night 19:00→07:00 (ends next day)</span><span lang="ar">ليلي (ينتهي في اليوم التالي)</span> &nbsp;
+    <span class="cell c-M" style="display:inline-grid;width:28px;height:22px">M</span> <span lang="en">Morning 08:00→17:00</span><span lang="ar">صباحي</span> &nbsp;
+    <span class="cell c-H" style="display:inline-grid;width:32px;height:22px">HOL</span> <span lang="en">Holiday</span><span lang="ar">عطلة رسمية</span> &nbsp;
+    <span class="cell c-O c-moved" style="display:inline-grid;width:32px;height:22px">OFF</span> <span lang="en">a day off that was moved this month</span><span lang="ar">يوم عطلة تم تحريكه هذا الشهر</span>
+  </p>
+</section>
+
+<!-- ============ 8. Departments and teams ============ -->
+<section class="card">
+  <h2><span class="num">8</span><span lang="en">Departments and teams</span><span lang="ar">الأقسام والفرق</span></h2>
+  <div class="bi">
+    <div lang="en">
+      <p><b>Departments are copied from Odoo once,</b> then <b>managed in the app</b>: you create, rename, move a department and choose its manager here.</p>
+      <p><b>The app controls how each department works:</b> its default pattern, overtime on/off and rates, lateness grace, night rules and minimum rest. A sub-department follows its parent unless you change it.</p>
+      <p><b>Teams live in the app.</b> Each team belongs to one department, has a supervisor, and members with dates (someone can move team next month). The supervisor approves the team's swaps; with no supervisor, the department manager approves.</p>
+    </div>
+    <div lang="ar">
+      <p><b>الأقسام تُنسخ من Odoo مرة واحدة،</b> ثم <b>تُدار في التطبيق</b>: إنشاء القسم وتغيير اسمه ونقله واختيار مديره يتم هنا.</p>
+      <p><b>التطبيق يتحكم بطريقة عمل كل قسم:</b> النمط الافتراضي، تفعيل العمل الإضافي ونسبه، فترة السماح للتأخير، قواعد الليل، والحد الأدنى للراحة. القسم الفرعي يتبع القسم الأب إلا إذا غيّرته.</p>
+      <p><b>الفرق موجودة في التطبيق.</b> كل فريق يتبع قسماً واحداً، وله مشرف، وأعضاء مع تواريخ (يمكن أن ينتقل موظف إلى فريق آخر الشهر القادم). المشرف يوافق على تبديلات فريقه؛ وإذا لم يوجد مشرف يوافق مدير القسم.</p>
+    </div>
+  </div>
+  <figure>
+    <svg viewBox="0 0 960 300" role="img" aria-labelledby="d5t">
+      <title id="d5t">Department tree from Odoo, department settings and teams in the app, employees inside teams</title>
+      <rect class="b-odoo" x="20" y="20" width="250" height="260" rx="14"/>
+      <text x="145" y="48" text-anchor="middle" class="title">Odoo</text>
+      <text x="145" y="68" text-anchor="middle" class="small ar">الأقسام في Odoo</text>
+      <rect class="b-plain" x="40" y="84" width="210" height="34" rx="8"/><text x="145" y="106" text-anchor="middle">Operations</text>
+      <rect class="b-plain" x="70" y="128" width="180" height="34" rx="8"/><text x="160" y="150" text-anchor="middle">Ramp (sub-dept)</text>
+      <rect class="b-plain" x="70" y="172" width="180" height="34" rx="8"/><text x="160" y="194" text-anchor="middle">Baggage (sub-dept)</text>
+      <rect class="b-plain" x="40" y="216" width="210" height="34" rx="8"/><text x="145" y="238" text-anchor="middle">Security</text>
+      <text x="145" y="268" text-anchor="middle" class="small">starting point only</text>
+      <path class="arrow-odoo" d="M270,150 L330,150"/>
+      <text x="300" y="138" text-anchor="middle" class="small">copy once</text>
+      <text x="300" y="172" text-anchor="middle" class="small ar">نسخ مرة</text>
+      <rect class="b-app" x="334" y="20" width="300" height="260" rx="14"/>
+      <text x="484" y="48" text-anchor="middle" class="title">Department settings</text>
+      <text x="484" y="68" text-anchor="middle" class="small ar">إعدادات القسم (في التطبيق)</text>
+      <text x="354" y="100">📋 default pattern · النمط الافتراضي</text>
+      <text x="354" y="128">💰 overtime on/off, rates · الإضافي</text>
+      <text x="354" y="156">⏱ late grace · فترة السماح</text>
+      <text x="354" y="184">🌙 night rules · قواعد الليل</text>
+      <text x="354" y="212">😴 minimum rest · أقل راحة</text>
+      <text x="354" y="240">↳ sub-dept follows parent</text>
+      <text x="354" y="262" class="small ar">القسم الفرعي يتبع الأب</text>
+      <path class="arrow-app" d="M634,150 L690,150"/>
+      <rect class="b-app" x="694" y="20" width="246" height="260" rx="14"/>
+      <text x="817" y="48" text-anchor="middle" class="title">Teams</text>
+      <text x="817" y="68" text-anchor="middle" class="small ar">الفرق (في التطبيق)</text>
+      <rect class="b-plain" x="712" y="84" width="210" height="80" rx="8"/>
+      <text x="817" y="106" text-anchor="middle">Ramp Team A</text>
+      <text x="817" y="126" text-anchor="middle" class="small">⭐ supervisor · مشرف</text>
+      <text x="817" y="146" text-anchor="middle" class="small">👤👤👤 members with dates</text>
+      <rect class="b-plain" x="712" y="176" width="210" height="80" rx="8"/>
+      <text x="817" y="198" text-anchor="middle">Ramp Team B</text>
+      <text x="817" y="218" text-anchor="middle" class="small">⭐ supervisor · مشرف</text>
+      <text x="817" y="238" text-anchor="middle" class="small ar">أعضاء مع تواريخ</text>
+    </svg>
+  </figure>
+  <h3><span lang="en">Who decides the shift of a day? (first match wins)</span> <span lang="ar">من يحدد وردية اليوم؟ (أول قاعدة تنطبق هي التي تُطبَّق)</span></h3>
+  <div class="pipe">
+    <div class="pc"><b>1 · Manual shift / approved swap</b><span lang="ar">وردية يدوية / تبديل موافق عليه</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>2 · Temporary pattern</b><span lang="ar">نمط مؤقت</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>3 · Employee's own pattern</b><span lang="ar">نمط الموظف الخاص</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>4 · Team pattern</b><span lang="ar">نمط الفريق</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>5 · Department pattern</b><span lang="ar">نمط القسم</span></div>
+  </div>
+  <div class="bi" style="margin-top:10px">
+    <p lang="en">Then the employee's <b>own days off</b> are applied (the days are the employee's, the shift stays the department's), and in a rotating cycle the employee's <b>crew start</b> decides where in the cycle they are, so crews cover each other.</p>
+    <p lang="ar">بعدها تُطبَّق <b>أيام العطلة الخاصة بالموظف</b> (الأيام من الموظف، والوردية من القسم)، وفي الدورة المتناوبة يحدد <b>موقع بداية الطاقم</b> مكان الموظف في الدورة حتى تغطي الطواقم بعضها.</p>
+  </div>
+  <h3><span lang="en">Screens taken from the mockup</span> <span lang="ar">الشاشات المأخوذة من النموذج الأولي</span></h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th lang="en">Screen</th><th lang="en">What you do there</th><th class="ar" lang="ar">الشاشة وماذا تفعل فيها</th></tr></thead>
+    <tbody>
+      <tr><td lang="en">📊 Dashboard</td><td lang="en">Totals, absences, late arrivals, overtime by department.</td><td class="ar" lang="ar">📊 لوحة المعلومات: المجاميع، الغياب، التأخير، والإضافي حسب القسم.</td></tr>
+      <tr><td lang="en">🧩 Pattern builder</td><td lang="en">Name it, paint the days, assign to employees, teams or departments, with a preview of who is affected.</td><td class="ar" lang="ar">🧩 منشئ الأنماط: سمِّه، لوّن الأيام، وأسنده لموظفين أو فرق أو أقسام، مع معاينة لمن سيتأثر.</td></tr>
+      <tr><td lang="en">👤 Employee schedules</td><td lang="en">Follow the department, or own pattern, own days off, crew start.</td><td class="ar" lang="ar">👤 جداول الموظفين: اتباع القسم، أو نمط خاص، أيام عطلة خاصة، موقع الطاقم.</td></tr>
+      <tr><td lang="en">📅 Roster</td><td lang="en">Paint shifts, drag a work day onto a day off to request a swap, tap a day for details.</td><td class="ar" lang="ar">📅 الجدول: تلوين الورديات، سحب يوم عمل إلى يوم عطلة لطلب تبديل، الضغط على يوم لرؤية التفاصيل.</td></tr>
+      <tr><td lang="en">🔄 Off-day swaps</td><td lang="en">Requests with week-only or month-only scope, "pay as overtime", approve or reject.</td><td class="ar" lang="ar">🔄 تبديل أيام العطلة: طلبات ضمن الأسبوع أو الشهر فقط، "الدفع كعمل إضافي"، موافقة أو رفض.</td></tr>
+      <tr><td lang="en">💰 Overtime report</td><td lang="en">Per employee, with an overtime on/off box and CSV export.</td><td class="ar" lang="ar">💰 تقرير العمل الإضافي: لكل موظف، مع خانة تفعيل الإضافي وتصدير CSV.</td></tr>
+      <tr><td lang="en">🏢 Department rules</td><td lang="en">All settings of section 8 above.</td><td class="ar" lang="ar">🏢 قواعد الأقسام: كل إعدادات القسم أعلاه.</td></tr>
+      <tr><td lang="en">⏰ Shifts · 👥 Teams</td><td lang="en">Shift list with "ends next day"; teams with supervisor and members.</td><td class="ar" lang="ar">⏰ الورديات · 👥 الفرق: قائمة الورديات مع "تنتهي في اليوم التالي"؛ الفرق مع المشرف والأعضاء.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="bi" style="margin-top:10px">
+    <p lang="en"><b>Note:</b> the mockup's maths is simplified. The payroll numbers use the <b>Odoo rules</b>, so the Excel files match. Extra options seen in the mockup (weekly overtime, minimum overtime) stay <b>off</b> until HR asks for them.</p>
+    <p lang="ar"><b>ملاحظة:</b> الحسابات في النموذج الأولي مبسطة. أرقام الرواتب تستخدم <b>قواعد Odoo</b> حتى تتطابق ملفات Excel. الخيارات الإضافية في النموذج (الإضافي الأسبوعي، الحد الأدنى للإضافي) تبقى <b>مُطفأة</b> حتى يطلبها قسم الموارد البشرية.</p>
+  </div>
+</section>
+
+<!-- ============ 8. How a day is calculated ============ -->
+<section class="card">
+  <h2><span class="num">9</span><span lang="en">How one day is calculated</span><span lang="ar">كيف يُحسب اليوم الواحد</span></h2>
+  <div class="bi">
+    <p lang="en">Example: an <b>evening shift 16:00 → 04:00</b>. It ends the next morning but belongs to the day it <b>starts</b>. The employee checks in at 15:55 and out at 05:10 the next morning.</p>
+    <p lang="ar">مثال: <b>وردية مسائية من 16:00 إلى 04:00</b>. تنتهي صباح اليوم التالي لكنها تُحسب لليوم الذي <b>بدأت فيه</b>. الموظف بصم دخولاً 15:55 وخروجاً 05:10 صباح اليوم التالي.</p>
+  </div>
+  <figure>
+    <svg viewBox="0 0 960 250" role="img" aria-labelledby="d3t">
+      <title id="d3t">Timeline from 12:00 to 12:00 next day showing shift, punches, night window and overtime</title>
+      <!-- night window 22:00 to 06:00 => x from 12:00 base: 1 hour = 36px, start x=60 -->
+      <rect class="b-night" x="420" y="30" width="288" height="170" rx="6"/>
+      <text x="564" y="50" text-anchor="middle" class="small">night hours 22:00 → 06:00</text>
+      <text x="564" y="66" text-anchor="middle" class="small ar">ساعات الليل</text>
+      <!-- axis ticks every 2h -->
+      <g>
+        <line class="tick" x1="60" y1="200" x2="924" y2="200"/>
+        <line class="tick" x1="348" y1="30" x2="348" y2="206"/><text x="348" y="222" text-anchor="middle" class="small">20:00</text>
+        <line class="tick" x1="60" y1="190" x2="60" y2="206"/><text x="60" y="222" text-anchor="middle" class="small">12:00</text>
+        <line class="tick" x1="204" y1="190" x2="204" y2="206"/><text x="204" y="222" text-anchor="middle" class="small">16:00</text>
+        <line class="tick" x1="492" y1="30" x2="492" y2="206" stroke-dasharray="4 4"/><text x="492" y="222" text-anchor="middle" class="small">00:00</text>
+        <text x="492" y="240" text-anchor="middle" class="small">next day · اليوم التالي</text>
+        <line class="tick" x1="636" y1="190" x2="636" y2="206"/><text x="636" y="222" text-anchor="middle" class="small">04:00</text>
+        <line class="tick" x1="780" y1="190" x2="780" y2="206"/><text x="780" y="222" text-anchor="middle" class="small">08:00</text>
+        <line class="tick" x1="924" y1="190" x2="924" y2="206"/><text x="924" y="222" text-anchor="middle" class="small">12:00</text>
+      </g>
+      <!-- planned shift 16:00 (x=204) to 04:00 (x=636) -->
+      <text x="20" y="96" class="small">Plan</text><text x="20" y="112" class="small ar">الخطة</text>
+      <rect class="bar-shift" x="204" y="88" width="432" height="24" rx="6"/>
+      <text x="420" y="105" text-anchor="middle" style="fill:#fff">16:00 → 04:00 · required 720 min · مطلوب</text>
+      <!-- punches 15:55 (x=201) to 05:10 (x=678) -->
+      <text x="20" y="146" class="small">Worked</text><text x="20" y="162" class="small ar">العمل</text>
+      <rect class="bar-punch" x="201" y="138" width="477" height="24" rx="6"/>
+      <rect class="bar-ot" x="636" y="138" width="42" height="24" rx="0"/>
+      <rect class="bar-ot" x="201" y="138" width="3" height="24"/>
+      <text x="420" y="155" text-anchor="middle">15:55 → 05:10 · 795 min</text>
+      <text x="740" y="155" class="small">+75 overtime · إضافي</text>
+    </svg>
+  </figure>
+  <div class="pipe" style="margin:8px 0 12px">
+    <div class="pc"><b>Planned shift</b><span lang="ar">الوردية المخططة</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Find punches in the shift window</b><span lang="ar">إيجاد البصمات ضمن نافذة الوردية</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Worked minutes</b><span lang="ar">دقائق العمل</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Late? Grace?</b><span lang="ar">تأخير؟ فترة سماح؟</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Status</b><span lang="ar">الحالة</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Overtime or shortage</b><span lang="ar">عمل إضافي أو نقص</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Final works</b><span lang="ar">العمل النهائي المحتسب</span></div><span class="ar-r">→</span>
+    <div class="pc"><b>Deduction / extra pay</b><span lang="ar">الخصم / الإضافي</span></div>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th lang="en">Result for this day</th><th class="ar" lang="ar">نتيجة هذا اليوم</th><th>Value · القيمة</th></tr></thead>
+    <tbody>
+      <tr><td lang="en">Required</td><td class="ar" lang="ar">المطلوب</td><td>720 min (12 h)</td></tr>
+      <tr><td lang="en">Worked</td><td class="ar" lang="ar">العمل الفعلي</td><td>795 min</td></tr>
+      <tr><td lang="en">Overtime (5 min early + 70 min late), paid × 1.25</td><td class="ar" lang="ar">العمل الإضافي (5 دقائق قبل + 70 بعد)، يُدفع × 1.25</td><td>75 min</td></tr>
+      <tr><td lang="en">Final works = 795 + 75 × 0.25</td><td class="ar" lang="ar">العمل النهائي = 795 + 75 × 0.25</td><td>813.75 min</td></tr>
+      <tr><td lang="en">Deduction / extra pay = Final − Required</td><td class="ar" lang="ar">الخصم / الإضافي = النهائي − المطلوب</td><td><b>+93.75 min</b></td></tr>
+      <tr><td lang="en">Night minutes (22:00 → 05:10)</td><td class="ar" lang="ar">دقائق الليل</td><td>430 min</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="bi" style="margin-top:12px">
+    <p lang="en"><b>The golden check:</b> before we trust the new calculations, we run them on <b>three past months</b> and compare with the numbers Odoo saved. <b>Final works and Deduction must match exactly.</b> Every difference must be explained.</p>
+    <p lang="ar"><b>المقارنة الذهبية:</b> قبل أن نعتمد الحسابات الجديدة، نشغّلها على <b>ثلاثة أشهر سابقة</b> ونقارنها مع الأرقام التي حفظها Odoo. <b>يجب أن يتطابق العمل النهائي والخصم تماماً.</b> وأي فرق يجب أن يُشرح.</p>
+  </div>
+</section>
+
+<!-- ============ 9. Safety ============ -->
+<section class="card">
+  <h2><span class="num">10</span><span lang="en">Keeping the data safe</span><span lang="ar">حماية البيانات</span></h2>
+  <div class="bi">
+    <div lang="en">
+      <p>The app holds <b>real staff data</b>, including sick days. So:</p>
+      <ul>
+        <li><b>No cloud.</b> No Neon, no Vercel, no outside services.</li>
+        <li><b>No login for now</b>, because you are the only user. So the app answers <b>only on this laptop</b> (127.0.0.1). Any other computer is refused.</li>
+        <li><b>Before the facility server:</b> we switch login on and add HTTPS.</li>
+        <li>Data never goes into the code folder or git: import files stay in a private folder. Tests use made-up people.</li>
+      </ul>
+    </div>
+    <div lang="ar">
+      <p>يحتوي التطبيق على <b>بيانات حقيقية للموظفين</b>، منها أيام المرض. لذلك:</p>
+      <ul>
+        <li><b>لا سحابة.</b> لا Neon ولا Vercel ولا أي خدمة خارجية.</li>
+        <li><b>لا تسجيل دخول حالياً</b> لأنك المستخدم الوحيد. لذلك يعمل التطبيق <b>على هذا الحاسوب فقط</b> (127.0.0.1)، ويرفض أي جهاز آخر.</li>
+        <li><b>قبل خادم المنشأة:</b> نفعّل تسجيل الدخول ونضيف HTTPS.</li>
+        <li>البيانات لا تدخل مجلد الكود ولا git أبداً: ملفات الاستيراد تبقى في مجلد خاص. الاختبارات تستخدم أشخاصاً وهميين.</li>
+      </ul>
+    </div>
+  </div>
+  <figure>
+    <svg viewBox="0 0 960 230" role="img" aria-labelledby="d4t">
+      <title id="d4t">Now: everything on the laptop, other computers refused. Later: facility servers with login and HTTPS</title>
+      <defs><marker id="arrowB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3261e"/></marker></defs>
+      <text x="230" y="24" text-anchor="middle" class="title">Now · الآن</text>
+      <rect class="b-app" x="20" y="36" width="420" height="160" rx="14"/>
+      <text x="230" y="62" text-anchor="middle">💻 This laptop · هذا الحاسوب</text>
+      <rect class="b-plain" x="40" y="80" width="120" height="50" rx="8"/><text x="100" y="102" text-anchor="middle" class="small">Odoo copy</text><text x="100" y="120" text-anchor="middle" class="small ar">نسخة Odoo</text>
+      <rect class="b-plain" x="170" y="80" width="120" height="50" rx="8"/><text x="230" y="102" text-anchor="middle" class="small">App 🔒</text><text x="230" y="120" text-anchor="middle" class="small">127.0.0.1</text>
+      <rect class="b-plain" x="300" y="80" width="120" height="50" rx="8"/><text x="360" y="102" text-anchor="middle" class="small">App database</text><text x="360" y="120" text-anchor="middle" class="small ar">قاعدة التطبيق</text>
+      <text x="230" y="168" text-anchor="middle" class="small">no internet needed · لا حاجة للإنترنت</text>
+      <text x="470" y="96" class="small">other PC ✗</text>
+      <text x="470" y="114" class="small ar">جهاز آخر ✗</text>
+      <path d="M530,104 L446,104" stroke="#b3261e" stroke-width="2.5" fill="none" marker-end="url(#arrowB)" stroke-dasharray="6 4"/>
+      <text x="740" y="24" text-anchor="middle" class="title">Later · لاحقاً</text>
+      <rect class="b-odoo" x="560" y="36" width="170" height="120" rx="14"/>
+      <text x="645" y="70" text-anchor="middle">Server A</text><text x="645" y="90" text-anchor="middle" class="small">Odoo</text><text x="645" y="108" text-anchor="middle" class="small ar">خادم Odoo</text>
+      <rect class="b-app" x="770" y="36" width="170" height="120" rx="14"/>
+      <text x="855" y="70" text-anchor="middle">Server B</text><text x="855" y="90" text-anchor="middle" class="small">App + login + HTTPS</text><text x="855" y="108" text-anchor="middle" class="small ar">التطبيق + دخول + HTTPS</text>
+      <path class="arrow" d="M770,96 L734,96"/>
+      <text x="750" y="186" text-anchor="middle" class="small">internal network only · الشبكة الداخلية فقط</text>
+    </svg>
+  </figure>
+</section>
+
+<!-- ============ 10. Steps ============ -->
+<section class="card">
+  <h2><span class="num">11</span><span lang="en">The steps, in order</span><span lang="ar">الخطوات بالترتيب</span></h2>
+  <div class="bi"><p lang="en">Each step ends with something you can open and check.</p><p lang="ar">كل خطوة تنتهي بشيء تستطيع فتحه والتأكد منه.</p></div>
+  <div class="cols3" style="margin:12px 0 4px">
+    <div class="box k-keep"><b>A · <span lang="en">App</span><span lang="ar">التطبيق</span></b>
+      <p lang="en" style="font-size:14px;margin:4px 0">Template copy, database, imports, screens, exports (S0, S1.2–S1.5, S2, S3, S4.2–S4.4, S5, S6.2).</p>
+      <p lang="ar" dir="rtl" style="font-size:14px;margin:4px 0">نسخ القالب، قاعدة البيانات، الاستيراد، الشاشات، التصدير.</p></div>
+    <div class="box k-change"><b>B · <span lang="en">Odoo side (Roster repo)</span><span lang="ar">جهة Odoo (مستودع Roster)</span></b>
+      <p lang="en" style="font-size:14px;margin:4px 0">The export tool that writes the files, and the email connector.</p>
+      <p lang="ar" dir="rtl" style="font-size:14px;margin:4px 0">أداة التصدير التي تكتب الملفات، ووحدة الربط للبريد.</p></div>
+    <div class="box" style="background:var(--night-soft)"><b>C · <span lang="en">Payroll engine</span><span lang="ar">محرك الحسابات</span></b>
+      <p lang="en" style="font-size:14px;margin:4px 0">The pure calculation rules and their tests (S4.1), after the template copy.</p>
+      <p lang="ar" dir="rtl" style="font-size:14px;margin:4px 0">قواعد الحساب واختباراتها، بعد نسخ القالب.</p></div>
+  </div>
+  <div class="bi"><p lang="en" class="muted" style="font-size:14px">Three agents can work at the same time, one per lane. The detailed task list is in <code>plans/2026-10-28-attendance-app.md</code> (this repo).</p><p lang="ar" class="muted" style="font-size:14px">يمكن لثلاثة وكلاء العمل في الوقت نفسه، كل واحد في مسار. قائمة المهام التفصيلية في <code>plans/2026-10-28-attendance-app.md</code> (هذا المستودع).</p></div>
+  <div class="phases">
+    <div class="ph" data-s="S0"><div class="row">
+      <div lang="en"><h3>Start the app from the template</h3><p>Copy the code, create the local database, remove flights, make it run on this laptop.</p><p class="see">👀 You will see: the app opens in your browser with the sidebar in English and Arabic.</p></div>
+      <div lang="ar"><h3>تشغيل التطبيق من القالب</h3><p>نسخ الكود، إنشاء قاعدة البيانات المحلية، حذف الرحلات، وتشغيله على هذا الحاسوب.</p><p class="see">👀 سترى: التطبيق يفتح في المتصفح مع القائمة الجانبية بالعربية والإنجليزية.</p></div>
+    </div></div>
+    <div class="ph" data-s="S1"><div class="row">
+      <div lang="en"><h3>Import from Odoo files</h3><p>An export tool writes employees, departments and punches to files; the app imports them with a preview. After that, employees and departments are managed in the app.</p><p class="see">👀 You will see: an "Imports" page showing 312 employees, 30 departments and all punches imported.</p></div>
+      <div lang="ar"><h3>الاستيراد من ملفات Odoo</h3><p>أداة تصدير تكتب الموظفين والأقسام والبصمات في ملفات؛ والتطبيق يستوردها مع معاينة. بعدها تُدار الأقسام والموظفون في التطبيق.</p><p class="see">👀 سترى: صفحة "الاستيراد" تُظهر 312 موظفاً و30 قسماً وكل البصمات المستوردة.</p></div>
+    </div></div>
+    <div class="ph" data-s="S2"><div class="row">
+      <div lang="en"><h3>Shifts, departments, teams and patterns</h3><p>A shift editor with a 24-hour bar ("ends next day" shown automatically), department rules (overtime, grace, night, rest), teams with supervisors, and the pattern builder. Old patterns are imported once.</p><p class="see">👀 You will see: create 16:00 → 04:00 and it shows 12 hours, ends next day.</p></div>
+      <div lang="ar"><h3>الورديات والأقسام والفرق والأنماط</h3><p>محرر ورديات بشريط 24 ساعة (يظهر "ينتهي في اليوم التالي" تلقائياً)، قواعد الأقسام (الإضافي، السماح، الليل، الراحة)، الفرق مع المشرفين، ومنشئ الأنماط. نستورد الأنماط القديمة مرة واحدة.</p><p class="see">👀 سترى: إنشاء وردية 16:00 → 04:00 فتظهر 12 ساعة وتنتهي في اليوم التالي.</p></div>
+    </div></div>
+    <div class="ph" data-s="S3"><div class="row">
+      <div lang="en"><h3>Monthly roster and employee page</h3><p>The grid: paint shifts, move days off, copy last month, publish. The employee page: plan vs punches vs result.</p><p class="see">👀 You will see: a full month for a team, and each person's calendar.</p></div>
+      <div lang="ar"><h3>الجدول الشهري وصفحة الموظف</h3><p>الجدول: تلوين الورديات، تحريك أيام العطلة، نسخ الشهر الماضي، النشر. صفحة الموظف: الخطة مقابل البصمات مقابل النتيجة.</p><p class="see">👀 سترى: شهراً كاملاً لفريق، وتقويم كل موظف.</p></div>
+    </div></div>
+    <div class="ph" data-s="S4"><div class="row">
+      <div lang="en"><h3>Calculations + the golden check</h3><p>Every day is calculated with the Odoo payroll rules, then compared with three past months saved in Odoo.</p><p class="see">👀 You will see: a report saying how many days match, and why any day differs.</p></div>
+      <div lang="ar"><h3>الحسابات + المقارنة الذهبية</h3><p>يُحسب كل يوم بقواعد رواتب Odoo، ثم نقارن مع ثلاثة أشهر سابقة محفوظة في Odoo.</p><p class="see">👀 سترى: تقريراً يوضح عدد الأيام المتطابقة، وسبب أي اختلاف.</p></div>
+    </div></div>
+    <div class="ph" data-s="S5"><div class="row">
+      <div lang="en"><h3>Excel exports</h3><p>Payroll Period (26 columns) and Period Balance (11 columns), the same as Odoo, checked cell by cell.</p><p class="see">👀 You will see: the two Excel files, side by side with Odoo's.</p></div>
+      <div lang="ar"><h3>تصدير ملفات Excel</h3><p>ملف فترة الرواتب (26 عموداً) وملف رصيد الفترة (11 عموداً)، مثل Odoo تماماً، مع مقارنة خلية بخلية.</p><p class="see">👀 سترى: الملفين بجانب ملفات Odoo.</p></div>
+    </div></div>
+    <div class="ph" data-s="S6"><div class="row">
+      <div lang="en"><h3>Emails through Odoo</h3><p>Preview each employee's email in the app, then Odoo sends it.</p><p class="see">👀 You will see: the emails in the test inbox (MailHog), never sent to real people from the laptop.</p></div>
+      <div lang="ar"><h3>البريد عبر Odoo</h3><p>معاينة رسالة كل موظف في التطبيق، ثم يرسلها Odoo.</p><p class="see">👀 سترى: الرسائل في صندوق الاختبار (MailHog)، ولا تُرسل لأشخاص حقيقيين من الحاسوب.</p></div>
+    </div></div>
+    <div class="ph" data-s="S7"><div class="row">
+      <div lang="en"><h3>Parallel run</h3><p>One full period in both Odoo and the app. HR compares both pairs of Excel files.</p><p class="see">👀 You will see: HR's sign-off that the numbers are the same.</p></div>
+      <div lang="ar"><h3>التشغيل المتوازي</h3><p>فترة كاملة في Odoo وفي التطبيق معاً. يقارن قسم الموارد البشرية ملفات Excel من الطرفين.</p><p class="see">👀 سترى: موافقة الموارد البشرية على أن الأرقام متطابقة.</p></div>
+    </div></div>
+    <div class="ph" data-s="S8"><div class="row">
+      <div lang="en"><h3>Move to the facility server</h3><p>With the facility's IT: login on, HTTPS, backups, a separate server talking only to Odoo.</p><p class="see">👀 You will see: the app running at the airport, the old roster module retired after HR approves.</p></div>
+      <div lang="ar"><h3>النقل إلى خادم المنشأة</h3><p>مع قسم تقنية المعلومات في المنشأة: تفعيل الدخول، HTTPS، نسخ احتياطية، وخادم منفصل يتواصل مع Odoo فقط.</p><p class="see">👀 سترى: التطبيق يعمل في المطار، وإيقاف وحدة المناوبات القديمة بعد موافقة الموارد البشرية.</p></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ 11. Questions ============ -->
+<section class="card">
+  <h2><span class="num">12</span><span lang="en">Questions for you and HR</span><span lang="ar">أسئلة لك ولقسم الموارد البشرية</span></h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th lang="en">Question</th><th class="ar" lang="ar">السؤال</th><th lang="en">Until answered we use</th><th class="ar" lang="ar">حتى الإجابة نستخدم</th></tr></thead>
+    <tbody>
+      <tr><td lang="en">Is a roster month the payroll period (21st → 20th) or the calendar month?</td><td class="ar" lang="ar">هل شهر الجدول هو فترة الرواتب (من 21 إلى 20) أم الشهر الميلادي؟</td><td lang="en">21st → 20th</td><td class="ar" lang="ar">من 21 إلى 20</td></tr>
+      <tr><td lang="en">How do days off move each month: shift one day forward, swap between teams, or chosen by hand?</td><td class="ar" lang="ar">كيف تتحرك أيام العطلة كل شهر: تتقدم يوماً، تتبادل بين الفرق، أم تُختار يدوياً؟</td><td lang="en">Copy last month + move by hand</td><td class="ar" lang="ar">نسخ الشهر الماضي + التحريك يدوياً</td></tr>
+      <tr><td lang="en">Teams: use today's sub-departments, or create new crews?</td><td class="ar" lang="ar">الفرق: نستخدم الأقسام الفرعية الحالية أم ننشئ فرقاً جديدة؟</td><td lang="en">Start from sub-departments</td><td class="ar" lang="ar">نبدأ من الأقسام الفرعية</td></tr>
+      <tr><td lang="en">Should a correction in the app ever change the punch in Odoo?</td><td class="ar" lang="ar">هل يجب أن يغيّر التصحيح في التطبيق البصمة في Odoo؟</td><td lang="en">No, corrections stay in the app</td><td class="ar" lang="ar">لا، التصحيحات تبقى في التطبيق</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 12. Glossary ============ -->
+<section class="card">
+  <h2><span class="num">13</span><span lang="en">Words used in this guide</span><span lang="ar">الكلمات المستخدمة</span></h2>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Word · الكلمة</th><th lang="en">Meaning</th><th class="ar" lang="ar">الكلمة والمعنى</th></tr></thead>
+    <tbody>
+      <tr><td><b>Roster</b></td><td lang="en">Who works which shift on which day.</td><td class="ar" lang="ar"><b>جدول المناوبات:</b> من يعمل أي وردية في أي يوم.</td></tr>
+      <tr><td><b>Shift</b></td><td lang="en">Working hours "from → to". If the end is earlier than the start, it ends the next day.</td><td class="ar" lang="ar"><b>الوردية:</b> ساعات العمل "من ← إلى". إذا كانت النهاية قبل البداية فهي تنتهي في اليوم التالي.</td></tr>
+      <tr><td><b>Cycle</b></td><td lang="en">A pattern that repeats, e.g. Day, Day, Night, Night, Off, Off, Off, Off.</td><td class="ar" lang="ar"><b>الدورة:</b> نمط يتكرر، مثل نهاري، نهاري، ليلي، ليلي، عطلة ×4.</td></tr>
+      <tr><td><b>Punch</b></td><td lang="en">A check-in or check-out from the fingerprint device.</td><td class="ar" lang="ar"><b>البصمة:</b> تسجيل دخول أو خروج من جهاز البصمة.</td></tr>
+      <tr><td><b>Period</b></td><td lang="en">The payroll month, from the 21st to the 20th.</td><td class="ar" lang="ar"><b>الفترة:</b> شهر الرواتب، من 21 إلى 20.</td></tr>
+      <tr><td><b>Grace</b></td><td lang="en">Minutes of lateness that are forgiven.</td><td class="ar" lang="ar"><b>فترة السماح:</b> دقائق تأخير يتم التسامح بها.</td></tr>
+      <tr><td><b>Overtime / Shortage</b></td><td lang="en">Worked more / less than required.</td><td class="ar" lang="ar"><b>الإضافي / النقص:</b> عمل أكثر / أقل من المطلوب.</td></tr>
+      <tr><td><b>Final works</b></td><td lang="en">The paid minutes of the day after all rules.</td><td class="ar" lang="ar"><b>العمل النهائي:</b> الدقائق المدفوعة لليوم بعد تطبيق كل القواعد.</td></tr>
+      <tr><td><b>Deduction / Extra pay</b></td><td lang="en">Final works minus required. Every report adds up this number.</td><td class="ar" lang="ar"><b>الخصم / الإضافي:</b> العمل النهائي ناقص المطلوب. كل التقارير تجمع هذا الرقم.</td></tr>
+      <tr><td><b>Import</b></td><td lang="en">Loading a file (CSV or Excel) into the app, with a preview before saving.</td><td class="ar" lang="ar"><b>الاستيراد:</b> تحميل ملف (CSV أو Excel) إلى التطبيق مع معاينة قبل الحفظ.</td></tr>
+      <tr><td><b>Connector</b></td><td lang="en">The small Odoo module that lets the app ask Odoo to send the emails.</td><td class="ar" lang="ar"><b>وحدة الربط:</b> وحدة صغيرة في Odoo تسمح للتطبيق بطلب إرسال البريد.</td></tr>
+      <tr><td><b>Template</b></td><td lang="en">An existing project we copy and adapt instead of starting empty.</td><td class="ar" lang="ar"><b>القالب:</b> مشروع موجود ننسخه ونعدّله بدلاً من البدء من الصفر.</td></tr>
+      <tr><td><b>Golden check</b></td><td lang="en">Comparing the app's numbers with the numbers Odoo already saved.</td><td class="ar" lang="ar"><b>المقارنة الذهبية:</b> مقارنة أرقام التطبيق مع الأرقام التي حفظها Odoo.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span lang="en">Source: plans/2026-10-28-attendance-app.md · No real staff data in this page (examples are made up).</span><br>
+  <span lang="ar">المصدر: plans/2026-10-28-attendance-app.md · لا توجد بيانات موظفين حقيقية في هذه الصفحة (الأمثلة وهمية).</span>
+</footer>
+
+<script>
+  (function () {
+    var body = document.body;
+    var buttons = document.querySelectorAll('.switch button');
+    function show(lang) {
+      body.setAttribute('data-show', lang);
+      document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+      try { localStorage.setItem('ab-guide-lang', lang); } catch (e) {}
+    }
+    buttons.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.lang); }); });
+    var saved = null;
+    try { saved = localStorage.getItem('ab-guide-lang'); } catch (e) {}
+    show(saved === 'en' || saved === 'ar' ? saved : 'both');
+  })();
+</script>
+</body>
+</html>

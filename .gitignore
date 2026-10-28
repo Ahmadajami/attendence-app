@@ -1,0 +1,35 @@
+# --- from the Airport-Staff template ---
+node_modules
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+!.env.test
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+src/lib/paraglide
+project.inlang/cache/
+
+# --- real data never enters this repo (it lives in ~/secure/syravia/) ---
+*.zip
+*.dump
+*.backup
+*.sql.gz
+*.log
+*.xlsx
+*.xls
+*.csv
+!tests/fixtures/**/*.csv
+!tests/fixtures/**/*.xlsx
+/imports/
+/exports/
+/data/
+playwright-report/
+test-results/

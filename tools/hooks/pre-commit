@@ -1,0 +1,23 @@
+#!/bin/sh
+# Data guard (versioned; enabled with: git config core.hooksPath tools/hooks).
+# Real staff data and secrets must never be committed. Catches `git add -f`.
+# Allowed exceptions: drizzle migrations (schema + role seeds only) and
+# synthetic test fixtures under tests/fixtures/.
+MAX_BYTES=5242880
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r f; do
+    case "$f" in
+        drizzle/*.sql|drizzle/meta/*) ;;
+        tests/fixtures/*) ;;
+        .env.example|.env.test) ;;
+        *.zip|*.dump|*.backup|*.sql|*.sql.gz|*.log|*.xlsx|*.xls|*.csv|.env|.env.*|imports/*|exports/*|data/*)
+            echo "  data/secret file: $f"; continue ;;
+    esac
+    size=$(git cat-file -s ":$f" 2>/dev/null || echo 0)
+    [ "$size" -gt "$MAX_BYTES" ] && echo "  file over 5 MB: $f ($size bytes)"
+done)
+if [ -n "$blocked" ]; then
+    echo "pre-commit: commit rejected. Real data belongs in ~/secure/syravia/." >&2
+    echo "$blocked" >&2
+    exit 1
+fi
+exit 0

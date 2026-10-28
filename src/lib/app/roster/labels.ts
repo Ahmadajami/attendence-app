@@ -1,21 +1,38 @@
 import { DateFormatter } from '@internationalized/date';
 import { startOfDamascusDay } from '#lib/roster/cycle.js';
-import type { ShiftKind } from '#lib/schemas/enums.js';
+import type { RosterShift } from '#lib/roster/shift.js';
 import { m } from '#lib/paraglide/messages.js';
 import { getLocale } from '#lib/paraglide/runtime.js';
 import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
+import { lookupName } from '#lib/utils/locale.js';
 
-export function shiftKindLabel(kind: ShiftKind): string {
-	if (kind === 'day') return m.roster_kind_day();
-	if (kind === 'night') return m.roster_kind_night();
-	return m.roster_kind_off();
+type LabelledShift = Pick<RosterShift, 'code' | 'nameEn' | 'nameAr'>;
+
+/** Shifts by id, for resolving pattern slots. */
+export function shiftsById<T extends Pick<RosterShift, 'id'>>(
+	shifts: readonly T[]
+): Map<string, T> {
+	return new Map(shifts.map((s) => [s.id, s]));
 }
 
-/** One letter per cycle day: D / N / O in English. */
-export function shiftKindLetter(kind: ShiftKind): string {
-	if (kind === 'day') return m.roster_letter_day();
-	if (kind === 'night') return m.roster_letter_night();
-	return m.roster_letter_off();
+/** `Day (D)`, or `Off`. */
+export function slotLabel(shift: LabelledShift | null): string {
+	return shift ? `${lookupName(shift)} (${shift.code})` : m.roster_kind_off();
+}
+
+/** The shift's code, or the off letter (`O`). */
+export function slotCode(shift: Pick<RosterShift, 'code'> | null): string {
+	return shift?.code ?? m.roster_letter_off();
+}
+
+/** A pattern's slots as codes, e.g. `D D N N O O O O`. Show inside `<bdi dir="ltr">`. */
+export function slotCodes(
+	slots: readonly (string | null)[],
+	shifts: ReadonlyMap<string, Pick<RosterShift, 'code'>>
+): string {
+	return slots
+		.map((id) => (id === null ? slotCode(null) : (shifts.get(id)?.code ?? '?')))
+		.join(' ');
 }
 
 /** `Mon 2`: a preview column header. */

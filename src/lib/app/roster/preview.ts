@@ -2,9 +2,9 @@ import { parseDate } from '@internationalized/date';
 import type { ResolvedPathname } from '$app/types';
 import { rosterRange, type RosterDay, type RosterPattern } from '#lib/roster/roster.js';
 import { applyVersionChange } from '#lib/roster/versions.js';
-import type { ShiftKind } from '#lib/schemas/enums.js';
-import type { ShiftStarts } from '#lib/schemas/settings.schema.js';
+import type { PatternType } from '#lib/schemas/enums.js';
 import type { RosterPreviewData } from '#lib/server/services/roster/roster.bl.js';
+import { shiftsById } from './labels.js';
 
 /** One line of the roster preview grid. */
 export type PreviewRow = {
@@ -14,7 +14,7 @@ export type PreviewRow = {
 	days: RosterDay[];
 };
 
-/** An unsaved cycle version, applied on top of the saved ones for a live preview. */
+/** An unsaved pattern version, applied on top of the saved ones for a live preview. */
 export type DraftVersion =
 	| { owner: 'team'; teamId: string; version: RosterPattern }
 	| { owner: 'personal'; staffId: string; version: RosterPattern };
@@ -32,23 +32,28 @@ export function isCalendarDate(value: string): boolean {
 
 /** The version the editor would save, or `null` while the editor is incomplete. */
 export function draftVersion(
-	draft: { cycle: ShiftKind[]; anchorDate: string; effectiveFrom: string },
-	shiftStarts: ShiftStarts | null,
+	draft: {
+		type: PatternType;
+		slots: (string | null)[];
+		anchorDate: string;
+		effectiveFrom: string;
+	},
 	teamId: string | null
 ): RosterPattern | null {
+	const cycle = draft.type === 'cycle';
 	if (
-		!shiftStarts ||
-		!isCalendarDate(draft.anchorDate) ||
+		(cycle && !isCalendarDate(draft.anchorDate)) ||
+		(!cycle && draft.slots.length !== 7) ||
 		!isCalendarDate(draft.effectiveFrom) ||
-		!draft.cycle.some((kind) => kind !== 'off')
+		!draft.slots.some((slot) => slot !== null)
 	)
 		return null;
 	return {
 		teamId,
-		cycle: draft.cycle,
-		anchorDate: draft.anchorDate,
-		dayStart: shiftStarts.day,
-		nightStart: shiftStarts.night,
+		departmentId: null,
+		type: draft.type,
+		slots: draft.slots,
+		anchorDate: cycle ? draft.anchorDate : null,
 		effectiveFrom: draft.effectiveFrom,
 		effectiveTo: null
 	};
@@ -58,7 +63,6 @@ export function draftVersion(
 export function previewDays(
 	data: RosterPreviewData,
 	staffId: string,
-	shiftStarts: ShiftStarts | null,
 	draft: DraftVersion | null
 ): RosterDay[] {
 	let personalPatterns: RosterPattern[] = data.personalPatterns.filter(
@@ -81,13 +85,32 @@ export function previewDays(
 			memberships: data.memberships.filter((m) => m.staffId === staffId),
 			personalPatterns,
 			teamPatterns,
+			departmentPatterns: data.departmentPatterns,
+			departmentChain: data.departmentChains[staffId] ?? [],
 			overrides: data.overrides.filter((o) => o.staffId === staffId),
 			absences: data.absences.filter((a) => a.staffId === staffId),
-			fallbackTimes: shiftStarts
-				? { dayStart: shiftStarts.day, nightStart: shiftStarts.night }
-				: null
+			shifts: shiftsById(data.shifts)
 		},
 		data.from,
 		data.days
 	);
+}
+
+/**
+ * Starting values of the pattern editor: the version in force today (or the last one), else a
+ * `cycle` of the first two active shifts and two days off (D N O O with the seeded shifts).
+ */
+export function patternFormDefaults(
+	current: Pick<RosterPattern, 'type' | 'slots' | 'anchorDate'> | undefined,
+	today: string,
+	shifts: readonly { id: string; active: boolean }[]
+) {
+	const active = shifts.filter((s) => s.active).map((s) => s.id);
+	return {
+		type: current?.type ?? ('cycle' as const),
+		slots: current?.slots ?? [active[0] ?? null, active[1] ?? active[0] ?? null, null, null],
+		anchorDate: current?.anchorDate ?? today,
+		effectiveFrom: today,
+		reason: ''
+	};
 }

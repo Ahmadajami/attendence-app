@@ -25,3 +25,4 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | Date | Plan | Status |
 |---|---|---|
 | 2026-10-28 | [Attendance App](2026-10-28-attendance-app.md) | in progress (approved, ready to implement) |
+| 2026-10-28 | [Shifts, then manual punch entry](2026-10-28-shifts-and-manual-punches.md) (S2.1 → S2.2 → S1.4) | in progress |

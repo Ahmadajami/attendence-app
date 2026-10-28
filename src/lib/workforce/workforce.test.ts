@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { descendantIds, flattenTree, wouldCreateCycle } from './departments.js';
+import { ancestorChain, descendantIds, flattenTree, wouldCreateCycle } from './departments.js';
 import { nextEmployeeNo } from './employee-no.js';
 
 // Made-up departments only.
@@ -39,6 +39,22 @@ describe('descendantIds / wouldCreateCycle', () => {
 		expect(wouldCreateCycle(rows, 'ops', 'ramp-a')).toBe(true);
 		expect(wouldCreateCycle(rows, 'ramp', 'sec')).toBe(false);
 		expect(wouldCreateCycle(rows, 'ramp', null)).toBe(false);
+	});
+});
+
+describe('ancestorChain', () => {
+	it('lists the department and its ancestors, nearest first', () => {
+		expect(ancestorChain(rows, 'ramp-a')).toEqual(['ramp-a', 'ramp', 'ops']);
+		expect(ancestorChain(rows, 'sec')).toEqual(['sec']);
+		expect(ancestorChain(rows, null)).toEqual([]);
+	});
+
+	it('stops on a cycle in bad data', () => {
+		const looped = [
+			{ id: 'a', parentId: 'b' },
+			{ id: 'b', parentId: 'a' }
+		];
+		expect(ancestorChain(looped, 'a')).toEqual(['a', 'b']);
 	});
 });
 

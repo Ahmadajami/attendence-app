@@ -2,14 +2,17 @@
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import type { RosterShift } from '#lib/roster/shift.js';
 	import type { PatternRow } from '#lib/server/services/roster/roster.crud.js';
-	import { formatCalendarDate, formatWallClock, shiftKindLetter } from './labels.js';
+	import { formatCalendarDate, shiftsById, slotCodes } from './labels.js';
 
 	type Version = PatternRow;
 
-	type Props = { versions: Version[]; today: string };
+	type Props = { versions: Version[]; today: string; shifts: Pick<RosterShift, 'id' | 'code'>[] };
 
-	let { versions, today }: Props = $props();
+	let { versions, today, shifts }: Props = $props();
+
+	const byId = $derived(shiftsById(shifts));
 
 	const newestFirst = $derived([...versions].reverse());
 
@@ -29,7 +32,7 @@
 				<Table.Head>{m.roster_history_from()}</Table.Head>
 				<Table.Head>{m.roster_history_to()}</Table.Head>
 				<Table.Head>{m.roster_field_cycle()}</Table.Head>
-				<Table.Head>{m.roster_history_times()}</Table.Head>
+				<Table.Head>{m.roster_field_type()}</Table.Head>
 				<Table.Head>{m.roster_field_reason()}</Table.Head>
 			</Table.Row>
 		</Table.Header>
@@ -53,17 +56,15 @@
 						{/if}
 					</Table.Cell>
 					<Table.Cell>
-						<bdi class="font-mono text-xs" dir="ltr">
-							{version.cycle.map(shiftKindLetter).join(' ')}
-						</bdi>
-						<span class="block text-xs text-muted-foreground">
-							{m.roster_history_anchor({ date: formatCalendarDate(version.anchorDate) })}
-						</span>
+						<bdi class="font-mono text-xs" dir="ltr">{slotCodes(version.slots, byId)}</bdi>
+						{#if version.anchorDate}
+							<span class="block text-xs text-muted-foreground">
+								{m.roster_history_anchor({ date: formatCalendarDate(version.anchorDate) })}
+							</span>
+						{/if}
 					</Table.Cell>
 					<Table.Cell class="whitespace-nowrap">
-						<bdi dir="ltr"
-							>{formatWallClock(version.dayStart)} / {formatWallClock(version.nightStart)}</bdi
-						>
+						{version.type === 'weekly' ? m.roster_type_weekly() : m.roster_type_cycle()}
 					</Table.Cell>
 					<Table.Cell class="max-w-64 truncate" title={version.reason}>{version.reason}</Table.Cell>
 				</Table.Row>

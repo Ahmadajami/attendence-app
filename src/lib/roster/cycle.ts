@@ -1,22 +1,10 @@
-import {
-	fromDate,
-	parseDate,
-	parseTime,
-	toCalendarDate,
-	toCalendarDateTime
-} from '@internationalized/date';
-import type { ShiftKind } from '#lib/schemas/enums.js';
+import { fromDate, parseDate, toCalendarDate } from '@internationalized/date';
+import { slotIndex } from '#lib/payroll/schedule.js';
+import type { ShiftPattern } from '#lib/server/db/schema/index.js';
 import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
-import { SHIFT_MINUTES } from './rules.js';
 
-/** A shift that is worked, as opposed to a day off. */
-export type WorkKind = Exclude<ShiftKind, 'off'>;
-
-/** Wall-clock starts (`HH:mm` or `HH:mm:ss`, Damascus) of the Day and Night shifts. */
-export type ShiftTimes = { dayStart: string; nightStart: string };
-
-/** A shift's half-open span `[start, end)`. */
-export type ShiftWindow = { start: Date; end: Date };
+/** What decides a pattern's slot on a date. */
+export type SlotPattern = Pick<ShiftPattern, 'type' | 'slots' | 'anchorDate'>;
 
 const DAY_MS = 86_400_000;
 
@@ -42,22 +30,12 @@ export function startOfDamascusDay(date: string): Date {
 	return parseDate(date).toDate(AIRPORT_TIME_ZONE);
 }
 
-/** 0-based position of `date` in a cycle of `length` days whose day 1 is `anchor`; repeats both ways. */
-export function cycleIndex(anchor: string, length: number, date: string): number {
-	return ((daysBetween(anchor, date) % length) + length) % length;
-}
-
-/** What a cycle says for `date`. */
-export function cycleKind(cycle: readonly ShiftKind[], anchor: string, date: string): ShiftKind {
-	return cycle[cycleIndex(anchor, cycle.length, date)];
-}
-
 /**
- * The 12 h span of a Day or Night shift on its shift date. The start is Damascus wall-clock time on
- * `date`; the end is 12 h later, so a night ends the next morning.
+ * The shift id a pattern says for `date` (`null`: off). Weekly patterns go by weekday (Sunday
+ * first); cycles by days since the anchor, repeating both ways.
  */
-export function shiftWindow(date: string, kind: WorkKind, times: ShiftTimes): ShiftWindow {
-	const time = parseTime(kind === 'day' ? times.dayStart : times.nightStart);
-	const start = toCalendarDateTime(parseDate(date), time).toDate(AIRPORT_TIME_ZONE);
-	return { start, end: new Date(start.getTime() + SHIFT_MINUTES * 60_000) };
+export function patternSlot(pattern: SlotPattern, date: string): string | null {
+	return (
+		pattern.slots[slotIndex(pattern.type, pattern.slots.length, date, pattern.anchorDate)] ?? null
+	);
 }

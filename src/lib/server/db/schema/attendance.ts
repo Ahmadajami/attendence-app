@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { ABSENCE_TYPES, ATTENDANCE_EVENT_TYPES } from '#lib/schemas/enums.js';
 import { user } from './auth.js';
-import { shiftKind } from './roster.js';
+import { shift } from './roster.js';
 import { staff, team } from './workforce.js';
 
 export const attendanceEventType = pgEnum('attendance_event_type', ATTENDANCE_EVENT_TYPES);
@@ -21,7 +21,7 @@ export const absenceType = pgEnum('absence_type', ABSENCE_TYPES);
 
 /**
  * **Append-only** (CLAUDE.md §7): a check-in, check-out, break start or break end. `shift_date`,
- * `shift_kind` and `team_id` record the shift it was counted for when it was recorded, so reports
+ * `shift_id` and `team_id` record the shift it was counted for when it was recorded, so reports
  * never move when cycles or teams change later. A mistake is fixed by a new event that points at
  * the wrong one (`corrects_event_id`) with a `reason`; the original stays.
  */
@@ -35,7 +35,9 @@ export const attendanceEvent = pgTable(
 		type: attendanceEventType('type').notNull(),
 		occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
 		shiftDate: date('shift_date', { mode: 'string' }).notNull(),
-		shiftKind: shiftKind('shift_kind').notNull(),
+		shiftId: uuid('shift_id')
+			.notNull()
+			.references(() => shift.id, { onDelete: 'restrict' }),
 		/** The person's team on the shift date; `null` when they had none. */
 		teamId: uuid('team_id').references(() => team.id, { onDelete: 'restrict' }),
 		recordedBy: uuid('recorded_by').references(() => user.id, { onDelete: 'set null' }),
@@ -52,7 +54,6 @@ export const attendanceEvent = pgTable(
 		index('attendance_event_team_date_idx').on(t.teamId, t.shiftDate),
 		index('attendance_event_date_idx').on(t.shiftDate),
 		index('attendance_event_corrects_idx').on(t.correctsEventId),
-		check('attendance_event_worked_kind', sql`${t.shiftKind} <> 'off'`),
 		check(
 			'attendance_event_correction_reason',
 			sql`${t.correctsEventId} IS NULL OR length(trim(coalesce(${t.reason}, ''))) > 0`
@@ -95,6 +96,7 @@ export const absence = pgTable(
 export const attendanceEventRelations = relations(attendanceEvent, ({ one }) => ({
 	staff: one(staff, { fields: [attendanceEvent.staffId], references: [staff.id] }),
 	team: one(team, { fields: [attendanceEvent.teamId], references: [team.id] }),
+	shift: one(shift, { fields: [attendanceEvent.shiftId], references: [shift.id] }),
 	corrects: one(attendanceEvent, {
 		fields: [attendanceEvent.correctsEventId],
 		references: [attendanceEvent.id]

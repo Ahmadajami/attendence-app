@@ -16,23 +16,41 @@ describe('roundOvertime', () => {
 });
 
 describe('computeOvertime', () => {
-	it('counts time past 12 h on a rostered shift', () => {
-		expect(computeOvertime(720, false)).toEqual({ rawMinutes: 0, minutes: 0, warning: false });
-		expect(computeOvertime(727, false).minutes).toBe(0);
-		expect(computeOvertime(728, false).minutes).toBe(15);
-		expect(computeOvertime(760, false)).toEqual({ rawMinutes: 40, minutes: 45, warning: false });
-		expect(computeOvertime(660, false).minutes).toBe(0);
+	it('counts time past the required minutes on a rostered shift', () => {
+		expect(computeOvertime(720, 720, false)).toEqual({ rawMinutes: 0, minutes: 0, warning: false });
+		expect(computeOvertime(727, 720, false).minutes).toBe(0);
+		expect(computeOvertime(728, 720, false).minutes).toBe(15);
+		expect(computeOvertime(760, 720, false)).toEqual({
+			rawMinutes: 40,
+			minutes: 45,
+			warning: false
+		});
+		expect(computeOvertime(660, 720, false).minutes).toBe(0);
+	});
+
+	it('counts past a shorter required time', () => {
+		expect(computeOvertime(480, 480, false).minutes).toBe(0);
+		expect(computeOvertime(540, 480, false)).toEqual({
+			rawMinutes: 60,
+			minutes: 60,
+			warning: false
+		});
+		expect(computeOvertime(530, 480, false).minutes).toBe(45);
 	});
 
 	it('counts all of an extra shift', () => {
-		expect(computeOvertime(720, true).minutes).toBe(720);
-		expect(computeOvertime(790, true).minutes).toBe(795);
+		expect(computeOvertime(720, 720, true).minutes).toBe(720);
+		expect(computeOvertime(790, 720, true).minutes).toBe(795);
 	});
 
 	it('warns above 18 h worked', () => {
-		expect(computeOvertime(1080, false).warning).toBe(false);
-		expect(computeOvertime(1081, false).warning).toBe(true);
-		expect(computeOvertime(1110, false)).toEqual({ rawMinutes: 390, minutes: 390, warning: true });
+		expect(computeOvertime(1080, 720, false).warning).toBe(false);
+		expect(computeOvertime(1081, 720, false).warning).toBe(true);
+		expect(computeOvertime(1110, 720, false)).toEqual({
+			rawMinutes: 390,
+			minutes: 390,
+			warning: true
+		});
 	});
 });
 

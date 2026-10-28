@@ -1,9 +1,9 @@
 // Closed sets shared by the database (`pgEnum`), zod schemas and label functions (CLAUDE.md §3).
 // Client-safe: no server imports.
 
-/** A rostered day: a 12 h Day or Night shift, or Off (ROSTER_PLAN.md). */
-export const SHIFT_KINDS = ['day', 'night', 'off'] as const;
-export type ShiftKind = (typeof SHIFT_KINDS)[number];
+/** A pattern repeats by weekday (7 slots, Sunday first) or as a cycle of 1–28 days from an anchor. */
+export const PATTERN_TYPES = ['weekly', 'cycle'] as const;
+export type PatternType = (typeof PATTERN_TYPES)[number];
 
 /** Append-only attendance events; corrections are new events, never edits. */
 export const ATTENDANCE_EVENT_TYPES = [

@@ -36,12 +36,17 @@
 			id: person.staffId,
 			label: personName(person),
 			href: localizedHref('/employees/[id]', { id: person.staffId }),
-			days: previewDays(data.preview, person.staffId, data.shiftStarts, draft)
+			days: previewDays(data.preview, person.staffId, draft)
 		}));
 	}
 
 	const copySources = $derived(
-		data.cycleSources.map((s) => ({ id: s.id, label: teamName(s), cycle: s.cycle }))
+		data.cycleSources.map((s) => ({
+			id: s.id,
+			label: teamName(s),
+			type: s.type,
+			slots: s.slots
+		}))
 	);
 </script>
 
@@ -83,7 +88,7 @@
 				<PatternForm
 					data={data.patternForm}
 					action="?/savePattern"
-					shiftStarts={data.shiftStarts}
+					shifts={data.preview.shifts}
 					today={data.today}
 					{copySources}
 					{preview}
@@ -142,7 +147,7 @@
 			<Card.Title>{m.roster_history_title()}</Card.Title>
 		</Card.Header>
 		<Card.Content class="px-0">
-			<PatternHistory versions={data.versions} today={data.today} />
+			<PatternHistory versions={data.versions} today={data.today} shifts={data.preview.shifts} />
 		</Card.Content>
 	</Card.Root>
 </section>

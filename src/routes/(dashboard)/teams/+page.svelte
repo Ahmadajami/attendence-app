@@ -14,13 +14,15 @@
 	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import { shiftKindLetter } from '#lib/app/roster/labels.js';
+	import { shiftsById, slotCodes } from '#lib/app/roster/labels.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { personName, teamName } from '#lib/utils/locale.js';
 	import TeamFormSheet from './TeamFormSheet.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const byId = $derived(shiftsById(data.shifts));
 
 	type Team = (typeof data.teams)[number];
 
@@ -104,9 +106,9 @@
 								</span>
 							</Table.Cell>
 							<Table.Cell>
-								{#if team.cycle}
+								{#if team.pattern}
 									<bdi class="font-mono text-xs" dir="ltr">
-										{team.cycle.map(shiftKindLetter).join(' ')}
+										{slotCodes(team.pattern.slots, byId)}
 									</bdi>
 								{:else}
 									<span class="text-muted-foreground">{m.teams_no_cycle()}</span>

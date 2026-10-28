@@ -242,7 +242,8 @@ computed; results stored.
 - Planning: template `src/lib/roster/`, generalised from kinds to shifts.
 - New `src/lib/payroll/` (no DB/SvelteKit imports): `types.ts`;
   `schedule.ts` = 1:1 port of `docs/reference/schedule_spec/schedule.py` +
-  its 11 tests; `match.ts` (punch ↔ planned shift window, overnight-safe,
+  its 11 tests; **`schedule.ts` + `schedule.test.ts` already exist** (written by
+  Lane A in S2.1, sub-plan P5): S4.1 builds on them, no second copy; `match.ts` (punch ↔ planned shift window, overnight-safe,
   never invent a check-out); `day.ts` (R1–R10); `night.ts`; `period.ts`
   (R11, modes `daily_sum` default and `gated`, DIFF §4).
 - Old code (logic only, see CLAUDE.md warning):
@@ -364,6 +365,7 @@ needs B's connector → S1.6 waits for the user's file format.
 > template's append-only `attendance_event` (corrections = new event with
 > a reason, `src/lib/roster/attendance.ts` `attributeEvent`), generalised
 > from `shift_kind` to `shift_id` in S2.1.
+> Detailed steps for S2.1 → S2.2 → S1.4: [shifts-and-manual-punches](2026-10-28-shifts-and-manual-punches.md).
 - [ ] S1.4 **Manual punch entry** (`/attendance/entry`, employee page, day
       popup): fast day sheet per department/team, next-day check-outs for
       night shifts, validations (check-out after check-in, ≤ 16 h, no
@@ -395,9 +397,16 @@ needs B's connector → S1.6 waits for the user's file format.
       > note: waiting for the format (2026-10-28).
 
 ### S2 · Shifts, departments, teams, patterns (Lane A)
-- [ ] S2.1 `shift` table; generalise `shift_pattern`/`roster_override` and
+- [x] S2.1 (detail: [sub-plan](2026-10-28-shifts-and-manual-punches.md)) `shift` table; generalise `shift_pattern`/`roster_override` and
       `src/lib/roster/` to shifts; department as pattern owner.
       **Done when** updated template roster tests pass
+      > note: 2026-10-28. Migrations `0003_drop_shift_kind`, `0004_shifts`,
+      > `0005_shift_constraints_seed` on all three DBs (D, N seeded;
+      > `attendance_app_test` recreated first, user OK). Engine on shift ids,
+      > weekly + cycle slots, department patterns (nearest up the tree).
+      > `src/lib/payroll/schedule.ts` = port of `schedule_spec` (11 cases).
+      > `pnpm test` 109/109 (76 before), every old roster case ported.
+      > Previews checked by hand on `attendance_app_e2e`.
 - [ ] S2.2 `/shifts` (F12) + 24 h editor with live hint (F3).
       **Done when** 16:00→04:00 shows "ends next day", 720; `OFF`/duplicate
       codes refused

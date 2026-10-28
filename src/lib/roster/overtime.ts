@@ -1,4 +1,4 @@
-import { LONG_DAY_WARNING_MINUTES, OVERTIME_ROUNDING_MINUTES, SHIFT_MINUTES } from './rules.js';
+import { LONG_DAY_WARNING_MINUTES, OVERTIME_ROUNDING_MINUTES } from './rules.js';
 
 export type Overtime = {
 	/** Minutes past the required time, before rounding. */
@@ -15,11 +15,15 @@ export function roundOvertime(minutes: number): number {
 }
 
 /**
- * Overtime for one shift date. On a rostered shift it is the time past 12 h; on an extra shift or
- * an unscheduled day all of it is overtime. Per day only: nothing carries over.
+ * Overtime for one shift date. On a rostered shift it is the time past the shift's required minutes;
+ * on an extra shift or an unscheduled day all of it is overtime. Per day only: nothing carries over.
  */
-export function computeOvertime(workedMinutes: number, allOvertime: boolean): Overtime {
-	const rawMinutes = Math.max(0, workedMinutes - (allOvertime ? 0 : SHIFT_MINUTES));
+export function computeOvertime(
+	workedMinutes: number,
+	requiredMinutes: number,
+	allOvertime: boolean
+): Overtime {
+	const rawMinutes = Math.max(0, workedMinutes - (allOvertime ? 0 : requiredMinutes));
 	return {
 		rawMinutes,
 		minutes: roundOvertime(rawMinutes),

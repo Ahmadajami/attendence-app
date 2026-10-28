@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { m } from '#lib/paraglide/messages.js';
 	import type { RosterDay } from '#lib/roster/roster.js';
+	import { isNightShift } from '#lib/roster/shift.js';
 	import { cn } from '#lib/utils.js';
-	import { formatPreviewDay, shiftKindLabel, shiftKindLetter } from './labels.js';
+	import { formatPreviewDay, slotLabel } from './labels.js';
 	import type { PreviewRow } from './preview.js';
 
 	type Props = {
@@ -16,18 +17,25 @@
 
 	const dates = $derived(rows[0]?.days.map((d) => d.date) ?? []);
 
+	const otherTeam = (day: RosterDay) => teamId !== undefined && day.teamId !== teamId;
+
 	function cellClass(day: RosterDay): string {
-		if (teamId !== undefined && day.teamId !== teamId) return 'text-muted-foreground/40';
+		if (otherTeam(day)) return 'text-muted-foreground/40';
 		if (day.source === 'absence') return 'bg-destructive/10 text-destructive';
-		if (day.kind === 'day') return 'bg-primary/15 text-primary';
-		if (day.kind === 'night') return 'bg-foreground text-background';
+		if (day.shift) return 'text-white';
 		return 'text-muted-foreground';
 	}
 
+	function cellText(day: RosterDay): string {
+		if (otherTeam(day)) return '·';
+		if (day.source === 'absence') return m.roster_letter_absent();
+		return day.shift?.code ?? m.roster_letter_off();
+	}
+
 	function cellTitle(day: RosterDay): string {
-		if (teamId !== undefined && day.teamId !== teamId) return m.roster_preview_other_team();
+		if (otherTeam(day)) return m.roster_preview_other_team();
 		if (day.source === 'absence') return m.roster_preview_absent();
-		const kind = shiftKindLabel(day.kind);
+		const kind = slotLabel(day.shift);
 		if (day.extra) return m.roster_preview_extra({ kind });
 		if (day.source === 'override') return m.roster_preview_override({ kind });
 		return kind;
@@ -74,18 +82,17 @@
 								{/if}
 							</th>
 							{#each row.days as day (day.date)}
+								{const coloured = day.shift !== null && !otherTeam(day)}
 								<td
-									class={cn('h-7 rounded-sm text-center font-semibold', cellClass(day))}
+									class={cn('h-7 rounded-sm px-0.5 text-center font-semibold', cellClass(day))}
+									style:background-color={coloured ? day.shift?.colour : undefined}
 									title={cellTitle(day)}
 								>
 									<span aria-hidden="true">
-										{teamId !== undefined && day.teamId !== teamId
-											? '·'
-											: day.source === 'absence'
-												? m.roster_letter_absent()
-												: shiftKindLetter(day.kind)}{day.extra || day.source === 'override'
-											? '*'
-											: ''}
+										<bdi dir="ltr">{cellText(day)}</bdi
+										>{#if coloured && day.shift && isNightShift(day.shift)}<span
+												class="text-[0.6rem]">🌙</span
+											>{/if}{day.extra || day.source === 'override' ? '*' : ''}
 									</span>
 									<span class="sr-only">{cellTitle(day)}</span>
 								</td>

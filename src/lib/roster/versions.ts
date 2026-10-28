@@ -3,7 +3,8 @@ import type { ShiftPattern } from '#lib/server/db/schema/index.js';
 type Span = Pick<ShiftPattern, 'effectiveFrom' | 'effectiveTo'>;
 
 /**
- * What saving a new cycle version from `from` does to one owner's versions (a team, or a person).
+ * What saving a new pattern version from `from` does to one owner's versions (a person, a team or
+ * a department).
  * Versions are never edited in place (ROSTER_PLAN.md):
  * - `closed`: the version in force on `from`, which now ends there (`effective_to = from`);
  * - `removed`: versions starting on or after `from`. `from` is today or later, so they are

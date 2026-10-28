@@ -4,11 +4,14 @@ import { m } from '#lib/paraglide/messages.js';
 import { batch } from '#lib/server/db/index.js';
 import { ConflictError, NotFoundError } from '#lib/server/errors.js';
 import { damascusDayRange } from '#lib/server/time.js';
-import type { ShiftKind } from '#lib/schemas/enums.js';
 import type { TeamInput } from '#lib/schemas/teams.schema.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { closeTeamMemberships } from '../membership.js';
-import { listActiveSupervisors, listTeamPatternsOn } from '../roster/roster.crud.js';
+import {
+	listActiveSupervisors,
+	listTeamPatternsOn,
+	type PatternRow
+} from '../roster/roster.crud.js';
 import {
 	countActiveMembers,
 	countActiveMembersByTeam,
@@ -22,8 +25,8 @@ import {
 
 export type TeamListItem = TeamRow & {
 	memberCount: number;
-	/** The cycle in force today, or `null` when the team has none. */
-	cycle: ShiftKind[] | null;
+	/** The pattern in force today, or `null` when the team has none. */
+	pattern: Pick<PatternRow, 'type' | 'slots'> | null;
 	supervisors: { staffId: string; fullName: string; fullNameAr: string | null }[];
 };
 
@@ -41,7 +44,7 @@ function duplicateName(error: unknown): ConflictError | undefined {
 	});
 }
 
-/** Teams with active member count, today's cycle and supervisors. */
+/** Teams with active member count, today's pattern and supervisors. */
 export async function listTeams(actor: Actor, day?: string): Promise<TeamListItem[]> {
 	requireActorPermission(actor, 'staff.write');
 	const range = damascusDayRange(day);
@@ -54,12 +57,14 @@ export async function listTeams(actor: Actor, day?: string): Promise<TeamListIte
 	]);
 
 	const memberByTeam = new Map(members.map((row) => [row.teamId, row.count]));
-	const cycleByTeam = new Map(patterns.map((row) => [row.teamId, row.cycle]));
+	const patternByTeam = new Map(
+		patterns.map(({ teamId, type, slots }) => [teamId, { type, slots }])
+	);
 
 	return teams.map((row) => ({
 		...row,
 		memberCount: memberByTeam.get(row.id) ?? 0,
-		cycle: cycleByTeam.get(row.id) ?? null,
+		pattern: patternByTeam.get(row.id) ?? null,
 		supervisors: supervisors
 			.filter((s) => s.teamId === row.id)
 			.map(({ staffId, fullName, fullNameAr }) => ({ staffId, fullName, fullNameAr }))

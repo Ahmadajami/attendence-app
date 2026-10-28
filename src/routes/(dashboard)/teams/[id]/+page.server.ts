@@ -2,6 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import { message, superValidate, type Infer } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
+import { patternFormDefaults } from '#lib/app/roster/preview.js';
 import { m } from '#lib/paraglide/messages.js';
 import { patternOn } from '#lib/roster/roster.js';
 import {
@@ -41,12 +42,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	return {
 		...roster,
 		patternForm: await superValidate(
-			{
-				cycle: current?.cycle ?? ['day', 'night', 'off', 'off'],
-				anchorDate: current?.anchorDate ?? roster.today,
-				effectiveFrom: roster.today,
-				reason: ''
-			},
+			patternFormDefaults(current, roster.today, roster.preview.shifts),
 			zod4(patternFormSchema),
 			{ id: 'pattern', errors: false }
 		)

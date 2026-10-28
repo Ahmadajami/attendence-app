@@ -60,3 +60,16 @@ export function wouldCreateCycle(
 	if (parentId === null) return false;
 	return parentId === id || descendantIds(rows, id).has(parentId);
 }
+
+/**
+ * `id`, then its parent, grandparent… up to the root: nearest first (`[]` for `null`). A
+ * department's pattern covers its sub-departments, and the nearest one wins.
+ */
+export function ancestorChain(rows: readonly DepartmentNode[], id: string | null): string[] {
+	const parentOf = new Map(rows.map((row) => [row.id, row.parentId]));
+	const chain: string[] = [];
+	for (let at = id; at !== null && !chain.includes(at); at = parentOf.get(at) ?? null) {
+		chain.push(at);
+	}
+	return chain;
+}

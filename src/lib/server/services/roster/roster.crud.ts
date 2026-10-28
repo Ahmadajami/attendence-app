@@ -18,10 +18,10 @@ export const patternColumns = {
 	id: shiftPattern.id,
 	teamId: shiftPattern.teamId,
 	staffId: shiftPattern.staffId,
-	cycle: shiftPattern.cycle,
+	departmentId: shiftPattern.departmentId,
+	type: shiftPattern.type,
+	slots: shiftPattern.slots,
 	anchorDate: shiftPattern.anchorDate,
-	dayStart: shiftPattern.dayStart,
-	nightStart: shiftPattern.nightStart,
 	effectiveFrom: shiftPattern.effectiveFrom,
 	effectiveTo: shiftPattern.effectiveTo,
 	reason: shiftPattern.reason,
@@ -35,7 +35,7 @@ const personColumns = {
 	fullNameAr: staff.fullNameAr
 };
 
-/** Every version of these teams' cycles, oldest first. */
+/** Every version of these teams' patterns, oldest first. */
 export async function listTeamPatterns(teamIds: readonly string[]) {
 	if (teamIds.length === 0) return [];
 	return db
@@ -47,13 +47,25 @@ export async function listTeamPatterns(teamIds: readonly string[]) {
 
 export type PatternRow = Awaited<ReturnType<typeof listTeamPatterns>>[number];
 
-/** Every version of these people's personal cycles, oldest first. */
+/** Every version of these people's personal patterns, oldest first. */
 export async function listPersonalPatterns(staffIds: readonly string[]): Promise<PatternRow[]> {
 	if (staffIds.length === 0) return [];
 	return db
 		.select(patternColumns)
 		.from(shiftPattern)
 		.where(inArray(shiftPattern.staffId, [...staffIds]))
+		.orderBy(asc(shiftPattern.effectiveFrom));
+}
+
+/** Every version of these departments' patterns, oldest first. */
+export async function listDepartmentPatterns(
+	departmentIds: readonly string[]
+): Promise<PatternRow[]> {
+	if (departmentIds.length === 0) return [];
+	return db
+		.select(patternColumns)
+		.from(shiftPattern)
+		.where(inArray(shiftPattern.departmentId, [...departmentIds]))
 		.orderBy(asc(shiftPattern.effectiveFrom));
 }
 
@@ -71,7 +83,7 @@ export async function listTeamPatternsOn(date: string): Promise<PatternRow[]> {
 		);
 }
 
-/** People with a personal cycle in force on `date` or scheduled after it. */
+/** People with a personal pattern in force on `date` or scheduled after it. */
 export async function listStaffWithPersonalPattern(date: string): Promise<string[]> {
 	const rows = await db
 		.selectDistinct({ staffId: shiftPattern.staffId })
@@ -136,6 +148,7 @@ export async function findRosterPerson(staffId: string) {
 		.select({
 			...personColumns,
 			active: staff.active,
+			departmentId: staff.departmentId,
 			teamId: staff.teamId,
 			teamNameEn: team.nameEn,
 			teamNameAr: team.nameAr
@@ -155,6 +168,7 @@ export async function listTeamMembersBetween(teamId: string, from: Date, to: Dat
 		.select({
 			...personColumns,
 			active: staff.active,
+			departmentId: staff.departmentId,
 			validFrom: staffTeamMembership.validFrom,
 			validTo: staffTeamMembership.validTo
 		})
@@ -201,7 +215,7 @@ export async function listOverridesBetween(staffIds: readonly string[], from: st
 		.select({
 			staffId: rosterOverride.staffId,
 			shiftDate: rosterOverride.shiftDate,
-			kind: rosterOverride.kind,
+			shiftId: rosterOverride.shiftId,
 			swapGroupId: rosterOverride.swapGroupId
 		})
 		.from(rosterOverride)

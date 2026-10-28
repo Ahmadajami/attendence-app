@@ -118,10 +118,10 @@ rolls back) into `~/secure/syravia/imports/<YYYY-MM-DD>/`.
 
 | File | Columns |
 |---|---|
-| `departments.csv` | `odoo_id, name, parent_odoo_id, manager_employee_odoo_id, active` |
-| `employees.csv` | `odoo_id, badge, name, name_ar, department_odoo_id, tz, active, start_date, late_grace_minutes, subtract_neg_balance_from_ot, use_fixed_schedule, fixed_required_minutes, report_seq, reception_seq` |
+| `departments.csv` | `odoo_id, name, parent_odoo_id, manager_employee_odoo_id, active, late_grace_minutes, biotime_commute_credit` |
+| `employees.csv` | `odoo_id, badge, name, name_ar, department_odoo_id, tz, active, start_date, contract_date_start, attendance_mode, late_grace_minutes, subtract_neg_balance_from_ot, use_fixed_schedule, fixed_required_minutes, report_seq, reception_seq` (no emails, phones or addresses) |
 | `punches_<from>_<to>.csv` | `odoo_id, employee_odoo_id, badge, check_in_utc, check_out_utc` (empty = missing check-out) |
-| `shifts_old.csv`, `employee_lines_old.csv`, `cycles_old.csv` | old `roster.shift.pattern` / `roster.employee.line` (+ roster dates, off days, grace) / `roster.cycle` fields needed by S2.5 |
+| `shifts_old.csv`, `rosters_old.csv`, `employee_lines_old.csv`, `cycles_old.csv` | old `roster.shift.pattern` (times, grace, night, cycle fields) / `roster.shift` (department ids, date_from, date_to, state) / `roster.employee.line` (roster, employee, pattern, day_off_1/2, grace, start date, cycle anchor) / `roster.cycle` (employee, department, anchor, block size, day/night hours, sequence); **no free-text note/reason fields** |
 | `holidays_old.csv`, `holiday_assignments_old.csv` | windows (from, to, days allowed, type) / employee, date, is_overtime |
 | `day_inputs_<from>_<to>.csv` | per approved `roster.line`: id, employee_odoo_id, date, planned start/end, required, is_weekly_off, is_public_holiday, holiday overtime flag, manual_state, credits (mission/leave/sick/training), topup, sick_unpaid, suppress_ot, tardiness_applied, break_minutes, swap state — the golden master inputs |
 

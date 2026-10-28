@@ -102,7 +102,9 @@ pnpm auth:create-admin <id> "<name>"         # first admin = the local-mode acco
 | Thing | Where |
 |---|---|
 | App dev server | `http://127.0.0.1:5173` |
-| App DB | Docker container `attendance-app-db`, `127.0.0.1:5433`; DBs `attendance_app` (real data) and `attendance_app_test` (synthetic) |
+| App DB | Docker container `attendance-app-db`, `127.0.0.1:5433`; DBs `attendance_app` (real data), `attendance_app_test` (synthetic, Playwright) and `attendance_app_e2e` (synthetic, manual testing) |
+| Manual-test server | `pnpm exec vite dev --mode e2e --port 5174` → `http://127.0.0.1:5174` on `attendance_app_e2e` (gitignored `.env.e2e`, a copy of `.env` with that DB). Never point a dev server at another DB by exporting `DATABASE_URL`: after a reload it falls back to `.env` (real data) |
+| Migrations | apply each new one to all three DBs: the two synthetic ones without asking, `attendance_app` after a row-count check and the user's OK |
 | Odoo (emails only) | `http://127.0.0.1:8069`, DB `syravia_night_shift`, module `attendance_app_connector`, MailHog `http://127.0.0.1:8025` |
 | Secrets | `~/secure/syravia/attendance_app.env` (DB password, Odoo API key) |
 | Seed files from Odoo (one-time) | `~/secure/syravia/imports/` |

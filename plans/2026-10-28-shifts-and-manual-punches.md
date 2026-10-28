@@ -268,8 +268,8 @@ Stop and ask before departing from any of these.
       > correction) so a void correction needs no time while `occurred_at`
       > stays NOT NULL; `effectiveEvents` drops voided events. Migrated on
       > `attendance_app` and `attendance_app_test` (roster tables 0/0/0).
-      > NOT migrated: `attendance_app_e2e`, whose `shift_pattern` has 3 rows
-      > from the S2.1 check; waiting for the user's OK.
+      > `attendance_app_e2e` migrated afterwards (user OK 2026-10-28; from now
+      > on the two synthetic DBs are migrated without asking, see CLAUDE.md §4).
 - [x] Absence quick actions use the existing types (`no_show` = absent,
       `leave`, `sick`). Widening to the §7 list (mission, training, …) is left
       to S3/S4.

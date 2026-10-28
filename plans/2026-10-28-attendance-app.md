@@ -357,6 +357,13 @@ needs B's connector → S1.6 waits for the user's file format.
       (`source = seed`), for history and the golden master.
       **Done when** 23,625 records imported minus the reported rejects
       (future-dated); a second run adds 0
+> **Order note (2026-10-28):** do **S2.1 + S2.2 before S1.4**. The entry sheet
+> needs real planned shifts (start/end, "ends next day") to show each
+> person's shift and to attribute a 07:00 check-out to the previous night;
+> the template still only knows 12 h Day/Night kinds. Punches use the
+> template's append-only `attendance_event` (corrections = new event with
+> a reason, `src/lib/roster/attendance.ts` `attributeEvent`), generalised
+> from `shift_kind` to `shift_id` in S2.1.
 - [ ] S1.4 **Manual punch entry** (`/attendance/entry`, employee page, day
       popup): fast day sheet per department/team, next-day check-outs for
       night shifts, validations (check-out after check-in, ≤ 16 h, no

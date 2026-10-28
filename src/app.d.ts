@@ -23,8 +23,11 @@ declare global {
 			session: AuthSession | null;
 			/** Empty when signed out. Always check with `requirePermission()` on the server. */
 			permissions: ReadonlySet<PermissionKey>;
-			/** How this request authenticated: SSR cookie or `Authorization: Bearer` access JWT. */
-			authMethod: 'cookie' | 'bearer' | null;
+			/**
+			 * How this request authenticated: SSR cookie, `Authorization: Bearer` access JWT, or
+			 * `local` (AUTH_MODE=local_single_user: loopback only, no session).
+			 */
+			authMethod: 'cookie' | 'bearer' | 'local' | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

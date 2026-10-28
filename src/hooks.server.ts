@@ -1,6 +1,13 @@
-import { sequence, type Handle, type HandleServerError } from '@sveltejs/kit/hooks';
+import { error } from '@sveltejs/kit';
+import {
+	sequence,
+	type Handle,
+	type HandleServerError,
+	type ServerInit
+} from '@sveltejs/kit/hooks';
 import { DrizzleQueryError } from 'drizzle-orm/errors';
 import { dev } from '$app/env';
+import { AUTH_MODE } from '$app/env/private';
 import { frameworkError, internalError } from '#lib/errors.js';
 import { m } from '#lib/paraglide/messages.js';
 import { getTextDirection } from '#lib/paraglide/runtime.js';
@@ -15,6 +22,28 @@ import {
 	setSessionCookie,
 	validateSession
 } from '#lib/server/auth/session.js';
+import { loadLocalAdmin } from '#lib/server/auth/local-admin.js';
+import { isLoopbackAddress, localModeStartupProblem } from '#lib/server/auth/local-mode.js';
+
+const LOCAL_MODE = AUTH_MODE === 'local_single_user';
+
+/**
+ * Local mode has no sign-in, so it must never listen beyond this machine. The dev server is pinned
+ * to 127.0.0.1 in vite.config.ts; a production build (adapter-node) checks HOST here.
+ */
+export const init: ServerInit = () => {
+	if (!LOCAL_MODE || dev) return;
+	const problem = localModeStartupProblem(process.env);
+	if (problem) throw new Error(problem);
+};
+
+/** Local mode: refuse every non-loopback client before anything else runs. */
+const handleLocalGuard: Handle = ({ event, resolve }) => {
+	if (LOCAL_MODE && !isLoopbackAddress(event.getClientAddress())) {
+		return new Response('Forbidden', { status: 403 });
+	}
+	return resolve(event);
+};
 
 const handleParaglide: Handle = ({ event, resolve }) =>
 	paraglideMiddleware(event.request, ({ request, locale }) => {
@@ -41,6 +70,19 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	event.locals.session = null;
 	event.locals.permissions = new Set();
 	event.locals.authMethod = null;
+
+	if (LOCAL_MODE) {
+		const local = await loadLocalAdmin();
+		if (!local) {
+			error(503, 'No admin account yet: run `pnpm auth:create-admin <id> "<name>"`.', {
+				code: 'no_local_admin'
+			});
+		}
+		event.locals.user = local.user;
+		event.locals.permissions = local.permissions;
+		event.locals.authMethod = 'local';
+		return resolve(event);
+	}
 
 	const bearer = bearerToken(event.request);
 	if (bearer) {
@@ -96,7 +138,12 @@ const handleSecurityHeaders: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle: Handle = sequence(handleSecurityHeaders, handleParaglide, handleAuth);
+export const handle: Handle = sequence(
+	handleLocalGuard,
+	handleSecurityHeaders,
+	handleParaglide,
+	handleAuth
+);
 
 /**
  * A failed Drizzle query carries its bound params (codes' hashes, tokens), so log the query text

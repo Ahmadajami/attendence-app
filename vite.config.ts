@@ -26,6 +26,9 @@ export default defineConfig({
 			strategy: ['url', 'cookie', 'baseLocale']
 		})
 	],
+	// No sign-in in local mode (plan D17): the dev and preview servers answer this machine only.
+	server: { host: '127.0.0.1', port: 5173, strictPort: true },
+	preview: { host: '127.0.0.1', port: 4173, strictPort: true },
 	// Unit tests for pure logic only (CLAUDE.md §2): Node, no database, beside the file they test.
 	test: {
 		include: ['src/**/*.test.ts'],

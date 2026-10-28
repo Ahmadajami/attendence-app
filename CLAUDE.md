@@ -53,21 +53,49 @@ punches, sick days = health information).
 
 ## 3. Conventions
 
-Until task S0.6 merges them here, the coding conventions are the
-template's: `docs/template/CLAUDE.md` (created in S0.2) — SvelteKit 3 +
-Svelte 5 runes, pnpm only, `#lib` imports, service layer `<x>.bl.ts` +
-`<x>.crud.ts`, superforms + zod 4, shadcn-svelte `lyra`, phosphor icons,
-every string in `messages/en.json` **and** `messages/ar.json`, logical
-(RTL-safe) Tailwind utilities, every mutation writes `audit_log` in the
-same transaction, never hard-delete. Ignore its flight, Neon and Vercel
-parts (removed in this app).
+The template's rules apply in full; read them in `docs/template/CLAUDE.md`
+§3 ("Stack & conventions", "UI rules", "Forms", "Service layer", "Shared zod
+schemas", "Backend typing", "Services, errors & types", "Error handling"),
+§6 rules 1, 3, 4, 5, 6 (server-side permissions, audit every mutation, time
+as `timestamptz`, en+ar strings with logical/RTL utilities, never
+hard-delete) and §7 "Conventions". In short: SvelteKit 3 + Svelte 5 runes,
+pnpm only, `#lib` imports (not `$lib`), env vars declared in `src/env.ts` and
+read from `$app/env/private`, superforms v3 + zod 4 with one shared schema per
+service, shadcn-svelte `lyra` + phosphor icons, `localizedHref()` for every
+internal link, every string through `m.*()` in **both** `messages/en.json` and
+`messages/ar.json`, services split into `<service>.bl.ts` (permission, rules,
+audit, errors; the only thing routes import) and `<service>.crud.ts` (queries;
+writes return unexecuted queries), `AppError` subclasses for expected
+failures.
+
+**Differences from the template (this app wins):**
+
+| Topic | Here |
+|---|---|
+| Atomic writes | `batch([...writes, auditInsert(...)])` from `#lib/server/db/index.js` (postgres.js transaction; `src/lib/server/db/batch.ts`), not Neon's `db.batch` |
+| Database | local PostgreSQL in Docker (`docker-compose.dev.yml`), `postgres.js` driver; interactive `db.transaction` is available when a BL really needs read-then-write |
+| Deploy | `adapter-node` on a separate facility server (S8); no Vercel, no serverless limits |
+| Auth | `AUTH_MODE=local_single_user` (no sign-in, loopback only, `src/lib/server/auth/local-mode.ts`); `login` returns before S8 |
+| Scope | no flights/assignments; payroll **is** in scope (the template said "not payroll") |
+| Timezone | template code shows `Asia/Damascus`; new code reads the timezone setting (default `Asia/Damascus`) |
+| Migrations | `drizzle/0000_baseline` + `0001_constraints_seed` replace the template's history; keep editing the schema → `pnpm db:generate` → read the SQL → `pnpm db:migrate`; custom SQL via `drizzle-kit generate --custom` |
+
+**Commands** (drizzle-kit needs the env loaded):
+
+```sh
+docker compose --env-file ~/secure/syravia/attendance_app.env -f docker-compose.dev.yml up -d
+pnpm dev                     # http://127.0.0.1:5173 (pinned to loopback)
+pnpm check && pnpm test      # types + Vitest (pure logic, Node, no DB)
+pnpm exec eslint <files>     # whole-repo `pnpm lint` fails on ~160 untouched template files (mostly generated `ui/`)
+set -a; . ./.env; set +a; pnpm db:generate   # / pnpm db:migrate
+pnpm auth:create-admin <id> "<name>"         # first admin = the local-mode account
+```
 
 - Run the Svelte MCP `svelte-autofixer` on every `.svelte` / `.svelte.ts`
   file you touch until clean; use `get-documentation` for SvelteKit 3 /
   Svelte 5 APIs instead of guessing.
-- `pnpm check`, `pnpm lint` (touched files) and `pnpm test` before
+- `pnpm check`, eslint + prettier on touched files and `pnpm test` before
   declaring work done.
-- Timezone: never hard-code; use the setting (default `Asia/Damascus`).
 
 ## 4. Environment (this laptop)
 

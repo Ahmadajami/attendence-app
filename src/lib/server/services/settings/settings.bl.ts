@@ -1,5 +1,5 @@
 import { auditInsert } from '#lib/server/audit.js';
-import { batch, db } from '#lib/server/db/index.js';
+import { batch } from '#lib/server/db/index.js';
 import { shiftStartsSchema, type ShiftStarts } from '#lib/schemas/settings.schema.js';
 import { requireActorPermission, type Actor } from '../common.js';
 import { findSetting, upsertSetting } from './settings.crud.js';

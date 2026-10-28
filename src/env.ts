@@ -1,6 +1,7 @@
 import { defineEnvVars } from '@sveltejs/kit/env';
 import { building } from '$app/env';
 import { z } from 'zod';
+import { AUTH_MODES } from './lib/server/auth/local-mode.js';
 
 // Optional while building, required when the app starts.
 const required = <T extends z.ZodType>(schema: T) => (building ? schema.optional() : schema);
@@ -12,6 +13,12 @@ export const variables = defineEnvVars({
 		description:
 			'Local PostgreSQL connection string (postgres.js), e.g. postgres://attendance_app:…@127.0.0.1:5433/attendance_app. Used by the app and by drizzle-kit.',
 		schema: required(pgUrl)
+	},
+
+	AUTH_MODE: {
+		description:
+			'`login` (default): the code sign-in. `local_single_user`: no sign-in; every request acts as the oldest active admin and only loopback clients are served (plan D17). The server refuses to start in that mode unless HOST=127.0.0.1.',
+		schema: z.enum(AUTH_MODES).default('login')
 	},
 
 	AUTH_JWT_SECRET: {

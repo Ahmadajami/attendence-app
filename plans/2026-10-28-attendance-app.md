@@ -325,12 +325,25 @@ needs B's connector → S1.6 waits for the user's file format.
       > the payroll engine replaces them. F1 header filters moved to S3.2
       > (no data to filter yet). `attendance_app_test` still has the old
       > template schema: reset it (ask first) before Playwright.
-- [ ] S0.6 `AUTH_MODE=local_single_user` (§8) + Vitest for the guard; merge
+- [x] S0.6 `AUTH_MODE=local_single_user` (§8) + Vitest for the guard; merge
       the template conventions into `CLAUDE.md` §3 (drop flight/Neon/Vercel
       parts).
       **Done when** non-loopback → 403, `0.0.0.0` refused, app opens at
       `http://127.0.0.1:5173` in en and ar
-- [ ] S0.7 Commit on `app/main`
+      > note: `src/lib/server/auth/local-mode.ts` (+6 Vitest cases),
+      > `local-admin.ts`, guard first in the `handle` sequence, `init` refuses
+      > a production start unless HOST is loopback and no ADDRESS_HEADER /
+      > XFF_DEPTH (verified on a build: unset HOST and ADDRESS_HEADER refused,
+      > HOST=127.0.0.1 loads); dev/preview pinned to 127.0.0.1. Local admin =
+      > made-up "Local Admin" (login id 1000) via `pnpm auth:create-admin`.
+      > Dev server: 127.0.0.1:5173 only; /, /dashboard, /employees, /teams,
+      > /imports, /ar/dashboard = 200 without sign-in; /flights 404. A real
+      > non-loopback request was not sent (that would mean exposing the port);
+      > the 403 path is covered by the unit tests. CLAUDE.md §3 now lists the
+      > template conventions + this app's differences.
+- [x] S0.7 Commit on `app/main`
+      > note: S0 done 2026-10-28; `pnpm check` 0 errors, 69/69 tests,
+      > eslint clean except one template file (`ui/chart/chart-tooltip.svelte`).
 
 ### S1 · Seed, people and manual punches (Lane A; seed files from Lane B)
 - [ ] S1.1 (Lane B, Roster) extraction tool produces the §6 files.

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
-import { batch, db } from '#lib/server/db/index.js';
+import { batch } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
 import { damascusDayRange, todayInDamascus } from '#lib/server/time.js';
 import { addDays, startOfDamascusDay } from '#lib/roster/cycle.js';

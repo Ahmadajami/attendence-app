@@ -82,8 +82,8 @@
 	{:else}
 		<ul class="flex flex-col gap-2">
 			{#each listed as event (event.id)}
-				{const correction = correctionOf.get(event.id)}
-				{const shift = byId.get(event.shiftId)}
+				{const correction = $derived(correctionOf.get(event.id))}
+				{const shift = $derived(byId.get(event.shiftId))}
 				<li class="flex flex-col gap-2 rounded-md border p-2">
 					<div class="flex flex-wrap items-center gap-2 text-sm">
 						<span class={correction ? 'text-muted-foreground line-through' : 'font-medium'}>

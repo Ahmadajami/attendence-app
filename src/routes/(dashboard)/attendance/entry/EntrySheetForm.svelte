@@ -217,11 +217,11 @@
 		</Table.Header>
 		<Table.Body>
 			{#each view as v, index (v.person.staffId)}
-				{const row = $formData.rows[index]}
-				{const result = checks[index]}
-				{const existing = pairsOf(v.events)}
-				{const planned = shiftsById.get(v.day.shiftId ?? '')}
-				{const name = personName(v.person)}
+				{const row = $derived($formData.rows[index])}
+				{const result = $derived(checks[index])}
+				{const existing = $derived(pairsOf(v.events))}
+				{const planned = $derived(shiftsById.get(v.day.shiftId ?? ''))}
+				{const name = $derived(personName(v.person))}
 				<Table.Row class="align-top">
 					<Table.Cell>
 						<div class="font-medium">{name}</div>

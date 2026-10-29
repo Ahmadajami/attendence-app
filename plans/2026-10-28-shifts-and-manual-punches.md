@@ -381,6 +381,12 @@ Stop and ask before departing from any of these.
       > `E2E_DATABASE_URL=… pnpm test:e2e`. `pnpm test` is green (137/137).
       > No runtime check of the entry sheet or day panel was made here (user's
       > choice after the S2.2 incident).
+      > note: 2026-10-29: the entry sheet's `row` / `result` and the day
+      > panel's `correction` / `shift` were plain `{const}` declaration tags,
+      > which never update (absence toggle, reason field, live checks,
+      > struck-through correction). Now `$derived`; see the DnD plan V1 note.
+      > The day panel is also keyed by person + date. Part of the browser
+      > checklist handed to the user on 2026-10-29.
 - [ ] Tick S1.4 in the main plan with notes (test counts); commit.
       > note: committed, but the main-plan box stays open until the user's
       > e2e run (or their manual test) confirms the done-when.

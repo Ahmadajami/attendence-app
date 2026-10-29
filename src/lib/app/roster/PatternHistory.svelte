@@ -38,7 +38,7 @@
 		</Table.Header>
 		<Table.Body>
 			{#each newestFirst as version (version.id)}
-				{const status = versionState(version)}
+				{const status = $derived(versionState(version))}
 				<Table.Row class={status === 'past' ? 'text-muted-foreground' : undefined}>
 					<Table.Cell class="whitespace-nowrap">
 						<bdi>{formatCalendarDate(version.effectiveFrom)}</bdi>

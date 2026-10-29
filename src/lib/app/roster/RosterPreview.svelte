@@ -62,7 +62,7 @@
 							<span class="sr-only">{m.roster_preview_person()}</span>
 						</th>
 						{#each dates as date (date)}
-							{const label = formatPreviewDay(date)}
+							{const label = $derived(formatPreviewDay(date))}
 							<th
 								scope="col"
 								class={cn(
@@ -90,8 +90,8 @@
 								{/if}
 							</th>
 							{#each row.days as day (day.date)}
-								{const coloured = day.shift !== null && !otherTeam(day)}
-								{const punch = punches?.[row.id]?.[day.date]}
+								{const coloured = $derived(day.shift !== null && !otherTeam(day))}
+								{const punch = $derived(punches?.[row.id]?.[day.date])}
 								<td
 									class={cn(
 										'h-7 rounded-sm px-0.5 text-center font-semibold',

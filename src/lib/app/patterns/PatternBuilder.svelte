@@ -184,8 +184,8 @@
 		impacts: null,
 		error: null
 	});
-	const impacts = $derived(result.key === impactKey ? result.impacts : null);
-	const impactError = $derived(result.key === impactKey ? result.error : null);
+	/** The last answer stays visible; it is flagged once the form no longer matches it. */
+	const impactStale = $derived(result.key !== '' && result.key !== impactKey);
 	let impactLoading = $state(false);
 
 	async function preview() {
@@ -477,10 +477,16 @@
 						{/if}
 						{m.assign_preview()}
 					</Button>
-					{#if impactError}
-						<p class="text-sm text-destructive">{impactError}</p>
-					{:else if impacts}
-						<ImpactSummary {impacts} />
+					{#if result.error !== null}
+						<p class="text-sm text-destructive">{result.error}</p>
+					{:else if result.impacts}
+						<ImpactSummary
+							impacts={result.impacts}
+							class={impactStale ? 'opacity-50' : undefined}
+						/>
+						{#if impactStale}
+							<p class="text-xs text-muted-foreground">{m.assign_preview_stale()}</p>
+						{/if}
 					{:else}
 						<p class="text-sm text-muted-foreground">{m.assign_preview_hint()}</p>
 					{/if}

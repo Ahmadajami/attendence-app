@@ -78,8 +78,8 @@
 		error: null
 	});
 	const targetKey = $derived(`${targetKind}:${targetId}`);
-	const impacts = $derived(result.key === targetKey ? result.impacts : null);
-	const impactError = $derived(result.key === targetKey ? result.error : null);
+	/** Another target's answer (a list page reuses the sheet) is not shown. */
+	const shown = $derived(result.key === targetKey ? result : null);
 	let impactLoading = $state(false);
 
 	const chosen = $derived(patterns.find((p) => p.id === $formData.patternId) ?? null);
@@ -196,10 +196,10 @@
 					{/if}
 					{m.assign_preview()}
 				</Button>
-				{#if impactError}
-					<p class="text-sm text-destructive">{impactError}</p>
-				{:else if impacts}
-					<ImpactSummary {impacts} />
+				{#if shown && shown.error !== null}
+					<p class="text-sm text-destructive">{shown.error}</p>
+				{:else if shown?.impacts}
+					<ImpactSummary impacts={shown.impacts} />
 				{:else}
 					<p class="text-sm text-muted-foreground">{m.assign_preview_hint()}</p>
 				{/if}

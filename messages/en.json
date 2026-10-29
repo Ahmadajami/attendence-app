@@ -680,5 +680,7 @@
 	"team_schedule_next": "From {date}: {name}",
 	"team_schedule_none": "No pattern today: members follow their department, or are off.",
 	"team_schedule_since": "since {date}",
-	"team_schedule_title": "Schedule"
+	"team_schedule_title": "Schedule",
+	"assign_preview_failed": "The preview failed (error {status}).",
+	"assign_preview_stale": "The choice changed since this preview: preview again."
 }

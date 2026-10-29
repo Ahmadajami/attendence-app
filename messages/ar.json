@@ -680,5 +680,7 @@
 	"team_schedule_next": "من {date}: {name}",
 	"team_schedule_none": "لا يوجد نمط اليوم: يتبع الأعضاء قسمهم، أو تكون أيامهم عطلة.",
 	"team_schedule_since": "منذ {date}",
-	"team_schedule_title": "الجدول"
+	"team_schedule_title": "الجدول",
+	"assign_preview_failed": "تعذّرت المعاينة (خطأ {status}).",
+	"assign_preview_stale": "تغيّر الاختيار منذ هذه المعاينة: أعد المعاينة."
 }

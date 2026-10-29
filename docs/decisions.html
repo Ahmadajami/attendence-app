@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attendance App Decisions</title>
+<!--
+  Decisions log (EN + AR). Self-contained: no external fonts, scripts or CDNs (CLAUDE.md §1).
+  To add a decision: append one object to DECISIONS below (both languages, why, alternatives
+  not chosen). Never delete one: mark it status "replaced" and point to its replacement.
+  No personal data: no names, badges, emails; IDs and counts only.
+-->
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --app: #1f6f8b; --app-soft: #e3f1f6;
+    --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5; --plum: #714b67; --plum-soft: #f1e9ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --app: #6cc3df; --app-soft: #16303a;
+      --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+    --app: #6cc3df; --app-soft: #16303a;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+    --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  }
+  [lang="ar"] { font-family: "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif; direction: rtl; text-align: right; }
+  header.top {
+    position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 10px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  }
+  header.top strong { font-size: 15px; }
+  .switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .switch button {
+    border: 0; background: transparent; color: var(--ink); padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .switch button[aria-pressed="true"] { background: var(--app); color: #fff; }
+  main { max-width: 1080px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 6px 0 4px; }
+  h2 { font-size: 21px; margin: 28px 0 10px; }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); }
+  .bi { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  body[data-show="en"] [lang="ar"], body[data-show="ar"] [lang="en"] { display: none; }
+  body[data-show="en"] .bi, body[data-show="ar"] .bi { grid-template-columns: 1fr; }
+  @media (max-width: 820px) { .bi { grid-template-columns: 1fr; } }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  .tools input {
+    flex: 1 1 220px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); color: var(--ink); font: inherit;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px;
+    padding: 4px 12px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .chips button[aria-pressed="true"] { background: var(--app); color: #fff; border-color: var(--app); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; }
+  .pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
+  .s-approved { background: var(--ok-soft); color: var(--ok); }
+  .s-default { background: var(--app-soft); color: var(--app); }
+  .s-proposed { background: var(--warn-soft); color: var(--warn); }
+  .s-pending { background: var(--bad-soft); color: var(--bad); }
+  .s-replaced { background: var(--plum-soft); color: var(--plum); text-decoration: line-through; }
+  article.d {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 12px 0;
+  }
+  article.d header { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; margin-bottom: 8px; }
+  article.d .id { font-weight: 700; color: var(--app); font-variant-numeric: tabular-nums; }
+  article.d h3 { margin: 0; font-size: 17px; flex: 1 1 260px; }
+  article.d .meta { font-size: 13px; color: var(--muted); }
+  .label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 10px; }
+  [lang="ar"] .label, .label[lang="ar"] { text-transform: none; letter-spacing: 0; }
+  ul.alts { margin: 4px 0; padding-inline-start: 20px; }
+  ul.alts li { margin: 3px 0; }
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; background: var(--card); border-radius: 12px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: start; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 14px; }
+  code { font-size: .92em; background: var(--app-soft); padding: 0 4px; border-radius: 4px; }
+  .empty { color: var(--muted); padding: 12px 0; }
+</style>
+</head>
+<body data-show="both">
+<header class="top">
+  <strong><span lang="en">Attendance App: decisions</span> <span lang="ar">تطبيق الحضور: القرارات</span></strong>
+  <div class="switch" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="false">English</button>
+    <button type="button" data-lang="both" aria-pressed="true">EN + ع</button>
+    <button type="button" data-lang="ar" aria-pressed="false">العربية</button>
+  </div>
+</header>
+
+<main>
+  <div class="bi">
+    <div lang="en">
+      <h1>Decisions and why</h1>
+      <p>Every decision taken for the Attendance App: what was decided, <b>why</b>, and the
+        <b>alternatives that were not chosen</b> with the reason. Sources: <code>plans/</code>,
+        <code>docs/reference/DECISIONS_PHASE0_1.md</code> and <code>CLAUDE.md</code>. The IDs are the
+        ones used in the plans.</p>
+      <p class="muted">Last updated 2026-10-29.</p>
+    </div>
+    <div lang="ar">
+      <h1>القرارات وأسبابها</h1>
+      <p>كل قرار اتُّخذ لتطبيق الحضور: ما الذي تقرر، و<b>لماذا</b>، و<b>البدائل التي لم تُختر</b> مع السبب.
+        المصادر: <code>plans/</code> و<code>docs/reference/DECISIONS_PHASE0_1.md</code> و<code>CLAUDE.md</code>.
+        الرموز (المعرّفات) هي نفسها المستخدمة في الخطط.</p>
+      <p class="muted">آخر تحديث 2026-10-29.</p>
+    </div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="tools">
+    <input id="q" type="search" placeholder="Search / بحث" aria-label="Search decisions">
+  </div>
+  <div class="chips" id="groups" role="group" aria-label="Groups"></div>
+
+  <div id="list"></div>
+
+  <h2><span lang="en">Defaults in use until the user answers</span> <span lang="ar">القيم الافتراضية المعتمدة حتى يجيب المستخدم</span></h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th lang="en">Question</th><th lang="en">Default used</th>
+          <th lang="ar">السؤال</th><th lang="ar">القيمة الافتراضية</th>
+        </tr>
+      </thead>
+      <tbody id="defaults"></tbody>
+    </table>
+  </div>
+  <p class="muted">
+    <span lang="en">Rule questions Q1–Q18 (holiday factor, unpaid leave, night OT…) are in
+      <code>docs/reference/OPEN_QUESTIONS.md</code>; their default is the old Odoo behaviour.</span>
+    <span lang="ar">أسئلة القواعد Q1–Q18 (معامل العطل، الإجازة غير المدفوعة، العمل الإضافي الليلي…) موجودة في
+      <code>docs/reference/OPEN_QUESTIONS.md</code>؛ وقيمتها الافتراضية هي سلوك Odoo القديم.</span>
+  </p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var STATUS = {
+    approved: { en: 'Approved', ar: 'معتمد', hint: { en: 'decided with the user', ar: 'تقرر مع المستخدم' } },
+    default: { en: 'Default', ar: 'افتراضي', hint: { en: 'used until the user says otherwise', ar: 'معمول به حتى يقرر المستخدم غير ذلك' } },
+    proposed: { en: 'Proposed', ar: 'مقترح', hint: { en: 'in a plan awaiting approval', ar: 'في خطة بانتظار الموافقة' } },
+    pending: { en: 'Needs OK', ar: 'بانتظار الموافقة', hint: { en: 'already done in code, needs the user\'s OK', ar: 'نُفّذ في الكود ويحتاج موافقة المستخدم' } },
+    replaced: { en: 'Replaced', ar: 'مستبدل', hint: { en: 'kept for history', ar: 'محفوظ للتاريخ' } }
+  };
+
+  var GROUPS = {
+    foundation: { en: 'Foundation', ar: 'الأساس' },
+    rules: { en: 'Working rules', ar: 'قواعد العمل' },
+    payroll: { en: 'Pay rules', ar: 'قواعد الأجر' },
+    shifts: { en: 'Shifts & punches', ar: 'الورديات والبصمات' },
+    editor: { en: 'Pattern editor', ar: 'محرر الأنماط' },
+    builder: { en: 'Attendance builder', ar: 'منشئ الحضور' }
+  };
+
+  // One object per decision. alts = alternatives NOT chosen, each with its reason.
+  var DECISIONS = [
+    // ---------------- Foundation ----------------
+    {
+      id: 'D14', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'A standalone SvelteKit app, not an Odoo module', ar: 'تطبيق SvelteKit مستقل وليس وحدة Odoo' },
+      decision: { en: 'The UI and all calculation logic live in this separate SvelteKit app.', ar: 'الواجهة وكل منطق الحساب موجودة في تطبيق SvelteKit هذا المنفصل.' },
+      why: { en: 'A modern, mobile-friendly builder and a pure, testable TypeScript engine are much easier outside Odoo; the old module grew to about 37,000 lines with four scheduling engines.', ar: 'بناء واجهة حديثة مناسبة للجوال ومحرك حساب نقي قابل للاختبار أسهل بكثير خارج Odoo؛ الوحدة القديمة تضخمت إلى نحو 37,000 سطر بأربعة محركات جدولة.' },
+      alts: [
+        { en: 'Rebuild as a new Odoo module (hr_attendance_builder, Phase 1 was started): not chosen — the UI would be Svelte embedded in Odoo with OWL wrappers, and every rule would stay tied to the ORM.', ar: 'إعادة البناء كوحدة Odoo جديدة (hr_attendance_builder، بدأت المرحلة 1): لم يُختر — ستكون الواجهة Svelte مضمّنة داخل Odoo مع أغلفة OWL، وتبقى كل قاعدة مرتبطة بـ ORM.' },
+        { en: 'Keep and patch the old roster_attendance module: not chosen — known bugs (P1–P18) and duplicated engines.', ar: 'إبقاء الوحدة القديمة roster_attendance وترقيعها: لم يُختر — أخطاء معروفة (P1–P18) ومحركات مكررة.' }
+      ]
+    },
+    {
+      id: 'D16', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Start from a copy of the Airport-Staff template', ar: 'البدء من نسخة من قالب Airport-Staff' },
+      decision: { en: 'Copied code only from Airport-Staff (branch roster, commit a99e348). The template repo is never modified or pushed to.', ar: 'نُسخ الكود فقط من Airport-Staff (الفرع roster، الإيداع a99e348). لا يُعدّل مستودع القالب ولا يُدفع إليه أبداً.' },
+      why: { en: 'It already had the stack, RTL Arabic, service layer, audit log, RBAC, teams with dated members and supervisors, cycle versions and a tested roster engine.', ar: 'كان يحتوي مسبقاً على التقنيات والعربية من اليمين لليسار وطبقة الخدمات وسجل التدقيق والصلاحيات والفرق بعضوية مؤرخة ومشرفين وإصدارات الدورات ومحرك جدولة مختبَر.' },
+      alts: [
+        { en: 'Start from an empty SvelteKit project: not chosen — weeks of rebuilding what the template already had.', ar: 'البدء من مشروع SvelteKit فارغ: لم يُختر — أسابيع لإعادة بناء ما هو موجود أصلاً في القالب.' },
+        { en: 'Develop inside Airport-Staff: not chosen — different product and data; mixing them risks the other project.', ar: 'التطوير داخل Airport-Staff: لم يُختر — منتج وبيانات مختلفة، والخلط يعرّض المشروع الآخر للخطر.' }
+      ]
+    },
+    {
+      id: 'D17', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1, §8',
+      title: { en: 'No sign-in for now: loopback-only single user', ar: 'بدون تسجيل دخول حالياً: مستخدم واحد على الجهاز المحلي فقط' },
+      decision: { en: 'AUTH_MODE=local_single_user serves only 127.0.0.1 requests and refuses to start on any other address. The template\'s code login is switched on before the facility server (S8).', ar: 'الوضع AUTH_MODE=local_single_user يخدم طلبات 127.0.0.1 فقط ويرفض التشغيل على أي عنوان آخر. يُفعّل تسجيل الدخول بالرمز من القالب قبل خادم المنشأة (S8).' },
+      why: { en: 'One person uses it on one laptop now; no network exposure means no login is needed yet, and the real data stays local.', ar: 'شخص واحد يستخدمه الآن على حاسوب واحد؛ وعدم كشفه على الشبكة يعني أنه لا حاجة لتسجيل الدخول بعد، وتبقى البيانات الحقيقية محلية.' },
+      alts: [
+        { en: 'Keep the template\'s code login on from day one: not chosen — extra friction with no security gain on a loopback-only laptop.', ar: 'تفعيل تسجيل الدخول من اليوم الأول: لم يُختر — عبء إضافي بلا فائدة أمنية على جهاز لا يقبل إلا الاتصال المحلي.' }
+      ]
+    },
+    {
+      id: 'D18', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Local PostgreSQL in Docker', ar: 'قاعدة PostgreSQL محلية في Docker' },
+      decision: { en: 'postgres:16 container attendance-app-db on 127.0.0.1:5433; three databases: real, test (synthetic) and e2e (synthetic).', ar: 'حاوية postgres:16 باسم attendance-app-db على 127.0.0.1:5433؛ ثلاث قواعد: الحقيقية، والاختبار (بيانات وهمية)، وe2e (بيانات وهمية).' },
+      why: { en: 'The data is personal and includes health information (sick days); it must never leave the machine.', ar: 'البيانات شخصية وتشمل معلومات صحية (أيام المرض)؛ ويجب ألا تغادر الجهاز أبداً.' },
+      alts: [
+        { en: 'Neon serverless Postgres + Vercel (the template\'s setup): not chosen — cloud services would receive personal data.', ar: 'قاعدة Neon السحابية مع Vercel (إعداد القالب): لم يُختر — ستستقبل خدمات سحابية بيانات شخصية.' }
+      ]
+    },
+    {
+      id: 'D19', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1, §9b',
+      title: { en: 'Odoo payroll rules win', ar: 'قواعد رواتب Odoo هي المرجع' },
+      decision: { en: 'The engine follows the Odoo rules (BRIEF §4, R1–R18) over the template\'s and the mockup\'s simplified maths.', ar: 'يتبع المحرك قواعد Odoo (BRIEF §4، R1–R18) بدلاً من الحسابات المبسطة في القالب والنموذج الأولي.' },
+      why: { en: 'HR confirmed those rules line by line and the two Excel files must match Odoo\'s numbers exactly.', ar: 'أكدت الموارد البشرية هذه القواعد سطراً بسطر، ويجب أن يطابق ملفا Excel أرقام Odoo تماماً.' },
+      alts: [
+        { en: 'Use the mockup\'s simpler rules (required = shift − break, weekly OT): not chosen — results would differ from what HR pays today. They stay as switchable options, off by default.', ar: 'استخدام قواعد النموذج الأبسط (المطلوب = الوردية − الاستراحة، عمل إضافي أسبوعي): لم يُختر — ستختلف النتائج عما تدفعه الموارد البشرية اليوم. تبقى خيارات قابلة للتفعيل ومعطلة افتراضياً.' }
+      ]
+    },
+    {
+      id: 'D20', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Production on a facility server next to Odoo', ar: 'الإنتاج على خادم داخل المنشأة بجانب Odoo' },
+      decision: { en: 'A separate server on the internal network only, delivered as a Node build or Docker image (adapter-node).', ar: 'خادم منفصل على الشبكة الداخلية فقط، يُسلَّم كبناء Node أو صورة Docker (adapter-node).' },
+      why: { en: 'Same reason as D18: no cloud; and it needs to reach Odoo for emails only.', ar: 'للسبب نفسه في D18: لا سحابة؛ ويحتاج الوصول إلى Odoo لإرسال البريد فقط.' },
+      alts: [
+        { en: 'Vercel/serverless hosting: not chosen — cloud, and serverless limits do not fit long exports.', ar: 'الاستضافة على Vercel أو بدون خادم: لم يُختر — سحابة، وحدود البيئة بدون خادم لا تناسب التصديرات الطويلة.' }
+      ]
+    },
+    {
+      id: 'D22', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Teams are owned by the app', ar: 'الفرق مملوكة للتطبيق' },
+      decision: { en: 'A team belongs to one department, has a supervisor and dated members. Approver = supervisor, else department manager, else HR.', ar: 'ينتمي الفريق إلى قسم واحد، وله مشرف وأعضاء بتواريخ. صاحب الموافقة = المشرف، وإلا مدير القسم، وإلا الموارد البشرية.' },
+      why: { en: 'Odoo has no teams; HR asked for teams with supervisors who approve their swaps.', ar: 'لا توجد فرق في Odoo؛ وطلبت الموارد البشرية فرقاً بمشرفين يوافقون على تبديلاتهم.' },
+      alts: [
+        { en: 'Use Odoo sub-departments as teams (the old practice): not chosen — no supervisor, no dated membership.', ar: 'استخدام الأقسام الفرعية في Odoo كفرق (الممارسة القديمة): لم يُختر — بلا مشرف وبلا عضوية مؤرخة.' }
+      ]
+    },
+    {
+      id: 'D23', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'A separate repository', ar: 'مستودع منفصل' },
+      decision: { en: 'This repo is a sibling of the Roster repo, which keeps the old module, the Phase 0 reports and the Odoo-side work.', ar: 'هذا المستودع مجاور لمستودع Roster الذي يحتفظ بالوحدة القديمة وتقارير المرحلة 0 والعمل على جانب Odoo.' },
+      why: { en: 'Different stack, rules and release cycle; keeps Odoo code and app code from mixing.', ar: 'تقنيات وقواعد ودورة إصدار مختلفة؛ ويمنع خلط كود Odoo مع كود التطبيق.' },
+      alts: [
+        { en: 'A folder inside the Roster repo: not chosen — mixed tooling and hooks, harder to deliver alone.', ar: 'مجلد داخل مستودع Roster: لم يُختر — أدوات وخطافات مختلطة، وتسليمه منفصلاً أصعب.' }
+      ]
+    },
+    {
+      id: 'D24', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Punches entered by hand now; file import later', ar: 'إدخال البصمات يدوياً الآن؛ واستيراد الملفات لاحقاً' },
+      decision: { en: 'Revised the same day: punches are typed in the app (entry sheet, employee page). A punch file import (S1.6) comes when the user provides the format; it writes the same records.', ar: 'عُدّل في اليوم نفسه: تُكتب البصمات في التطبيق (ورقة الإدخال، صفحة الموظف). يأتي استيراد ملف البصمات (S1.6) عندما يقدّم المستخدم الصيغة، ويكتب السجلات نفسها.' },
+      why: { en: 'The file format is not known yet; manual entry unblocks the work today.', ar: 'صيغة الملف غير معروفة بعد؛ والإدخال اليدوي يسمح بمتابعة العمل اليوم.' },
+      alts: [
+        { en: 'Punches by file only (first version of D24): replaced — blocked until a format exists.', ar: 'البصمات عبر الملفات فقط (النسخة الأولى من D24): استُبدل — متوقف حتى توجد صيغة.' },
+        { en: 'A live link to Odoo/BioTime: not chosen — the app is the master of the data (D25) and must not depend on Odoo for punches.', ar: 'ربط مباشر مع Odoo/BioTime: لم يُختر — التطبيق هو المصدر الرئيسي للبيانات (D25) ولا يجب أن يعتمد على Odoo في البصمات.' }
+      ]
+    },
+    {
+      id: 'D25', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'The app is the master of all data', ar: 'التطبيق هو المصدر الرئيسي لكل البيانات' },
+      decision: { en: 'Employees, departments, the old roster setup and historical punches are extracted from Odoo once (seed); after that everything is created and changed in the app.', ar: 'يُستخرج الموظفون والأقسام وإعدادات الجدولة القديمة والبصمات السابقة من Odoo مرة واحدة (استيراد أولي)؛ وبعدها يُنشأ ويُعدّل كل شيء في التطبيق.' },
+      why: { en: 'One owner per record avoids sync conflicts; after cut-over Odoo only sends emails.', ar: 'مالك واحد لكل سجل يمنع تعارض المزامنة؛ وبعد الانتقال يقتصر دور Odoo على إرسال البريد.' },
+      alts: [
+        { en: 'Split ownership (D15/D21: Odoo keeps employees, departments, punches): replaced — two-way sync and conflicts.', ar: 'ملكية مقسومة (D15/D21: يحتفظ Odoo بالموظفين والأقسام والبصمات): استُبدل — مزامنة باتجاهين وتعارضات.' }
+      ]
+    },
+    {
+      id: 'D15/D21', group: 'foundation', status: 'replaced', date: '2026-10-28', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Odoo stays master of employees, departments and punches', ar: 'يبقى Odoo المصدر الرئيسي للموظفين والأقسام والبصمات' },
+      decision: { en: 'Replaced by D25.', ar: 'استُبدل بالقرار D25.' },
+      why: { en: 'Was the first split; dropped once the app became the master.', ar: 'كان التقسيم الأول؛ وأُلغي عندما أصبح التطبيق هو المصدر الرئيسي.' },
+      alts: []
+    },
+    {
+      id: 'D26', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Emails are still sent by Odoo', ar: 'ما زال Odoo يرسل رسائل البريد' },
+      decision: { en: 'A tiny connector module (one method, API key, depends on mail only). The app sends the recipient\'s address and the figures.', ar: 'وحدة ربط صغيرة (دالة واحدة، مفتاح API، تعتمد على mail فقط). يرسل التطبيق عنوان المستلم والأرقام.' },
+      why: { en: 'Odoo already has working mail servers and templates; Odoo needs no employee records for it.', ar: 'لدى Odoo خوادم بريد وقوالب تعمل مسبقاً؛ ولا يحتاج Odoo إلى سجلات الموظفين لذلك.' },
+      alts: [
+        { en: 'Send email directly from the app (SMTP): not chosen — another mail setup to secure and maintain.', ar: 'الإرسال مباشرة من التطبيق (SMTP): لم يُختر — إعداد بريد آخر يحتاج تأميناً وصيانة.' }
+      ]
+    },
+    {
+      id: 'D27', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'Odoo-side pieces built in the Roster repo (Lane B)', ar: 'بناء أجزاء Odoo في مستودع Roster (المسار B)' },
+      decision: { en: 'The extraction tool and the email connector live in the Roster repo under its own rules.', ar: 'أداة الاستخراج ووحدة ربط البريد موجودتان في مستودع Roster وتخضعان لقواعده.' },
+      why: { en: 'They are Odoo code and run inside Odoo.', ar: 'إنها كود Odoo وتعمل داخل Odoo.' },
+      alts: [
+        { en: 'Keep them in this repo: not chosen — Odoo modules belong next to the Odoo stack.', ar: 'إبقاؤها في هذا المستودع: لم يُختر — وحدات Odoo مكانها بجانب بيئة Odoo.' }
+      ]
+    },
+    {
+      id: 'D28', group: 'foundation', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-attendance-app.md §1',
+      title: { en: 'New hires get an app-generated employee number', ar: 'يحصل الموظف الجديد على رقم يولّده التطبيق' },
+      decision: { en: 'Unique and never reused; seeded employees keep their Odoo badge. The later punch file import matches on this number.', ar: 'فريد ولا يُعاد استخدامه أبداً؛ ويحتفظ الموظفون المستوردون برقم شارتهم من Odoo. يطابق استيراد ملف البصمات لاحقاً على هذا الرقم.' },
+      why: { en: 'The app is the master (D25), so it must create people; a stable number is the only safe key for punches.', ar: 'التطبيق هو المصدر الرئيسي (D25)، لذا يجب أن ينشئ الموظفين؛ والرقم الثابت هو المفتاح الآمن الوحيد للبصمات.' },
+      alts: [
+        { en: 'Match punches by name: not chosen — names are not unique and are personal data.', ar: 'مطابقة البصمات بالاسم: لم يُختر — الأسماء غير فريدة وهي بيانات شخصية.' },
+        { en: 'Always type the number by hand: not chosen — risk of duplicates; a manual number is still allowed when given.', ar: 'كتابة الرقم يدوياً دائماً: لم يُختر — خطر التكرار؛ ويبقى الرقم اليدوي مسموحاً عند إدخاله.' }
+      ]
+    },
+    {
+      id: 'D5', group: 'foundation', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Four HR access levels (for when login returns)', ar: 'أربعة مستويات صلاحيات للموارد البشرية (عند عودة تسجيل الدخول)' },
+      decision: { en: 'Supervisor → HR Officer → HR Approver → HR Manager, each including the previous one.', ar: 'مشرف ← موظف موارد بشرية ← معتمِد موارد بشرية ← مدير موارد بشرية، وكل مستوى يشمل ما قبله.' },
+      why: { en: 'HR has a second person who approves but must not approve their own entries or change settings.', ar: 'لدى الموارد البشرية شخص ثانٍ يوافق لكن لا يجوز أن يوافق على إدخالاته أو يغيّر الإعدادات.' },
+      alts: [
+        { en: 'The brief\'s three levels: not chosen — no place for the separate approver.', ar: 'المستويات الثلاثة في الموجز: لم يُختر — لا مكان للمعتمِد المنفصل.' }
+      ]
+    },
+    {
+      id: 'D7', group: 'foundation', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Golden master: money vs stored, display fields vs recomputed', ar: 'المرجع الذهبي: المبالغ مقابل المخزّن، وحقول العرض مقابل المُعاد حسابه' },
+      decision: { en: 'Final, Deduction, OT, shortage and status are compared with Odoo\'s stored values; payable minutes and missing punch with Odoo\'s recomputed ones.', ar: 'تُقارن القيم النهائية والخصم والعمل الإضافي والنقص والحالة بقيم Odoo المخزنة؛ أما الدقائق المستحقة والبصمة الناقصة فبالقيم المعاد حسابها في Odoo.' },
+      why: { en: 'The recompute check reproduced every stored money figure, but two display fields are stale in Odoo\'s storage.', ar: 'أعاد فحص إعادة الحساب إنتاج كل رقم مالي مخزّن، لكن حقلَي عرض قديمان في تخزين Odoo.' },
+      alts: [
+        { en: 'Compare everything with stored values: not chosen — false differences from stale fields.', ar: 'مقارنة كل شيء بالقيم المخزنة: لم يُختر — فروقات زائفة بسبب حقول قديمة.' }
+      ]
+    },
+    {
+      id: 'D8', group: 'foundation', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Pair punches by planned shift window, not calendar day', ar: 'ربط البصمات حسب نافذة الوردية المخططة لا حسب اليوم التقويمي' },
+      decision: { en: 'A punch belongs to the planned shift whose window contains it; a 07:00 check-out after a night shift goes to the previous day.', ar: 'تنتمي البصمة إلى الوردية المخططة التي تحتويها نافذتها؛ فخروج الساعة 07:00 بعد وردية ليلية يُنسب إلى اليوم السابق.' },
+      why: { en: 'Calendar-day pairing created fake 12-hour shifts for night workers in the old system (P18).', ar: 'الربط حسب اليوم التقويمي أنشأ ورديات وهمية من 12 ساعة لعمال الليل في النظام القديم (P18).' },
+      alts: [
+        { en: 'Keep calendar-day pairing: not chosen — the known night-shift bug.', ar: 'إبقاء الربط حسب اليوم التقويمي: لم يُختر — هو خلل الورديات الليلية المعروف.' }
+      ]
+    },
+
+    // ---------------- Working rules ----------------
+    {
+      id: 'W1', group: 'rules', status: 'approved', date: '2026-10-28', src: 'CLAUDE.md §1',
+      title: { en: 'No cloud service ever receives data', ar: 'لا تستقبل أي خدمة سحابية البيانات أبداً' },
+      decision: { en: 'No Neon, Vercel, CDN, analytics or error-reporting SaaS. Runtime calls go only to the local database and to Odoo.', ar: 'لا Neon ولا Vercel ولا CDN ولا تحليلات ولا خدمات تقارير أخطاء. الاتصالات أثناء التشغيل فقط إلى القاعدة المحلية وإلى Odoo.' },
+      why: { en: 'Names, badges, punches and sick days of airport staff are personal and health data.', ar: 'أسماء موظفي المطار وشاراتهم وبصماتهم وأيام مرضهم بيانات شخصية وصحية.' },
+      alts: [
+        { en: 'Cloud tools with data masking: not chosen — one mistake leaks real data; local is simpler and safe.', ar: 'أدوات سحابية مع إخفاء البيانات: لم يُختر — خطأ واحد يسرّب بيانات حقيقية؛ والمحلي أبسط وآمن.' }
+      ]
+    },
+    {
+      id: 'W2', group: 'rules', status: 'approved', date: '2026-10-28', src: 'CLAUDE.md §1',
+      title: { en: 'No personal data in the repo', ar: 'لا بيانات شخصية في المستودع' },
+      decision: { en: 'Code, tests, fixtures, plans, docs and commits use made-up people, IDs and counts only. Data files live in ~/secure/syravia/; a pre-commit hook blocks data file types.', ar: 'الكود والاختبارات والبيانات التجريبية والخطط والوثائق والإيداعات تستخدم أشخاصاً وهميين ومعرّفات وأعداداً فقط. ملفات البيانات في ~/secure/syravia/؛ وخطاف ما قبل الإيداع يمنع أنواع ملفات البيانات.' },
+      why: { en: 'Git history is permanent and copied; a name committed once is hard to remove.', ar: 'تاريخ Git دائم ويُنسخ؛ والاسم الذي يُودع مرة يصعب حذفه.' },
+      alts: [
+        { en: 'Anonymised real extracts as fixtures: not chosen — re-identification risk; made-up data is enough for tests.', ar: 'مقتطفات حقيقية مجهّلة كبيانات اختبار: لم يُختر — خطر إعادة التعرف؛ والبيانات الوهمية تكفي للاختبارات.' }
+      ]
+    },
+    {
+      id: 'W3', group: 'rules', status: 'approved', date: '2026-10-28', src: 'CLAUDE.md §4',
+      title: { en: 'A separate synthetic DB for manual testing', ar: 'قاعدة بيانات وهمية منفصلة للاختبار اليدوي' },
+      decision: { en: 'Manual checks (by the user, see W6) run on attendance_app_e2e with vite --mode e2e on port 5174. Never point a dev server at another DB by exporting DATABASE_URL. The two synthetic DBs are migrated without asking; the real one after a row count and the user\'s OK.', ar: 'تجري الفحوص اليدوية (يجريها المستخدم، انظر W6) على attendance_app_e2e باستخدام vite --mode e2e على المنفذ 5174. لا يُوجَّه خادم التطوير إلى قاعدة أخرى بتصدير DATABASE_URL أبداً. القاعدتان الوهميتان تُرحَّلان دون سؤال؛ والحقيقية بعد عدّ الصفوف وموافقة المستخدم.' },
+      why: { en: 'An exported DATABASE_URL fell back to .env after a reload and wrote a test shift into the real DB (S2.2).', ar: 'متغير DATABASE_URL المصدَّر عاد إلى ‎.env بعد إعادة التحميل وكتب وردية اختبارية في القاعدة الحقيقية (S2.2).' },
+      alts: [
+        { en: 'Test against the real DB carefully: not chosen — that is how the incident happened.', ar: 'الاختبار على القاعدة الحقيقية بحذر: لم يُختر — هكذا وقعت الحادثة.' },
+        { en: 'Reuse attendance_app_test (Playwright): not chosen — Playwright resets it; manual data would be lost.', ar: 'إعادة استخدام attendance_app_test (الخاصة بـ Playwright): لم يُختر — يعيد Playwright تهيئتها فتضيع البيانات اليدوية.' }
+      ]
+    },
+    {
+      id: 'W4', group: 'rules', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md (Playwright)',
+      title: { en: 'The user runs the end-to-end tests', ar: 'المستخدم هو من يشغّل اختبارات الطرف إلى الطرف' },
+      decision: { en: 'Playwright specs are written here but run by the user (installed Chrome, no browser downloads, refuses unless E2E_DATABASE_URL points at the test DB).', ar: 'تُكتب اختبارات Playwright هنا لكن يشغّلها المستخدم (Chrome المثبت، بدون تنزيل متصفحات، وترفض العمل ما لم يشر E2E_DATABASE_URL إلى قاعدة الاختبار).' },
+      why: { en: 'User\'s choice after the S2.2 incident; keeps browsers and servers under the user\'s control.', ar: 'اختيار المستخدم بعد حادثة S2.2؛ ويبقي المتصفحات والخوادم تحت سيطرته.' },
+      alts: [
+        { en: 'Agents run e2e themselves: not chosen by the user.', ar: 'تشغيل الوكلاء للاختبارات بأنفسهم: لم يختره المستخدم.' }
+      ]
+    },
+    {
+      id: 'W5', group: 'rules', status: 'approved', date: '2026-10-28', src: 'CLAUDE.md §3 (template §6)',
+      title: { en: 'Audit every change; never hard-delete', ar: 'تدقيق كل تغيير؛ وعدم الحذف النهائي أبداً' },
+      decision: { en: 'Each write and its audit row go in one transaction (batch). Records are deactivated or corrected by a new record, not deleted.', ar: 'كل عملية كتابة وسطر التدقيق الخاص بها في معاملة واحدة (batch). تُعطَّل السجلات أو تُصحَّح بسجل جديد ولا تُحذف.' },
+      why: { en: 'Pay depends on this data; HR must be able to see who changed what and when.', ar: 'الأجور تعتمد على هذه البيانات؛ ويجب أن ترى الموارد البشرية من غيّر ماذا ومتى.' },
+      alts: [
+        { en: 'Edit in place with an updated_at only: not chosen — history lost.', ar: 'التعديل في المكان مع حقل updated_at فقط: لم يُختر — يضيع التاريخ.' }
+      ]
+    },
+    {
+      id: 'W6', group: 'rules', status: 'approved', date: '2026-10-29', src: 'CLAUDE.md §1',
+      title: { en: 'The user does all browser testing and package changes', ar: 'المستخدم هو من يجري كل اختبارات المتصفح وتغييرات الحزم' },
+      decision: { en: 'Agents never open the app in a browser, start a dev server for a runtime check, or run Playwright; manual checks are a checklist for the user. Agents never install, uninstall or upgrade packages; they give the exact command and wait. Static checks (pnpm check, Vitest, eslint, prettier, svelte-autofixer) stay with the agent.', ar: 'لا يفتح الوكلاء التطبيق في المتصفح، ولا يشغّلون خادم تطوير للفحص أثناء التشغيل، ولا يشغّلون Playwright؛ والفحوص اليدوية قائمة يسلّمونها للمستخدم. ولا يثبّت الوكلاء الحزم أو يزيلونها أو يرقّونها؛ بل يكتبون الأمر الدقيق وينتظرون. الفحوص الثابتة (pnpm check وVitest وeslint وprettier وsvelte-autofixer) تبقى على الوكيل.' },
+      why: { en: 'The user\'s instruction (2026-10-29), after an agent\'s runtime check wrote test data into the real DB and an agent changed a dependency before asking.', ar: 'تعليمات المستخدم (2026-10-29)، بعد أن كتب فحص أجراه وكيل بيانات اختبارية في القاعدة الحقيقية، وغيّر وكيل اعتمادية قبل السؤال.' },
+      alts: [
+        { en: 'Agents test on the synthetic e2e DB (W3): replaced for agents — W3 now describes where the user tests.', ar: 'اختبار الوكلاء على قاعدة e2e الوهمية (W3): استُبدل بالنسبة للوكلاء — يصف W3 الآن مكان اختبار المستخدم.' },
+        { en: 'Agents install packages and report afterwards: not chosen — the user wants to see and run every dependency change.', ar: 'تثبيت الوكلاء للحزم ثم الإبلاغ لاحقاً: لم يُختر — يريد المستخدم رؤية كل تغيير في الاعتماديات وتشغيله بنفسه.' }
+      ]
+    },
+    // ---------------- Pay rules ----------------
+    {
+      id: 'D9', group: 'payroll', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Department rules override by section', ar: 'قواعد القسم تتجاوز حسب القسم الفرعي من الإعدادات' },
+      decision: { en: 'A department rule has tick boxes per section (overtime, lateness, credits); an unticked section falls back to the company default.', ar: 'لقاعدة القسم مربعات اختيار لكل مجموعة (العمل الإضافي، التأخير، الأرصدة)؛ والمجموعة غير المحددة تعود إلى إعدادات الشركة الافتراضية.' },
+      why: { en: '0 and "off" are real values (grace 0, OT off), so "empty means inherit" does not work field by field.', ar: 'القيمة 0 و"معطل" قيم حقيقية (سماح 0، إيقاف العمل الإضافي)، لذا لا يصلح مبدأ "الفارغ يعني الوراثة" لكل حقل.' },
+      alts: [
+        { en: 'Field-by-field fallback when empty (the brief): not chosen — cannot express a real 0.', ar: 'الرجوع حقلاً بحقل عند الفراغ (الموجز): لم يُختر — لا يمكن التعبير عن قيمة 0 حقيقية.' }
+      ]
+    },
+    {
+      id: 'D10', group: 'payroll', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Sub-departments inherit from the nearest parent', ar: 'الأقسام الفرعية ترث من أقرب قسم أب' },
+      decision: { en: 'Own rule → nearest parent with a rule → company default. The same "nearest department first" idea is used for patterns.', ar: 'قاعدة القسم نفسه ← أقرب قسم أب له قاعدة ← الافتراضي للشركة. والفكرة نفسها "أقرب قسم أولاً" مستخدمة للأنماط.' },
+      why: { en: 'Sub-departments were used as teams; they should follow their parent unless set.', ar: 'كانت الأقسام الفرعية تُستخدم كفرق؛ ويجب أن تتبع القسم الأب ما لم تُضبط.' },
+      alts: [
+        { en: 'Only the company default: not chosen — every sub-department would need its own copy.', ar: 'الافتراضي للشركة فقط: لم يُختر — سيحتاج كل قسم فرعي نسخته الخاصة.' }
+      ]
+    },
+    {
+      id: 'D12', group: 'payroll', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Shift grace 0 means "not set"', ar: 'سماح الوردية 0 يعني "غير محدد"' },
+      decision: { en: 'A shift with grace 0 falls back to the department or company grace; a real zero grace is set on the department rule.', ar: 'الوردية ذات السماح 0 تعود إلى سماح القسم أو الشركة؛ والسماح الصفري الحقيقي يُضبط في قاعدة القسم.' },
+      why: { en: 'Keeps the old grace chain (R4) without a separate "is set" flag on every shift.', ar: 'يحافظ على سلسلة السماح القديمة (R4) دون علامة "مضبوط" منفصلة على كل وردية.' },
+      alts: [
+        { en: 'Nullable grace on the shift: not chosen at the time (Odoo integers cannot be empty); may be revisited in the app.', ar: 'سماح قابل للفراغ على الوردية: لم يُختر حينها (أعداد Odoo لا تقبل الفراغ)؛ وقد يُعاد النظر فيه في التطبيق.' }
+      ]
+    },
+    {
+      id: 'D6', group: 'payroll', status: 'default', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
+      title: { en: 'Every pay-affecting change needs approval', ar: 'كل تغيير يؤثر على الأجر يحتاج موافقة' },
+      decision: { en: 'No "small correction" bypass until HR says otherwise (Q11).', ar: 'لا استثناء "للتصحيحات الصغيرة" حتى تقرر الموارد البشرية غير ذلك (Q11).' },
+      why: { en: 'Safest default for money.', ar: 'الخيار الافتراضي الأكثر أماناً فيما يخص المال.' },
+      alts: [
+        { en: 'Skip approval under N minutes: waiting for HR (Q11).', ar: 'تجاوز الموافقة لأقل من N دقيقة: بانتظار الموارد البشرية (Q11).' }
+      ]
+    },
+
+    // ---------------- Shifts & punches ----------------
+    {
+      id: 'P1', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'A used shift\'s times are locked', ar: 'أوقات الوردية المستخدمة مقفلة' },
+      decision: { en: 'Once a shift is used by a pattern, override or punch, its code, times, break, required and windows cannot change; name, colour, grace and active can. New times = a new shift.', ar: 'بمجرد استخدام الوردية في نمط أو تعديل أو بصمة، لا يمكن تغيير رمزها وأوقاتها واستراحتها والمطلوب ونوافذها؛ ويمكن تغيير الاسم واللون والسماح والتفعيل. أوقات جديدة = وردية جديدة.' },
+      why: { en: 'Stored plans and punches never shift silently, and no versioning table is needed.', ar: 'لا تتغير الخطط والبصمات المخزنة بصمت، ولا حاجة لجدول إصدارات.' },
+      alts: [
+        { en: 'Version shifts by date: not chosen — more tables and harder to explain for little gain.', ar: 'إصدارات للورديات حسب التاريخ: لم يُختر — جداول أكثر وشرح أصعب مقابل فائدة قليلة.' },
+        { en: 'Allow edits freely: not chosen — past days would change without anyone noticing.', ar: 'السماح بالتعديل بحرية: لم يُختر — ستتغير الأيام السابقة دون أن يلاحظ أحد.' }
+      ]
+    },
+    {
+      id: 'P2', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Shifts are deactivated, never deleted', ar: 'تُعطَّل الورديات ولا تُحذف أبداً' },
+      decision: { en: 'An inactive shift cannot go into new patterns or overrides, but existing ones still resolve.', ar: 'لا يمكن وضع وردية معطلة في أنماط أو تعديلات جديدة، لكن الموجود منها يبقى يعمل.' },
+      why: { en: 'Follows W5 (never hard-delete); history stays readable.', ar: 'تطبيقاً لـ W5 (عدم الحذف النهائي)؛ ويبقى التاريخ مقروءاً.' },
+      alts: [
+        { en: 'Delete unused shifts: not chosen — one rule for all is simpler.', ar: 'حذف الورديات غير المستخدمة: لم يُختر — قاعدة واحدة للجميع أبسط.' }
+      ]
+    },
+    {
+      id: 'P3', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Pattern days stored as an array of shift ids', ar: 'تُخزَّن أيام النمط كمصفوفة من معرّفات الورديات' },
+      decision: { en: 'slots uuid[], NULL = off; weekly = 7 (Sun→Sat), cycle = 1–28 + anchor. A database trigger checks the ids because Postgres has no foreign key on array elements.', ar: 'الحقل slots من نوع uuid[]، والقيمة الفارغة = عطلة؛ أسبوعي = 7 (الأحد←السبت)، دورة = 1–28 مع تاريخ بداية. يتحقق مشغّل في القاعدة من المعرّفات لأن Postgres لا يدعم المفتاح الأجنبي على عناصر المصفوفة.' },
+      why: { en: 'Keeps the engine\'s array shape and the template\'s version logic.', ar: 'يحافظ على شكل المصفوفة في المحرك وعلى منطق الإصدارات في القالب.' },
+      alts: [
+        { en: 'A pattern_day table (one row per slot): not chosen — more joins, the engine wants an array anyway.', ar: 'جدول pattern_day (سطر لكل يوم): لم يُختر — ربط أكثر، والمحرك يحتاج مصفوفة على أي حال.' }
+      ]
+    },
+    {
+      id: 'P4', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Shift times live on the shift', ar: 'أوقات الوردية مخزنة في الوردية نفسها' },
+      decision: { en: 'The template\'s global day/night start setting was removed; D 07→19 and N 19→07 are seeded as shifts.', ar: 'أُزيل إعداد بداية النهار/الليل العام من القالب؛ وأُضيفت الورديتان D من 07 إلى 19 وN من 19 إلى 07.' },
+      why: { en: 'Real rosters have more than two shifts with different lengths (e.g. 16:00→04:00).', ar: 'الجداول الحقيقية فيها أكثر من ورديتين بأطوال مختلفة (مثل 16:00←04:00).' },
+      alts: [
+        { en: 'Keep fixed 12 h Day/Night kinds: not chosen — cannot express other shifts.', ar: 'إبقاء نوعَي نهار/ليل الثابتين بـ 12 ساعة: لم يُختر — لا يمكن التعبير عن ورديات أخرى.' }
+      ]
+    },
+    {
+      id: 'P5', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Port the schedule maths once, early', ar: 'نقل حسابات الجدولة مرة واحدة ومبكراً' },
+      decision: { en: 'src/lib/payroll/schedule.ts (1:1 port of schedule_spec with its 11 tests) was written in S2.1; the payroll engine builds on it.', ar: 'كُتب src/lib/payroll/schedule.ts (نقل حرفي لـ schedule_spec مع اختباراته الـ 11) في S2.1؛ ويبني عليه محرك الرواتب.' },
+      why: { en: 'Shifts needed span, next-day and night maths immediately; one copy only.', ar: 'احتاجت الورديات حسابات المدة واليوم التالي والليل فوراً؛ ونسخة واحدة فقط.' },
+      alts: [
+        { en: 'Wait for the payroll lane: not chosen — would block shifts or create a second copy.', ar: 'انتظار مسار الرواتب: لم يُختر — سيعطّل الورديات أو ينشئ نسخة ثانية.' }
+      ]
+    },
+    {
+      id: 'P6', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Default night window 22:00→06:00', ar: 'نافذة الليل الافتراضية 22:00←06:00' },
+      decision: { en: 'Used until a night rule table exists (S2.3/S4).', ar: 'تُستخدم حتى يوجد جدول قواعد الليل (S2.3/S4).' },
+      why: { en: 'The brief\'s default; enough for the "night" marker now.', ar: 'القيمة الافتراضية في الموجز؛ وتكفي لعلامة "ليلي" حالياً.' },
+      alts: [ { en: 'Build the night rule table now: not chosen — out of scope for shifts.', ar: 'بناء جدول قواعد الليل الآن: لم يُختر — خارج نطاق الورديات.' } ]
+    },
+    {
+      id: 'P7', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Existing permissions, no new keys', ar: 'الصلاحيات الموجودة دون مفاتيح جديدة' },
+      decision: { en: 'Shifts with roster.manage, punches with attendance.record.', ar: 'الورديات بصلاحية roster.manage، والبصمات بصلاحية attendance.record.' },
+      why: { en: 'The RBAC seed already had them; real roles come with login (D5).', ar: 'كانت موجودة في بيانات الصلاحيات الأولية؛ والأدوار الحقيقية تأتي مع تسجيل الدخول (D5).' },
+      alts: [ { en: 'New fine-grained keys now: not chosen — no login yet to use them.', ar: 'مفاتيح دقيقة جديدة الآن: لم يُختر — لا يوجد تسجيل دخول بعد لاستخدامها.' } ]
+    },
+    {
+      id: 'P8', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Timezone as a parameter', ar: 'المنطقة الزمنية كمُعامِل' },
+      decision: { en: 'New pure functions take timeZone (default Asia/Damascus), so the later timezone setting is a small change.', ar: 'الدوال النقية الجديدة تأخذ timeZone (الافتراضي Asia/Damascus)، فيصبح إعداد المنطقة الزمنية لاحقاً تغييراً صغيراً.' },
+      why: { en: 'The old module hard-coded the timezone 39 times (P11).', ar: 'الوحدة القديمة ثبّتت المنطقة الزمنية 39 مرة (P11).' },
+      alts: [ { en: 'Build the timezone setting now: not chosen — widens scope.', ar: 'بناء إعداد المنطقة الزمنية الآن: لم يُختر — يوسّع النطاق.' } ]
+    },
+    {
+      id: 'P9', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md §1',
+      title: { en: 'Departments can own patterns', ar: 'يمكن للأقسام امتلاك أنماط' },
+      decision: { en: 'In schema and engine now (nearest department up the tree wins); the UI comes with the builder.', ar: 'في القاعدة والمحرك الآن (أقرب قسم في الشجرة يفوز)؛ والواجهة تأتي مع المنشئ.' },
+      why: { en: 'Most staff follow their department\'s schedule (BRIEF §9.4).', ar: 'معظم الموظفين يتبعون جدول قسمهم (BRIEF §9.4).' },
+      alts: [ { en: 'Teams and people only: not chosen — every department would need a fake team.', ar: 'الفرق والأشخاص فقط: لم يُختر — سيحتاج كل قسم فريقاً وهمياً.' } ]
+    },
+    {
+      id: 'S1.4-a', group: 'shifts', status: 'default', date: '2026-10-28', src: 'plans/2026-10-28-shifts-and-manual-punches.md (S1.4)',
+      title: { en: 'Punches are append-only events; corrections need a reason', ar: 'البصمات أحداث تُضاف فقط؛ والتصحيح يتطلب سبباً' },
+      decision: { en: 'A correction or removal is a new event that points at the original (void = no new time). A check-out earlier than the check-in means the next day; a missing check-out stays missing.', ar: 'التصحيح أو الإزالة حدث جديد يشير إلى الأصلي (الإلغاء = بلا وقت جديد). الخروج قبل وقت الدخول يعني اليوم التالي؛ والخروج الناقص يبقى ناقصاً.' },
+      why: { en: 'Full history for HR, and never inventing a check-out (BRIEF R7).', ar: 'تاريخ كامل للموارد البشرية، وعدم اختلاق وقت خروج أبداً (BRIEF R7).' },
+      alts: [ { en: 'Edit the punch row in place: not chosen — the original time would be lost.', ar: 'تعديل سطر البصمة في مكانه: لم يُختر — يضيع الوقت الأصلي.' } ]
+    },
+
+    // ---------------- Pattern editor ----------------
+    {
+      id: 'E1', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      title: { en: 'Drop rules from the mockup', ar: 'قواعد الإفلات من النموذج الأولي' },
+      decision: { en: 'Shift → day: sets it (weekly) or inserts before it (cycle). Shift → "+ add": appends. Day → day: swaps (weekly) or moves (cycle). Day → bin: removes (never below 1 day). Max 28 days.', ar: 'وردية ← يوم: تضبطه (أسبوعي) أو تُدرج قبله (دورة). وردية ← "+ إضافة": تُلحق في النهاية. يوم ← يوم: تبديل (أسبوعي) أو نقل (دورة). يوم ← سلة: حذف (لا يقل عن يوم واحد). الحد الأقصى 28 يوماً.' },
+      why: { en: 'The mockup is the agreed UI reference (F2).', ar: 'النموذج الأولي هو المرجع المتفق عليه للواجهة (F2).' },
+      alts: [ { en: 'Tap-to-paint only: not chosen — HR asked for drag and drop like the mockup.', ar: 'التلوين بالنقر فقط: لم يُختر — طلبت الموارد البشرية السحب والإفلات كما في النموذج.' } ]
+    },
+    {
+      id: 'E2', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      title: { en: 'Tap to paint; press-and-move to drag', ar: 'النقر للتلوين؛ والضغط مع التحريك للسحب' },
+      decision: { en: 'Sweep-painting (hold and slide over days) was removed.', ar: 'أُزيل التلوين بالمسح (الضغط والانزلاق فوق الأيام).' },
+      why: { en: 'Sweeping and dragging can\'t share one gesture; removing it also fixed days repainting without a click.', ar: 'لا يمكن للمسح والسحب مشاركة الحركة نفسها؛ وإزالته أصلحت أيضاً تلوين الأيام دون نقر.' },
+      alts: [ { en: 'Keep sweep-painting with a mode switch: not chosen — confusing on a phone.', ar: 'إبقاء التلوين بالمسح مع زر تبديل وضع: لم يُختر — مربك على الهاتف.' } ]
+    },
+    {
+      id: 'E3', group: 'editor', status: 'replaced', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      title: { en: 'Use @dnd-kit-svelte/svelte 0.1.6 (already in the app)', ar: 'استخدام ‎@dnd-kit-svelte/svelte 0.1.6 (الموجودة في التطبيق)' },
+      decision: { en: 'The plan said: one DnD library, no new dependency. Replaced by E3b (official package, approved 2026-10-29).', ar: 'نصّت الخطة: مكتبة سحب وإفلات واحدة دون اعتماديات جديدة. استُبدل بالقرار E3b (الحزمة الرسمية، معتمد في 2026-10-29).' },
+      why: { en: 'Avoid a second library.', ar: 'تجنب مكتبة ثانية.' },
+      alts: []
+    },
+    {
+      id: 'E3b', group: 'editor', status: 'approved', date: '2026-10-29', src: 'working tree: package.json, pnpm-workspace.yaml',
+      title: { en: 'Switch to the official @dnd-kit/svelte 0.5.0', ar: 'الانتقال إلى الحزمة الرسمية ‎@dnd-kit/svelte 0.5.0' },
+      decision: { en: 'Replaces @dnd-kit-svelte/svelte everywhere (employees page and pattern editor); dnd-kit core packages pinned to 0.5.0 through pnpm overrides.', ar: 'تحل محل ‎@dnd-kit-svelte/svelte في كل مكان (صفحة الموظفين ومحرر الأنماط)؛ مع تثبيت حزم dnd-kit الأساسية على 0.5.0 عبر pnpm overrides.' },
+      why: { en: 'Approved by the user on 2026-10-29. Official and maintained by the dnd-kit authors; still one library in the app. Newer 0.5.1 was under two weeks old, so 0.5.0 is pinned.', ar: 'وافق عليها المستخدم في 2026-10-29. رسمية ويصونها مؤلفو dnd-kit؛ وتبقى مكتبة واحدة في التطبيق. الإصدار 0.5.1 كان عمره أقل من أسبوعين، لذا ثُبّت 0.5.0.' },
+      alts: [ { en: 'Stay on the community 0.1.6 wrapper (E3): set aside — older 0.x wrapper of an older core.', ar: 'البقاء على الغلاف المجتمعي 0.1.6 (E3): تُرك — غلاف 0.x أقدم لنواة أقدم.' } ]
+    },
+    {
+      id: 'E4', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      title: { en: 'Drag starts after 4 px (mouse) or a 200 ms press (touch)', ar: 'يبدأ السحب بعد 4 بكسل (فأرة) أو ضغط 200 ملي ثانية (لمس)' },
+      decision: { en: 'Keyboard: Space lifts, arrows move, Space drops.', ar: 'لوحة المفاتيح: المسافة للرفع، والأسهم للتحريك، والمسافة للإفلات.' },
+      why: { en: 'A tap must stay a paint and a phone page must still scroll.', ar: 'يجب أن يبقى النقر تلويناً وأن تبقى صفحة الهاتف قابلة للتمرير.' },
+      alts: [ { en: 'Drag immediately on press: not chosen — every tap would start a drag.', ar: 'السحب فور الضغط: لم يُختر — كل نقرة ستبدأ سحباً.' } ]
+    },
+    {
+      id: 'E5', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      title: { en: 'Slot logic in a pure, tested module', ar: 'منطق الأيام في وحدة نقية مختبَرة' },
+      decision: { en: 'src/lib/roster/slots.ts with Vitest (13 cases); the component only calls it.', ar: 'الملف src/lib/roster/slots.ts مع اختبارات Vitest (13 حالة)؛ والمكوّن يستدعيه فقط.' },
+      why: { en: 'Same rule as the rest of the roster logic: test in Node, not in the browser.', ar: 'القاعدة نفسها لبقية منطق الجدولة: الاختبار في Node لا في المتصفح.' },
+      alts: [ { en: 'Logic inside the Svelte component: not chosen — hard to test.', ar: 'المنطق داخل مكوّن Svelte: لم يُختر — صعب الاختبار.' } ]
+    },
+    {
+      id: 'E6', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      title: { en: 'A dropped shift becomes the brush', ar: 'الوردية المُفلتة تصبح هي الفرشاة' },
+      decision: { en: 'Dragging a shift also selects it in the palette.', ar: 'سحب وردية يحددها أيضاً في لوحة الألوان.' },
+      why: { en: 'Keeps the palette selection equal to the last shift used (one of the sync bugs).', ar: 'يُبقي التحديد في اللوحة مطابقاً لآخر وردية مستخدمة (أحد أخطاء عدم التزامن).' },
+      alts: [ { en: 'Separate brush and drag: not chosen — the palette and the painted value drifted apart.', ar: 'فصل الفرشاة عن السحب: لم يُختر — كانت اللوحة والقيمة الملونة تختلفان.' } ]
+    },
+
+    // ---------------- Attendance builder ----------------
+    {
+      id: 'B1', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Split the pattern from its assignment', ar: 'فصل النمط عن إسناده' },
+      decision: { en: 'A named, reusable pattern (library) + pattern_assignment (who follows it, from when, cycle anchor). The old per-owner shift_pattern is migrated and dropped.', ar: 'نمط مسمّى قابل لإعادة الاستخدام (مكتبة) + جدول pattern_assignment (من يتبعه، ومن متى، وتاريخ بداية الدورة). يُرحَّل جدول shift_pattern القديم الخاص بكل مالك ثم يُحذف.' },
+      why: { en: 'Build once, assign to many; saved cards with "N following"; one place to change a team\'s schedule (brief §9.3–§9.4, mockup F2/F4).', ar: 'تُبنى مرة وتُسند لكثيرين؛ وبطاقات محفوظة تُظهر "عدد المتّبعين"؛ ومكان واحد لتغيير جدول الفريق (الموجز §9.3–§9.4، النموذج F2/F4).' },
+      alts: [ { en: 'Keep slots inside each owner\'s version (today): not chosen — two teams on one cycle hold two copies; no library.', ar: 'إبقاء الأيام داخل إصدار كل مالك (الوضع الحالي): لم يُختر — فريقان على دورة واحدة يحملان نسختين؛ ولا مكتبة.' } ]
+    },
+    {
+      id: 'B2', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'How a team pattern applies to its members', ar: 'كيف يُطبَّق نمط الفريق على أعضائه' },
+      decision: { en: 'Absence and day override win → own pattern → team → department (nearest) → off; then own off days (weekly) and crew start (cycle) adjust the day.', ar: 'الغياب وتعديل اليوم أولاً ← النمط الشخصي ← الفريق ← القسم (الأقرب) ← عطلة؛ ثم تعدّل أيام العطلة الخاصة (أسبوعي) ونقطة بداية الطاقم (دورة) اليوم.' },
+      why: { en: 'The user\'s request: every team member follows it, with rules. Matches brief §9.4.', ar: 'طلب المستخدم: يتبعه كل أعضاء الفريق وفق قواعد. ويوافق الموجز §9.4.' },
+      alts: [ { en: 'Members send requests themselves (self-service): not chosen — the user answered Q-B1 = "applies" (2026-10-29); requests need a login (B11).', ar: 'إرسال الأعضاء طلباتهم بأنفسهم (خدمة ذاتية): لم يُختر — أجاب المستخدم على Q-B1 بأن النمط "يُطبَّق" (2026-10-29)؛ والطلبات تحتاج تسجيل دخول (B11).' } ]
+    },
+    {
+      id: 'B3', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'A used pattern is read-only; "Edit from a date"', ar: 'النمط المستخدم للقراءة فقط؛ و"تعديل اعتباراً من تاريخ"' },
+      decision: { en: 'Changing a used pattern saves a copy and moves all its current assignments to the copy from a date, in one step.', ar: 'تغيير نمط مستخدم يحفظ نسخة وينقل كل إسناداته الحالية إلى النسخة اعتباراً من تاريخ، في خطوة واحدة.' },
+      why: { en: 'Past days never change silently; history reads "Day 1–14, Night from 15" (brief "Change from date").', ar: 'لا تتغير الأيام السابقة بصمت؛ ويظهر التاريخ "نهار 1–14، ليل من 15" (الموجز "تغيير اعتباراً من تاريخ").' },
+      alts: [ { en: 'Version the pattern itself and edit it in place from a date: not chosen — the user answered Q-B2 = copy (2026-10-29); more complex, and all teams on the pattern would have to move together.', ar: 'إصدارات للنمط نفسه وتعديله في مكانه من تاريخ: لم يُختر — أجاب المستخدم على Q-B2 بالنسخ (2026-10-29)؛ أكثر تعقيداً، ويجب أن تنتقل كل الفرق على النمط معاً.' } ]
+    },
+    {
+      id: 'B4', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Cycle anchor on the assignment; crew start per person', ar: 'بداية الدورة في الإسناد؛ ونقطة بداية الطاقم لكل شخص' },
+      decision: { en: 'Each team starts the cycle on its own date; each member\'s crew start shifts their slot inside it.', ar: 'يبدأ كل فريق الدورة في تاريخه الخاص؛ ونقطة بداية الطاقم لكل عضو تزيح يومه داخلها.' },
+      why: { en: 'One "4 on 4 off" pattern serves many teams; staggered crews cover each other.', ar: 'نمط واحد "4 عمل 4 عطلة" يخدم فرقاً كثيرة؛ والأطقم المتعاقبة تغطي بعضها.' },
+      alts: [ { en: 'Anchor on the pattern + anchor override (the brief): not chosen — every team with a different start would need a copy or an override anyway.', ar: 'بداية على النمط مع تجاوز للبداية (الموجز): لم يُختر — كل فريق ببداية مختلفة سيحتاج نسخة أو تجاوزاً على أي حال.' } ]
+    },
+    {
+      id: 'B5', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Own off days for weekly patterns only', ar: 'أيام العطلة الخاصة للأنماط الأسبوعية فقط' },
+      decision: { en: 'Listed weekday → off; a pattern off day not listed → work with the pattern\'s default shift. Cycles use crew start instead.', ar: 'يوم الأسبوع المدرج ← عطلة؛ ويوم عطلة في النمط غير مدرج ← عمل بالوردية الافتراضية للنمط. والدورات تستخدم نقطة بداية الطاقم بدلاً من ذلك.' },
+      why: { en: 'Most staff follow the department\'s shifts but have their own weekly off days (old day_off_1/2).', ar: 'معظم الموظفين يتبعون ورديات القسم لكن لهم أيام عطلة أسبوعية خاصة (day_off_1/2 القديمة).' },
+      alts: [ { en: 'A full personal pattern for each such person: not chosen — heavy; shift times would no longer follow the department.', ar: 'نمط شخصي كامل لكل منهم: لم يُختر — ثقيل؛ ولن تتبع أوقات الورديات القسمَ بعد ذلك.' } ]
+    },
+    {
+      id: 'B6', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Department patterns always reach sub-departments', ar: 'أنماط القسم تصل دائماً إلى الأقسام الفرعية' },
+      decision: { en: 'Nearest department wins; no include-sub-departments switch.', ar: 'أقرب قسم يفوز؛ بلا مفتاح "تضمين الأقسام الفرعية".' },
+      why: { en: 'Matches D10 and today\'s engine; one rule less for HR.', ar: 'يوافق D10 والمحرك الحالي؛ وقاعدة أقل على الموارد البشرية.' },
+      alts: [ { en: 'The brief\'s include_sub_departments flag: not chosen — a sub-department can simply get its own assignment.', ar: 'علامة include_sub_departments في الموجز: لم يُختر — يمكن ببساطة إعطاء القسم الفرعي إسناده الخاص.' } ]
+    },
+    {
+      id: 'B7', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Assignments start today or later (for now)', ar: 'تبدأ الإسنادات اليوم أو لاحقاً (حالياً)' },
+      decision: { en: 'After the period table exists (S3.1): a past date only inside an open period, with a reason; never in a closed or locked one.', ar: 'بعد وجود جدول الفترات (S3.1): يُسمح بتاريخ سابق داخل فترة مفتوحة فقط ومع سبب؛ ولا يُسمح أبداً في فترة مغلقة أو مقفلة.' },
+      why: { en: 'Nothing to check an open period against yet.', ar: 'لا يوجد ما يُتحقق منه للفترة المفتوحة بعد.' },
+      alts: [ { en: 'Allow any past date with a reason now: not chosen — could change already-paid months.', ar: 'السماح بأي تاريخ سابق مع سبب الآن: لم يُختر — قد يغيّر أشهراً دُفعت بالفعل.' } ]
+    },
+    {
+      id: 'B8', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Membership dates decide who follows the team', ar: 'تواريخ العضوية تحدد من يتبع الفريق' },
+      decision: { en: 'Joining mid-cycle keeps the team\'s anchor (plus own crew start); leaving switches to the department pattern.', ar: 'الانضمام في منتصف الدورة يحافظ على بداية الفريق (مع نقطة بداية الطاقم الخاصة)؛ والمغادرة تنقل إلى نمط القسم.' },
+      why: { en: 'Crews stay aligned.', ar: 'تبقى الأطقم متناسقة.' },
+      alts: [ { en: 'Restart the cycle at the join date: not chosen — the new member would be out of step with the crew.', ar: 'إعادة بدء الدورة من تاريخ الانضمام: لم يُختر — سيكون العضو الجديد غير متناسق مع الطاقم.' } ]
+    },
+    {
+      id: 'B9', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Schedule changes never touch punches or manual days', ar: 'تغييرات الجدول لا تمس البصمات أو الأيام اليدوية' },
+      decision: { en: 'Only the plan changes; results are recomputed later (S4.2).', ar: 'تتغير الخطة فقط؛ وتُعاد النتائج لاحقاً (S4.2).' },
+      why: { en: 'Brief R17, A3, A5: no re-import, no lost manual work.', ar: 'الموجز R17 وA3 وA5: بلا إعادة استيراد وبلا ضياع للعمل اليدوي.' },
+      alts: [ { en: 'Regenerate whole days (old module): not chosen — wiped manual edits.', ar: 'إعادة توليد الأيام بالكامل (الوحدة القديمة): لم يُختر — كان يمحو التعديلات اليدوية.' } ]
+    },
+    {
+      id: 'B10', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'No rotations for now', ar: 'لا تدوير حالياً' },
+      decision: { en: 'Rotation groups (brief §9.5) are out of scope; crew start covers staggered crews.', ar: 'مجموعات التدوير (الموجز §9.5) خارج النطاق؛ ونقطة بداية الطاقم تغطي الأطقم المتعاقبة.' },
+      why: { en: 'Unused in the data (0 rotation groups, Q13).', ar: 'غير مستخدمة في البيانات (0 مجموعات تدوير، Q13).' },
+      alts: [ { en: 'Port rotation_math now: not chosen — work with no current user.', ar: 'نقل rotation_math الآن: لم يُختر — عمل بلا مستخدم حالي.' } ]
+    },
+    {
+      id: 'B11', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'No member self-service requests yet', ar: 'لا طلبات خدمة ذاتية للأعضاء بعد' },
+      decision: { en: 'Swaps and off-day changes requested by members come with /changes (S3.5) and login (S8).', ar: 'التبديلات وتغييرات أيام العطلة التي يطلبها الأعضاء تأتي مع ‎/changes (S3.5) وتسجيل الدخول (S8).' },
+      why: { en: 'With no login (D17) the app cannot tell who a member is.', ar: 'بدون تسجيل دخول (D17) لا يستطيع التطبيق معرفة هوية العضو.' },
+      alts: [ { en: 'HR enters requests on behalf of members now: possible later inside /changes.', ar: 'إدخال الموارد البشرية للطلبات نيابة عن الأعضاء الآن: ممكن لاحقاً ضمن ‎/changes.' } ]
+    },
+    {
+      id: 'B12', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Presets use existing shift codes', ar: 'القوالب الجاهزة تستخدم رموز الورديات الموجودة' },
+      decision: { en: 'A preset whose shift codes don\'t exist is disabled with "create shift X first".', ar: 'القالب الجاهز الذي لا توجد رموز وردياته يُعطَّل مع رسالة "أنشئ الوردية X أولاً".' },
+      why: { en: 'The mockup\'s M/E/O codes don\'t exist here (only D, N).', ar: 'رموز M/E/O في النموذج غير موجودة هنا (فقط D وN).' },
+      alts: [ { en: 'Auto-create missing shifts from a preset: not chosen — times would be guessed.', ar: 'إنشاء الورديات الناقصة تلقائياً من القالب: لم يُختر — ستكون الأوقات تخميناً.' } ]
+    },
+    {
+      id: 'B13', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Excel monthly grid import/export is optional and last', ar: 'استيراد/تصدير الجدول الشهري من Excel اختياري وفي النهاية' },
+      decision: { en: 'Phase 6, only after approval and with a sample file in ~/secure/syravia/.', ar: 'المرحلة 6، فقط بعد الموافقة ومع ملف نموذجي في ‎~/secure/syravia/.' },
+      why: { en: 'Large and needs real files; the builder is useful without it.', ar: 'كبير ويحتاج ملفات حقيقية؛ والمنشئ مفيد بدونه.' },
+      alts: [ { en: 'Build it first: not chosen — the pattern library and assignments must exist before a grid can create them.', ar: 'بناؤه أولاً: لم يُختر — يجب أن توجد مكتبة الأنماط والإسنادات قبل أن ينشئها الجدول.' } ]
+    },
+    {
+      id: 'B14', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Permissions: build with roster.manage, view with staff.write', ar: 'الصلاحيات: البناء بـ roster.manage والعرض بـ staff.write' },
+      decision: { en: 'Same as /shifts; no new keys.', ar: 'مثل ‎/shifts؛ بلا مفاتيح جديدة.' },
+      why: { en: 'Existing RBAC seed; real roles come with login.', ar: 'بيانات الصلاحيات الموجودة؛ والأدوار الحقيقية تأتي مع تسجيل الدخول.' },
+      alts: [ { en: 'A new patterns.manage key: not chosen — no login yet to use it.', ar: 'مفتاح جديد patterns.manage: لم يُختر — لا تسجيل دخول بعد لاستخدامه.' } ]
+    },
+    {
+      id: 'B15', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1 (Q-B3)',
+      title: { en: 'Team staffing: counts only', ar: 'طاقم الفريق: عرض الأعداد فقط' },
+      decision: { en: 'The team page shows how many people work each shift on each day (e.g. 2 D + 1 N). There is no minimum and no warning.', ar: 'تعرض صفحة الفريق عدد العاملين في كل وردية لكل يوم (مثلاً 2 نهار + 1 ليل). لا يوجد حد أدنى ولا تنبيه.' },
+      why: { en: 'The user\'s answer to Q-B3 (2026-10-29): enough for the first version; a minimum can be added later without rework.', ar: 'إجابة المستخدم على Q-B3 (2026-10-29): كافٍ للنسخة الأولى؛ ويمكن إضافة حد أدنى لاحقاً دون إعادة عمل.' },
+      alts: [ { en: 'A minimum per team with warnings when a change breaks it: not chosen — setup for every team and a check on every change, not needed yet.', ar: 'حد أدنى لكل فريق مع تنبيه عند مخالفته: لم يُختر — يحتاج إعداداً لكل فريق وفحصاً عند كل تغيير، وليس مطلوباً بعد.' } ]
+    }
+  ];
+
+  // Defaults used until the user answers (main plan §13 + builder plan §1).
+  var DEFAULTS = [
+    ['Q-A1', 'Roster month = payroll period 21→20 or calendar month?', '21→20', 'هل شهر الجدول = فترة الرواتب 21←20 أم الشهر التقويمي؟', '21←20'],
+    ['Q-A2', 'How do days off move each month?', 'copy last month + manual moves', 'كيف تتحرك أيام العطلة كل شهر؟', 'نسخ الشهر السابق + تعديلات يدوية'],
+    ['Q-A3', 'Teams from today\'s sub-departments or new crews?', 'seed from sub-departments', 'هل الفرق من الأقسام الفرعية الحالية أم أطقم جديدة؟', 'إنشاؤها من الأقسام الفرعية'],
+    ['Q-A4', 'Show old history days?', '3 golden periods, read-only', 'هل تُعرض أيام التاريخ القديم؟', '3 فترات مرجعية، للقراءة فقط'],
+    ['Q-A5', 'Later login: template code login or other?', 'template code login', 'تسجيل الدخول لاحقاً: رمز القالب أم غيره؟', 'تسجيل الدخول برمز القالب'],
+    ['Q-A7', 'Keep any flight features?', 'no', 'هل نحتفظ بأي ميزات للرحلات؟', 'لا'],
+    ['Q-A8', '"Week only" swaps: Sun–Sat or Mon–Sun?', 'Sun–Sat', 'تبديلات "الأسبوع فقط": الأحد–السبت أم الاثنين–الأحد؟', 'الأحد–السبت'],
+    ['Q-A9', 'Weekly OT or minimum OT for any department?', 'no', 'عمل إضافي أسبوعي أو حد أدنى لأي قسم؟', 'لا'],
+    ['Q-A10', 'No supervisor: department manager or HR approves?', 'department manager, else HR', 'بلا مشرف: هل يوافق مدير القسم أم الموارد البشرية؟', 'مدير القسم، وإلا الموارد البشرية'],
+    ['Q-A11', 'Punch file format?', 'user provides later; manual entry until then', 'صيغة ملف البصمات؟', 'يقدمها المستخدم لاحقاً؛ والإدخال اليدوي حتى ذلك الحين'],
+    ['Q-A12', 'Format of generated employee numbers?', 'next integer after the highest, never reused', 'صيغة أرقام الموظفين المولّدة؟', 'العدد التالي بعد الأعلى، دون إعادة استخدام'],
+    ['Q-A13', 'Must a new hire\'s number be enrolled on BioTime?', 'yes (HR process)', 'هل يجب تسجيل رقم الموظف الجديد في BioTime؟', 'نعم (إجراء الموارد البشرية)']
+  ];
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) for (var k in attrs) node.setAttribute(k, attrs[k]);
+    (children || []).forEach(function (c) {
+      node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return node;
+  }
+
+  function pill(status, lang) {
+    return el('span', { class: 'pill s-' + status, lang: lang }, [STATUS[status][lang]]);
+  }
+
+  var LABELS = {
+    decision: { en: 'Decision', ar: 'القرار' },
+    why: { en: 'Why', ar: 'السبب' },
+    alts: { en: 'Not chosen', ar: 'بدائل لم تُختر' }
+  };
+
+  function side(d, lang) {
+    var box = el('div', { lang: lang }, [
+      el('div', { class: 'label' }, [LABELS.decision[lang]]), el('p', null, [d.decision[lang]]),
+      el('div', { class: 'label' }, [LABELS.why[lang]]), el('p', null, [d.why[lang]])
+    ]);
+    if (d.alts.length) {
+      box.appendChild(el('div', { class: 'label' }, [LABELS.alts[lang]]));
+      box.appendChild(el('ul', { class: 'alts' }, d.alts.map(function (a) { return el('li', null, [a[lang]]); })));
+    }
+    return box;
+  }
+
+  function card(d) {
+    return el('article', { class: 'd', id: d.id }, [
+      el('header', null, [
+        el('span', { class: 'id' }, [d.id]),
+        el('h3', null, [el('span', { lang: 'en' }, [d.title.en]), ' ', el('span', { lang: 'ar' }, [d.title.ar])]),
+        pill(d.status, 'en'), pill(d.status, 'ar'),
+        el('span', { class: 'meta' }, [d.date + ' · ' + d.src])
+      ]),
+      el('div', { class: 'bi' }, [side(d, 'en'), side(d, 'ar')])
+    ]);
+  }
+
+  var state = { group: 'all', q: '' };
+
+  function text(d) {
+    return [d.id, d.title.en, d.title.ar, d.decision.en, d.decision.ar, d.why.en, d.why.ar]
+      .concat(d.alts.map(function (a) { return a.en + ' ' + a.ar; })).join(' ').toLowerCase();
+  }
+
+  function render() {
+    var list = document.getElementById('list');
+    list.textContent = '';
+    Object.keys(GROUPS).forEach(function (g) {
+      if (state.group !== 'all' && state.group !== g) return;
+      var items = DECISIONS.filter(function (d) {
+        return d.group === g && (!state.q || text(d).indexOf(state.q) !== -1);
+      });
+      if (!items.length) return;
+      list.appendChild(el('h2', null, [
+        el('span', { lang: 'en' }, [GROUPS[g].en]), ' ', el('span', { lang: 'ar' }, [GROUPS[g].ar])
+      ]));
+      items.forEach(function (d) { list.appendChild(card(d)); });
+    });
+    if (!list.childNodes.length) {
+      list.appendChild(el('p', { class: 'empty' }, [
+        el('span', { lang: 'en' }, ['No decision matches.']), ' ', el('span', { lang: 'ar' }, ['لا يوجد قرار مطابق.'])
+      ]));
+    }
+  }
+
+  // Legend
+  var legend = document.getElementById('legend');
+  Object.keys(STATUS).forEach(function (s) {
+    legend.appendChild(el('span', null, [
+      pill(s, 'en'), pill(s, 'ar'), ' ',
+      el('span', { class: 'muted', lang: 'en' }, [STATUS[s].hint.en]), ' ',
+      el('span', { class: 'muted', lang: 'ar' }, [STATUS[s].hint.ar])
+    ]));
+  });
+
+  // Group chips
+  var chips = document.getElementById('groups');
+  [['all', { en: 'All', ar: 'الكل' }]].concat(Object.keys(GROUPS).map(function (g) { return [g, GROUPS[g]]; }))
+    .forEach(function (pair) {
+      var b = el('button', { type: 'button', 'data-group': pair[0], 'aria-pressed': String(pair[0] === 'all') }, [
+        el('span', { lang: 'en' }, [pair[1].en]), ' ', el('span', { lang: 'ar' }, [pair[1].ar])
+      ]);
+      b.addEventListener('click', function () {
+        state.group = pair[0];
+        chips.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        render();
+      });
+      chips.appendChild(b);
+    });
+
+  document.getElementById('q').addEventListener('input', function (e) {
+    state.q = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  // Defaults table
+  var tbody = document.getElementById('defaults');
+  DEFAULTS.forEach(function (r) {
+    tbody.appendChild(el('tr', null, [
+      el('td', null, [r[0]]),
+      el('td', { lang: 'en' }, [r[1]]), el('td', { lang: 'en' }, [r[2]]),
+      el('td', { lang: 'ar' }, [r[3]]), el('td', { lang: 'ar' }, [r[4]])
+    ]));
+  });
+
+  // Language switch (same as docs/architecture-guide.html)
+  var body = document.body;
+  var buttons = document.querySelectorAll('.switch button');
+  function show(lang) {
+    body.setAttribute('data-show', lang);
+    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+    try { localStorage.setItem('ab-decisions-lang', lang); } catch (e) {}
+  }
+  buttons.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.lang); }); });
+  var saved = null;
+  try { saved = localStorage.getItem('ab-decisions-lang'); } catch (e) {}
+  show(saved === 'en' || saved === 'ar' ? saved : 'both');
+
+  render();
+})();
+</script>
+</body>
+</html>

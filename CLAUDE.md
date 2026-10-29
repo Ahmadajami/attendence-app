@@ -9,6 +9,8 @@ app-generated employee number). Odoo **only sends the attendance emails**.
 **Start here:** `plans/2026-10-28-attendance-app.md` (decisions, lanes,
 tasks with "done when"). Plain-language overview with diagrams (EN/AR):
 `docs/architecture-guide.html`. UI reference: `docs/mockup/attendance-builder.html`.
+Every decision with its reasons and the rejected alternatives (EN/AR):
+`docs/decisions.html` (rules in §6).
 
 ## 1. Real data rules (non-negotiable)
 
@@ -30,6 +32,14 @@ punches, sick days = health information).
   listen on `127.0.0.1` only. Never `0.0.0.0`, tunnels or port forwarding.
 - Ask the user before dropping or overwriting a database, deleting anything
   in `~/secure/syravia/`, or exposing anything on the network.
+- **The user does all browser testing and all package changes.** Agents
+  never open the app in a browser, never start a dev server to check
+  something at runtime, and never run Playwright. A plan's "manual check" is
+  a checklist handed to the user and ticked only when the user reports the
+  result. Agents never install, uninstall, add, remove or upgrade packages
+  (`pnpm add/remove/install/update`, browser binaries, system packages):
+  write the exact command for the user and wait. Static checks stay with the
+  agent: `pnpm check`, `pnpm test`, eslint, prettier, `svelte-autofixer`.
 
 ## 2. Reference material (read-only)
 
@@ -180,3 +190,22 @@ Every plan lives in `plans/` (convention in `plans/README.md`). Tick a box
 as soon as its "done when" is true, add `> note:` lines with results
 (counts and IDs only), commit the plan with the work. Never delete a plan;
 a replaced one becomes `**Status:** superseded` with a pointer.
+
+## 6. Decisions log (`docs/decisions.html`)
+
+One self-contained HTML page (English + Arabic, no external resources) that
+records **every decision**: what was decided, **why**, and the
+**alternatives not chosen** with the reason for each.
+
+- Whenever a decision is made or changed (a `D`/`P`/`E`/`B`/… row in a plan,
+  a choice the user makes in chat, a default that changes), add or update
+  its entry **in the same change**: one object in the `DECISIONS` array
+  with `id`, `group`, `status` (`approved` | `default` | `proposed` |
+  `pending` | `replaced`), `date`, `src` (plan file + section), and
+  `title` / `decision` / `why` / `alts` in **both** `en` and `ar`.
+- A default waiting for the user's answer goes in the `DEFAULTS` table.
+- Never delete an entry: a replaced decision gets `status: 'replaced'` and
+  names its replacement. When a proposed plan is approved, change its
+  decisions to `approved`.
+- No personal data (§1): IDs, counts and made-up examples only.
+- Check the script after editing (`node --check` on the extracted script).

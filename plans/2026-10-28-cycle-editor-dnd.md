@@ -59,7 +59,7 @@ saw. All four are real, so fix all four.
 |---|---|---|
 | E1 | Follow the mockup's drop rules: shift → day sets it (weekly) / **inserts before** it (cycle); shift → "+ add" appends (cycle); day → day swaps (weekly) / moves (cycle); day → bin removes (cycle, never below 1 day). Inserts and appends stop at 28 days with a toast | Mockup F2 is the agreed UI reference (plan §9a) |
 | E2 | Remove sweep-painting (`pointerenter` while held). A press-and-move now starts a drag. Painting = pick a palette chip, then **tap/click** days. This also removes S3 | Sweep-painting and dragging a day can't share the same gesture |
-| E3 | Use `@dnd-kit-svelte/svelte` (already used on `/employees`); no new dependency. Day cells are `useSortable` items; palette chips are `useDraggable`; "+ add" and the bin are `useDroppable`. `DragOverlay` shows the chip under the pointer | One DnD library in the app; works with mouse, touch and keyboard |
+| E3 | ~~Use `@dnd-kit-svelte/svelte` (already used on `/employees`); no new dependency. Day cells are `useSortable` items; palette chips are `useDraggable`; "+ add" and the bin are `useDroppable`. `DragOverlay` shows the chip under the pointer~~ **Revised 2026-10-29 (user OK): use the official `@dnd-kit/svelte` 0.5.0** (`DragDropProvider`, `DragOverlay`, sensors), replacing `@dnd-kit-svelte/svelte` on `/employees` too; dnd-kit core pinned to 0.5.0 via `pnpm-workspace.yaml` overrides | One DnD library in the app; works with mouse, touch and keyboard |
 | E4 | Activation: mouse after 4 px of movement; touch after a 200 ms press (so a tap still paints and the page still scrolls). Keyboard: dnd-kit `KeyboardSensor` (Space to lift, arrows, Space to drop) | A tap must stay a paint; mobile must scroll |
 | E5 | The array logic lives in a **pure** module `src/lib/roster/slots.ts` with Vitest, not in the component | Same rule as the rest of `src/lib/roster/`: logic tested in Node |
 | E6 | A dropped/dragged shift also becomes the brush (mockup does this) | Keeps the palette selection equal to the last shift used (helps S2) |
@@ -69,11 +69,9 @@ saw. All four are real, so fix all four.
 ## 2. Tasks
 
 ### A · Reproduce and pin down the sync bug
-- [ ] A1 Ask the user which of S1–S4 they saw (or for their steps), then
-      reproduce it on the manual-test server
-      (`pnpm exec vite dev --mode e2e --port 5174`, DB `attendance_app_e2e`,
-      synthetic). Never on `attendance_app`. Do not run Playwright here (the
-      user runs e2e).
+- [ ] A1 Ask the user which of S1–S4 they saw (or for their steps). The
+      user reproduces it in the browser; agents never test in a browser
+      (CLAUDE.md §1, 2026-10-29).
       > note: record which defects were reproduced; a defect not on the list
       > gets a new row in §0 and a task in B.
 
@@ -157,8 +155,9 @@ saw. All four are real, so fix all four.
 - [ ] V1 `svelte-autofixer` on every touched `.svelte` until clean;
       `pnpm check` 0 errors; `pnpm exec eslint` + `prettier --check` on
       touched files; `pnpm test` green.
-- [ ] V2 Manual check on `attendance_app_e2e` (port 5174, `--mode e2e` only,
-      never an exported `DATABASE_URL`):
+- [ ] V2 Manual check **by the user** (agents never test in a browser,
+      CLAUDE.md §1): hand this list to the user, who runs it on
+      `attendance_app_e2e` (port 5174, `--mode e2e`); tick when they report:
       - drag D onto day 3 of a cycle → inserted; onto a weekly Wednesday → set;
       - drag day 2 onto day 5 (cycle) → moved; weekly Mon onto Fri → swapped;
       - drag a day to the bin → removed; at 1 day → refused toast;

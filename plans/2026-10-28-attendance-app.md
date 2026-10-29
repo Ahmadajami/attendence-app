@@ -427,6 +427,8 @@ needs B's connector → S1.6 waits for the user's file format.
 - [ ] S2.4 `/teams` (F13) and `/patterns` (F2–F4).
       **Done when** a D-D-N-N-O-O-O-O cycle assigned to a team is right
       before and after its anchor
+      > Detailed steps: [attendance builder](2026-10-29-attendance-builder.md)
+      > (pattern library + assignments + own off days / crew start).
 - [ ] S2.5 Import old setup (`shifts_old`, `employee_lines_old`,
       `cycles_old`, `holidays_old`, `holiday_assignments_old`).
       **Done when** counts equal `docs/reference/DATA_PROFILE.md`

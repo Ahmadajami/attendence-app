@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attendance Builder Plan</title>
+<!--
+  Visual, bilingual (EN + AR) explanation of plans/2026-10-29-attendance-builder.md.
+  Self-contained: no external fonts, scripts or CDNs (CLAUDE.md §1). Examples use made-up teams
+  and people only. Keep in step with the plan file and docs/decisions.html.
+-->
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --app: #1f6f8b; --app-soft: #e3f1f6;
+    --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5;
+    --day: #b45309; --day-soft: #fdecc8; --night: #3730a3; --night-soft: #e0e0fb;
+    --morn: #0f766e; --morn-soft: #d5f2ee; --off: #6b7280; --off-soft: #eceef2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --app: #6cc3df; --app-soft: #16303a;
+      --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a;
+      --day: #fbbf24; --day-soft: #3a2c10; --night: #a5b4fc; --night-soft: #23254a;
+      --morn: #5eead4; --morn-soft: #12322e; --off: #9ca3af; --off-soft: #262b34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+    --app: #6cc3df; --app-soft: #16303a;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+    --bad: #f2867e; --bad-soft: #3b1c1a;
+    --day: #fbbf24; --day-soft: #3a2c10; --night: #a5b4fc; --night-soft: #23254a;
+    --morn: #5eead4; --morn-soft: #12322e; --off: #9ca3af; --off-soft: #262b34;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  }
+  [lang="ar"] { font-family: "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif; direction: rtl; text-align: right; }
+  header.top {
+    position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 10px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  }
+  header.top strong { font-size: 15px; }
+  .switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .switch button { border: 0; background: transparent; color: var(--ink); padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+  .switch button[aria-pressed="true"] { background: var(--app); color: #fff; }
+  nav.toc { max-width: 1080px; margin: 0 auto; padding: 8px 16px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  nav.toc a {
+    font-size: 13px; color: var(--app); text-decoration: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 10px; background: var(--card);
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 16px; }
+  section.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 18px 0; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 6px 0 4px; }
+  h2 { font-size: 21px; margin: 0 0 12px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  h2 .num { color: var(--app); font-variant-numeric: tabular-nums; }
+  h3 { font-size: 17px; margin: 16px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-inline-start: 22px; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+  .bi { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  body[data-show="en"] [lang="ar"], body[data-show="ar"] [lang="en"] { display: none; }
+  body[data-show="en"] .bi, body[data-show="ar"] .bi { grid-template-columns: 1fr; }
+  @media (max-width: 820px) { .bi { grid-template-columns: 1fr; } }
+  code { font-size: .9em; background: var(--app-soft); padding: 0 4px; border-radius: 4px; direction: ltr; unicode-bidi: isolate; }
+  .pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
+  .p-ok { background: var(--ok-soft); color: var(--ok); }
+  .p-warn { background: var(--warn-soft); color: var(--warn); }
+  .p-app { background: var(--app-soft); color: var(--app); }
+  .p-bad { background: var(--bad-soft); color: var(--bad); }
+  .callout { border-inline-start: 4px solid var(--app); background: var(--app-soft); padding: 10px 14px; border-radius: 8px; margin: 10px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout.ok { border-color: var(--ok); background: var(--ok-soft); }
+
+  /* tables */
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: start; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 14px; }
+
+  /* shift grids */
+  table.grid { width: auto; border-collapse: separate; border-spacing: 4px; font-size: 14px; direction: ltr; }
+  table.grid th, table.grid td { border: 0; padding: 0; text-align: center; vertical-align: middle; }
+  table.grid th { padding: 0 6px; font-weight: 600; white-space: nowrap; }
+  table.grid th.row { text-align: start; min-width: 120px; }
+  .c { display: inline-grid; place-items: center; width: 38px; height: 34px; border-radius: 8px; font-weight: 700; }
+  .cD { background: var(--day-soft); color: var(--day); }
+  .cN { background: var(--night-soft); color: var(--night); }
+  .cM { background: var(--morn-soft); color: var(--morn); }
+  .cO { background: var(--off-soft); color: var(--off); font-weight: 500; }
+  .c.mark { outline: 2px solid var(--warn); outline-offset: 1px; }
+  .c.old { opacity: .45; }
+  td.count { font-size: 12px; color: var(--muted); line-height: 1.3; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; align-items: center; margin: 8px 0; }
+  .legend .c { width: 28px; height: 24px; font-size: 13px; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; counter-reset: s; }
+  @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+  .steps .st { border: 1px solid var(--line); border-radius: 12px; padding: 14px 12px 10px; position: relative; background: var(--bg); }
+  .steps .st::before {
+    counter-increment: s; content: counter(s); position: absolute; top: -11px; inset-inline-start: 12px;
+    background: var(--app); color: #fff; border-radius: 999px; width: 24px; height: 24px; font-size: 13px;
+    display: grid; place-items: center; font-weight: 700;
+  }
+  .steps .st p { margin: 4px 0; font-size: 15px; }
+
+  /* ladder */
+  ol.ladder { list-style: none; padding: 0; margin: 8px 0; counter-reset: l; }
+  ol.ladder li {
+    counter-increment: l; display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin: 6px 0;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+  }
+  ol.ladder li::before {
+    content: counter(l); flex: 0 0 26px; height: 26px; border-radius: 999px; background: var(--app); color: #fff;
+    display: grid; place-items: center; font-size: 13px; font-weight: 700;
+  }
+  ol.ladder li.adjust::before { background: var(--warn); content: "±"; }
+  ol.ladder li.end::before { background: var(--off); }
+
+  /* model boxes */
+  .model { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: center; direction: ltr; }
+  @media (max-width: 760px) { .model { grid-template-columns: 1fr; } .model .arrow { transform: rotate(90deg); justify-self: center; } }
+  .box { border: 2px solid var(--app); border-radius: 12px; padding: 10px 12px; background: var(--app-soft); font-size: 14px; }
+  .box.plain { border-color: var(--line); background: var(--card); }
+  .box b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .box small { color: var(--muted); display: block; }
+  .arrow { color: var(--muted); font-size: 22px; text-align: center; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+  .compare > div { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--bg); }
+
+  /* timeline */
+  .timeline { display: flex; direction: ltr; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); font-size: 14px; }
+  .timeline div { padding: 10px; text-align: center; }
+  .tl-a { flex: 14; background: var(--night-soft); color: var(--night); }
+  .tl-b { flex: 16; background: var(--day-soft); color: var(--day); border-inline-start: 3px dashed var(--ink); }
+
+  /* mock screens */
+  .mock { border: 1px dashed var(--muted); border-radius: 12px; padding: 12px; background: var(--bg); font-size: 14px; }
+  .mock .title { font-weight: 700; margin-bottom: 6px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+  .pcard { border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--card); }
+  .pcard .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .tag { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; }
+
+  /* phases */
+  .phase { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: var(--bg); }
+  .phase header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 4px; }
+  .phase header b { font-size: 16px; }
+  .who { font-size: 13px; }
+</style>
+</head>
+<body data-show="both">
+<header class="top">
+  <strong><span lang="en">Attendance builder: the plan explained</span> <span lang="ar">منشئ الحضور: شرح الخطة</span></strong>
+  <div class="switch" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="false">English</button>
+    <button type="button" data-lang="both" aria-pressed="true">EN + ع</button>
+    <button type="button" data-lang="ar" aria-pressed="false">العربية</button>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <a href="#goal">1 · Goal / الهدف</a>
+  <a href="#today">2 · Today vs new / الآن والجديد</a>
+  <a href="#words">3 · Words / المصطلحات</a>
+  <a href="#steps">4 · 3 steps / ثلاث خطوات</a>
+  <a href="#rules">5 · Rules / القواعد</a>
+  <a href="#ex-crew">6 · Crew start / بداية الطاقم</a>
+  <a href="#ex-off">7 · Own off days / العطل الخاصة</a>
+  <a href="#ex-join">8 · Joining / الانضمام</a>
+  <a href="#ex-change">9 · Change from a date / التغيير من تاريخ</a>
+  <a href="#screens">10 · Screens / الشاشات</a>
+  <a href="#model">11 · Data / البيانات</a>
+  <a href="#decisions">12 · Decisions / القرارات</a>
+  <a href="#phases">13 · Phases / المراحل</a>
+  <a href="#out">14 · Not included / خارج النطاق</a>
+</nav>
+
+<main>
+
+  <!-- 1 -->
+  <section class="card" id="goal">
+    <div class="bi">
+      <div lang="en">
+        <h1>The attendance builder</h1>
+        <p>Build a work pattern <b>once</b> (for example "2 days, 2 nights, 4 off"), give it a name, and then
+          <b>assign it</b> to employees, teams or departments from a chosen date. Every member of a team then
+          follows it automatically, with a few clear rules for the exceptions.</p>
+        <p class="muted">Plan file: <code>plans/2026-10-29-attendance-builder.md</code>. Decisions with reasons:
+          <code>docs/decisions.html</code>. Status: approved 2026-10-29 (all decisions B1–B15 and E3b); in progress.</p>
+      </div>
+      <div lang="ar">
+        <h1>منشئ الحضور</h1>
+        <p>تبني نمط عمل <b>مرة واحدة</b> (مثلاً "يومان نهار، ليلتان، 4 أيام عطلة")، وتعطيه اسماً، ثم
+          <b>تسنده</b> إلى موظفين أو فرق أو أقسام اعتباراً من تاريخ تختاره. بعدها يتبعه كل أعضاء الفريق تلقائياً،
+          مع قواعد قليلة وواضحة للحالات الاستثنائية.</p>
+        <p class="muted">ملف الخطة: <code>plans/2026-10-29-attendance-builder.md</code>. القرارات وأسبابها:
+          <code>docs/decisions.html</code>. الحالة: اعتُمدت في 2026-10-29 (كل القرارات B1–B15 وE3b)؛ قيد التنفيذ.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="card" id="today">
+    <h2><span class="num">2</span><span lang="en">Today vs the new way</span><span lang="ar">الوضع الحالي والطريقة الجديدة</span></h2>
+    <div class="compare">
+      <div>
+        <div class="bi">
+          <div lang="en"><h3>Today</h3>
+            <p>The days of a pattern are stored <b>inside</b> each team's (or person's) own record.</p>
+            <ul>
+              <li>Team Alpha has its own copy of "D D N N O O O O".</li>
+              <li>Team Bravo has <b>another copy</b> of the same thing.</li>
+              <li>No name, no library, no "who uses this pattern".</li>
+              <li>To change it you edit each team separately.</li>
+            </ul>
+          </div>
+          <div lang="ar"><h3>الآن</h3>
+            <p>أيام النمط مخزنة <b>داخل</b> سجل كل فريق (أو شخص).</p>
+            <ul>
+              <li>فريق ألفا لديه نسخته الخاصة من "D D N N O O O O".</li>
+              <li>فريق برافو لديه <b>نسخة أخرى</b> من الشيء نفسه.</li>
+              <li>لا اسم، ولا مكتبة، ولا معرفة بـ"من يستخدم هذا النمط".</li>
+              <li>لتغييره تعدّل كل فريق على حدة.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="bi">
+          <div lang="en"><h3>New</h3>
+            <p>The pattern is a <b>library item</b>; an <b>assignment</b> links it to who follows it.</p>
+            <ul>
+              <li>One pattern "12h Day/Night 2·2·4".</li>
+              <li>Assigned to Alpha from Nov 1 and to Bravo from Nov 5.</li>
+              <li>Its card shows "8 following · 👥 Alpha · 👥 Bravo".</li>
+              <li>Change it once, from a date, for everyone on it.</li>
+            </ul>
+          </div>
+          <div lang="ar"><h3>الجديد</h3>
+            <p>النمط <b>عنصر في مكتبة</b>؛ و<b>الإسناد</b> يربطه بمن يتبعه.</p>
+            <ul>
+              <li>نمط واحد "12 ساعة نهار/ليل 2·2·4".</li>
+              <li>مُسند إلى ألفا من 1 نوفمبر وإلى برافو من 5 نوفمبر.</li>
+              <li>بطاقته تُظهر "8 متّبعين · 👥 ألفا · 👥 برافو".</li>
+              <li>تغيّره مرة واحدة، من تاريخ، لكل من يتبعه.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="card" id="words">
+    <h2><span class="num">3</span><span lang="en">The words used in this plan</span><span lang="ar">المصطلحات المستخدمة في الخطة</span></h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th lang="en">Word</th><th lang="en">Meaning</th>
+          <th lang="ar">المصطلح</th><th lang="ar">المعنى</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td lang="en"><b>Shift</b></td><td lang="en">Working hours with a code, e.g. D 07:00→19:00, N 19:00→07:00 (ends next day).</td>
+            <td lang="ar"><b>الوردية</b></td><td lang="ar">ساعات عمل لها رمز، مثل D من 07:00 إلى 19:00، وN من 19:00 إلى 07:00 (تنتهي في اليوم التالي).</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Pattern</b></td><td lang="en">A list of days, each a shift or Off. <b>Weekly</b> = 7 days Sun→Sat. <b>Cycle</b> = 1–28 days that repeat.</td>
+            <td lang="ar"><b>النمط</b></td><td lang="ar">قائمة أيام، كل يوم وردية أو عطلة. <b>أسبوعي</b> = 7 أيام من الأحد إلى السبت. <b>دورة</b> = من 1 إلى 28 يوماً تتكرر.</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Assignment</b></td><td lang="en">"Who follows which pattern, from which date": one employee, one team or one department.</td>
+            <td lang="ar"><b>الإسناد</b></td><td lang="ar">"من يتبع أي نمط، ومن أي تاريخ": موظف واحد أو فريق واحد أو قسم واحد.</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Anchor date</b></td><td lang="en">For a cycle: the date its first day falls on, for that team.</td>
+            <td lang="ar"><b>تاريخ البداية</b></td><td lang="ar">للدورة: التاريخ الذي يقع عليه يومها الأول، لذلك الفريق.</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Crew start</b></td><td lang="en">For a cycle: how many days ahead one person is inside the team's cycle, so crews cover each other.</td>
+            <td lang="ar"><b>بداية الطاقم</b></td><td lang="ar">للدورة: كم يوماً يتقدّم شخص داخل دورة الفريق، حتى تغطي الأطقم بعضها.</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Own off days</b></td><td lang="en">For a weekly pattern: a person's personal weekly days off; the shift times still come from the pattern.</td>
+            <td lang="ar"><b>أيام العطلة الخاصة</b></td><td lang="ar">للنمط الأسبوعي: أيام العطلة الأسبوعية الشخصية لموظف؛ وأوقات الوردية تبقى من النمط.</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Default work shift</b></td><td lang="en">The shift a person works on a day that is Off in the pattern but not one of their own off days.</td>
+            <td lang="ar"><b>وردية العمل الافتراضية</b></td><td lang="ar">الوردية التي يعملها الشخص في يوم هو عطلة في النمط لكنه ليس من أيام عطلته الخاصة.</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Impact preview</b></td><td lang="en">Before saving: "Applies to 12 of 14. 1 has their own pattern…".</td>
+            <td lang="ar"><b>معاينة الأثر</b></td><td lang="ar">قبل الحفظ: "يُطبَّق على 12 من 14. واحد لديه نمطه الخاص…".</td>
+          </tr>
+          <tr>
+            <td lang="en"><b>Staffing strip</b></td><td lang="en">A row under the team calendar: how many people work each shift each day (counts only).</td>
+            <td lang="ar"><b>شريط الطاقم</b></td><td lang="ar">صف تحت تقويم الفريق: كم شخصاً يعمل كل وردية في كل يوم (أعداد فقط).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="card" id="steps">
+    <h2><span class="num">4</span><span lang="en">Building a pattern: 3 steps</span><span lang="ar">بناء نمط: ثلاث خطوات</span></h2>
+    <div class="steps">
+      <div class="st">
+        <p lang="en"><b>Name and type.</b> English and Arabic name; Weekly or Cycle; or start from a preset (e.g. "12h Day/Night 2·2·4").</p>
+        <p lang="ar"><b>الاسم والنوع.</b> اسم بالإنجليزية والعربية؛ أسبوعي أو دورة؛ أو البدء من قالب جاهز (مثل "12 ساعة نهار/ليل 2·2·4").</p>
+      </div>
+      <div class="st">
+        <p lang="en"><b>Fill the days.</b> Tap a shift then tap days, or drag and drop. "＋ New shift" opens the shift form with the "ends next day" hint. A 14-day preview and average hours per week update live.</p>
+        <p lang="ar"><b>ملء الأيام.</b> انقر وردية ثم انقر الأيام، أو اسحب وأفلت. "＋ وردية جديدة" يفتح نموذج الوردية مع تلميح "تنتهي في اليوم التالي". تتحدث معاينة 14 يوماً ومتوسط الساعات الأسبوعية مباشرة.</p>
+      </div>
+      <div class="st">
+        <p lang="en"><b>Assign (optional).</b> Choose employees, teams or departments, a start date, the anchor date for a cycle and a reason. See the impact preview, then confirm.</p>
+        <p lang="ar"><b>الإسناد (اختياري).</b> اختر موظفين أو فرقاً أو أقساماً، وتاريخ البداية، وتاريخ بداية الدورة، وسبباً. شاهد معاينة الأثر ثم أكّد.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <p lang="en">A preset only appears active if its shift codes exist. Today only D and N exist, so "Office Sun–Thu" uses the shift you picked as the brush, and a preset that needs a missing code says "create shift X first" (B12).</p>
+      <p lang="ar">لا يظهر القالب الجاهز مفعّلاً إلا إذا وُجدت رموز وردياته. حالياً توجد D وN فقط، لذا يستخدم "مكتب الأحد–الخميس" الوردية التي اخترتها كفرشاة، والقالب الذي يحتاج رمزاً غير موجود يقول "أنشئ الوردية X أولاً" (B12).</p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="card" id="rules">
+    <h2><span class="num">5</span><span lang="en">How one person's day is decided</span><span lang="ar">كيف يُحدَّد يوم الشخص الواحد</span></h2>
+    <div class="bi">
+      <div lang="en">
+        <p>For each person and each date, the app goes down this list and <b>stops at the first match</b> (decision B2, your answer to Q-B1):</p>
+        <ol class="ladder">
+          <li><span><b>Absence</b> (leave, sick, absent) → no shift.</span></li>
+          <li><span><b>Day override</b> (one date changed by hand, or a swap) → that shift or off.</span></li>
+          <li><span><b>Own pattern</b> assigned to this person → it wins over the team.</span></li>
+          <li><span><b>Team pattern</b> → if the person is a member on that date.</span></li>
+          <li><span><b>Department pattern</b> → own department first, then the parent, and up.</span></li>
+          <li class="end"><span>Nothing found → <b>Off</b>.</span></li>
+          <li class="adjust"><span>Then adjust: <b>own off days</b> (weekly patterns) or <b>crew start</b> (cycle patterns).</span></li>
+        </ol>
+      </div>
+      <div lang="ar">
+        <p>لكل شخص ولكل تاريخ، ينزل التطبيق في هذه القائمة <b>ويتوقف عند أول تطابق</b> (القرار B2، إجابتك على Q-B1):</p>
+        <ol class="ladder">
+          <li><span><b>الغياب</b> (إجازة، مرض، غياب) ← لا وردية.</span></li>
+          <li><span><b>تعديل اليوم</b> (تاريخ واحد غُيّر يدوياً، أو تبديل) ← تلك الوردية أو عطلة.</span></li>
+          <li><span><b>النمط الشخصي</b> المُسند لهذا الشخص ← يتقدم على نمط الفريق.</span></li>
+          <li><span><b>نمط الفريق</b> ← إذا كان الشخص عضواً في ذلك التاريخ.</span></li>
+          <li><span><b>نمط القسم</b> ← قسمه أولاً، ثم القسم الأب، وهكذا صعوداً.</span></li>
+          <li class="end"><span>لا شيء ← <b>عطلة</b>.</span></li>
+          <li class="adjust"><span>ثم التعديل: <b>أيام العطلة الخاصة</b> (الأنماط الأسبوعية) أو <b>بداية الطاقم</b> (أنماط الدورة).</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="callout ok">
+      <p lang="en"><b>Never touched:</b> a schedule change only changes the <i>plan</i>. Punches, absences and manual day changes stay as they are (B9). Day results are recalculated later, when the payroll engine exists.</p>
+      <p lang="ar"><b>لا يُمسّ أبداً:</b> تغيير الجدول يغيّر <i>الخطة</i> فقط. البصمات والغيابات والتعديلات اليدوية تبقى كما هي (B9). وتُعاد حسابات الأيام لاحقاً عند وجود محرك الرواتب.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="card" id="ex-crew">
+    <h2><span class="num">6</span><span lang="en">Example: crew start (cycle patterns)</span><span lang="ar">مثال: بداية الطاقم (أنماط الدورة)</span></h2>
+    <div class="bi">
+      <p lang="en">Made-up team "Alpha", 4 people, cycle <b>D D N N O O O O</b> (8 days), anchor Nov 1. If all 4 started on the same slot, all 4 would work the same days and nobody would work the other days. Giving them crew starts <b>0, 2, 4, 6</b> spreads them out, so <b>every day has exactly 1 Day + 1 Night</b>.</p>
+      <p lang="ar">فريق وهمي "ألفا"، 4 أشخاص، دورة <b>D D N N O O O O</b> (8 أيام)، تبدأ في 1 نوفمبر. لو بدأ الأربعة من الخانة نفسها لعملوا جميعاً في الأيام نفسها ولما عمل أحد في الأيام الأخرى. إعطاؤهم بدايات طاقم <b>0 و2 و4 و6</b> يوزّعهم، فيكون <b>في كل يوم بالضبط شخص نهار + شخص ليل</b>.</p>
+    </div>
+    <div class="legend">
+      <span class="c cD">D</span><span lang="en">Day 07→19</span><span lang="ar">نهار 07←19</span>
+      <span class="c cN">N</span><span lang="en">Night 19→07</span><span lang="ar">ليل 19←07</span>
+      <span class="c cO">O</span><span lang="en">Off</span><span lang="ar">عطلة</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="grid">
+        <thead><tr>
+          <th class="row"><span lang="en">Person · crew start</span><span lang="ar">الشخص · بداية الطاقم</span></th>
+          <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th>
+        </tr></thead>
+        <tbody>
+          <tr><th class="row">P1 · 0</th>
+            <td><span class="c cD">D</span></td><td><span class="c cD">D</span></td><td><span class="c cN">N</span></td><td><span class="c cN">N</span></td>
+            <td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td></tr>
+          <tr><th class="row">P2 · 2</th>
+            <td><span class="c cN">N</span></td><td><span class="c cN">N</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td>
+            <td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cD">D</span></td><td><span class="c cD">D</span></td></tr>
+          <tr><th class="row">P3 · 4</th>
+            <td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td>
+            <td><span class="c cD">D</span></td><td><span class="c cD">D</span></td><td><span class="c cN">N</span></td><td><span class="c cN">N</span></td></tr>
+          <tr><th class="row">P4 · 6</th>
+            <td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cD">D</span></td><td><span class="c cD">D</span></td>
+            <td><span class="c cN">N</span></td><td><span class="c cN">N</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td></tr>
+          <tr><th class="row"><span lang="en">Staffing strip</span><span lang="ar">شريط الطاقم</span></th>
+            <td class="count">1D<br>1N</td><td class="count">1D<br>1N</td><td class="count">1D<br>1N</td><td class="count">1D<br>1N</td>
+            <td class="count">1D<br>1N</td><td class="count">1D<br>1N</td><td class="count">1D<br>1N</td><td class="count">1D<br>1N</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <p lang="en">The staffing strip only <b>shows</b> the counts. There is no minimum and no warning (B15, your answer to Q-B3). You look and decide.</p>
+      <p lang="ar">شريط الطاقم <b>يعرض</b> الأعداد فقط. لا يوجد حد أدنى ولا تنبيه (B15، إجابتك على Q-B3). أنت تنظر وتقرر.</p>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="card" id="ex-off">
+    <h2><span class="num">7</span><span lang="en">Example: own off days (weekly patterns)</span><span lang="ar">مثال: أيام العطلة الخاصة (الأنماط الأسبوعية)</span></h2>
+    <div class="bi">
+      <p lang="en">Made-up department pattern "Office": Morning shift <b>M</b> Sun–Thu, Fri + Sat off. Most people follow it. Person Q has <b>own off days Sat + Sun</b>. Their shift times still come from the department (if the department moves M to 07:00, Q moves too). On Friday, which is off in the pattern but not one of Q's off days, Q works the pattern's <b>default work shift</b> (M).</p>
+      <p lang="ar">نمط قسم وهمي "مكتب": وردية صباحية <b>M</b> من الأحد إلى الخميس، والجمعة والسبت عطلة. معظم الموظفين يتبعونه. الموظف Q لديه <b>أيام عطلة خاصة السبت والأحد</b>. أوقات ورديته تبقى من القسم (إذا نقل القسم M إلى 07:00 ينتقل Q أيضاً). يوم الجمعة، وهو عطلة في النمط لكنه ليس من أيام عطلة Q، يعمل Q <b>وردية العمل الافتراضية</b> للنمط (M).</p>
+    </div>
+    <div class="tbl-wrap">
+      <table class="grid">
+        <thead><tr>
+          <th class="row"></th>
+          <th>Sun<br>أحد</th><th>Mon<br>اثنين</th><th>Tue<br>ثلاثاء</th><th>Wed<br>أربعاء</th><th>Thu<br>خميس</th><th>Fri<br>جمعة</th><th>Sat<br>سبت</th>
+        </tr></thead>
+        <tbody>
+          <tr><th class="row"><span lang="en">Colleague (follows)</span><span lang="ar">زميل (يتبع النمط)</span></th>
+            <td><span class="c cM">M</span></td><td><span class="c cM">M</span></td><td><span class="c cM">M</span></td><td><span class="c cM">M</span></td>
+            <td><span class="c cM">M</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td></tr>
+          <tr><th class="row"><span lang="en">Person Q (own off Sat + Sun)</span><span lang="ar">الموظف Q (عطلته السبت والأحد)</span></th>
+            <td><span class="c cO mark">O</span></td><td><span class="c cM">M</span></td><td><span class="c cM">M</span></td><td><span class="c cM">M</span></td>
+            <td><span class="c cM">M</span></td><td><span class="c cM mark">M</span></td><td><span class="c cO">O</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <p lang="en">Own off days work with <b>weekly</b> patterns only. In a cycle the days already move every week, so a person is moved with <b>crew start</b> instead (B5).</p>
+      <p lang="ar">أيام العطلة الخاصة تعمل مع الأنماط <b>الأسبوعية</b> فقط. في الدورة تتحرك الأيام كل أسبوع أصلاً، لذا يُزاح الشخص باستخدام <b>بداية الطاقم</b> بدلاً من ذلك (B5).</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="card" id="ex-join">
+    <h2><span class="num">8</span><span lang="en">Example: joining a team mid-cycle</span><span lang="ar">مثال: الانضمام إلى فريق في منتصف الدورة</span></h2>
+    <div class="bi">
+      <p lang="en">Person P5 joins team Alpha on <b>day 5</b> of the cycle, with crew start 0. They do <b>not</b> restart at day 1. They pick up where the team's cycle is on that date (slot 5 = O), so they stay in step with the crew (B8). Before day 5 they follow their department; if they leave the team later, they go back to the department pattern from that date.</p>
+      <p lang="ar">الموظف P5 ينضم إلى فريق ألفا في <b>اليوم 5</b> من الدورة، ببداية طاقم 0. هو <b>لا</b> يبدأ من اليوم 1 من جديد، بل يكمل من حيث تكون دورة الفريق في ذلك التاريخ (الخانة 5 = O)، فيبقى متناسقاً مع الطاقم (B8). قبل اليوم 5 يتبع قسمه؛ وإذا غادر الفريق لاحقاً يعود إلى نمط القسم من ذلك التاريخ.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table class="grid">
+        <thead><tr><th class="row"></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr></thead>
+        <tbody>
+          <tr><th class="row"><span lang="en">Team cycle</span><span lang="ar">دورة الفريق</span></th>
+            <td><span class="c cD">D</span></td><td><span class="c cD">D</span></td><td><span class="c cN">N</span></td><td><span class="c cN">N</span></td>
+            <td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td>
+            <td><span class="c cD">D</span></td><td><span class="c cD">D</span></td></tr>
+          <tr><th class="row">P5</th>
+            <td><span class="c cM old">M</span></td><td><span class="c cM old">M</span></td><td><span class="c cM old">M</span></td><td><span class="c cM old">M</span></td>
+            <td><span class="c cO mark">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td><td><span class="c cO">O</span></td>
+            <td><span class="c cD">D</span></td><td><span class="c cD">D</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted"><span lang="en">Faded cells: before joining, P5 follows the department pattern (M).</span> <span lang="ar">الخانات الباهتة: قبل الانضمام يتبع P5 نمط القسم (M).</span></p>
+  </section>
+
+  <!-- 9 -->
+  <section class="card" id="ex-change">
+    <h2><span class="num">9</span><span lang="en">Example: changing a pattern that is in use</span><span lang="ar">مثال: تغيير نمط مستخدم</span></h2>
+    <div class="bi">
+      <div lang="en">
+        <p>Pattern "Night crew" is used by 3 teams since October. From <b>Nov 15</b> it must change. Your answer to Q-B2 was <b>save a copy</b> (B3):</p>
+        <ol>
+          <li>Open "Night crew" → it is read-only because it is in use → <b>Edit from a date</b>.</li>
+          <li>Change the days, pick <b>Nov 15</b>, write a reason.</li>
+          <li>The app saves <b>"Night crew (copy)"</b> with the new days.</li>
+          <li>All 3 teams use the old one <b>until Nov 14</b> and the copy <b>from Nov 15</b>, in one step.</li>
+          <li>October and Nov 1–14 never change. Punches are not deleted and need no re-entry.</li>
+        </ol>
+        <p>The date is today or later for now. Once payroll periods exist (task S3.1), a past date is allowed only inside an <b>open</b> period (B7).</p>
+      </div>
+      <div lang="ar">
+        <p>النمط "طاقم الليل" تستخدمه 3 فرق منذ أكتوبر. ويجب تغييره اعتباراً من <b>15 نوفمبر</b>. إجابتك على Q-B2 كانت <b>حفظ نسخة</b> (B3):</p>
+        <ol>
+          <li>افتح "طاقم الليل" ← هو للقراءة فقط لأنه مستخدم ← <b>تعديل اعتباراً من تاريخ</b>.</li>
+          <li>غيّر الأيام، واختر <b>15 نوفمبر</b>، واكتب السبب.</li>
+          <li>يحفظ التطبيق <b>"طاقم الليل (نسخة)"</b> بالأيام الجديدة.</li>
+          <li>تستخدم الفرق الثلاثة القديم <b>حتى 14 نوفمبر</b> والنسخة <b>من 15 نوفمبر</b>، في خطوة واحدة.</li>
+          <li>أكتوبر و1–14 نوفمبر لا يتغيران أبداً. لا تُحذف البصمات ولا تحتاج إعادة إدخال.</li>
+        </ol>
+        <p>التاريخ اليوم أو لاحقاً حالياً. وعند وجود فترات الرواتب (المهمة S3.1) يُسمح بتاريخ سابق داخل فترة <b>مفتوحة</b> فقط (B7).</p>
+      </div>
+    </div>
+    <div class="timeline" aria-label="Timeline">
+      <div class="tl-a"><b>Night crew</b><br>Nov 1 → Nov 14</div>
+      <div class="tl-b"><b>Night crew (copy)</b><br>Nov 15 →</div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="card" id="screens">
+    <h2><span class="num">10</span><span lang="en">The screens</span><span lang="ar">الشاشات</span></h2>
+    <div class="bi">
+      <div lang="en">
+        <h3><code>/patterns</code>: the library</h3>
+        <p>Cards: name, Weekly or N-day cycle, average hours per week, how many people follow it, and where it is assigned (🏢 department, 👥 team, 👤 person). Buttons: Edit, Copy, Assign, Deactivate.</p>
+        <h3><code>/patterns/new</code>, <code>/patterns/[id]</code>: the builder</h3>
+        <p>The 3 steps from section 4 on one page.</p>
+        <h3><code>/teams/[id]</code>: Schedule card</h3>
+        <p>Current pattern and history ("Day until Nov 14, Night from Nov 15"); "Change pattern from a date"; a members table with each member's crew start or own off-day chips and a reset button; the staffing strip.</p>
+        <h3><code>/employees/[id]</code>: Schedule card</h3>
+        <p>"Follows team Alpha" / "Follows department X" / "Own pattern Y"; own off days or crew start; "Use an own pattern from…"; "Reset to team".</p>
+        <h3><code>/departments</code></h3>
+        <p>A "Default pattern" column and an "Assign" button.</p>
+      </div>
+      <div lang="ar">
+        <h3><code>/patterns</code>: المكتبة</h3>
+        <p>بطاقات: الاسم، أسبوعي أو دورة من N يوم، متوسط الساعات الأسبوعية، عدد المتّبعين، وأين أُسند (🏢 قسم، 👥 فريق، 👤 شخص). أزرار: تعديل، نسخ، إسناد، تعطيل.</p>
+        <h3><code>/patterns/new</code> و<code>/patterns/[id]</code>: المنشئ</h3>
+        <p>الخطوات الثلاث من القسم 4 في صفحة واحدة.</p>
+        <h3><code>/teams/[id]</code>: بطاقة الجدول</h3>
+        <p>النمط الحالي وتاريخه ("نهار حتى 14 نوفمبر، ليل من 15 نوفمبر")؛ "تغيير النمط اعتباراً من تاريخ"؛ جدول الأعضاء مع بداية الطاقم أو رقائق أيام العطلة الخاصة وزر إعادة الضبط؛ وشريط الطاقم.</p>
+        <h3><code>/employees/[id]</code>: بطاقة الجدول</h3>
+        <p>"يتبع فريق ألفا" / "يتبع القسم X" / "نمط خاص Y"؛ أيام العطلة الخاصة أو بداية الطاقم؛ "استخدام نمط خاص اعتباراً من…"؛ "العودة إلى الفريق".</p>
+        <h3><code>/departments</code></h3>
+        <p>عمود "النمط الافتراضي" وزر "إسناد".</p>
+      </div>
+    </div>
+
+    <h3><span lang="en">Sketch of the library and the impact preview</span> <span lang="ar">رسم تقريبي للمكتبة ومعاينة الأثر</span></h3>
+    <div class="mock">
+      <div class="title">🧩 Patterns</div>
+      <div class="cards">
+        <div class="pcard"><b>12h Day/Night 2·2·4</b><div class="tags"><span class="tag">8-day cycle</span><span class="tag">42 h/wk</span><span class="tag">8 following</span><span class="tag">👥 Alpha</span><span class="tag">👥 Bravo</span></div></div>
+        <div class="pcard"><b>Office Sun–Thu</b><div class="tags"><span class="tag">Weekly</span><span class="tag">40 h/wk</span><span class="tag">23 following</span><span class="tag">🏢 Admin</span></div></div>
+        <div class="pcard"><b>Nights 4 on · 4 off</b><div class="tags"><span class="tag">8-day cycle</span><span class="tag">42 h/wk</span><span class="tag">0 following</span></div></div>
+      </div>
+      <div class="callout" style="margin-top:10px">
+        <p lang="en"><b>Assign to 👥 Charlie from Dec 1:</b> applies to <b>12 of 14</b>. 1 has their own pattern, which still wins. 1 is not a member on Dec 1. 2 keep their own off days. 3 days already have manual changes, which are kept.</p>
+        <p lang="ar"><b>الإسناد إلى 👥 تشارلي من 1 ديسمبر:</b> يُطبَّق على <b>12 من 14</b>. واحد لديه نمطه الخاص الذي يبقى متقدماً. وواحد ليس عضواً في 1 ديسمبر. واثنان يحتفظان بأيام عطلتهما الخاصة. و3 أيام فيها تعديلات يدوية تبقى كما هي.</p>
+      </div>
+    </div>
+    <p class="muted"><span lang="en">Made-up names and numbers; layout only.</span> <span lang="ar">أسماء وأرقام وهمية؛ للتوضيح فقط.</span></p>
+  </section>
+
+  <!-- 11 -->
+  <section class="card" id="model">
+    <h2><span class="num">11</span><span lang="en">What is stored (data model)</span><span lang="ar">ما يُخزَّن (نموذج البيانات)</span></h2>
+    <div class="model">
+      <div class="box"><b>pattern</b>name en/ar · weekly / cycle · days (shift ids, empty = off) · default work shift · active<small>library item</small></div>
+      <div class="arrow">→</div>
+      <div class="box"><b>pattern_assignment</b>pattern · one of: employee / team / department · anchor date (cycle) · from → to · reason<small>no overlap per target</small></div>
+      <div class="arrow">→</div>
+      <div class="box plain"><b>employee · team · department</b><small>team now belongs to a department</small></div>
+    </div>
+    <div class="model" style="margin-top:10px">
+      <div class="box plain"><b>employee</b></div>
+      <div class="arrow">→</div>
+      <div class="box"><b>staff_schedule</b>own off days (Sun…Sat) · crew start · from → to · reason<small>per person, dated</small></div>
+      <div></div><div></div>
+    </div>
+    <div class="bi" style="margin-top:12px">
+      <p lang="en">The old table <code>shift_pattern</code> is converted: each old row becomes one pattern (named "Pattern" + part of its ID, never a person's or team's name; you rename it) plus one assignment with the same dates. Then the old table is removed. Rows are counted first, and I ask you before touching the real database.</p>
+      <p lang="ar">يُحوَّل الجدول القديم <code>shift_pattern</code>: كل سطر قديم يصبح نمطاً واحداً (اسمه "Pattern" مع جزء من معرّفه، وليس اسم شخص أو فريق؛ وتعيد أنت تسميته) مع إسناد واحد بالتواريخ نفسها. ثم يُحذف الجدول القديم. تُعدّ الصفوف أولاً، وأسألك قبل لمس القاعدة الحقيقية.</p>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="card" id="decisions">
+    <h2><span class="num">12</span><span lang="en">Decisions in this plan</span><span lang="ar">القرارات في هذه الخطة</span></h2>
+    <p class="muted"><span lang="en">Full reasons and rejected alternatives: <code>docs/decisions.html</code>.</span> <span lang="ar">الأسباب الكاملة والبدائل المرفوضة: <code>docs/decisions.html</code>.</span></p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th lang="en">Decision</th><th lang="ar">القرار</th><th lang="en">Status</th><th lang="ar">الحالة</th></tr></thead>
+        <tbody>
+          <tr><td>B1</td><td lang="en">Split pattern (library) from assignment (who, from when)</td><td lang="ar">فصل النمط (المكتبة) عن الإسناد (من، ومن متى)</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B2</td><td lang="en">A team pattern applies to every member, with the rules of section 5</td><td lang="ar">نمط الفريق يُطبَّق على كل عضو وفق قواعد القسم 5</td><td lang="en"><span class="pill p-ok">approved (Q-B1)</span></td><td lang="ar"><span class="pill p-ok">معتمد (Q-B1)</span></td></tr>
+          <tr><td>B3</td><td lang="en">A used pattern is read-only; "Edit from a date" saves a copy and moves its teams</td><td lang="ar">النمط المستخدم للقراءة فقط؛ و"تعديل اعتباراً من تاريخ" يحفظ نسخة وينقل فرقه</td><td lang="en"><span class="pill p-ok">approved (Q-B2)</span></td><td lang="ar"><span class="pill p-ok">معتمد (Q-B2)</span></td></tr>
+          <tr><td>B4</td><td lang="en">Cycle anchor on the assignment; crew start per person</td><td lang="ar">بداية الدورة في الإسناد؛ وبداية الطاقم لكل شخص</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B5</td><td lang="en">Own off days for weekly patterns only</td><td lang="ar">أيام العطلة الخاصة للأنماط الأسبوعية فقط</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B6</td><td lang="en">Department patterns always reach sub-departments; nearest wins</td><td lang="ar">أنماط القسم تصل دائماً للأقسام الفرعية؛ والأقرب يفوز</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B7</td><td lang="en">Start dates today or later until periods exist</td><td lang="ar">تواريخ البدء اليوم أو لاحقاً حتى توجد الفترات</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B8</td><td lang="en">Membership dates decide; joining mid-cycle keeps the team's rhythm</td><td lang="ar">تواريخ العضوية هي الحَكَم؛ والانضمام في منتصف الدورة يحافظ على إيقاع الفريق</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B9</td><td lang="en">Schedule changes never touch punches or manual days</td><td lang="ar">تغييرات الجدول لا تمس البصمات أو الأيام اليدوية</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B10</td><td lang="en">No rotations (unused in the data)</td><td lang="ar">لا تدوير (غير مستخدم في البيانات)</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B11</td><td lang="en">No member requests until login exists</td><td lang="ar">لا طلبات من الأعضاء حتى يوجد تسجيل الدخول</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B12</td><td lang="en">Presets use existing shift codes</td><td lang="ar">القوالب الجاهزة تستخدم رموز الورديات الموجودة</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B13</td><td lang="en">Excel monthly grid is optional and last</td><td lang="ar">جدول Excel الشهري اختياري وفي النهاية</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B14</td><td lang="en">Build with roster.manage, view with staff.write</td><td lang="ar">البناء بصلاحية roster.manage والعرض بـ staff.write</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+          <tr><td>B15</td><td lang="en">Staffing strip shows counts only, no minimum</td><td lang="ar">شريط الطاقم يعرض الأعداد فقط، بلا حد أدنى</td><td lang="en"><span class="pill p-ok">approved (Q-B3)</span></td><td lang="ar"><span class="pill p-ok">معتمد (Q-B3)</span></td></tr>
+          <tr><td>E3b</td><td lang="en">Official @dnd-kit/svelte 0.5.0 for drag and drop</td><td lang="ar">الحزمة الرسمية ‎@dnd-kit/svelte 0.5.0 للسحب والإفلات</td><td lang="en"><span class="pill p-ok">approved</span></td><td lang="ar"><span class="pill p-ok">معتمد</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="card" id="phases">
+    <h2><span class="num">13</span><span lang="en">Phases, and who does what</span><span lang="ar">المراحل، ومن يفعل ماذا</span></h2>
+    <div class="callout warn">
+      <p lang="en"><b>Your rule:</b> you do all browser testing and all package installs or removals. I write code and run the static checks (types, unit tests, lint, format, Svelte autofixer), then give you a checklist or a command.</p>
+      <p lang="ar"><b>قاعدتك:</b> أنت تجري كل اختبارات المتصفح وكل تثبيت أو إزالة للحزم. أنا أكتب الكود وأشغّل الفحوص الثابتة (الأنواع، اختبارات الوحدات، التدقيق، التنسيق، مصحح Svelte)، ثم أعطيك قائمة فحص أو أمراً.</p>
+    </div>
+
+    <div class="phase">
+      <header><b>0</b><span lang="en">Finish the drag-and-drop editor</span><span lang="ar">إنهاء محرر السحب والإفلات</span><span class="pill p-app">next / التالي</span></header>
+      <div class="bi">
+        <p lang="en">Me: static checks on the changed files. You: test the editor in the browser from my checklist. Me: tick and commit it on its own. Done when the DnD plan is "done".</p>
+        <p lang="ar">أنا: الفحوص الثابتة على الملفات المعدّلة. أنت: اختبار المحرر في المتصفح وفق قائمتي. أنا: التأشير والإيداع منفصلاً. ينتهي عندما تصبح خطة السحب والإفلات "منتهية".</p>
+      </div>
+    </div>
+    <div class="phase">
+      <header><b>1</b><span lang="en">Database tables and conversion</span><span lang="ar">جداول القاعدة والتحويل</span></header>
+      <div class="bi">
+        <p lang="en">New tables (pattern, pattern_assignment, staff_schedule), team gets a department, old rows converted. The two test databases are migrated directly; the real one only after a row count and your OK.</p>
+        <p lang="ar">جداول جديدة (pattern وpattern_assignment وstaff_schedule)، والفريق يحصل على قسم، وتُحوَّل الصفوف القديمة. تُرحَّل قاعدتا الاختبار مباشرة؛ والحقيقية فقط بعد عدّ الصفوف وموافقتك.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <header><b>2</b><span lang="en">Calculation logic and tests</span><span lang="ar">منطق الحساب والاختبارات</span></header>
+      <div class="bi">
+        <p lang="en">The rules of sections 5–9 in pure code with unit tests: department / team / own pattern order, own off days, crew start (1 D + 1 N every day), joining mid-cycle, change from a date, impact counts. Every existing test kept.</p>
+        <p lang="ar">قواعد الأقسام 5–9 في كود نقي مع اختبارات وحدات: ترتيب القسم / الفريق / النمط الخاص، أيام العطلة الخاصة، بداية الطاقم (نهار + ليل كل يوم)، الانضمام في منتصف الدورة، التغيير من تاريخ، أعداد الأثر. مع الإبقاء على كل الاختبارات الحالية.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <header><b>3</b><span lang="en">Services (server logic)</span><span lang="ar">الخدمات (منطق الخادم)</span></header>
+      <div class="bi">
+        <p lang="en">Create / copy / deactivate patterns; assign to many targets at once with the impact preview; "Edit from a date"; own off days and crew start; every change audited.</p>
+        <p lang="ar">إنشاء / نسخ / تعطيل الأنماط؛ الإسناد لعدة جهات دفعة واحدة مع معاينة الأثر؛ "تعديل اعتباراً من تاريخ"؛ أيام العطلة الخاصة وبداية الطاقم؛ وكل تغيير مُسجَّل في سجل التدقيق.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <header><b>4</b><span lang="en">Screens</span><span lang="ar">الشاشات</span></header>
+      <div class="bi">
+        <p lang="en">The screens of section 10, in English and Arabic (right to left). The old inline pattern form on team and employee pages is replaced.</p>
+        <p lang="ar">شاشات القسم 10 بالإنجليزية والعربية (من اليمين لليسار). ويُستبدل نموذج النمط القديم في صفحات الفريق والموظف.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <header><b>5</b><span lang="en">Your test, then commit</span><span lang="ar">اختبارك، ثم الإيداع</span></header>
+      <div class="bi">
+        <p lang="en">I give you a checklist (build from a preset, assign with crew starts, own pattern, own off days, edit from a date, entry sheet, audit rows). You test on the e2e database. I tick the plan and commit.</p>
+        <p lang="ar">أعطيك قائمة فحص (البناء من قالب، الإسناد ببدايات الطاقم، النمط الخاص، أيام العطلة الخاصة، التعديل من تاريخ، ورقة الإدخال، سطور التدقيق). تختبر أنت على قاعدة e2e. وأنا أؤشر الخطة وأودِع.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <header><b>6</b><span lang="en">Excel monthly grid (optional)</span><span lang="ar">جدول Excel الشهري (اختياري)</span><span class="pill p-bad">later / لاحقاً</span></header>
+      <div class="bi">
+        <p lang="en">Read a monthly roster sheet (rows = people, columns = dates, cells = D / N / O), find the cycle and each person's crew start, and export the same layout. Only after you approve it and give a sample file in <code>~/secure/syravia/</code>.</p>
+        <p lang="ar">قراءة ورقة جدول شهرية (الصفوف = الأشخاص، الأعمدة = التواريخ، الخانات = D / N / O)، واكتشاف الدورة وبداية طاقم كل شخص، والتصدير بالتخطيط نفسه. فقط بعد موافقتك وتوفير ملف نموذجي في <code>~/secure/syravia/</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="card" id="out">
+    <h2><span class="num">14</span><span lang="en">Not in this plan, and risks</span><span lang="ar">خارج هذه الخطة، والمخاطر</span></h2>
+    <div class="bi">
+      <div lang="en">
+        <h3>Not included</h3>
+        <ul>
+          <li><b>Member requests</b> (swaps, off-day changes): need a login; they come with <code>/changes</code> (S3.5) and login (S8).</li>
+          <li><b>Rotations</b>: unused in your data; crew start covers staggered crews.</li>
+          <li><b>Staffing minimums and warnings</b>: counts only for now.</li>
+          <li><b>Past start dates</b>: wait for payroll periods (S3.1).</li>
+          <li><b>Department rules</b> (overtime, grace): task S2.3.</li>
+        </ul>
+        <h3>Risks</h3>
+        <ul>
+          <li>The conversion replaces the table every schedule read uses: logic and tests are finished before any screen changes.</li>
+          <li>Crew start combined with membership dates is the easiest rule to get wrong: covered by tests for joining and leaving, before and after the anchor.</li>
+        </ul>
+      </div>
+      <div lang="ar">
+        <h3>غير مشمول</h3>
+        <ul>
+          <li><b>طلبات الأعضاء</b> (التبديلات، تغيير أيام العطلة): تحتاج تسجيل دخول؛ وتأتي مع <code>/changes</code> (S3.5) وتسجيل الدخول (S8).</li>
+          <li><b>التدوير</b>: غير مستخدم في بياناتك؛ وبداية الطاقم تغطي الأطقم المتعاقبة.</li>
+          <li><b>الحد الأدنى للطاقم والتنبيهات</b>: أعداد فقط حالياً.</li>
+          <li><b>تواريخ بدء سابقة</b>: بانتظار فترات الرواتب (S3.1).</li>
+          <li><b>قواعد القسم</b> (العمل الإضافي، السماح): المهمة S2.3.</li>
+        </ul>
+        <h3>المخاطر</h3>
+        <ul>
+          <li>التحويل يستبدل الجدول الذي تعتمد عليه كل قراءة للجدول: يُنهى المنطق والاختبارات قبل أي تغيير في الشاشات.</li>
+          <li>الجمع بين بداية الطاقم وتواريخ العضوية أسهل قاعدة للخطأ: تغطيها اختبارات للانضمام والمغادرة، قبل تاريخ البداية وبعده.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout ok">
+      <p lang="en"><b>Approved 2026-10-29.</b> Work follows the phases in order, starting with phase 0; you run every browser check from the checklists handed to you.</p>
+      <p lang="ar"><b>اعتُمدت في 2026-10-29.</b> يسير العمل على المراحل بالترتيب بدءاً من المرحلة 0؛ وأنت تُجري كل فحوص المتصفح من القوائم التي تُسلَّم إليك.</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  var body = document.body;
+  var buttons = document.querySelectorAll('.switch button');
+  function show(lang) {
+    body.setAttribute('data-show', lang);
+    document.documentElement.lang = lang === 'ar' ? 'ar' : 'en';
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+    try { localStorage.setItem('ab-builder-plan-lang', lang); } catch (e) {}
+  }
+  buttons.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.lang); }); });
+  var saved = null;
+  try { saved = localStorage.getItem('ab-builder-plan-lang'); } catch (e) {}
+  show(saved === 'en' || saved === 'ar' ? saved : 'both');
+})();
+</script>
+</body>
+</html>

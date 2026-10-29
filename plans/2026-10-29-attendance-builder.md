@@ -135,7 +135,7 @@ team ── department (new FK)
       > `pattern.slots` for the P1 lock; the e2e seed writes a pattern +
       > assignment; engine types pick from `Pattern` / `PatternAssignment`.
       > `pnpm check` 0 errors, eslint clean, `pnpm test` 150/150.
-- [ ] 1.2 Migrations: `pnpm db:generate` (answer drizzle-kit's prompts as
+- [x] 1.2 Migrations: `pnpm db:generate` (answer drizzle-kit's prompts as
       "create", never "rename") → read the SQL → a custom migration for:
       the slot-id trigger on `pattern.slots`, the cycle-anchor trigger on
       `pattern_assignment`, the three EXCLUDEs on `pattern_assignment` and
@@ -162,7 +162,10 @@ team ── department (new FK)
       > Rolled-back probe on `_test`: bad slot, missing anchor, type change
       > on an assigned pattern, overlap, two targets, deleting a used shift,
       > weekday 7, empty schedule rule: all refused.
-      > `attendance_app`: waiting for the user's OK.
+      > `attendance_app` (user's OK 2026-10-29, recounted first: 1 row, team
+      > 1/0/0, 7 migrations): 10 migrations, 1 pattern + 1 assignment (team,
+      > cycle, 20 slots, from 2026-10-31), `shift_pattern` gone, 4 EXCLUDEs
+      > and the 4 triggers present.
 
 ### Phase 2 · Engine (pure, Vitest; no DB or SvelteKit imports)
 - [ ] 2.1 `src/lib/roster/roster.ts`: `RosterInput` takes assignments joined
@@ -261,6 +264,10 @@ team ── department (new FK)
       (team / own pattern), crew start `Select` (cycle), own off-day chips
       (weekly), reset; a **staffing strip** (counts per shift per day, 28
       days, from `staffing`). Team create/edit gets the department `Select`.
+      > note (user, 2026-10-29): today's Members card lists everyone in the
+      > team at any time in the 28-day preview window, so people removed
+      > today still show (with "until"). The new members table lists current
+      > and future members only; people who left show only in the preview.
 - [ ] 4.4 `/employees/[id]` **Schedule card** (replaces `PatternForm`):
       "Follows team X: Night crew" / "Follows department Y" / "Own pattern
       Z", own off-day chips (weekly) or crew start (cycle), "Use an own

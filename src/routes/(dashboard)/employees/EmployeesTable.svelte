@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useDroppable } from '@dnd-kit-svelte/svelte';
+	import { createDroppable } from '@dnd-kit/svelte';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as InputGroup from '#lib/components/ui/input-group/index.js';
@@ -38,7 +38,7 @@
 	});
 
 	// Dropping a team member here removes them from their team.
-	const { ref, isDropTarget } = useDroppable({ id: ALL_EMPLOYEES, accept: 'employee' });
+	const droppable = createDroppable({ id: ALL_EMPLOYEES, accept: 'employee' });
 </script>
 
 <Card.Root class={className}>
@@ -58,10 +58,10 @@
 		</InputGroup.Root>
 	</Card.Header>
 	<Card.Content
-		{@attach ref}
+		{@attach droppable.attach}
 		class={cn(
 			'min-h-0 flex-1 overflow-y-auto transition-colors',
-			isDropTarget.current && 'bg-muted'
+			droppable.isDropTarget && 'bg-muted'
 		)}
 	>
 		<Table.Root>
@@ -77,7 +77,7 @@
 			</Table.Header>
 			<Table.Body>
 				{#each filtered as employee (employee.id)}
-					{@const team = employee.team ? teamById.get(employee.team.id) : undefined}
+					{const team = $derived(employee.team ? teamById.get(employee.team.id) : undefined)}
 					<EmployeeRow
 						{employee}
 						from={ALL_EMPLOYEES}

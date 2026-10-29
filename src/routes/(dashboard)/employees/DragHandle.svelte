@@ -3,7 +3,7 @@
 	import DotsSixVerticalIcon from 'phosphor-svelte/lib/DotsSixVerticalIcon';
 	import { Button } from '#lib/components/ui/button/index.js';
 
-	let { attach, label }: { attach: Attachment; label: string } = $props();
+	let { attach, label }: { attach: Attachment<HTMLElement>; label: string } = $props();
 </script>
 
 <Button

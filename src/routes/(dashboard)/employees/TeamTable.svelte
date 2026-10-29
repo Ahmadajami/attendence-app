@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useDroppable } from '@dnd-kit-svelte/svelte';
+	import { createDroppable } from '@dnd-kit/svelte';
 	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
@@ -11,8 +11,10 @@
 
 	let { team, members }: { team: TeamOption; members: StaffRow[] } = $props();
 
-	const { ref, isDropTarget } = useDroppable({
-		id: () => team.id,
+	const droppable = createDroppable({
+		get id() {
+			return team.id;
+		},
 		type: 'team',
 		accept: 'employee'
 	});
@@ -24,8 +26,8 @@
 		<Card.Description>{m.employees_count({ count: members.length })}</Card.Description>
 	</Card.Header>
 	<Card.Content
-		{@attach ref}
-		class={cn('min-h-24 transition-colors', isDropTarget.current && 'bg-muted')}
+		{@attach droppable.attach}
+		class={cn('min-h-24 transition-colors', droppable.isDropTarget && 'bg-muted')}
 	>
 		{#if members.length > 0}
 			<Table.Root>

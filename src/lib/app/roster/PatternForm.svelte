@@ -67,8 +67,11 @@
 	const draft = $derived(isTainted($tainted) ? draftVersion($formData, null) : null);
 	const byId = $derived(shiftsById(shifts));
 
-	/** A weekly pattern always has 7 slots (Sunday first). */
-	function setType(type: PatternType) {
+	/**
+	 * A weekly pattern always has 7 slots (Sunday first). Clicking the selected toggle deselects it
+	 * inside bits-ui (`''`); that is ignored, and the binding reads the form's type back.
+	 */
+	function setType(type: PatternType | '') {
 		if (!type || type === $formData.type) return;
 		$formData.type = type;
 		if (type === 'weekly')
@@ -83,8 +86,7 @@
 			<ToggleGroup.Root
 				type="single"
 				variant="outline"
-				value={$formData.type}
-				onValueChange={(value) => setType(value as PatternType)}
+				bind:value={() => $formData.type, (value) => setType(value as PatternType | '')}
 				class="self-start"
 			>
 				<ToggleGroup.Item value="cycle">{m.roster_type_cycle()}</ToggleGroup.Item>

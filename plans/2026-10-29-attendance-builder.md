@@ -111,12 +111,16 @@ team ── department (new FK)
 ## 3. Tasks
 
 ### Phase 0 · Land the drag-and-drop editor first
-- [ ] 0.1 Finish [the DnD plan](2026-10-28-cycle-editor-dnd.md): add a
+- [x] 0.1 Finish [the DnD plan](2026-10-28-cycle-editor-dnd.md): add a
       `> note:` there recording the move to `@dnd-kit/svelte` 0.5.0 (E3
       departure, **approved by the user 2026-10-29**), then V1 (autofixer, check, eslint,
       prettier, test), V2 (checklist handed to the user, who tests in the
       browser), V3 (tick, README row, commit).
       **Done when** the DnD plan is `done` and committed on its own
+      > note: 2026-10-29: docs committed apart (`e76d03c`). DnD plan: B3, C1–C2,
+      > D1–D5, D7, V1 ticked; the `@dnd-kit/svelte` 0.5.0 move noted under
+      > D1. The user ran the browser checklist the same day: all pass; the
+      > DnD plan is done and committed on its own.
 
 ### Phase 1 · Schema and migration
 - [ ] 1.1 Schema: `pattern`, `pattern_assignment`, `staff_schedule`

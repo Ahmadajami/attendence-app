@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
@@ -39,7 +39,7 @@
 				if (form.message?.kind === 'success') {
 					toast.success(form.message.text);
 					open = false;
-					void invalidateAll();
+					void refreshAll();
 				} else if (form.message?.kind === 'error') {
 					toast.error(form.message.text);
 				}
@@ -273,7 +273,7 @@
 				<Form.Legend>{m.shifts_field_colour()}</Form.Legend>
 				<div class="flex flex-wrap gap-2" role="radiogroup" aria-label={m.shifts_field_colour()}>
 					{#each SHIFT_COLOURS as colour, index (colour)}
-						{const selected = $formData.colour === colour}
+						{const selected = $derived($formData.colour === colour)}
 						<button
 							type="button"
 							role="radio"

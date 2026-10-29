@@ -27,8 +27,15 @@
 			: null
 	);
 
-	/** The day open in the day panel (from `?day=`, or a click on the preview). */
-	let selectedDay = $state<string | null>(untrack(() => data.selectedDay));
+	const staffId = $derived(data.person.staffId);
+	/**
+	 * The day open in the day panel (from `?day=`, or a click on the preview). Starts again from
+	 * `?day=` when another person opens in this reused page, not when the preview is paged.
+	 */
+	let selectedDay = $derived.by<string | null>(() => {
+		void staffId;
+		return untrack(() => data.selectedDay);
+	});
 	const punches = $derived(punchDays(data.events));
 	const panelDay = $derived(
 		selectedDay
@@ -114,14 +121,18 @@
 		</Card.Header>
 		<Card.Content>
 			{#if data.canManage}
-				<PatternForm
-					data={data.patternForm}
-					action="?/savePattern"
-					shifts={data.preview.shifts}
-					today={data.today}
-					{copySources}
-					{preview}
-				/>
+				<!-- The page is reused from one person to the next: remount so the form holds this
+				     person's pattern. Paging the preview keeps the key, so unsaved edits stay. -->
+				{#key person.staffId}
+					<PatternForm
+						data={data.patternForm}
+						action="?/savePattern"
+						shifts={data.preview.shifts}
+						today={data.today}
+						{copySources}
+						{preview}
+					/>
+				{/key}
 			{:else}
 				{@render preview(null)}
 			{/if}
@@ -135,7 +146,8 @@
 				<Card.Description>{m.attendance_day_description()}</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				{#key panelDay.date}
+				<!-- Keyed by person too: the add-pair form keeps the staff id it was opened with. -->
+				{#key `${person.staffId}:${panelDay.date}`}
 					<DayPanel
 						staffId={person.staffId}
 						day={panelDay}
@@ -155,7 +167,9 @@
 				<Card.Description>{m.roster_end_description()}</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				<EndPatternForm data={data.endForm} today={data.today} />
+				{#key person.staffId}
+					<EndPatternForm data={data.endForm} today={data.today} />
+				{/key}
 			</Card.Content>
 		</Card.Root>
 	{/if}

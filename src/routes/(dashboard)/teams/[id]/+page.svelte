@@ -90,14 +90,18 @@
 		</Card.Header>
 		<Card.Content>
 			{#if data.canManage}
-				<PatternForm
-					data={data.patternForm}
-					action="?/savePattern"
-					shifts={data.preview.shifts}
-					today={data.today}
-					{copySources}
-					{preview}
-				/>
+				<!-- The page is reused from one team to the next: remount so the form holds this team's
+				     pattern. Paging the preview keeps the key, so unsaved edits stay. -->
+				{#key data.team.id}
+					<PatternForm
+						data={data.patternForm}
+						action="?/savePattern"
+						shifts={data.preview.shifts}
+						today={data.today}
+						{copySources}
+						{preview}
+					/>
+				{/key}
 			{:else}
 				{@render preview(null)}
 			{/if}
@@ -122,7 +126,7 @@
 				{:else}
 					<ul class="flex flex-col gap-2">
 						{#each data.members as member (`${member.staffId}:${member.validFrom.toISOString()}`)}
-							{const from = damascusDate(member.validFrom)}
+							{const from = $derived(damascusDate(member.validFrom))}
 							<li class="flex flex-wrap items-center justify-between gap-2">
 								<a
 									href={localizedHref('/employees/[id]', { id: member.staffId })}

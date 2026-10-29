@@ -1,2 +1,11 @@
 allowBuilds:
   esbuild: true
+# One dnd-kit core version for @dnd-kit/svelte; 0.5.1 and signals-core 1.14.5 were under two
+# weeks old when added (2026-10-28).
+overrides:
+  '@dnd-kit/abstract': 0.5.0
+  '@dnd-kit/collision': 0.5.0
+  '@dnd-kit/dom': 0.5.0
+  '@dnd-kit/geometry': 0.5.0
+  '@dnd-kit/state': 0.5.0
+  '@preact/signals-core': 1.14.4

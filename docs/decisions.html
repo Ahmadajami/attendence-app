@@ -512,14 +512,14 @@
 
     // ---------------- Pattern editor ----------------
     {
-      id: 'E1', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      id: 'E1', group: 'editor', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
       title: { en: 'Drop rules from the mockup', ar: 'قواعد الإفلات من النموذج الأولي' },
       decision: { en: 'Shift → day: sets it (weekly) or inserts before it (cycle). Shift → "+ add": appends. Day → day: swaps (weekly) or moves (cycle). Day → bin: removes (never below 1 day). Max 28 days.', ar: 'وردية ← يوم: تضبطه (أسبوعي) أو تُدرج قبله (دورة). وردية ← "+ إضافة": تُلحق في النهاية. يوم ← يوم: تبديل (أسبوعي) أو نقل (دورة). يوم ← سلة: حذف (لا يقل عن يوم واحد). الحد الأقصى 28 يوماً.' },
       why: { en: 'The mockup is the agreed UI reference (F2).', ar: 'النموذج الأولي هو المرجع المتفق عليه للواجهة (F2).' },
       alts: [ { en: 'Tap-to-paint only: not chosen — HR asked for drag and drop like the mockup.', ar: 'التلوين بالنقر فقط: لم يُختر — طلبت الموارد البشرية السحب والإفلات كما في النموذج.' } ]
     },
     {
-      id: 'E2', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      id: 'E2', group: 'editor', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
       title: { en: 'Tap to paint; press-and-move to drag', ar: 'النقر للتلوين؛ والضغط مع التحريك للسحب' },
       decision: { en: 'Sweep-painting (hold and slide over days) was removed.', ar: 'أُزيل التلوين بالمسح (الضغط والانزلاق فوق الأيام).' },
       why: { en: 'Sweeping and dragging can\'t share one gesture; removing it also fixed days repainting without a click.', ar: 'لا يمكن للمسح والسحب مشاركة الحركة نفسها؛ وإزالته أصلحت أيضاً تلوين الأيام دون نقر.' },
@@ -540,21 +540,21 @@
       alts: [ { en: 'Stay on the community 0.1.6 wrapper (E3): set aside — older 0.x wrapper of an older core.', ar: 'البقاء على الغلاف المجتمعي 0.1.6 (E3): تُرك — غلاف 0.x أقدم لنواة أقدم.' } ]
     },
     {
-      id: 'E4', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      id: 'E4', group: 'editor', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
       title: { en: 'Drag starts after 4 px (mouse) or a 200 ms press (touch)', ar: 'يبدأ السحب بعد 4 بكسل (فأرة) أو ضغط 200 ملي ثانية (لمس)' },
       decision: { en: 'Keyboard: Space lifts, arrows move, Space drops.', ar: 'لوحة المفاتيح: المسافة للرفع، والأسهم للتحريك، والمسافة للإفلات.' },
       why: { en: 'A tap must stay a paint and a phone page must still scroll.', ar: 'يجب أن يبقى النقر تلويناً وأن تبقى صفحة الهاتف قابلة للتمرير.' },
       alts: [ { en: 'Drag immediately on press: not chosen — every tap would start a drag.', ar: 'السحب فور الضغط: لم يُختر — كل نقرة ستبدأ سحباً.' } ]
     },
     {
-      id: 'E5', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      id: 'E5', group: 'editor', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
       title: { en: 'Slot logic in a pure, tested module', ar: 'منطق الأيام في وحدة نقية مختبَرة' },
       decision: { en: 'src/lib/roster/slots.ts with Vitest (13 cases); the component only calls it.', ar: 'الملف src/lib/roster/slots.ts مع اختبارات Vitest (13 حالة)؛ والمكوّن يستدعيه فقط.' },
       why: { en: 'Same rule as the rest of the roster logic: test in Node, not in the browser.', ar: 'القاعدة نفسها لبقية منطق الجدولة: الاختبار في Node لا في المتصفح.' },
       alts: [ { en: 'Logic inside the Svelte component: not chosen — hard to test.', ar: 'المنطق داخل مكوّن Svelte: لم يُختر — صعب الاختبار.' } ]
     },
     {
-      id: 'E6', group: 'editor', status: 'proposed', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
+      id: 'E6', group: 'editor', status: 'approved', date: '2026-10-28', src: 'plans/2026-10-28-cycle-editor-dnd.md §1',
       title: { en: 'A dropped shift becomes the brush', ar: 'الوردية المُفلتة تصبح هي الفرشاة' },
       decision: { en: 'Dragging a shift also selects it in the palette.', ar: 'سحب وردية يحددها أيضاً في لوحة الألوان.' },
       why: { en: 'Keeps the palette selection equal to the last shift used (one of the sync bugs).', ar: 'يُبقي التحديد في اللوحة مطابقاً لآخر وردية مستخدمة (أحد أخطاء عدم التزامن).' },

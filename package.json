@@ -23,9 +23,6 @@
 		"auth:issue-code": "tsx --env-file=.env scripts/issue-code.ts"
 	},
 	"devDependencies": {
-		"@dnd-kit-svelte/svelte": "^0.1.6",
-		"@dnd-kit/abstract": "^0.2.4",
-		"@dnd-kit/helpers": "^0.2.4",
 		"@eslint/js": "^10.0.1",
 		"@fontsource-variable/jetbrains-mono": "^5.3.0",
 		"@inlang/paraglide-js": "^2.18.2",
@@ -85,6 +82,8 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"dependencies": {
+		"@dnd-kit/dom": "0.5.0",
+		"@dnd-kit/svelte": "0.5.0",
 		"@node-rs/argon2": "^2.2.2",
 		"jose": "^6.2.13",
 		"motion-sv": "^0.2.2",

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useDraggable } from '@dnd-kit-svelte/svelte';
+	import { createDraggable } from '@dnd-kit/svelte';
 	import DotsThreeIcon from 'phosphor-svelte/lib/DotsThreeIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import ProhibitIcon from 'phosphor-svelte/lib/ProhibitIcon';
@@ -36,17 +36,25 @@
 	const personalPatternIds = getPersonalPatternIds();
 
 	// The same employee can be listed in All and in a team, so the draggable id includes the table.
-	const { ref, handleRef, isDragging } = useDraggable({
-		id: () => `${from}:${employee.id}`,
+	const draggable = createDraggable({
+		get id() {
+			return `${from}:${employee.id}`;
+		},
 		type: 'employee',
-		data: () => ({ employeeId: employee.id, from })
+		get data() {
+			return { employeeId: employee.id, from };
+		}
 	});
 </script>
 
-<Table.Row {@attach ref} data-dragging={isDragging.current} class="data-[dragging=true]:opacity-40">
+<Table.Row
+	{@attach draggable.attach}
+	data-dragging={draggable.isDragging}
+	class="data-[dragging=true]:opacity-40"
+>
 	<Table.Cell class="w-8 pe-0">
 		{#if employee.active}
-			<DragHandle attach={handleRef} label={m.drag_handle_label({ name })} />
+			<DragHandle attach={draggable.attachHandle} label={m.drag_handle_label({ name })} />
 		{/if}
 	</Table.Cell>
 	<Table.Cell class="font-mono text-muted-foreground">

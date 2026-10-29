@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { enhance, type SubmitFunction } from '$app/forms';
-	import { DragDropProvider, DragOverlay, type DragDropEvents } from '@dnd-kit-svelte/svelte';
+	import type { DragEndEvent } from '@dnd-kit/dom';
+	import { DragDropProvider, DragOverlay } from '@dnd-kit/svelte';
 	import { toast } from 'svelte-sonner';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -79,7 +80,7 @@
 		teamForm?.requestSubmit();
 	}
 
-	const handleDragEnd: DragDropEvents['dragend'] = (event) => {
+	function handleDragEnd(event: DragEndEvent) {
 		const { source, target: over } = event.operation;
 		if (event.canceled || !source || !over) return;
 
@@ -93,7 +94,7 @@
 		}
 
 		void submitMove(employee, teamById.get(String(over.id)) ?? null);
-	};
+	}
 
 	const onMoveResult: SubmitFunction = () => {
 		return async ({ result, update }) => {
@@ -113,7 +114,7 @@
 			moving = false;
 			lastMove = null;
 			await update();
-			await invalidateAll();
+			await refreshAll();
 			if (move) {
 				const next = { ...teamOverrides };
 				delete next[move.employeeId];
@@ -142,7 +143,7 @@
 				}
 			}
 			await update();
-			await invalidateAll();
+			await refreshAll();
 		};
 	};
 </script>
@@ -152,7 +153,7 @@
 </svelte:head>
 
 <section class="flex flex-wrap items-start justify-between gap-4">
-	<div class="space-y-1">
+	<div class="flex flex-col gap-1">
 		<h2 class="text-2xl font-semibold tracking-tight">{m.employees_title()}</h2>
 		<p class="max-w-prose text-muted-foreground">{m.employees_description()}</p>
 	</div>
@@ -186,7 +187,7 @@
 
 	<DragOverlay>
 		{#snippet children(source)}
-			{@const employee = employeeById.get(source.data?.employeeId)}
+			{const employee = $derived(employeeById.get(source.data?.employeeId))}
 			{#if employee}
 				<div class="bg-popover px-3 py-2 text-xs font-medium shadow-lg ring-1 ring-foreground/10">
 					{employeeName(employee)}

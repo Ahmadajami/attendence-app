@@ -242,7 +242,7 @@ Stop and ask before departing from any of these.
       00:00→08:00 → same day, 480).
       > note: `shift.schema.test.ts` (3 cases) + `hint.test.ts` (6 cases);
       > `pnpm test` 118/118.
-- [ ] Manual check on `_e2e`: create `E` 16:00→04:00 → the hint says ends next
+- [x] Manual check on `_e2e`: create `E` 16:00→04:00 → the hint says ends next
       day, 720. Creating `OFF` or a second `E` is refused with a field error.
       Editing D's times is refused once D is in a pattern. Deactivate `E` →
       it disappears from the cycle editor palette.
@@ -256,6 +256,9 @@ Stop and ask before departing from any of these.
       > 400 field error on `code`; second `E` → 409 field error on `code`.
       > Not checked at runtime: D's time lock and E leaving the palette. The
       > user tests the UI.
+      > note: 2026-10-29: run by the user on port 5174 (`_e2e`); all four
+      > hold. `audit_log` in `_e2e` that day: `shift.create` 1 (E),
+      > `shift.deactivate` 1 (E); the refused writes left none.
 - [x] Tick S2.2 in the main plan; commit.
 
 ## S1.4 · Manual punch entry

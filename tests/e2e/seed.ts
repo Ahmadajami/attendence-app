@@ -40,12 +40,17 @@ export default async function seed(): Promise<void> {
 					VALUES (${person.id}, ${teamId}, '2025-12-31T21:00:00Z')`;
 			}
 
-			// The team works N every day.
+			// The team works N every day: a library pattern and its assignment to the team.
 			await tx`
-				INSERT INTO shift_pattern (team_id, type, slots, anchor_date, effective_from, reason)
-				SELECT ${teamId}, 'cycle', ARRAY[s.id], '2026-01-01', '2026-01-01', 'e2e seed'
+				INSERT INTO pattern (name_en, name_ar, type, slots)
+				SELECT 'E2E N every day', 'نمط تجريبي ليلي', 'cycle', ARRAY[s.id]
 				FROM shift s WHERE s.code = 'N'
-				AND NOT EXISTS (SELECT 1 FROM shift_pattern WHERE team_id = ${teamId})`;
+				ON CONFLICT (name_en) DO NOTHING`;
+			await tx`
+				INSERT INTO pattern_assignment (pattern_id, team_id, anchor_date, effective_from, reason)
+				SELECT p.id, ${teamId}, '2026-01-01', '2026-01-01', 'e2e seed'
+				FROM pattern p WHERE p.name_en = 'E2E N every day'
+				AND NOT EXISTS (SELECT 1 FROM pattern_assignment WHERE team_id = ${teamId})`;
 
 			// Start each run without the previous run's punches (test DB only): corrections first.
 			await tx`DELETE FROM attendance_event WHERE staff_id = ${person.id} AND corrects_event_id IS NOT NULL`;

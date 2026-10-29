@@ -123,9 +123,18 @@ team ── department (new FK)
       > DnD plan is done and committed on its own.
 
 ### Phase 1 · Schema and migration
-- [ ] 1.1 Schema: `pattern`, `pattern_assignment`, `staff_schedule`
+- [x] 1.1 Schema: `pattern`, `pattern_assignment`, `staff_schedule`
       (`src/lib/server/db/schema/roster.ts`), `team.department_id`
       (`workforce.ts`), relations and types. Remove `shiftPattern`.
+      > note: done 2026-10-29. To keep the app working between phases 1 and
+      > 4, `roster.crud.ts` reads assignment ⨝ pattern in the old row shape
+      > (`id` = assignment id, plus `patternId`); a save from the old editor
+      > writes a new library pattern (`Pattern <8 chars of its id>`) + its
+      > assignment; removing a scheduled version deletes the assignment only
+      > (the pattern stays in the library). `shifts.crud.ts` checks
+      > `pattern.slots` for the P1 lock; the e2e seed writes a pattern +
+      > assignment; engine types pick from `Pattern` / `PatternAssignment`.
+      > `pnpm check` 0 errors, eslint clean, `pnpm test` 150/150.
 - [ ] 1.2 Migrations: `pnpm db:generate` (answer drizzle-kit's prompts as
       "create", never "rename") → read the SQL → a custom migration for:
       the slot-id trigger on `pattern.slots`, the cycle-anchor trigger on
@@ -140,6 +149,20 @@ team ── department (new FK)
       converted counts equal the old `shift_pattern` counts per DB, and
       migrations ran on `_test` and `_e2e` (no need to ask) and on
       `attendance_app` after the row-count check **and the user's OK**
+      > note: three migrations, so the rows move before the drop:
+      > `0007_pattern_library` (generated: three tables, `team.department_id`;
+      > no rename prompt because nothing disappears), `0008_…_constraints`
+      > (custom: slot-id trigger, anchor triggers on both tables, 3 + 1
+      > EXCLUDEs, `shift_not_in_pattern` reads `pattern`, conversion with a
+      > count check that aborts on mismatch, old slot trigger dropped),
+      > `0009_drop_shift_pattern` (generated: `DROP TABLE … CASCADE` only).
+      > Counts before: `_test` 0, `_e2e` 3 (team 2, staff 1),
+      > `attendance_app` 1 (team 1). After, `_test` 0/0 and `_e2e` 3 patterns
+      > + 3 assignments (2/1/0), all 10 migrations, constraints present.
+      > Rolled-back probe on `_test`: bad slot, missing anchor, type change
+      > on an assigned pattern, overlap, two targets, deleting a used shift,
+      > weekday 7, empty schedule rule: all refused.
+      > `attendance_app`: waiting for the user's OK.
 
 ### Phase 2 · Engine (pure, Vitest; no DB or SvelteKit imports)
 - [ ] 2.1 `src/lib/roster/roster.ts`: `RosterInput` takes assignments joined

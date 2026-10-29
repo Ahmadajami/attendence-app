@@ -58,11 +58,15 @@ export const department = pgTable(
 	]
 );
 
-/** A group of staff that works and is rostered as a unit. Deactivated, never deleted. */
+/**
+ * A group of staff that works and is rostered as a unit, in one department (plan D22; nullable for
+ * teams made before the builder plan, required by the form). Deactivated, never deleted.
+ */
 export const team = pgTable('team', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	nameEn: text('name_en').notNull().unique(),
 	nameAr: text('name_ar').notNull(),
+	departmentId: uuid('department_id').references(() => department.id, { onDelete: 'restrict' }),
 	active: boolean('active').notNull().default(true),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -157,10 +161,12 @@ export const departmentRelations = relations(department, ({ one, many }) => ({
 		references: [staff.id],
 		relationName: 'department_manager'
 	}),
-	members: many(staff, { relationName: 'staff_department' })
+	members: many(staff, { relationName: 'staff_department' }),
+	teams: many(team)
 }));
 
-export const teamRelations = relations(team, ({ many }) => ({
+export const teamRelations = relations(team, ({ one, many }) => ({
+	department: one(department, { fields: [team.departmentId], references: [department.id] }),
 	members: many(staff),
 	memberships: many(staffTeamMembership)
 }));

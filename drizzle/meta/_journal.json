@@ -50,6 +50,27 @@
       "when": 1793191620896,
       "tag": "0006_punch_source",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793273284869,
+      "tag": "0007_pattern_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793273307671,
+      "tag": "0008_pattern_library_constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793273339413,
+      "tag": "0009_drop_shift_pattern",
+      "breakpoints": true
     }
   ]
 }

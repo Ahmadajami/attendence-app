@@ -1,9 +1,11 @@
+import { randomUUID } from 'node:crypto';
 import { and, asc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import {
 	absence,
+	pattern,
+	patternAssignment,
 	rosterOverride,
-	shiftPattern,
 	staff,
 	staffTeamMembership,
 	team,
@@ -14,19 +16,30 @@ import type { BatchQuery } from '../common.js';
 // Roster tables, plus the membership history they read. Reads that show people join `staff` for
 // names (until OPERATIONS X18 splits the staff service).
 
-export const patternColumns = {
-	id: shiftPattern.id,
-	teamId: shiftPattern.teamId,
-	staffId: shiftPattern.staffId,
-	departmentId: shiftPattern.departmentId,
-	type: shiftPattern.type,
-	slots: shiftPattern.slots,
-	anchorDate: shiftPattern.anchorDate,
-	effectiveFrom: shiftPattern.effectiveFrom,
-	effectiveTo: shiftPattern.effectiveTo,
-	reason: shiftPattern.reason,
-	createdAt: shiftPattern.createdAt
+/**
+ * One assignment joined with its pattern, in the shape of the old per-owner version (`id` is the
+ * assignment's). Builder plan phase 3 replaces these reads with the assignments service.
+ */
+const patternColumns = {
+	id: patternAssignment.id,
+	patternId: patternAssignment.patternId,
+	teamId: patternAssignment.teamId,
+	staffId: patternAssignment.staffId,
+	departmentId: patternAssignment.departmentId,
+	type: pattern.type,
+	slots: pattern.slots,
+	anchorDate: patternAssignment.anchorDate,
+	effectiveFrom: patternAssignment.effectiveFrom,
+	effectiveTo: patternAssignment.effectiveTo,
+	reason: patternAssignment.reason,
+	createdAt: patternAssignment.createdAt
 };
+
+const assignedPatterns = () =>
+	db
+		.select(patternColumns)
+		.from(patternAssignment)
+		.innerJoin(pattern, eq(pattern.id, patternAssignment.patternId));
 
 const personColumns = {
 	staffId: staff.id,
@@ -38,11 +51,9 @@ const personColumns = {
 /** Every version of these teams' patterns, oldest first. */
 export async function listTeamPatterns(teamIds: readonly string[]) {
 	if (teamIds.length === 0) return [];
-	return db
-		.select(patternColumns)
-		.from(shiftPattern)
-		.where(inArray(shiftPattern.teamId, [...teamIds]))
-		.orderBy(asc(shiftPattern.effectiveFrom));
+	return assignedPatterns()
+		.where(inArray(patternAssignment.teamId, [...teamIds]))
+		.orderBy(asc(patternAssignment.effectiveFrom));
 }
 
 export type PatternRow = Awaited<ReturnType<typeof listTeamPatterns>>[number];
@@ -50,11 +61,9 @@ export type PatternRow = Awaited<ReturnType<typeof listTeamPatterns>>[number];
 /** Every version of these people's personal patterns, oldest first. */
 export async function listPersonalPatterns(staffIds: readonly string[]): Promise<PatternRow[]> {
 	if (staffIds.length === 0) return [];
-	return db
-		.select(patternColumns)
-		.from(shiftPattern)
-		.where(inArray(shiftPattern.staffId, [...staffIds]))
-		.orderBy(asc(shiftPattern.effectiveFrom));
+	return assignedPatterns()
+		.where(inArray(patternAssignment.staffId, [...staffIds]))
+		.orderBy(asc(patternAssignment.effectiveFrom));
 }
 
 /** Every version of these departments' patterns, oldest first. */
@@ -62,36 +71,31 @@ export async function listDepartmentPatterns(
 	departmentIds: readonly string[]
 ): Promise<PatternRow[]> {
 	if (departmentIds.length === 0) return [];
-	return db
-		.select(patternColumns)
-		.from(shiftPattern)
-		.where(inArray(shiftPattern.departmentId, [...departmentIds]))
-		.orderBy(asc(shiftPattern.effectiveFrom));
+	return assignedPatterns()
+		.where(inArray(patternAssignment.departmentId, [...departmentIds]))
+		.orderBy(asc(patternAssignment.effectiveFrom));
 }
 
 /** Team versions in force on `date`. */
 export async function listTeamPatternsOn(date: string): Promise<PatternRow[]> {
-	return db
-		.select(patternColumns)
-		.from(shiftPattern)
-		.where(
-			and(
-				isNotNull(shiftPattern.teamId),
-				lte(shiftPattern.effectiveFrom, date),
-				or(isNull(shiftPattern.effectiveTo), gt(shiftPattern.effectiveTo, date))
-			)
-		);
+	return assignedPatterns().where(
+		and(
+			isNotNull(patternAssignment.teamId),
+			lte(patternAssignment.effectiveFrom, date),
+			or(isNull(patternAssignment.effectiveTo), gt(patternAssignment.effectiveTo, date))
+		)
+	);
 }
 
 /** People with a personal pattern in force on `date` or scheduled after it. */
 export async function listStaffWithPersonalPattern(date: string): Promise<string[]> {
 	const rows = await db
-		.selectDistinct({ staffId: shiftPattern.staffId })
-		.from(shiftPattern)
+		.selectDistinct({ staffId: patternAssignment.staffId })
+		.from(patternAssignment)
 		.where(
 			and(
-				isNotNull(shiftPattern.staffId),
-				or(isNull(shiftPattern.effectiveTo), gt(shiftPattern.effectiveTo, date))
+				isNotNull(patternAssignment.staffId),
+				or(isNull(patternAssignment.effectiveTo), gt(patternAssignment.effectiveTo, date))
 			)
 		);
 	return rows.flatMap((r) => (r.staffId ? [r.staffId] : []));
@@ -254,18 +258,47 @@ export async function listAbsencesBetween(staffIds: readonly string[], from: str
 
 export type AbsenceRow = Awaited<ReturnType<typeof listAbsencesBetween>>[number];
 
-export function insertPattern(values: typeof shiftPattern.$inferInsert): BatchQuery {
-	return db.insert(shiftPattern).values(values);
+export type PatternVersionValues = Omit<
+	typeof patternAssignment.$inferInsert,
+	'patternId' | 'departmentId'
+> &
+	Pick<typeof pattern.$inferInsert, 'type' | 'slots'>;
+
+/**
+ * A new version from the per-owner editor: a library pattern of its own (named from its id, renamed
+ * by HR later) and the assignment that uses it, in that order.
+ */
+export function insertPatternVersion({
+	type,
+	slots,
+	...assignment
+}: PatternVersionValues): BatchQuery[] {
+	const patternId = randomUUID();
+	const label = patternId.slice(0, 8);
+	return [
+		db.insert(pattern).values({
+			id: patternId,
+			nameEn: `Pattern ${label}`,
+			nameAr: `نمط ${label}`,
+			type,
+			slots,
+			createdBy: assignment.createdBy
+		}),
+		db.insert(patternAssignment).values({ ...assignment, patternId })
+	];
 }
 
-/** End a version at `effectiveTo` (exclusive). */
+/** End an assignment at `effectiveTo` (exclusive). */
 export function closePattern(id: string, effectiveTo: string): BatchQuery {
-	return db.update(shiftPattern).set({ effectiveTo }).where(eq(shiftPattern.id, id));
+	return db.update(patternAssignment).set({ effectiveTo }).where(eq(patternAssignment.id, id));
 }
 
-/** Remove scheduled versions that never took effect (they start today or later). */
+/**
+ * Remove scheduled assignments that never took effect (they start today or later). Their library
+ * patterns stay (deactivated or reused from `/patterns`, never deleted).
+ */
 export function deletePatterns(ids: readonly string[]): BatchQuery {
-	return db.delete(shiftPattern).where(inArray(shiftPattern.id, [...ids]));
+	return db.delete(patternAssignment).where(inArray(patternAssignment.id, [...ids]));
 }
 
 export function insertSupervisor(values: typeof teamSupervisor.$inferInsert): BatchQuery {

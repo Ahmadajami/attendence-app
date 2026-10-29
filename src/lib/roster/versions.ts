@@ -1,6 +1,6 @@
-import type { ShiftPattern } from '#lib/server/db/schema/index.js';
+import type { PatternAssignment } from '#lib/server/db/schema/index.js';
 
-type Span = Pick<ShiftPattern, 'effectiveFrom' | 'effectiveTo'>;
+type Span = Pick<PatternAssignment, 'effectiveFrom' | 'effectiveTo'>;
 
 /**
  * What saving a new pattern version from `from` does to one owner's versions (a person, a team or

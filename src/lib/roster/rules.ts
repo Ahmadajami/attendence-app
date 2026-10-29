@@ -1,7 +1,7 @@
 // The owner's roster rules (ROSTER_PLAN.md Decisions), in one place so the engine and its tests
 // agree. Client-safe.
 
-/** A cycle is 1–28 days (also a `CHECK` on `shift_pattern.slots`); a weekly pattern has 7. */
+/** A cycle is 1–28 days (also a `CHECK` on `pattern.slots`); a weekly pattern has 7. */
 export const MAX_CYCLE_DAYS = 28;
 
 /**

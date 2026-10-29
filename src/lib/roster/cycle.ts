@@ -1,10 +1,10 @@
 import { fromDate, parseDate, toCalendarDate } from '@internationalized/date';
 import { slotIndex } from '#lib/payroll/schedule.js';
-import type { ShiftPattern } from '#lib/server/db/schema/index.js';
+import type { Pattern, PatternAssignment } from '#lib/server/db/schema/index.js';
 import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
 
 /** What decides a pattern's slot on a date. */
-export type SlotPattern = Pick<ShiftPattern, 'type' | 'slots' | 'anchorDate'>;
+export type SlotPattern = Pick<Pattern, 'type' | 'slots'> & Pick<PatternAssignment, 'anchorDate'>;
 
 const DAY_MS = 86_400_000;
 

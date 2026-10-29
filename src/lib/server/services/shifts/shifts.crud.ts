@@ -1,11 +1,6 @@
 import { arrayContains, asc, count, eq, isNotNull } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
-import {
-	attendanceEvent,
-	rosterOverride,
-	shift,
-	shiftPattern
-} from '#lib/server/db/schema/index.js';
+import { attendanceEvent, pattern, rosterOverride, shift } from '#lib/server/db/schema/index.js';
 import type { BatchQuery } from '../common.js';
 
 export const shiftColumns = {
@@ -40,9 +35,9 @@ export async function findShift(id: string): Promise<ShiftRow | undefined> {
 export async function isShiftUsed(id: string): Promise<boolean> {
 	const found = await Promise.all([
 		db
-			.select({ id: shiftPattern.id })
-			.from(shiftPattern)
-			.where(arrayContains(shiftPattern.slots, [id]))
+			.select({ id: pattern.id })
+			.from(pattern)
+			.where(arrayContains(pattern.slots, [id]))
 			.limit(1),
 		db
 			.select({ id: rosterOverride.id })
@@ -58,12 +53,12 @@ export async function isShiftUsed(id: string): Promise<boolean> {
 	return found.some((rows) => rows.length > 0);
 }
 
-/** Per shift: pattern versions with a slot on it, overrides and punches that point at it. */
+/** Per shift: library patterns with a slot on it, overrides and punches that point at it. */
 export async function countShiftUsage(): Promise<
 	Map<string, { patterns: number; overrides: number; events: number }>
 > {
 	const [patterns, overrides, events] = await Promise.all([
-		db.select({ slots: shiftPattern.slots }).from(shiftPattern),
+		db.select({ slots: pattern.slots }).from(pattern),
 		db
 			.select({ shiftId: rosterOverride.shiftId, n: count() })
 			.from(rosterOverride)

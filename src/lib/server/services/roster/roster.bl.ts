@@ -18,7 +18,7 @@ import {
 	deletePatterns,
 	findActiveSupervisor,
 	findRosterPerson,
-	insertPattern,
+	insertPatternVersion,
 	insertSupervisor,
 	listAbsencesBetween,
 	listActiveStaffOptions,
@@ -285,7 +285,7 @@ async function savePattern(
 		[
 			...(removed.length > 0 ? [deletePatterns(removed.map((v) => v.id))] : []),
 			...(closed ? [closePattern(closed.id, input.effectiveFrom)] : []),
-			insertPattern(values)
+			...insertPatternVersion(values)
 		]
 	);
 }

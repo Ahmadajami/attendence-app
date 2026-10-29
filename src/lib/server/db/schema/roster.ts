@@ -7,6 +7,7 @@ import {
 	integer,
 	pgEnum,
 	pgTable,
+	smallint,
 	text,
 	time,
 	timestamp,
@@ -75,27 +76,111 @@ export const shift = pgTable(
 );
 
 /**
- * One version of a repeating pattern. It belongs to one person, a team or a department (precedence
- * in that order; a department's pattern also covers its sub-departments). `slots` are shift ids,
- * `NULL` = off: `weekly` has 7 (Sunday first), `cycle` has 1–28 and slot 0 falls on `anchor_date`,
- * repeating before and after it. Postgres can't put an FK on array elements, so a custom migration
- * adds a constraint trigger for the slot ids. Versions are never edited: a change closes the current
- * one (`effective_to`) and opens the next. Custom migrations add one `EXCLUDE` per owner kind so
- * versions of one owner never overlap.
+ * A named, reusable pattern in the library (builder plan B1). `slots` are shift ids, `NULL` = off:
+ * `weekly` has 7 (Sunday first), `cycle` has 1–28. Who follows it, and from when, is in
+ * `pattern_assignment`. Once an assignment uses it, its type and slots are read-only (B3: "edit from
+ * a date" saves a copy). A custom migration checks the slot ids with a constraint trigger and adds
+ * the cycle-anchor trigger. Deactivated, never deleted.
  */
-export const shiftPattern = pgTable(
-	'shift_pattern',
+export const pattern = pgTable(
+	'pattern',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
-		teamId: uuid('team_id').references(() => team.id, { onDelete: 'restrict' }),
+		nameEn: text('name_en').notNull().unique('pattern_name_en_unique'),
+		nameAr: text('name_ar').notNull(),
+		type: patternType('type').notNull(),
+		slots: uuid('slots').array().notNull().$type<(string | null)[]>(),
+		/**
+		 * Weekly only: the shift a member works on a day the pattern has off but their own off days
+		 * don't list (B5). `null`: the pattern's most used shift.
+		 */
+		defaultWorkShiftId: uuid('default_work_shift_id').references(() => shift.id, {
+			onDelete: 'restrict'
+		}),
+		active: boolean('active').notNull().default(true),
+		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		check(
+			'pattern_name_present',
+			sql`length(trim(${t.nameEn})) > 0 AND length(trim(${t.nameAr})) > 0`
+		),
+		check(
+			'pattern_slots_shape',
+			sql`array_ndims(${t.slots}) = 1 AND CASE ${t.type} WHEN 'weekly' THEN cardinality(${t.slots}) = 7 ELSE cardinality(${t.slots}) BETWEEN 1 AND 28 END`
+		),
+		check('pattern_slots_work', sql`cardinality(array_remove(${t.slots}, NULL)) > 0`)
+	]
+);
+
+/**
+ * Who follows a pattern, and when (builder plan B1): one person, a team or a department (precedence
+ * in that order; a department's assignment also covers its sub-departments, B6). For a cycle,
+ * `anchor_date` is the date slot 0 falls on for this target (B4), required iff the pattern is a
+ * cycle (a custom-migration trigger, since the type lives on `pattern`). Never edited: a change
+ * closes the one in force (`effective_to`) and opens the next. Custom migrations add one `EXCLUDE`
+ * per target kind so the assignments of one target never overlap.
+ */
+export const patternAssignment = pgTable(
+	'pattern_assignment',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patternId: uuid('pattern_id')
+			.notNull()
+			.references(() => pattern.id, { onDelete: 'restrict' }),
 		staffId: uuid('staff_id').references(() => staff.id, { onDelete: 'restrict' }),
+		teamId: uuid('team_id').references(() => team.id, { onDelete: 'restrict' }),
 		departmentId: uuid('department_id').references(() => department.id, {
 			onDelete: 'restrict'
 		}),
-		type: patternType('type').notNull(),
-		slots: uuid('slots').array().notNull().$type<(string | null)[]>(),
-		/** Required for a `cycle` (its slot 0), `null` for `weekly`. */
 		anchorDate: date('anchor_date', { mode: 'string' }),
+		effectiveFrom: date('effective_from', { mode: 'string' }).notNull(),
+		/** Exclusive; `null` while the assignment is open. */
+		effectiveTo: date('effective_to', { mode: 'string' }),
+		reason: text('reason').notNull(),
+		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		index('pattern_assignment_pattern_idx').on(t.patternId),
+		index('pattern_assignment_staff_idx').on(t.staffId, t.effectiveFrom),
+		index('pattern_assignment_team_idx').on(t.teamId, t.effectiveFrom),
+		index('pattern_assignment_department_idx').on(t.departmentId, t.effectiveFrom),
+		check(
+			'pattern_assignment_one_target',
+			sql`num_nonnulls(${t.staffId}, ${t.teamId}, ${t.departmentId}) = 1`
+		),
+		check(
+			'pattern_assignment_effective_order',
+			sql`${t.effectiveTo} IS NULL OR ${t.effectiveTo} > ${t.effectiveFrom}`
+		)
+	]
+);
+
+/**
+ * A person's own schedule rules, versioned like assignments (builder plan B4, B5): own off days
+ * (`0` = Sunday … `6` = Saturday) apply to weekly patterns, the crew start (slot offset) to cycles.
+ * `NULL` in either: follow the pattern. A custom migration adds an `EXCLUDE` so one person's
+ * versions never overlap.
+ */
+export const staffSchedule = pgTable(
+	'staff_schedule',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		staffId: uuid('staff_id')
+			.notNull()
+			.references(() => staff.id, { onDelete: 'restrict' }),
+		offWeekdays: smallint('off_weekdays').array().$type<number[]>(),
+		crewStart: smallint('crew_start'),
 		effectiveFrom: date('effective_from', { mode: 'string' }).notNull(),
 		/** Exclusive; `null` while the version is open. */
 		effectiveTo: date('effective_to', { mode: 'string' }),
@@ -108,21 +193,18 @@ export const shiftPattern = pgTable(
 			.$onUpdate(() => new Date())
 	},
 	(t) => [
-		index('shift_pattern_team_idx').on(t.teamId, t.effectiveFrom),
-		index('shift_pattern_staff_idx').on(t.staffId, t.effectiveFrom),
-		index('shift_pattern_department_idx').on(t.departmentId, t.effectiveFrom),
+		index('staff_schedule_staff_idx').on(t.staffId, t.effectiveFrom),
+		check('staff_schedule_has_rule', sql`num_nonnulls(${t.offWeekdays}, ${t.crewStart}) > 0`),
 		check(
-			'shift_pattern_one_owner',
-			sql`num_nonnulls(${t.teamId}, ${t.staffId}, ${t.departmentId}) = 1`
+			'staff_schedule_off_weekdays',
+			sql`${t.offWeekdays} IS NULL OR (array_ndims(${t.offWeekdays}) = 1 AND ${t.offWeekdays} <@ ARRAY[0, 1, 2, 3, 4, 5, 6]::smallint[])`
 		),
 		check(
-			'shift_pattern_slots_shape',
-			sql`array_ndims(${t.slots}) = 1 AND CASE ${t.type} WHEN 'weekly' THEN cardinality(${t.slots}) = 7 ELSE cardinality(${t.slots}) BETWEEN 1 AND 28 END`
+			'staff_schedule_crew_start',
+			sql`${t.crewStart} IS NULL OR ${t.crewStart} BETWEEN 0 AND 27`
 		),
-		check('shift_pattern_slots_work', sql`cardinality(array_remove(${t.slots}, NULL)) > 0`),
-		check('shift_pattern_anchor', sql`(${t.type} = 'cycle') = (${t.anchorDate} IS NOT NULL)`),
 		check(
-			'shift_pattern_effective_order',
+			'staff_schedule_effective_order',
 			sql`${t.effectiveTo} IS NULL OR ${t.effectiveTo} > ${t.effectiveFrom}`
 		)
 	]
@@ -198,13 +280,23 @@ export const rosterOverride = pgTable(
 	]
 );
 
-export const shiftPatternRelations = relations(shiftPattern, ({ one }) => ({
-	team: one(team, { fields: [shiftPattern.teamId], references: [team.id] }),
-	staff: one(staff, { fields: [shiftPattern.staffId], references: [staff.id] }),
+export const patternRelations = relations(pattern, ({ one, many }) => ({
+	defaultWorkShift: one(shift, { fields: [pattern.defaultWorkShiftId], references: [shift.id] }),
+	assignments: many(patternAssignment)
+}));
+
+export const patternAssignmentRelations = relations(patternAssignment, ({ one }) => ({
+	pattern: one(pattern, { fields: [patternAssignment.patternId], references: [pattern.id] }),
+	staff: one(staff, { fields: [patternAssignment.staffId], references: [staff.id] }),
+	team: one(team, { fields: [patternAssignment.teamId], references: [team.id] }),
 	department: one(department, {
-		fields: [shiftPattern.departmentId],
+		fields: [patternAssignment.departmentId],
 		references: [department.id]
 	})
+}));
+
+export const staffScheduleRelations = relations(staffSchedule, ({ one }) => ({
+	staff: one(staff, { fields: [staffSchedule.staffId], references: [staff.id] })
 }));
 
 export const teamSupervisorRelations = relations(teamSupervisor, ({ one }) => ({
@@ -219,8 +311,12 @@ export const rosterOverrideRelations = relations(rosterOverride, ({ one }) => ({
 
 export type Shift = typeof shift.$inferSelect;
 export type NewShift = typeof shift.$inferInsert;
-export type ShiftPattern = typeof shiftPattern.$inferSelect;
-export type NewShiftPattern = typeof shiftPattern.$inferInsert;
+export type Pattern = typeof pattern.$inferSelect;
+export type NewPattern = typeof pattern.$inferInsert;
+export type PatternAssignment = typeof patternAssignment.$inferSelect;
+export type NewPatternAssignment = typeof patternAssignment.$inferInsert;
+export type StaffSchedule = typeof staffSchedule.$inferSelect;
+export type NewStaffSchedule = typeof staffSchedule.$inferInsert;
 export type TeamSupervisor = typeof teamSupervisor.$inferSelect;
 export type NewTeamSupervisor = typeof teamSupervisor.$inferInsert;
 export type RosterOverride = typeof rosterOverride.$inferSelect;

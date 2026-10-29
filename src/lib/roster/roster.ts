@@ -1,17 +1,20 @@
 import type { AbsenceType } from '#lib/schemas/enums.js';
 import type {
 	Absence,
+	Pattern,
+	PatternAssignment,
 	RosterOverride,
-	ShiftPattern,
 	StaffTeamMembership
 } from '#lib/server/db/schema/index.js';
 import { addDays, patternSlot, startOfDamascusDay } from './cycle.js';
 import { shiftWindow, type RosterShift } from './shift.js';
 
-export type RosterPattern = Pick<
-	ShiftPattern,
-	'teamId' | 'departmentId' | 'type' | 'slots' | 'anchorDate' | 'effectiveFrom' | 'effectiveTo'
->;
+/** An assignment joined with its pattern. */
+export type RosterPattern = Pick<Pattern, 'type' | 'slots'> &
+	Pick<
+		PatternAssignment,
+		'teamId' | 'departmentId' | 'anchorDate' | 'effectiveFrom' | 'effectiveTo'
+	>;
 export type RosterMembership = Pick<StaffTeamMembership, 'teamId' | 'validFrom' | 'validTo'>;
 export type RosterOverrideEntry = Pick<RosterOverride, 'shiftDate' | 'shiftId' | 'swapGroupId'>;
 export type RosterAbsence = Pick<Absence, 'startsOn' | 'endsOn' | 'type'>;

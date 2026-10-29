@@ -4,30 +4,35 @@ import {
 	rosterDay,
 	rosterRange,
 	teamOnDate,
-	type RosterInput,
-	type RosterPattern
+	type RosterAssignment,
+	type RosterInput
 } from './roster.js';
 import { letter, SHIFTS, slots } from './test-shifts.js';
 
 type Owner = { teamId?: string; departmentId?: string };
 
+let nextId = 0;
+/** A cycle assignment of `owner` (personal when empty), with its own made-up ids. */
 const pattern = (
 	owner: Owner,
 	codes: string,
 	anchorDate: string,
 	effectiveFrom: string,
 	effectiveTo: string | null = null
-): RosterPattern => ({
+): RosterAssignment => ({
+	id: `a${++nextId}`,
+	patternId: `p${nextId}`,
 	teamId: owner.teamId ?? null,
 	departmentId: owner.departmentId ?? null,
 	type: 'cycle',
 	slots: slots(codes),
+	defaultWorkShiftId: null,
 	anchorDate,
 	effectiveFrom,
 	effectiveTo
 });
 
-const weekly = (owner: Owner, codes: string, effectiveFrom: string): RosterPattern => ({
+const weekly = (owner: Owner, codes: string, effectiveFrom: string): RosterAssignment => ({
 	...pattern(owner, codes, '2026-01-01', effectiveFrom),
 	type: 'weekly',
 	anchorDate: null
@@ -43,14 +48,15 @@ const base: RosterInput = {
 		},
 		{ teamId: 'team-b', validFrom: startOfDamascusDay('2026-11-10'), validTo: null }
 	],
-	personalPatterns: [],
-	teamPatterns: [
+	personalAssignments: [],
+	teamAssignments: [
 		pattern({ teamId: 'team-a' }, 'D N O O', '2026-11-02', '2026-10-01', '2026-11-06'),
 		pattern({ teamId: 'team-a' }, 'D D N N O O O O', '2026-11-06', '2026-11-06'),
 		pattern({ teamId: 'team-b' }, 'N O', '2026-11-01', '2026-01-01')
 	],
-	departmentPatterns: [],
+	departmentAssignments: [],
 	departmentChain: [],
+	schedules: [],
 	overrides: [],
 	absences: [],
 	shifts: SHIFTS
@@ -106,7 +112,7 @@ describe('team pattern', () => {
 	it('plans a non-12 h shift with its own span', () => {
 		const input: RosterInput = {
 			...base,
-			teamPatterns: [pattern({ teamId: 'team-a' }, 'E O', '2026-11-02', '2026-01-01')]
+			teamAssignments: [pattern({ teamId: 'team-a' }, 'E O', '2026-11-02', '2026-01-01')]
 		};
 		const day = rosterDay(input, '2026-11-02');
 		expect(day.shiftId).toBe('E');
@@ -118,7 +124,7 @@ describe('team pattern', () => {
 describe('personal pattern', () => {
 	const input: RosterInput = {
 		...base,
-		personalPatterns: [pattern({}, 'D D D D D O O', '2026-11-02', '2026-11-02')]
+		personalAssignments: [pattern({}, 'D D D D D O O', '2026-11-02', '2026-11-02')]
 	};
 
 	it('wins over the team pattern on its dates', () => {
@@ -137,7 +143,7 @@ describe('personal pattern', () => {
 	it('can be weekly (Sunday first)', () => {
 		const office: RosterInput = {
 			...base,
-			personalPatterns: [weekly({}, 'D D D D D O O', '2026-11-01')]
+			personalAssignments: [weekly({}, 'D D D D D O O', '2026-11-01')]
 		};
 		// 2026-11-01 is a Sunday: Sun–Thu D, Fri–Sat off.
 		expect(lettersOf(office, '2026-11-01', 9)).toBe('D D D D D O O D D');
@@ -149,8 +155,8 @@ describe('department pattern', () => {
 	const dept: RosterInput = {
 		...base,
 		memberships: [],
-		teamPatterns: [],
-		departmentPatterns: [
+		teamAssignments: [],
+		departmentAssignments: [
 			pattern({ departmentId: 'root' }, 'N O', '2026-11-02', '2026-01-01'),
 			weekly({ departmentId: 'parent' }, 'O D D D D D O', '2026-01-01')
 		],
@@ -173,7 +179,7 @@ describe('department pattern', () => {
 		const withTeam: RosterInput = {
 			...dept,
 			memberships: base.memberships,
-			teamPatterns: [pattern({ teamId: 'team-a' }, 'N N', '2026-11-02', '2026-11-03')]
+			teamAssignments: [pattern({ teamId: 'team-a' }, 'N N', '2026-11-02', '2026-11-03')]
 		};
 		expect(rosterDay(withTeam, '2026-11-03')).toMatchObject({ shiftId: 'N', source: 'team' });
 		expect(rosterDay(withTeam, '2026-11-02')).toMatchObject({ shiftId: 'D', source: 'department' });

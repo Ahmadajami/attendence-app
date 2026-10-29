@@ -12,7 +12,7 @@
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { damascusDate } from '#lib/roster/cycle.js';
-	import type { RosterPattern } from '#lib/roster/roster.js';
+	import type { RosterAssignment } from '#lib/roster/roster.js';
 	import { personName, teamName } from '#lib/utils/locale.js';
 	import SupervisorsCard from './SupervisorsCard.svelte';
 	import type { PageProps } from './$types';
@@ -24,7 +24,7 @@
 		data.members.filter((row, i, all) => all.findIndex((r) => r.staffId === row.staffId) === i)
 	);
 
-	function rows(version: RosterPattern | null): PreviewRow[] {
+	function rows(version: RosterAssignment | null): PreviewRow[] {
 		const draft = version
 			? ({
 					owner: 'team',
@@ -54,7 +54,7 @@
 	<title>{teamName(data.team)} · {m.teams_title()} · {m.app_name()}</title>
 </svelte:head>
 
-{#snippet preview(version: RosterPattern | null)}
+{#snippet preview(version: RosterAssignment | null)}
 	<div class="flex flex-col gap-3">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h3 class="font-medium">{m.roster_preview_title()}</h3>

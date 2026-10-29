@@ -1,35 +1,59 @@
-import type { AbsenceType } from '#lib/schemas/enums.js';
-import type {
-	Absence,
-	Pattern,
-	PatternAssignment,
-	RosterOverride,
-	StaffTeamMembership
-} from '#lib/server/db/schema/index.js';
-import { addDays, patternSlot, startOfDamascusDay } from './cycle.js';
+import type { AbsenceType, PatternType } from '#lib/schemas/enums.js';
+import { addDays, mostUsedShift, patternSlot, startOfDamascusDay, weekdayOf } from './cycle.js';
 import { shiftWindow, type RosterShift } from './shift.js';
 
-/** An assignment joined with its pattern. */
-export type RosterPattern = Pick<Pattern, 'type' | 'slots'> &
-	Pick<
-		PatternAssignment,
-		'teamId' | 'departmentId' | 'anchorDate' | 'effectiveFrom' | 'effectiveTo'
-	>;
-export type RosterMembership = Pick<StaffTeamMembership, 'teamId' | 'validFrom' | 'validTo'>;
-export type RosterOverrideEntry = Pick<RosterOverride, 'shiftDate' | 'shiftId' | 'swapGroupId'>;
-export type RosterAbsence = Pick<Absence, 'startsOn' | 'endsOn' | 'type'>;
+/**
+ * A `pattern_assignment` joined with its `pattern` (builder plan B1). `teamId` / `departmentId` say
+ * which target it belongs to (`null` on a personal one). `anchorDate` is the cycle's slot 0 for this
+ * target (B4); `effectiveTo` is exclusive, `null` while open.
+ */
+export type RosterAssignment = {
+	id: string;
+	patternId: string;
+	teamId: string | null;
+	departmentId: string | null;
+	type: PatternType;
+	slots: (string | null)[];
+	/** Weekly: the shift for a day the person works although the pattern has it off (B5). */
+	defaultWorkShiftId: string | null;
+	anchorDate: string | null;
+	effectiveFrom: string;
+	effectiveTo: string | null;
+};
+
+/**
+ * One version of a person's own schedule rules (`staff_schedule`, B4/B5): own off days (0 = Sunday …
+ * 6 = Saturday) for weekly patterns, a crew start (slot offset) for cycles. `null`: follow the
+ * pattern.
+ */
+export type RosterSchedule = {
+	offWeekdays: readonly number[] | null;
+	crewStart: number | null;
+	effectiveFrom: string;
+	effectiveTo: string | null;
+};
+
+export type RosterMembership = { teamId: string; validFrom: Date; validTo: Date | null };
+export type RosterOverrideEntry = {
+	shiftDate: string;
+	shiftId: string | null;
+	swapGroupId: string | null;
+};
+export type RosterAbsence = { startsOn: string; endsOn: string; type: AbsenceType };
 
 /** Everything that decides one person's roster. Cancelled overrides and absences are left out. */
 export type RosterInput = {
 	memberships: readonly RosterMembership[];
-	/** This person's own pattern versions (admin staff, supervisors). */
-	personalPatterns: readonly RosterPattern[];
-	/** Pattern versions of the teams this person belongs to in the range. */
-	teamPatterns: readonly RosterPattern[];
-	/** Pattern versions of the departments in `departmentChain`. */
-	departmentPatterns: readonly RosterPattern[];
+	/** This person's own assignments (admin staff, supervisors). */
+	personalAssignments: readonly RosterAssignment[];
+	/** Assignments of the teams this person belongs to in the range. */
+	teamAssignments: readonly RosterAssignment[];
+	/** Assignments of the departments in `departmentChain`. */
+	departmentAssignments: readonly RosterAssignment[];
 	/** The person's department, then its ancestors: nearest first. */
 	departmentChain: readonly string[];
+	/** This person's own off days / crew start versions. */
+	schedules: readonly RosterSchedule[];
 	overrides: readonly RosterOverrideEntry[];
 	absences: readonly RosterAbsence[];
 	/** Every shift a pattern or override may point at, by id (inactive ones too). */
@@ -38,6 +62,12 @@ export type RosterInput = {
 
 /** Which rule decided the day, highest precedence first. */
 export type RosterSource = 'absence' | 'override' | 'personal' | 'team' | 'department' | 'none';
+
+/**
+ * How the person's own rules changed the pattern's day (weekly, B5): `own_off` = a listed own off
+ * day; `own_work` = a pattern off day they work (with the pattern's default work shift).
+ */
+export type RosterAdjustment = 'own_off' | 'own_work';
 
 export type RosterDay = {
 	date: string;
@@ -50,8 +80,12 @@ export type RosterDay = {
 	start: Date | null;
 	end: Date | null;
 	source: RosterSource;
-	/** What the pattern says, before overrides and absences (`null`: off or no pattern). */
+	/** What the assignment plans (after own off days and crew start), before overrides and absences. */
 	plannedShiftId: string | null;
+	/** The assignment that plans the day, also under an override or absence (`null`: none). */
+	assignmentId: string | null;
+	patternId: string | null;
+	adjustment: RosterAdjustment | null;
 	/** A shift override on a planned off day that isn't a swap: all of it is overtime. */
 	extra: boolean;
 	swapGroupId: string | null;
@@ -72,7 +106,7 @@ export function teamOnDate(memberships: readonly RosterMembership[], date: strin
 }
 
 /** The version in force on `date` (`effective_to` is exclusive; `null` is open). */
-export function patternOn<T extends Pick<RosterPattern, 'effectiveFrom' | 'effectiveTo'>>(
+export function patternOn<T extends { effectiveFrom: string; effectiveTo: string | null }>(
 	versions: readonly T[],
 	date: string
 ): T | undefined {
@@ -81,39 +115,74 @@ export function patternOn<T extends Pick<RosterPattern, 'effectiveFrom' | 'effec
 	);
 }
 
-/** The pattern that plans `date`: personal → team → department (nearest first). */
-function plannedPattern(
+type Planned = { assignment: RosterAssignment; source: 'personal' | 'team' | 'department' };
+
+/** The assignment that plans `date`: personal → team → department (nearest first, B6). */
+function plannedAssignment(
 	input: RosterInput,
 	teamId: string | null,
 	date: string
-): { pattern: RosterPattern; source: 'personal' | 'team' | 'department' } | null {
-	const personal = patternOn(input.personalPatterns, date);
-	if (personal) return { pattern: personal, source: 'personal' };
+): Planned | null {
+	const personal = patternOn(input.personalAssignments, date);
+	if (personal) return { assignment: personal, source: 'personal' };
 	if (teamId !== null) {
 		const team = patternOn(
-			input.teamPatterns.filter((p) => p.teamId === teamId),
+			input.teamAssignments.filter((a) => a.teamId === teamId),
 			date
 		);
-		if (team) return { pattern: team, source: 'team' };
+		if (team) return { assignment: team, source: 'team' };
 	}
 	for (const departmentId of input.departmentChain) {
 		const department = patternOn(
-			input.departmentPatterns.filter((p) => p.departmentId === departmentId),
+			input.departmentAssignments.filter((a) => a.departmentId === departmentId),
 			date
 		);
-		if (department) return { pattern: department, source: 'department' };
+		if (department) return { assignment: department, source: 'department' };
 	}
 	return null;
 }
 
 /**
+ * The planned shift once the person's own rules apply (B2 step 4). They adjust an inherited (team or
+ * department) assignment only: a personal one already describes the person's own days. Cycle: the
+ * crew start shifts the slot (B4). Weekly: a listed own off day is off; a day the pattern has off
+ * but the person doesn't list is worked, with the pattern's default work shift (B5).
+ */
+function plannedShift(
+	planned: Planned,
+	schedule: RosterSchedule | undefined,
+	date: string
+): { shiftId: string | null; adjustment: RosterAdjustment | null } {
+	const { assignment, source } = planned;
+	const own = source === 'personal' ? undefined : schedule;
+	const shiftId = patternSlot(assignment, date, own?.crewStart ?? 0);
+	if (assignment.type !== 'weekly' || !own?.offWeekdays) return { shiftId, adjustment: null };
+
+	if (own.offWeekdays.includes(weekdayOf(date)))
+		return { shiftId: null, adjustment: shiftId === null ? null : 'own_off' };
+	if (shiftId !== null) return { shiftId, adjustment: null };
+	return {
+		shiftId: assignment.defaultWorkShiftId ?? mostUsedShift(assignment.slots),
+		adjustment: 'own_work'
+	};
+}
+
+/**
  * One person's roster for one date: absence → override → personal → team → department (nearest
- * first) → off.
+ * first) → off; own off days and crew start adjust an inherited assignment's day.
  */
 export function rosterDay(input: RosterInput, date: string): RosterDay {
 	const teamId = teamOnDate(input.memberships, date);
-	const planned = plannedPattern(input, teamId, date);
-	const plannedShiftId = planned ? patternSlot(planned.pattern, date) : null;
+	const planned = plannedAssignment(input, teamId, date);
+	const { shiftId: plannedShiftId, adjustment } = planned
+		? plannedShift(planned, patternOn(input.schedules, date), date)
+		: { shiftId: null, adjustment: null };
+	const plan = {
+		plannedShiftId,
+		assignmentId: planned?.assignment.id ?? null,
+		patternId: planned?.assignment.patternId ?? null,
+		adjustment
+	};
 
 	const absence = input.absences.find((a) => a.startsOn <= date && date <= a.endsOn);
 	if (absence) {
@@ -125,7 +194,7 @@ export function rosterDay(input: RosterInput, date: string): RosterDay {
 			start: null,
 			end: null,
 			source: 'absence',
-			plannedShiftId,
+			...plan,
 			extra: false,
 			swapGroupId: null,
 			absenceType: absence.type
@@ -144,7 +213,7 @@ export function rosterDay(input: RosterInput, date: string): RosterDay {
 		start: window?.start ?? null,
 		end: window?.end ?? null,
 		source: override ? 'override' : (planned?.source ?? 'none'),
-		plannedShiftId,
+		...plan,
 		extra:
 			override !== undefined &&
 			override.shiftId !== null &&

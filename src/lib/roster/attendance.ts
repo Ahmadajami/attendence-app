@@ -1,5 +1,4 @@
 import type { AttendanceEventType } from '#lib/schemas/enums.js';
-import type { AttendanceEvent } from '#lib/server/db/schema/index.js';
 import {
 	approvalState,
 	computeOvertime,
@@ -19,10 +18,15 @@ import {
 
 const MINUTE = 60_000;
 
-export type AttendanceEntry = Pick<
-	AttendanceEvent,
-	'id' | 'type' | 'occurredAt' | 'correctsEventId' | 'shiftId' | 'isVoid'
->;
+/** The engine's view of an `attendance_event` row. */
+export type AttendanceEntry = {
+	id: string;
+	type: AttendanceEventType;
+	occurredAt: Date;
+	correctsEventId: string | null;
+	shiftId: string;
+	isVoid: boolean;
+};
 
 /** The shift an event is counted for. `scheduled` is false on a day the person wasn't rostered. */
 export type Attribution = { shiftDate: string; shiftId: string; scheduled: boolean };

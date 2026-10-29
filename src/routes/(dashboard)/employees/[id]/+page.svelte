@@ -13,7 +13,7 @@
 	import { localizedHref } from '#lib/i18n.js';
 	import { punchDays } from '#lib/attendance/entry.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import type { RosterPattern } from '#lib/roster/roster.js';
+	import type { RosterAssignment } from '#lib/roster/roster.js';
 	import { personName, teamName } from '#lib/utils/locale.js';
 	import EndPatternForm from './EndPatternForm.svelte';
 	import type { PageProps } from './$types';
@@ -43,7 +43,7 @@
 			: undefined
 	);
 
-	function rows(version: RosterPattern | null): PreviewRow[] {
+	function rows(version: RosterAssignment | null): PreviewRow[] {
 		const draft = version
 			? ({ owner: 'personal', staffId: person.staffId, version } as const)
 			: null;
@@ -70,7 +70,7 @@
 	<title>{personName(person)} · {m.nav_employees()} · {m.app_name()}</title>
 </svelte:head>
 
-{#snippet preview(version: RosterPattern | null)}
+{#snippet preview(version: RosterAssignment | null)}
 	<div class="flex flex-col gap-3">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h3 class="font-medium">{m.roster_preview_title()}</h3>

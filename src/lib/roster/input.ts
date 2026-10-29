@@ -1,9 +1,10 @@
 import type {
 	RosterAbsence,
+	RosterAssignment,
 	RosterInput,
 	RosterMembership,
 	RosterOverrideEntry,
-	RosterPattern
+	RosterSchedule
 } from './roster.js';
 import type { RosterShift } from './shift.js';
 
@@ -14,11 +15,12 @@ import type { RosterShift } from './shift.js';
 export type RosterData = {
 	shifts: readonly RosterShift[];
 	memberships: readonly (RosterMembership & { staffId: string })[];
-	personalPatterns: readonly (RosterPattern & { staffId: string | null })[];
-	teamPatterns: readonly RosterPattern[];
-	departmentPatterns: readonly RosterPattern[];
+	personalAssignments: readonly (RosterAssignment & { staffId: string | null })[];
+	teamAssignments: readonly RosterAssignment[];
+	departmentAssignments: readonly RosterAssignment[];
 	/** Per person: their department, then its ancestors (nearest first). */
 	departmentChains: Readonly<Record<string, string[]>>;
+	schedules: readonly (RosterSchedule & { staffId: string })[];
 	overrides: readonly (RosterOverrideEntry & { staffId: string })[];
 	absences: readonly (RosterAbsence & { staffId: string })[];
 };
@@ -27,10 +29,11 @@ export type RosterData = {
 export function rosterInputOf(data: RosterData, staffId: string): RosterInput {
 	return {
 		memberships: data.memberships.filter((m) => m.staffId === staffId),
-		personalPatterns: data.personalPatterns.filter((p) => p.staffId === staffId),
-		teamPatterns: data.teamPatterns,
-		departmentPatterns: data.departmentPatterns,
+		personalAssignments: data.personalAssignments.filter((a) => a.staffId === staffId),
+		teamAssignments: data.teamAssignments,
+		departmentAssignments: data.departmentAssignments,
 		departmentChain: data.departmentChains[staffId] ?? [],
+		schedules: data.schedules.filter((s) => s.staffId === staffId),
 		overrides: data.overrides.filter((o) => o.staffId === staffId),
 		absences: data.absences.filter((a) => a.staffId === staffId),
 		shifts: new Map(data.shifts.map((s) => [s.id, s]))

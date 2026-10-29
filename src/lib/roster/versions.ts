@@ -1,6 +1,5 @@
-import type { PatternAssignment } from '#lib/server/db/schema/index.js';
-
-type Span = Pick<PatternAssignment, 'effectiveFrom' | 'effectiveTo'>;
+/** A dated version: `effectiveTo` is exclusive, `null` while open. */
+type Span = { effectiveFrom: string; effectiveTo: string | null };
 
 /**
  * What saving a new pattern version from `from` does to one owner's versions (a person, a team or

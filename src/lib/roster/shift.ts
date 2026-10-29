@@ -6,27 +6,28 @@ import {
 	requiredMinutes,
 	spanMinutes
 } from '#lib/payroll/schedule.js';
-import type { Shift } from '#lib/server/db/schema/index.js';
 import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
 import { LATE_GRACE_MINUTES } from './rules.js';
 
-/** The engine's view of a `shift` row (also what pages get, so it stays serialisable). */
-export type RosterShift = Pick<
-	Shift,
-	| 'id'
-	| 'code'
-	| 'nameEn'
-	| 'nameAr'
-	| 'colour'
-	| 'startTime'
-	| 'endTime'
-	| 'breakMinutes'
-	| 'requiredMinutes'
-	| 'windowBeforeMinutes'
-	| 'windowAfterMinutes'
-	| 'graceMinutes'
-	| 'active'
->;
+/**
+ * The engine's view of a `shift` row (also what pages get, so it stays serialisable). Times are
+ * Damascus wall-clock `HH:MM:SS`.
+ */
+export type RosterShift = {
+	id: string;
+	code: string;
+	nameEn: string;
+	nameAr: string;
+	colour: string;
+	startTime: string;
+	endTime: string;
+	breakMinutes: number;
+	requiredMinutes: number | null;
+	windowBeforeMinutes: number;
+	windowAfterMinutes: number;
+	graceMinutes: number;
+	active: boolean;
+};
 
 type ShiftTimes = Pick<RosterShift, 'startTime' | 'endTime'>;
 

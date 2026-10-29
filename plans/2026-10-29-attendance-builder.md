@@ -168,27 +168,51 @@ team ── department (new FK)
       > and the 4 triggers present.
 
 ### Phase 2 · Engine (pure, Vitest; no DB or SvelteKit imports)
-- [ ] 2.1 `src/lib/roster/roster.ts`: `RosterInput` takes assignments joined
+- [x] 2.1 `src/lib/roster/roster.ts`: `RosterInput` takes assignments joined
       with their pattern (`personalAssignments`, `teamAssignments`,
       `departmentAssignments`) and the person's `schedules`
       (`staff_schedule` versions). `RosterDay` gets `assignmentId`,
       `patternId` and `adjustment: 'own_off' | 'own_work' | null`. `source`
       unchanged.
-- [ ] 2.2 `cycle.ts` `patternSlot(pattern, anchor, date, crewStart)`: the
+      > note: done. `RosterAssignment` (= `PatternRow` shape) replaces
+      > `RosterPattern`; `assignmentId` / `patternId` name the assignment that
+      > plans the day, also under an override or absence (for the impact
+      > counts). Engine types are plain types now: `src/lib/roster/` and
+      > `src/lib/payroll/` import nothing from the DB schema or SvelteKit
+      > (`shift.ts`, `attendance.ts`, `cycle.ts`, `versions.ts` too). Callers
+      > renamed (`preview.ts`, `RosterPreviewData`, two pages, `PatternForm`).
+- [x] 2.2 `cycle.ts` `patternSlot(pattern, anchor, date, crewStart)`: the
       cycle index is `slotIndex(...) + crewStart` modulo the length (correct
       for dates before the anchor). Weekly ignores `crewStart`.
-- [ ] 2.3 Own off days (B5) after the pattern is chosen, before overrides:
+      > note: done as `patternSlot(pattern, date, crewStart = 0)` (the anchor
+      > is on the pattern argument); plus `weekdayOf` and `mostUsedShift`.
+- [x] 2.3 Own off days (B5) after the pattern is chosen, before overrides:
       listed weekday → off; pattern off + weekday not listed → the
       `default_work_shift_id`. Weekly only.
-- [ ] 2.4 `src/lib/roster/assignments.ts`: `planAssignmentChange` (the
+      > note: done; `default_work_shift_id` NULL → the pattern's most used
+      > shift. Reading of B2 step 4: own off days and crew start adjust an
+      > **inherited** (team / department) assignment only; a personal
+      > assignment already is the person's own days and has its own anchor,
+      > so it is not shifted again (tested).
+- [x] 2.4 `src/lib/roster/assignments.ts`: `planAssignmentChange` (the
       `versions.ts` logic, now per target, kept for previews), and
       `assignmentImpact(people, assignment, range)` → `{ applies, ownPattern,
       ownOffDays, notMembers, overrideDays, absenceDays, punchedDays }`
       (counts only) for the step-3 preview. `staffing(rosterDays)` → per date,
       count per shift (for the team strip, B15).
-- [ ] 2.5 `src/lib/roster/presets.ts`: preset shapes (B12) →
+      > note: done. `planAssignmentChange` / `applyAssignmentChange` take an
+      > `AssignmentTarget` (`staff` / `team` / `department`).
+      > `assignmentImpact(people, target, assignment, from, days)` also
+      > returns `people` and `crewStarts` (cycle drafts: people with a crew
+      > start ≠ 0); `ownOffDays` counts people whose days its own-off-days
+      > rule changes. `staffing` returns per date `{ shifts, off, absent }`.
+- [x] 2.5 `src/lib/roster/presets.ts`: preset shapes (B12) →
       slots for the shifts that exist, or `{ missing: ['E'] }`.
-- [ ] 2.6 Tests (made-up people and the fixture shifts in
+      > note: done. 5 presets: office Sun–Thu and 6-on-1-off (weekly, with
+      > the brush shift `*`), D D N N O O O O, N×4 O×4, D×4 O×4. The mockup's
+      > M/E shapes are left out (no such codes). Keys feed
+      > `patterns_preset_<key>` messages in phase 4.
+- [x] 2.6 Tests (made-up people and the fixture shifts in
       `test-shifts.ts`); port every current `roster.test.ts` case, plus:
       - A1: department pattern A, team B, personal C → C; end C → B; end
         B → A;
@@ -210,6 +234,14 @@ team ── department (new FK)
         with own off days.
       **Done when** `pnpm test` is green with every old case ported (none
       dropped without a `> note:`) plus these
+      > note: done. `pnpm test` 179/179: all 150 old cases kept (fields
+      > renamed only), plus 29 new in `assignments.test.ts` (A1, A4, own off
+      > days from a date, default work shift, crew start staffing 1 D + 1 N +
+      > 2 off from and before the anchor, N10 36/48 h, B8 join/leave,
+      > A5-light + A3, per-target plan, impact counts, staffing),
+      > `cycle.test.ts` (crew start, weekday, most used) and
+      > `presets.test.ts`. "Child department inherits; nearer wins" is the
+      > existing `roster.test.ts` department case. `pnpm check` 0 errors.
 
 ### Phase 3 · Services and schemas
 - [ ] 3.1 `src/lib/schemas/pattern.schema.ts`: pattern (names, type, slots,
@@ -236,6 +268,8 @@ team ── department (new FK)
       previews, the entry sheet (`attendance.bl.ts`) and the team/employee
       pages keep working. Remove `setTeamPattern` / `setPersonalPattern` /
       `endPersonalPattern` once phase 4 replaces their UI.
+      > note: partly done in phase 2: `loadRosterData` reads assignments
+      > (through `roster.crud.ts`) and `staff_schedule` (`listSchedules`).
 - [ ] 3.6 `teams.bl.ts`: department on create/rename (required), shown in
       the list.
 

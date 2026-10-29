@@ -7,6 +7,7 @@ import {
 	patternAssignment,
 	rosterOverride,
 	staff,
+	staffSchedule,
 	staffTeamMembership,
 	team,
 	teamSupervisor
@@ -28,6 +29,7 @@ const patternColumns = {
 	departmentId: patternAssignment.departmentId,
 	type: pattern.type,
 	slots: pattern.slots,
+	defaultWorkShiftId: pattern.defaultWorkShiftId,
 	anchorDate: patternAssignment.anchorDate,
 	effectiveFrom: patternAssignment.effectiveFrom,
 	effectiveTo: patternAssignment.effectiveTo,
@@ -257,6 +259,26 @@ export async function listAbsencesBetween(staffIds: readonly string[], from: str
 }
 
 export type AbsenceRow = Awaited<ReturnType<typeof listAbsencesBetween>>[number];
+
+/** These people's own off days / crew start versions, oldest first. */
+export async function listSchedules(staffIds: readonly string[]) {
+	if (staffIds.length === 0) return [];
+	return db
+		.select({
+			id: staffSchedule.id,
+			staffId: staffSchedule.staffId,
+			offWeekdays: staffSchedule.offWeekdays,
+			crewStart: staffSchedule.crewStart,
+			effectiveFrom: staffSchedule.effectiveFrom,
+			effectiveTo: staffSchedule.effectiveTo,
+			reason: staffSchedule.reason
+		})
+		.from(staffSchedule)
+		.where(inArray(staffSchedule.staffId, [...staffIds]))
+		.orderBy(asc(staffSchedule.effectiveFrom));
+}
+
+export type ScheduleRow = Awaited<ReturnType<typeof listSchedules>>[number];
 
 export type PatternVersionValues = Omit<
 	typeof patternAssignment.$inferInsert,

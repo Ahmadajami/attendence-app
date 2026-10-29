@@ -26,6 +26,7 @@ import {
 	listMembershipsBetween,
 	listOverridesBetween,
 	listPersonalPatterns,
+	listSchedules,
 	listStaffWithPersonalPattern,
 	listTeamMembersBetween,
 	listTeamPatterns,
@@ -36,6 +37,7 @@ import {
 	type MembershipRow,
 	type OverrideRow,
 	type PatternRow,
+	type ScheduleRow,
 	type RosterPersonRow,
 	type StaffOption,
 	type SupervisorRow,
@@ -52,11 +54,12 @@ export type RosterPreviewData = {
 	/** Every shift (inactive ones still resolve in saved patterns). */
 	shifts: ShiftRow[];
 	memberships: MembershipRow[];
-	teamPatterns: PatternRow[];
-	personalPatterns: PatternRow[];
-	departmentPatterns: PatternRow[];
+	teamAssignments: PatternRow[];
+	personalAssignments: PatternRow[];
+	departmentAssignments: PatternRow[];
 	/** Per person: their department, then its ancestors (nearest first). */
 	departmentChains: Record<string, string[]>;
+	schedules: ScheduleRow[];
 	overrides: OverrideRow[];
 	absences: AbsenceRow[];
 };
@@ -112,12 +115,13 @@ export async function loadRosterData(
 	const last = addDays(from, days - 1);
 	const start = startOfDamascusDay(from);
 	const end = startOfDamascusDay(addDays(from, days));
-	const [shifts, departments, memberships, personalPatterns, overrides, absences] =
+	const [shifts, departments, memberships, personalAssignments, schedules, overrides, absences] =
 		await Promise.all([
 			loadShifts(),
 			listDepartmentRows(),
 			listMembershipsBetween(staffIds, start, end),
 			listPersonalPatterns(staffIds),
+			listSchedules(staffIds),
 			listOverridesBetween(staffIds, from, last),
 			listAbsencesBetween(staffIds, from, last)
 		]);
@@ -125,7 +129,7 @@ export async function loadRosterData(
 		people.map((p) => [p.staffId, ancestorChain(departments, p.departmentId)])
 	);
 	const teamIds = [...new Set([...extraTeamIds, ...memberships.map((m) => m.teamId)])];
-	const [teamPatterns, departmentPatterns] = await Promise.all([
+	const [teamAssignments, departmentAssignments] = await Promise.all([
 		listTeamPatterns(teamIds),
 		listDepartmentPatterns([...new Set(Object.values(departmentChains).flat())])
 	]);
@@ -134,10 +138,11 @@ export async function loadRosterData(
 		days,
 		shifts,
 		memberships,
-		teamPatterns,
-		personalPatterns,
-		departmentPatterns,
+		teamAssignments,
+		personalAssignments,
+		departmentAssignments,
 		departmentChains,
+		schedules,
 		overrides,
 		absences
 	};
@@ -210,7 +215,7 @@ export async function getPersonRoster(
 		person,
 		today,
 		canManage,
-		versions: preview.personalPatterns,
+		versions: preview.personalAssignments,
 		cycleSources,
 		preview
 	};

@@ -1,6 +1,6 @@
 import { parseDate } from '@internationalized/date';
 import type { ResolvedPathname } from '$app/types';
-import { rosterRange, type RosterDay, type RosterPattern } from '#lib/roster/roster.js';
+import { rosterRange, type RosterAssignment, type RosterDay } from '#lib/roster/roster.js';
 import { rosterInputOf } from '#lib/roster/input.js';
 import { applyVersionChange } from '#lib/roster/versions.js';
 import type { PatternType } from '#lib/schemas/enums.js';
@@ -16,8 +16,8 @@ export type PreviewRow = {
 
 /** An unsaved pattern version, applied on top of the saved ones for a live preview. */
 export type DraftVersion =
-	| { owner: 'team'; teamId: string; version: RosterPattern }
-	| { owner: 'personal'; staffId: string; version: RosterPattern };
+	| { owner: 'team'; teamId: string; version: RosterAssignment }
+	| { owner: 'personal'; staffId: string; version: RosterAssignment };
 
 /** A real `YYYY-MM-DD` date. */
 export function isCalendarDate(value: string): boolean {
@@ -30,6 +30,9 @@ export function isCalendarDate(value: string): boolean {
 	}
 }
 
+/** Id of the unsaved version in a preview (no saved row has it). */
+const DRAFT_ID = 'draft';
+
 /** The version the editor would save, or `null` while the editor is incomplete. */
 export function draftVersion(
 	draft: {
@@ -39,7 +42,7 @@ export function draftVersion(
 		effectiveFrom: string;
 	},
 	teamId: string | null
-): RosterPattern | null {
+): RosterAssignment | null {
 	const cycle = draft.type === 'cycle';
 	if (
 		(cycle && !isCalendarDate(draft.anchorDate)) ||
@@ -49,10 +52,13 @@ export function draftVersion(
 	)
 		return null;
 	return {
+		id: DRAFT_ID,
+		patternId: DRAFT_ID,
 		teamId,
 		departmentId: null,
 		type: draft.type,
 		slots: draft.slots,
+		defaultWorkShiftId: null,
 		anchorDate: cycle ? draft.anchorDate : null,
 		effectiveFrom: draft.effectiveFrom,
 		effectiveTo: null
@@ -67,12 +73,12 @@ export function previewDays(
 ): RosterDay[] {
 	const input = rosterInputOf(data, staffId);
 	if (draft?.owner === 'personal' && draft.staffId === staffId) {
-		input.personalPatterns = applyVersionChange(input.personalPatterns, draft.version);
+		input.personalAssignments = applyVersionChange(input.personalAssignments, draft.version);
 	} else if (draft?.owner === 'team') {
-		input.teamPatterns = [
-			...input.teamPatterns.filter((p) => p.teamId !== draft.teamId),
+		input.teamAssignments = [
+			...input.teamAssignments.filter((p) => p.teamId !== draft.teamId),
 			...applyVersionChange(
-				input.teamPatterns.filter((p) => p.teamId === draft.teamId),
+				input.teamAssignments.filter((p) => p.teamId === draft.teamId),
 				draft.version
 			)
 		];
@@ -85,7 +91,7 @@ export function previewDays(
  * `cycle` of the first two active shifts and two days off (D N O O with the seeded shifts).
  */
 export function patternFormDefaults(
-	current: Pick<RosterPattern, 'type' | 'slots' | 'anchorDate'> | undefined,
+	current: Pick<RosterAssignment, 'type' | 'slots' | 'anchorDate'> | undefined,
 	today: string,
 	shifts: readonly { id: string; active: boolean }[]
 ) {

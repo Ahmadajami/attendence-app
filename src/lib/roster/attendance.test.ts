@@ -21,20 +21,24 @@ const ACTIVE: RosterShift[] = [D, N, E];
 // D N O O from Monday 2 Nov: 2 Nov day, 3 Nov night, 4–5 Nov off, 6 Nov day…
 const input: RosterInput = {
 	memberships: [{ teamId: 'team-a', validFrom: startOfDamascusDay('2026-01-01'), validTo: null }],
-	personalPatterns: [],
-	teamPatterns: [
+	personalAssignments: [],
+	teamAssignments: [
 		{
+			id: 'a-team-a',
+			patternId: 'p-dnoo',
 			teamId: 'team-a',
 			departmentId: null,
 			type: 'cycle',
 			slots: slots('D N O O'),
+			defaultWorkShiftId: null,
 			anchorDate: '2026-11-02',
 			effectiveFrom: '2026-01-01',
 			effectiveTo: null
 		}
 	],
-	departmentPatterns: [],
+	departmentAssignments: [],
 	departmentChain: [],
+	schedules: [],
 	overrides: [],
 	absences: [],
 	shifts: SHIFTS
@@ -43,7 +47,7 @@ const input: RosterInput = {
 /** Every day on the 16:00 → 04:00 shift (break 30, required 690). */
 const evenings: RosterInput = {
 	...input,
-	teamPatterns: [{ ...input.teamPatterns[0], slots: slots('E') }]
+	teamAssignments: [{ ...input.teamAssignments[0], slots: slots('E') }]
 };
 
 const around = (when: Date, roster: RosterInput = input) =>

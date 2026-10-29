@@ -13,7 +13,7 @@
 	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { WEEKLY_SLOTS } from '#lib/payroll/schedule.js';
-	import type { RosterPattern } from '#lib/roster/roster.js';
+	import type { RosterAssignment } from '#lib/roster/roster.js';
 	import type { RosterShift } from '#lib/roster/shift.js';
 	import type { PatternType } from '#lib/schemas/enums.js';
 	import {
@@ -41,7 +41,7 @@
 		/** Saved patterns to start from. */
 		copySources?: CopySource[];
 		/** Renders the live preview of the version being edited (`null` while incomplete). */
-		preview: Snippet<[RosterPattern | null]>;
+		preview: Snippet<[RosterAssignment | null]>;
 	};
 
 	let { data, action, shifts, today, copySources = [], preview }: Props = $props();

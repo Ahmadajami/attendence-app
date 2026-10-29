@@ -16,7 +16,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { shiftsById, slotCodes } from '#lib/app/roster/labels.js';
 	import { localizedHref } from '#lib/i18n.js';
-	import { personName, teamName } from '#lib/utils/locale.js';
+	import { lookupName, personName, teamName } from '#lib/utils/locale.js';
 	import TeamFormSheet from './TeamFormSheet.svelte';
 	import type { PageProps } from './$types';
 
@@ -68,7 +68,7 @@
 
 <section class="flex flex-col gap-4">
 	<div class="flex flex-wrap items-start justify-between gap-4">
-		<div class="space-y-1">
+		<div class="flex flex-col gap-1">
 			<h2 class="text-2xl font-semibold tracking-tight">{m.teams_title()}</h2>
 			<p class="max-w-prose text-muted-foreground">{m.teams_description()}</p>
 		</div>
@@ -84,6 +84,7 @@
 				<Table.Header>
 					<Table.Row>
 						<Table.Head>{m.teams_col_name()}</Table.Head>
+						<Table.Head>{m.teams_col_department()}</Table.Head>
 						<Table.Head>{m.teams_col_members()}</Table.Head>
 						<Table.Head>{m.teams_col_cycle()}</Table.Head>
 						<Table.Head>{m.teams_col_supervisors()}</Table.Head>
@@ -98,6 +99,9 @@
 								<a href={localizedHref('/teams/[id]', { id: team.id })} class="hover:underline">
 									{teamName(team)}
 								</a>
+							</Table.Cell>
+							<Table.Cell class={team.department ? undefined : 'text-muted-foreground'}>
+								{team.department ? lookupName(team.department) : '—'}
 							</Table.Cell>
 							<Table.Cell>
 								<span class="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -166,7 +170,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={6} class="h-20 text-center text-muted-foreground">
+							<Table.Cell colspan={7} class="h-20 text-center text-muted-foreground">
 								{m.teams_empty()}
 							</Table.Cell>
 						</Table.Row>
@@ -182,4 +186,4 @@
 	<input type="hidden" name="active" value={activeRequest.active} />
 </form>
 
-<TeamFormSheet data={data.form} {target} bind:open={formOpen} />
+<TeamFormSheet data={data.form} {target} departments={data.departments} bind:open={formOpen} />

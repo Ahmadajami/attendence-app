@@ -6,6 +6,7 @@ import { failForm, failNotice } from '#lib/server/errors.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import type { Actor } from '#lib/server/services/common.js';
 import { listShifts } from '#lib/server/services/shifts/shifts.bl.js';
+import { listActiveDepartments } from '#lib/server/services/staff.js';
 import {
 	createTeam,
 	listTeams,
@@ -26,10 +27,15 @@ function actorFrom(locals: App.Locals): Actor {
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const actor = actorFrom(locals);
-	const [teams, shifts] = await Promise.all([listTeams(actor), listShifts(actor)]);
+	const [teams, shifts, departments] = await Promise.all([
+		listTeams(actor),
+		listShifts(actor),
+		listActiveDepartments(actor)
+	]);
 	return {
 		teams,
 		shifts,
+		departments,
 		form: await superValidate(zod4(teamFormSchema), { id: 'team' })
 	};
 };
@@ -44,7 +50,11 @@ export const actions: Actions = {
 		);
 		if (!form.valid) return fail(400, { form });
 
-		const input = { nameEn: form.data.nameEn, nameAr: form.data.nameAr };
+		const input = {
+			nameEn: form.data.nameEn,
+			nameAr: form.data.nameAr,
+			departmentId: form.data.departmentId
+		};
 		try {
 			const team = form.data.teamId
 				? await renameTeam(actor, form.data.teamId, input)

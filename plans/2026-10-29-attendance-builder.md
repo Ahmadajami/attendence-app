@@ -244,34 +244,58 @@ team ── department (new FK)
       > existing `roster.test.ts` department case. `pnpm check` 0 errors.
 
 ### Phase 3 · Services and schemas
-- [ ] 3.1 `src/lib/schemas/pattern.schema.ts`: pattern (names, type, slots,
+- [x] 3.1 `src/lib/schemas/pattern.schema.ts`: pattern (names, type, slots,
       default work shift); assignment (pattern, target kind + ids[],
       `effectiveFrom`, `anchorDate` for cycles, reason); "edit from date"
       (B3); staff schedule (off weekdays, crew start, from, reason). Exported
       schema types beside each.
-- [ ] 3.2 `services/patterns/patterns.{crud,bl}.ts`: list with usage
+      > note: done: `patternFormSchema`, `assignmentFormSchema`,
+      > `patternBuilderSchema` (pattern + optional `assign` step, anchor
+      > checked when the type is a cycle), `editFromDateSchema`,
+      > `endAssignmentSchema`, `staffScheduleFormSchema`,
+      > `resetScheduleSchema`; `ASSIGN_TARGETS`.
+- [x] 3.2 `services/patterns/patterns.{crud,bl}.ts`: list with usage
       (following count, targets), get, create, update (B3 lock:
       `ConflictError` when days/type change on a used pattern), copy,
       (de)activate (an inactive pattern can't be newly assigned; current
       assignments still resolve). Audit each write.
-- [ ] 3.3 `services/assignments/assignments.{crud,bl}.ts`: `previewAssign`
+      > note: done. Cards get `followers` (current + scheduled), `used` and
+      > follower `departmentIds` (team's or person's department) for the
+      > filter. Weekly `default_work_shift_id` = chosen or most used; the
+      > B3 lock also covers the default work shift. Copies are named
+      > "Copy of …" / "نسخة من …".
+- [x] 3.3 `services/assignments/assignments.{crud,bl}.ts`: `previewAssign`
       (dry run → `assignmentImpact` per target), `assign` (many targets in
       one `batch`: close / replace per target like `savePattern`, insert,
       one audit row per target), `endAssignment(target, from)`,
       `editFromDate(patternId, from, newSlots)` (B3, one batch). Dates per
       B7 (today or later; `InvalidInputError`). Refuse inactive teams,
       departments, staff and patterns.
-- [ ] 3.4 `services/schedules/schedules.{crud,bl}.ts`: set / reset a person's
+      > note: done. `previewAssign` takes the pattern shape, so the builder
+      > previews before saving; `assignStatements` lets the builder create
+      > pattern + assignments in one batch. `editFromDate` closes current
+      > assignments at the date, re-creates scheduled ones on the copy with
+      > their own dates, keeps each anchor; one audit row per moved target.
+- [x] 3.4 `services/schedules/schedules.{crud,bl}.ts`: set / reset a person's
       own off days and crew start from a date (versioned like assignments,
       reason, audit).
+      > note: done: `setSchedule` (own off days sorted and de-duplicated) and
+      > `resetSchedule`.
 - [ ] 3.5 `roster.bl.ts` `loadRosterData` reads assignments + schedules;
       previews, the entry sheet (`attendance.bl.ts`) and the team/employee
       pages keep working. Remove `setTeamPattern` / `setPersonalPattern` /
       `endPersonalPattern` once phase 4 replaces their UI.
       > note: partly done in phase 2: `loadRosterData` reads assignments
       > (through `roster.crud.ts`) and `staff_schedule` (`listSchedules`).
-- [ ] 3.6 `teams.bl.ts`: department on create/rename (required), shown in
+      > Removing the old per-owner functions waits for phase 4.
+      > note: open question for the user: Q-B4 in the decisions log (own
+      > rules adjust team / department assignments only).
+- [x] 3.6 `teams.bl.ts`: department on create/rename (required), shown in
       the list.
+      > note: done, with the team sheet's department `Select` and the list's
+      > Department column in the same change (4.3 asked for the `Select`),
+      > so creating a team keeps working. Existing teams without one show
+      > "—" until edited. Not runtime-checked: phase 5 checklist.
 
 ### Phase 4 · UI (mockup F2–F5, F13)
 - [ ] 4.1 `/patterns` (sidebar entry, phosphor icon, `localizedHref`): saved

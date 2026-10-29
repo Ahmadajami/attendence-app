@@ -12,12 +12,23 @@ export const teamFormSchema = z.object({
 		.string()
 		.trim()
 		.min(1, { error: () => m.teams_name_required() })
-		.max(120)
+		.max(120),
+	/** Required from the builder plan on (D22); `''` until chosen. */
+	departmentId: z
+		.string()
+		.default('')
+		.refine((value) => z.uuid().safeParse(value).success, {
+			error: () => m.teams_department_required()
+		})
 });
 export type TeamFormSchema = typeof teamFormSchema;
 
-/** The teams service's create / rename input. */
-export const teamInputSchema = teamFormSchema.pick({ nameEn: true, nameAr: true });
+/** The teams service's create / edit input. */
+export const teamInputSchema = teamFormSchema.pick({
+	nameEn: true,
+	nameAr: true,
+	departmentId: true
+});
 export type TeamInput = z.infer<typeof teamInputSchema>;
 
 export const setTeamActiveSchema = z.object({

@@ -7,6 +7,7 @@ export const teamColumns = {
 	id: team.id,
 	nameEn: team.nameEn,
 	nameAr: team.nameAr,
+	departmentId: team.departmentId,
 	active: team.active
 };
 

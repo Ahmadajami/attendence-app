@@ -11,6 +11,7 @@ import type { PatternType } from '#lib/schemas/enums.js';
 import { ancestorChain } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
+import { withSlots } from '../slots.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
 import type { ShiftRow } from '../shifts/shifts.crud.js';
 import { findTeam, type TeamRow } from '../teams/teams.crud.js';
@@ -119,9 +120,9 @@ export async function loadRosterData(
 		days,
 		shifts,
 		memberships,
-		teamAssignments,
-		personalAssignments,
-		departmentAssignments,
+		teamAssignments: teamAssignments.map(withSlots),
+		personalAssignments: personalAssignments.map(withSlots),
+		departmentAssignments: departmentAssignments.map(withSlots),
 		departmentChains,
 		schedules,
 		overrides,
@@ -284,7 +285,7 @@ export async function getTeamRoster(
 		team,
 		today,
 		canManage,
-		versions,
+		versions: versions.map(withSlots),
 		supervisors,
 		members,
 		staffOptions,

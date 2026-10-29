@@ -8,6 +8,7 @@ import type { TeamInput } from '#lib/schemas/teams.schema.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { findDepartment, listDepartmentRows } from '../departments/departments.crud.js';
 import { closeTeamMemberships } from '../membership.js';
+import { normalizeSlots } from '../slots.js';
 import {
 	listActiveSupervisors,
 	listTeamPatternsOn,
@@ -74,7 +75,7 @@ export async function listTeams(actor: Actor, day?: string): Promise<TeamListIte
 
 	const memberByTeam = new Map(members.map((row) => [row.teamId, row.count]));
 	const patternByTeam = new Map(
-		patterns.map(({ teamId, type, slots }) => [teamId, { type, slots }])
+		patterns.map(({ teamId, type, slots }) => [teamId, { type, slots: normalizeSlots(slots) }])
 	);
 
 	return teams.map((row) => ({

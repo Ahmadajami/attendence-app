@@ -9,6 +9,7 @@ import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/err
 import { todayInDamascus } from '#lib/server/time.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
+import { withSlots } from '../slots.js';
 import {
 	findPattern,
 	insertPattern,
@@ -52,7 +53,7 @@ function duplicateName(error: unknown): ConflictError | undefined {
 export async function requirePattern(id: string): Promise<PatternRow> {
 	const row = await findPattern(id);
 	if (!row) throw new NotFoundError(m.patterns_error_not_found());
-	return row;
+	return withSlots(row);
 }
 
 /** Every slot and the default work shift must be active shifts (plan P2). */
@@ -82,7 +83,8 @@ export async function listPatterns(actor: Actor): Promise<PatternListItem[]> {
 	requireActorPermission(actor, 'staff.write');
 	const today = todayInDamascus();
 	const [patterns, targets] = await Promise.all([listPatternRows(), listAssignmentTargets()]);
-	return patterns.map((row) => {
+	return patterns.map((raw) => {
+		const row = withSlots(raw);
 		const own = targets.filter((t) => t.patternId === row.id);
 		const followers = own
 			.filter((t) => t.effectiveTo === null || t.effectiveTo > today)

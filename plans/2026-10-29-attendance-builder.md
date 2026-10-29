@@ -372,6 +372,10 @@ team ── department (new FK)
       **Done when** the user reports every line holds
 - [ ] 5.2 Playwright (written, the user runs it): build → assign to a team →
       member preview shows the codes after a reload.
+      > note: written 2026-10-29: `tests/e2e/pattern-builder.spec.ts` (preset
+      > D D N N O O O O, assign to the seeded made-up team from today, the
+      > member's first 8 preview days after a reload). Linted; not run. The
+      > box is ticked when the user's `pnpm test:e2e` run passes.
 - [ ] 5.3 Tick here and S2.4 in the main plan (S3.6 note: own off days and
       crew start done; day popup still open), README row, commit.
 

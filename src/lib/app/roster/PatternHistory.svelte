@@ -8,9 +8,15 @@
 
 	type Version = PatternRow;
 
-	type Props = { versions: Version[]; today: string; shifts: Pick<RosterShift, 'id' | 'code'>[] };
+	type Props = {
+		versions: Version[];
+		today: string;
+		shifts: Pick<RosterShift, 'id' | 'code'>[];
+		/** Library pattern names by id: adds a Pattern column. */
+		patternNames?: ReadonlyMap<string, string>;
+	};
 
-	let { versions, today, shifts }: Props = $props();
+	let { versions, today, shifts, patternNames }: Props = $props();
 
 	const byId = $derived(shiftsById(shifts));
 
@@ -29,6 +35,9 @@
 	<Table.Root>
 		<Table.Header>
 			<Table.Row>
+				{#if patternNames}
+					<Table.Head>{m.roster_history_pattern()}</Table.Head>
+				{/if}
 				<Table.Head>{m.roster_history_from()}</Table.Head>
 				<Table.Head>{m.roster_history_to()}</Table.Head>
 				<Table.Head>{m.roster_field_cycle()}</Table.Head>
@@ -40,6 +49,10 @@
 			{#each newestFirst as version (version.id)}
 				{const status = $derived(versionState(version))}
 				<Table.Row class={status === 'past' ? 'text-muted-foreground' : undefined}>
+					{#if patternNames}
+						<Table.Cell class="font-medium">{patternNames.get(version.patternId) ?? '—'}</Table.Cell
+						>
+					{/if}
 					<Table.Cell class="whitespace-nowrap">
 						<bdi>{formatCalendarDate(version.effectiveFrom)}</bdi>
 						{#if status === 'current'}

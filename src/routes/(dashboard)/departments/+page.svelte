@@ -8,6 +8,10 @@
 	import ProhibitIcon from 'phosphor-svelte/lib/ProhibitIcon';
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
+	import CalendarPlusIcon from 'phosphor-svelte/lib/CalendarPlusIcon';
+	import AssignSheet from '#lib/app/patterns/AssignSheet.svelte';
+	import { formatCalendarDate } from '#lib/app/roster/labels.js';
+	import { localizedHref } from '#lib/i18n.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
@@ -33,6 +37,16 @@
 	function openEdit(row: Department) {
 		target = row;
 		formOpen = true;
+	}
+
+	const patternById = $derived(new Map(data.patterns.map((p) => [p.id, p])));
+	const activePatterns = $derived(data.patterns.filter((p) => p.active));
+	let assignOpen = $state(false);
+	let assignTo = $state<Department | null>(null);
+
+	function openAssign(row: Department) {
+		assignTo = row;
+		assignOpen = true;
 	}
 
 	let activeForm: HTMLFormElement | null = $state(null);
@@ -82,6 +96,7 @@
 						<Table.Head>{m.departments_col_name()}</Table.Head>
 						<Table.Head>{m.departments_col_manager()}</Table.Head>
 						<Table.Head>{m.departments_col_staff()}</Table.Head>
+						<Table.Head>{m.departments_col_pattern()}</Table.Head>
 						<Table.Head>{m.departments_col_status()}</Table.Head>
 						<Table.Head>
 							<span class="sr-only">{m.departments_actions({ name: '' })}</span>
@@ -113,6 +128,26 @@
 									{row.staffCount}
 								</span>
 							</Table.Cell>
+							<Table.Cell class="text-sm">
+								{#if row.assignment}
+									{const assigned = $derived(patternById.get(row.assignment.patternId))}
+									{#if assigned}
+										<a
+											href={localizedHref('/patterns/[id]', { id: assigned.id })}
+											class="hover:underline"
+										>
+											{lookupName(assigned)}
+										</a>
+										<span class="block text-xs text-muted-foreground">
+											{m.team_schedule_since({
+												date: formatCalendarDate(row.assignment.effectiveFrom)
+											})}
+										</span>
+									{/if}
+								{:else}
+									<span class="text-muted-foreground">—</span>
+								{/if}
+							</Table.Cell>
 							<Table.Cell>
 								<Badge variant={row.active ? 'secondary' : 'outline'}>
 									{row.active ? m.departments_status_active() : m.departments_status_inactive()}
@@ -137,6 +172,12 @@
 											<PencilSimpleIcon />
 											{m.departments_edit()}
 										</DropdownMenu.Item>
+										{#if data.canManage && row.active}
+											<DropdownMenu.Item onSelect={() => openAssign(row)}>
+												<CalendarPlusIcon />
+												{m.departments_assign_pattern()}
+											</DropdownMenu.Item>
+										{/if}
 										<DropdownMenu.Separator />
 										{#if row.active}
 											<DropdownMenu.Item
@@ -158,7 +199,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={5} class="h-20 text-center text-muted-foreground">
+							<Table.Cell colspan={6} class="h-20 text-center text-muted-foreground">
 								{m.departments_empty()}
 							</Table.Cell>
 						</Table.Row>
@@ -173,6 +214,25 @@
 	<input type="hidden" name="departmentId" value={activeRequest.departmentId} />
 	<input type="hidden" name="active" value={activeRequest.active} />
 </form>
+
+{#if data.canManage}
+	<AssignSheet
+		data={data.assignForm}
+		action="?/assign"
+		targetKind="department"
+		targetId={assignTo?.id ?? ''}
+		patterns={activePatterns}
+		today={data.today}
+		buildHref={assignTo
+			? `${localizedHref('/patterns/new')}?targetKind=department&targetId=${assignTo.id}`
+			: undefined}
+		title={m.departments_assign_pattern()}
+		description={m.departments_assign_description({
+			name: assignTo ? lookupName(assignTo) : ''
+		})}
+		bind:open={assignOpen}
+	/>
+{/if}
 
 <DepartmentFormSheet
 	data={data.form}

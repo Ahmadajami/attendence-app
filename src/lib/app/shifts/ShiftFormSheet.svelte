@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { refreshAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
@@ -24,10 +23,12 @@
 		data: SuperValidated<Infer<typeof shiftFormSchema>, ShiftMessage>;
 		/** `null`: create. */
 		target: ShiftListItem | null;
+		/** Form action: `?/save` on `/shifts`, `?/saveShift` in the pattern builder. */
+		action?: string;
 		open: boolean;
 	};
 
-	let { data, target, open = $bindable() }: Props = $props();
+	let { data, target, action = '?/save', open = $bindable() }: Props = $props();
 
 	const form = superForm(
 		untrack(() => data),
@@ -39,7 +40,6 @@
 				if (form.message?.kind === 'success') {
 					toast.success(form.message.text);
 					open = false;
-					void refreshAll();
 				} else if (form.message?.kind === 'error') {
 					toast.error(form.message.text);
 				}
@@ -90,7 +90,7 @@
 			</Sheet.Description>
 		</Sheet.Header>
 
-		<form method="POST" action="?/save" class="flex flex-col gap-4 px-4 pb-4" use:enhance>
+		<form method="POST" {action} class="flex flex-col gap-4 px-4 pb-4" use:enhance>
 			{#if locked}
 				<p class="flex gap-2 rounded-md bg-muted p-3 text-sm text-muted-foreground">
 					<LockSimpleIcon class="mt-0.5 size-4 shrink-0" />

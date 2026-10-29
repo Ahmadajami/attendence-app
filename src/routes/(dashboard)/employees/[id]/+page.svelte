@@ -1,21 +1,25 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import ArrowCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowCounterClockwiseIcon';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import CalendarPlusIcon from 'phosphor-svelte/lib/CalendarPlusIcon';
+	import SlidersHorizontalIcon from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 	import DayPanel from '#lib/app/attendance/DayPanel.svelte';
-	import PatternForm from '#lib/app/roster/PatternForm.svelte';
+	import AssignSheet from '#lib/app/patterns/AssignSheet.svelte';
+	import EndAssignmentSheet from '#lib/app/patterns/EndAssignmentSheet.svelte';
+	import ScheduleSheet from '#lib/app/patterns/ScheduleSheet.svelte';
 	import PatternHistory from '#lib/app/roster/PatternHistory.svelte';
 	import PreviewRange from '#lib/app/roster/PreviewRange.svelte';
 	import RosterPreview from '#lib/app/roster/RosterPreview.svelte';
-	import { previewDays, type PreviewRow } from '#lib/app/roster/preview.js';
+	import { weekdayNames } from '#lib/app/roster/labels.js';
+	import { previewDays } from '#lib/app/roster/preview.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { punchDays } from '#lib/attendance/entry.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import type { RosterAssignment } from '#lib/roster/roster.js';
-	import { personName, teamName } from '#lib/utils/locale.js';
-	import EndPatternForm from './EndPatternForm.svelte';
+	import { lookupName, personName, teamName } from '#lib/utils/locale.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -37,54 +41,40 @@
 		return untrack(() => data.selectedDay);
 	});
 	const punches = $derived(punchDays(data.events));
-	const panelDay = $derived(
-		selectedDay
-			? previewDays(data.preview, person.staffId, null).find((d) => d.date === selectedDay)
-			: undefined
-	);
+	const days = $derived(previewDays(data.preview, person.staffId));
+	const panelDay = $derived(selectedDay ? days.find((d) => d.date === selectedDay) : undefined);
 
-	function rows(version: RosterAssignment | null): PreviewRow[] {
-		const draft = version
-			? ({ owner: 'personal', staffId: person.staffId, version } as const)
-			: null;
-		return [
-			{
-				id: person.staffId,
-				label: personName(person),
-				days: previewDays(data.preview, person.staffId, draft)
-			}
-		];
-	}
-
-	const copySources = $derived(
-		data.cycleSources.map((s) => ({
-			id: s.id,
-			label: teamName(s),
-			type: s.type,
-			slots: s.slots
-		}))
+	const patternNames = $derived(new Map(data.patterns.map((p) => [p.id, lookupName(p)])));
+	const activePatterns = $derived(data.patterns.filter((p) => p.active));
+	const schedule = $derived(data.schedule);
+	const followedPattern = $derived(
+		schedule.patternId ? (patternNames.get(schedule.patternId) ?? '—') : '—'
 	);
+	/** Own rules adjust a team's or department's pattern only. */
+	const canHaveRules = $derived(schedule.follows === 'team' || schedule.follows === 'department');
+
+	const weekdays = $derived(weekdayNames());
+	const rulesText = $derived.by(() => {
+		const parts: string[] = [];
+		if (schedule.rules?.offWeekdays)
+			parts.push(
+				m.schedule_rules_off({
+					days: schedule.rules.offWeekdays.map((d) => weekdays[d]).join(m.list_separator())
+				})
+			);
+		if (schedule.rules?.crewStart !== null && schedule.rules?.crewStart !== undefined)
+			parts.push(m.schedule_crew_start_option({ day: schedule.rules.crewStart + 1 }));
+		return parts.join(m.list_separator());
+	});
+
+	let assignOpen = $state(false);
+	let endOpen = $state(false);
+	let scheduleOpen = $state(false);
 </script>
 
 <svelte:head>
 	<title>{personName(person)} · {m.nav_employees()} · {m.app_name()}</title>
 </svelte:head>
-
-{#snippet preview(version: RosterAssignment | null)}
-	<div class="flex flex-col gap-3">
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<h3 class="font-medium">{m.roster_preview_title()}</h3>
-			<PreviewRange from={data.preview.from} days={data.preview.days} today={data.today} />
-		</div>
-		<RosterPreview
-			rows={rows(version)}
-			today={data.today}
-			{punches}
-			{selectedDay}
-			onSelectDay={(date) => (selectedDay = selectedDay === date ? null : date)}
-		/>
-	</div>
-{/snippet}
 
 <section class="flex flex-col gap-4">
 	<div class="flex flex-col gap-2">
@@ -116,26 +106,66 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{m.roster_personal_title()}</Card.Title>
-			<Card.Description>{m.roster_personal_description()}</Card.Description>
+			<Card.Title>{m.person_schedule_title()}</Card.Title>
+			<Card.Description>{m.person_schedule_description()}</Card.Description>
 		</Card.Header>
-		<Card.Content>
+		<Card.Content class="flex flex-col gap-4">
+			<div class="flex flex-col gap-1 text-sm">
+				<p>
+					{#if schedule.follows === 'personal'}
+						{m.person_follows_own({ name: followedPattern })}
+					{:else if schedule.follows === 'team' && team}
+						{m.person_follows_team({ team: teamName(team), name: followedPattern })}
+					{:else if schedule.follows === 'department' && schedule.department}
+						{m.person_follows_department({
+							department: lookupName(schedule.department),
+							name: followedPattern
+						})}
+					{:else}
+						{m.person_follows_none()}
+					{/if}
+				</p>
+				{#if canHaveRules}
+					<p class="text-muted-foreground">
+						{rulesText ? m.person_own_rules({ rules: rulesText }) : m.person_no_own_rules()}
+					</p>
+				{/if}
+			</div>
+
 			{#if data.canManage}
-				<!-- The page is reused from one person to the next: remount so the form holds this
-				     person's pattern. Paging the preview keeps the key, so unsaved edits stay. -->
-				{#key person.staffId}
-					<PatternForm
-						data={data.patternForm}
-						action="?/savePattern"
-						shifts={data.preview.shifts}
-						today={data.today}
-						{copySources}
-						{preview}
-					/>
-				{/key}
-			{:else}
-				{@render preview(null)}
+				<div class="flex flex-wrap gap-2">
+					{#if canHaveRules}
+						<Button variant="outline" size="sm" onclick={() => (scheduleOpen = true)}>
+							<SlidersHorizontalIcon data-icon="inline-start" />
+							{m.team_members_rules()}
+						</Button>
+					{/if}
+					<Button variant="outline" size="sm" onclick={() => (assignOpen = true)}>
+						<CalendarPlusIcon data-icon="inline-start" />
+						{m.person_use_own_pattern()}
+					</Button>
+					{#if data.hasPersonalPattern}
+						<Button variant="outline" size="sm" onclick={() => (endOpen = true)}>
+							<ArrowCounterClockwiseIcon data-icon="inline-start" />
+							{m.person_back_to_team()}
+						</Button>
+					{/if}
+				</div>
 			{/if}
+
+			<div class="flex flex-col gap-3">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h3 class="font-medium">{m.roster_preview_title()}</h3>
+					<PreviewRange from={data.preview.from} days={data.preview.days} today={data.today} />
+				</div>
+				<RosterPreview
+					rows={[{ id: person.staffId, label: personName(person), days }]}
+					today={data.today}
+					{punches}
+					{selectedDay}
+					onSelectDay={(date) => (selectedDay = selectedDay === date ? null : date)}
+				/>
+			</div>
 		</Card.Content>
 	</Card.Root>
 
@@ -160,26 +190,57 @@
 		</Card.Root>
 	{/if}
 
-	{#if data.canManage && data.hasPersonalPattern}
-		<Card.Root>
-			<Card.Header>
-				<Card.Title>{m.roster_end_title()}</Card.Title>
-				<Card.Description>{m.roster_end_description()}</Card.Description>
-			</Card.Header>
-			<Card.Content>
-				{#key person.staffId}
-					<EndPatternForm data={data.endForm} today={data.today} />
-				{/key}
-			</Card.Content>
-		</Card.Root>
-	{/if}
-
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>{m.roster_history_title()}</Card.Title>
 		</Card.Header>
 		<Card.Content class="px-0">
-			<PatternHistory versions={data.versions} today={data.today} shifts={data.preview.shifts} />
+			<PatternHistory
+				versions={data.versions}
+				today={data.today}
+				shifts={data.preview.shifts}
+				{patternNames}
+			/>
 		</Card.Content>
 	</Card.Root>
 </section>
+
+{#if data.canManage}
+	<!-- The page is reused from one person to the next: remount the sheets so their forms hold
+	     this person. -->
+	{#key person.staffId}
+		<AssignSheet
+			data={data.assignForm}
+			action="?/assign"
+			targetKind="staff"
+			targetId={person.staffId}
+			patterns={activePatterns}
+			today={data.today}
+			buildHref={`${localizedHref('/patterns/new')}?targetKind=staff&targetId=${person.staffId}`}
+			title={m.person_use_own_pattern()}
+			description={m.person_assign_description({ name: personName(person) })}
+			bind:open={assignOpen}
+		/>
+		<EndAssignmentSheet
+			data={data.endForm}
+			action="?/endAssignment"
+			today={data.today}
+			title={m.person_back_to_team()}
+			description={m.person_back_to_team_description()}
+			bind:open={endOpen}
+		/>
+		<ScheduleSheet
+			setData={data.scheduleForm}
+			resetData={data.resetForm}
+			setAction="?/setSchedule"
+			resetAction="?/resetSchedule"
+			staffId={person.staffId}
+			name={personName(person)}
+			patternType={schedule.patternType}
+			cycleLength={schedule.cycleLength}
+			current={schedule.rules}
+			today={data.today}
+			bind:open={scheduleOpen}
+		/>
+	{/key}
+{/if}

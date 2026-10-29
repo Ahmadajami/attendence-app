@@ -170,5 +170,17 @@ export const resetScheduleSchema = z.object({ staffId: z.uuid(), effectiveFrom: 
 export type ResetScheduleSchema = typeof resetScheduleSchema;
 export type ResetScheduleInput = z.infer<ResetScheduleSchema>;
 
+/** The impact preview's request: a pattern (saved or still in the builder) and where it would go. */
+export const impactRequestSchema = z.object({
+	type: z.enum(PATTERN_TYPES),
+	slots,
+	defaultWorkShiftId: z.union([z.literal(''), z.uuid()]),
+	targetKind: z.enum(ASSIGN_TARGETS),
+	targetIds: z.array(z.uuid()).min(1).max(200),
+	effectiveFrom: isoDate,
+	anchorDate: z.string()
+});
+export type ImpactRequest = z.infer<typeof impactRequestSchema>;
+
 /** Superforms status message of the pattern, assignment and schedule forms. */
 export type PatternMessage = { kind: 'success' | 'error'; text: string };

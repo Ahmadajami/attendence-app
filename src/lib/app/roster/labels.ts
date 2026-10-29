@@ -59,3 +59,10 @@ export function formatCalendarDate(date: string): string {
 export function formatWallClock(time: string): string {
 	return time.slice(0, 5);
 }
+
+/** Weekday names in the current locale, Sunday first (0 = Sunday … 6 = Saturday). */
+export function weekdayNames(style: 'short' | 'long' = 'short'): string[] {
+	const format = new DateFormatter(getLocale(), { weekday: style, timeZone: 'UTC' });
+	// 2026-01-04 is a Sunday.
+	return Array.from({ length: 7 }, (_, i) => format.format(new Date(Date.UTC(2026, 0, 4 + i))));
+}

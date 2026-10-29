@@ -1,29 +1,28 @@
 import { error, fail } from '@sveltejs/kit';
-import { message, superValidate, type Infer } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
-import { patternFormDefaults } from '#lib/app/roster/preview.js';
 import { m } from '#lib/paraglide/messages.js';
 import { punchDays } from '#lib/attendance/entry.js';
 import { addDays } from '#lib/roster/cycle.js';
-import { patternOn } from '#lib/roster/roster.js';
+import { addSupervisorSchema, removeSupervisorSchema } from '#lib/schemas/roster.schema.js';
+import { failNotice } from '#lib/server/errors.js';
 import {
-	addSupervisorSchema,
-	patternFormSchema,
-	removeSupervisorSchema,
-	type RosterMessage
-} from '#lib/schemas/roster.schema.js';
-import { failForm, failNotice } from '#lib/server/errors.js';
+	assignAction,
+	patternForms,
+	resetScheduleAction,
+	setScheduleAction
+} from '#lib/server/pattern-forms.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import { listPeopleEvents } from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
+import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
 import {
 	addTeamSupervisor,
 	getTeamRoster,
-	removeTeamSupervisor,
-	setTeamPattern
+	listCurrentMemberIds,
+	listMemberSchedules,
+	removeTeamSupervisor
 } from '#lib/server/services/roster/roster.bl.js';
-import { personName, teamName } from '#lib/utils/locale.js';
+import { personName } from '#lib/utils/locale.js';
 import type { Actions, PageServerLoad } from './$types';
 
 function actorFrom(locals: App.Locals): Actor {
@@ -36,51 +35,57 @@ function teamId(id: string): string {
 }
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
-	const roster = await getTeamRoster(
-		actorFrom(locals),
-		teamId(params.id),
-		url.searchParams.get('from')
-	);
-	const current = patternOn(roster.versions, roster.today) ?? roster.versions.at(-1);
 	const actor = actorFrom(locals);
-	const events = actor.permissions.has('attendance.record')
-		? await listPeopleEvents(
-				actor,
-				[...new Set(roster.members.map((member) => member.staffId))],
-				roster.preview.from,
-				addDays(roster.preview.from, roster.preview.days - 1)
-			)
-		: [];
+	const id = teamId(params.id);
+	const roster = await getTeamRoster(actor, id, url.searchParams.get('from'));
+	const [events, patterns, memberSchedules, forms] = await Promise.all([
+		actor.permissions.has('attendance.record')
+			? listPeopleEvents(
+					actor,
+					[...new Set(roster.members.map((member) => member.staffId))],
+					roster.preview.from,
+					addDays(roster.preview.from, roster.preview.days - 1)
+				)
+			: Promise.resolve([]),
+		listPatterns(actor),
+		listMemberSchedules(actor, id),
+		patternForms(roster.today, { kind: 'team', id })
+	]);
 	return {
 		...roster,
 		/** Worked time per member and shift date: no punch details leave the server. */
 		punches: punchDays(events),
-		patternForm: await superValidate(
-			patternFormDefaults(current, roster.today, roster.preview.shifts),
-			zod4(patternFormSchema),
-			{ id: 'pattern', errors: false }
-		)
+		/** The library, for pattern names and the assign sheet. */
+		patterns: patterns.map(({ id, nameEn, nameAr, type, slots, defaultWorkShiftId, active }) => ({
+			id,
+			nameEn,
+			nameAr,
+			type,
+			slots,
+			defaultWorkShiftId,
+			active
+		})),
+		memberSchedules,
+		...forms
 	};
 };
 
 export const actions: Actions = {
-	savePattern: async ({ request, locals, params }) => {
+	assign: async ({ request, locals, params }) =>
+		assignAction(request, actorFrom(locals), { kind: 'team', id: teamId(params.id) }, () =>
+			m.assign_saved()
+		),
+
+	setSchedule: async ({ request, locals, params }) => {
 		const actor = actorFrom(locals);
-		const form = await superValidate<Infer<typeof patternFormSchema>, RosterMessage>(
-			request,
-			zod4(patternFormSchema),
-			{ id: 'pattern' }
-		);
-		if (!form.valid) return fail(400, { form });
-		try {
-			const team = await setTeamPattern(actor, teamId(params.id), form.data);
-			return message(form, {
-				kind: 'success',
-				text: m.roster_pattern_saved({ name: teamName(team) })
-			} satisfies RosterMessage);
-		} catch (cause) {
-			return failForm(form, cause);
-		}
+		const members = await listCurrentMemberIds(actor, teamId(params.id));
+		return setScheduleAction(request, actor, (staffId) => members.has(staffId));
+	},
+
+	resetSchedule: async ({ request, locals, params }) => {
+		const actor = actorFrom(locals);
+		const members = await listCurrentMemberIds(actor, teamId(params.id));
+		return resetScheduleAction(request, actor, (staffId) => members.has(staffId));
 	},
 
 	addSupervisor: async ({ request, locals, params }) => {

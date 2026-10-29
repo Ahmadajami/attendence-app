@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { and, asc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, or } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import {
@@ -279,49 +278,6 @@ export async function listSchedules(staffIds: readonly string[]) {
 }
 
 export type ScheduleRow = Awaited<ReturnType<typeof listSchedules>>[number];
-
-export type PatternVersionValues = Omit<
-	typeof patternAssignment.$inferInsert,
-	'patternId' | 'departmentId'
-> &
-	Pick<typeof pattern.$inferInsert, 'type' | 'slots'>;
-
-/**
- * A new version from the per-owner editor: a library pattern of its own (named from its id, renamed
- * by HR later) and the assignment that uses it, in that order.
- */
-export function insertPatternVersion({
-	type,
-	slots,
-	...assignment
-}: PatternVersionValues): BatchQuery[] {
-	const patternId = randomUUID();
-	const label = patternId.slice(0, 8);
-	return [
-		db.insert(pattern).values({
-			id: patternId,
-			nameEn: `Pattern ${label}`,
-			nameAr: `نمط ${label}`,
-			type,
-			slots,
-			createdBy: assignment.createdBy
-		}),
-		db.insert(patternAssignment).values({ ...assignment, patternId })
-	];
-}
-
-/** End an assignment at `effectiveTo` (exclusive). */
-export function closePattern(id: string, effectiveTo: string): BatchQuery {
-	return db.update(patternAssignment).set({ effectiveTo }).where(eq(patternAssignment.id, id));
-}
-
-/**
- * Remove scheduled assignments that never took effect (they start today or later). Their library
- * patterns stay (deactivated or reused from `/patterns`, never deleted).
- */
-export function deletePatterns(ids: readonly string[]): BatchQuery {
-	return db.delete(patternAssignment).where(inArray(patternAssignment.id, [...ids]));
-}
 
 export function insertSupervisor(values: typeof teamSupervisor.$inferInsert): BatchQuery {
 	return db.insert(teamSupervisor).values(values);

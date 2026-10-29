@@ -4,21 +4,19 @@ import { m } from '#lib/paraglide/messages.js';
 import { batch } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
 import { damascusDayRange, todayInDamascus } from '#lib/server/time.js';
-import { addDays, startOfDamascusDay } from '#lib/roster/cycle.js';
-import { planVersionChange } from '#lib/roster/versions.js';
-import type { EndPatternInput, PatternInput } from '#lib/schemas/roster.schema.js';
+import { addDays, damascusDate, daysBetween, startOfDamascusDay } from '#lib/roster/cycle.js';
+import { rosterInputOf } from '#lib/roster/input.js';
+import { patternOn, rosterDay } from '#lib/roster/roster.js';
+import type { PatternType } from '#lib/schemas/enums.js';
 import { ancestorChain } from '#lib/workforce/departments.js';
-import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
+import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
 import type { ShiftRow } from '../shifts/shifts.crud.js';
-import { findTeam, listTeams as listTeamRows, type TeamRow } from '../teams/teams.crud.js';
+import { findTeam, type TeamRow } from '../teams/teams.crud.js';
 import {
-	closePattern,
-	deletePatterns,
 	findActiveSupervisor,
 	findRosterPerson,
-	insertPatternVersion,
 	insertSupervisor,
 	listAbsencesBetween,
 	listActiveStaffOptions,
@@ -30,7 +28,6 @@ import {
 	listStaffWithPersonalPattern,
 	listTeamMembersBetween,
 	listTeamPatterns,
-	listTeamPatternsOn,
 	listTeamSupervisors,
 	removeSupervisor,
 	type AbsenceRow,
@@ -64,10 +61,6 @@ export type RosterPreviewData = {
 	absences: AbsenceRow[];
 };
 
-/** A team's pattern in force today, offered as a starting point in the pattern editor. */
-export type CycleSource = Pick<TeamRow, 'id' | 'nameEn' | 'nameAr'> &
-	Pick<PatternRow, 'type' | 'slots'>;
-
 export type TeamRoster = {
 	team: TeamRow;
 	today: string;
@@ -76,7 +69,6 @@ export type TeamRoster = {
 	supervisors: SupervisorRow[];
 	members: TeamMemberRow[];
 	staffOptions: StaffOption[];
-	cycleSources: CycleSource[];
 	preview: RosterPreviewData;
 };
 
@@ -85,19 +77,8 @@ export type PersonRoster = {
 	today: string;
 	canManage: boolean;
 	versions: PatternRow[];
-	cycleSources: CycleSource[];
 	preview: RosterPreviewData;
 };
-
-async function listCycleSources(today: string): Promise<CycleSource[]> {
-	const [teams, patterns] = await Promise.all([listTeamRows(), listTeamPatternsOn(today)]);
-	return teams.flatMap(({ id, nameEn, nameAr }) => {
-		const pattern = patterns.find((p) => p.teamId === id);
-		return pattern ? [{ id, nameEn, nameAr, type: pattern.type, slots: pattern.slots }] : [];
-	});
-}
-
-type Owner = { teamId: string; staffId?: never } | { staffId: string; teamId?: never };
 
 export type RosterPerson = { staffId: string; departmentId: string | null };
 
@@ -148,6 +129,123 @@ export async function loadRosterData(
 	};
 }
 
+/** A person with what plans their days and their own rules (builder plan 4.3, 4.4). */
+export type MemberSchedule = {
+	staffId: string;
+	employeeNo: string;
+	fullName: string;
+	fullNameAr: string | null;
+	/** Joins the team later: the Damascus date; `null` when already in it (or no team page). */
+	joinsOn: string | null;
+	/** Who plans their days on that date. */
+	follows: 'personal' | 'team' | 'department' | 'none';
+	/** The department whose assignment applies (`follows: 'department'`), for its name. */
+	department: { id: string; nameEn: string; nameAr: string } | null;
+	patternId: string | null;
+	patternType: PatternType | null;
+	cycleLength: number;
+	/** Own off days / crew start in force then; `null`: none. */
+	rules: { offWeekdays: number[] | null; crewStart: number | null } | null;
+};
+
+type SchedulePerson = {
+	staffId: string;
+	employeeNo: string;
+	fullName: string;
+	fullNameAr: string | null;
+	departmentId: string | null;
+	/** The date to describe (today, or a later join date). */
+	date: string;
+};
+
+async function describeSchedules(
+	people: readonly SchedulePerson[],
+	teamIds: string[]
+): Promise<MemberSchedule[]> {
+	if (people.length === 0) return [];
+	const today = todayInDamascus();
+	const last = people.reduce((a, p) => (p.date > a ? p.date : a), today);
+	const [data, departments] = await Promise.all([
+		loadRosterData(people, today, daysBetween(today, last) + 1, teamIds),
+		listDepartmentRows()
+	]);
+	return people.map((person) => {
+		const input = rosterInputOf(data, person.staffId);
+		const day = rosterDay(input, person.date);
+		const lists = [
+			['personal', input.personalAssignments],
+			['team', input.teamAssignments],
+			['department', input.departmentAssignments]
+		] as const;
+		const found = lists
+			.map(([kind, list]) => [kind, list.find((a) => a.id === day.assignmentId)] as const)
+			.find(([, a]) => a !== undefined);
+		const assignment = found?.[1];
+		const department = departments.find((d) => d.id === assignment?.departmentId);
+		const schedule = patternOn(input.schedules, person.date);
+		return {
+			staffId: person.staffId,
+			employeeNo: person.employeeNo,
+			fullName: person.fullName,
+			fullNameAr: person.fullNameAr,
+			joinsOn: person.date > today ? person.date : null,
+			follows: found?.[0] ?? 'none',
+			department: department
+				? { id: department.id, nameEn: department.nameEn, nameAr: department.nameAr }
+				: null,
+			patternId: assignment?.patternId ?? null,
+			patternType: assignment?.type ?? null,
+			cycleLength: assignment?.slots.length ?? 0,
+			rules: schedule
+				? {
+						offWeekdays: schedule.offWeekdays ? [...schedule.offWeekdays] : null,
+						crewStart: schedule.crewStart
+					}
+				: null
+		};
+	});
+}
+
+/** The members table of a team page: current and future members only. */
+export async function listMemberSchedules(actor: Actor, teamId: string): Promise<MemberSchedule[]> {
+	requireActorPermission(actor, 'staff.write');
+	const today = todayInDamascus();
+	const now = new Date();
+	const rows = await listTeamMembersBetween(teamId, now, startOfDamascusDay(addDays(today, 36500)));
+	const members = [
+		...new Map(
+			rows.filter((r) => r.validTo === null || r.validTo > now).map((r) => [r.staffId, r])
+		).values()
+	];
+	return describeSchedules(
+		members.map((r) => ({ ...r, date: r.validFrom > now ? damascusDate(r.validFrom) : today })),
+		[teamId]
+	);
+}
+
+/** What plans one person's days today, and their own rules (the employee page). */
+export async function getPersonSchedule(actor: Actor, staffId: string): Promise<MemberSchedule> {
+	requireActorPermission(actor, 'staff.write');
+	const person = await requirePerson(staffId);
+	const [schedule] = await describeSchedules(
+		[{ ...person, date: todayInDamascus() }],
+		person.teamId ? [person.teamId] : []
+	);
+	return schedule;
+}
+
+/** Ids of a team's members now or joining later (who a team page may set own rules for). */
+export async function listCurrentMemberIds(actor: Actor, teamId: string): Promise<Set<string>> {
+	requireActorPermission(actor, 'staff.write');
+	const now = new Date();
+	const rows = await listTeamMembersBetween(
+		teamId,
+		now,
+		startOfDamascusDay(addDays(todayInDamascus(), 36500))
+	);
+	return new Set(rows.filter((r) => r.validTo === null || r.validTo > now).map((r) => r.staffId));
+}
+
 async function requireTeam(teamId: string): Promise<TeamRow> {
 	const row = await findTeam(teamId);
 	if (!row) throw new NotFoundError(m.teams_error_not_found());
@@ -176,11 +274,10 @@ export async function getTeamRoster(
 		startOfDamascusDay(addDays(start, PREVIEW_DAYS))
 	);
 	const canManage = actor.permissions.has('roster.manage');
-	const [versions, supervisors, staffOptions, cycleSources, preview] = await Promise.all([
+	const [versions, supervisors, staffOptions, preview] = await Promise.all([
 		listTeamPatterns([teamId]),
 		listTeamSupervisors(teamId),
 		canManage ? listActiveStaffOptions() : Promise.resolve([]),
-		canManage ? listCycleSources(today) : Promise.resolve([]),
 		loadRosterData(members, start, PREVIEW_DAYS, [teamId])
 	]);
 	return {
@@ -191,7 +288,6 @@ export async function getTeamRoster(
 		supervisors,
 		members,
 		staffOptions,
-		cycleSources: cycleSources.filter((s) => s.id !== teamId),
 		preview
 	};
 }
@@ -206,17 +302,12 @@ export async function getPersonRoster(
 	const today = todayInDamascus();
 	const start = damascusDayRange(from).day;
 	const person = await requirePerson(staffId);
-	const canManage = actor.permissions.has('roster.manage');
-	const [cycleSources, preview] = await Promise.all([
-		canManage ? listCycleSources(today) : Promise.resolve([]),
-		loadRosterData([person], start)
-	]);
+	const preview = await loadRosterData([person], start);
 	return {
 		person,
 		today,
-		canManage,
+		canManage: actor.permissions.has('roster.manage'),
 		versions: preview.personalAssignments,
-		cycleSources,
 		preview
 	};
 }
@@ -225,132 +316,6 @@ export async function getPersonRoster(
 export async function listPersonalPatternStaff(actor: Actor): Promise<string[]> {
 	requireActorPermission(actor, 'staff.write');
 	return listStaffWithPersonalPattern(todayInDamascus());
-}
-
-function requireFutureDate(date: string, field: string) {
-	if (date < todayInDamascus())
-		throw new InvalidInputError('effective_past', m.roster_error_effective_past(), { field });
-}
-
-/** Every slot must be an active shift (plan P2); the DB trigger only checks that it exists. */
-async function requireActiveSlots(slots: readonly (string | null)[]): Promise<void> {
-	const active = new Set((await loadShifts()).filter((s) => s.active).map((s) => s.id));
-	if (slots.some((slot) => slot !== null && !active.has(slot)))
-		throw new InvalidInputError('shift_inactive', m.roster_error_shift_inactive(), {
-			field: 'slots'
-		});
-}
-
-/**
- * Run a version change and its audit row in one batch; an overlap left by a concurrent save is a
- * 409. `changes` run in order (removals and the close before the insert, for the `EXCLUDE`).
- */
-async function commitVersionChange(audit: BatchQuery, changes: BatchQuery[]): Promise<void> {
-	try {
-		await batch([audit, ...changes]);
-	} catch (error) {
-		if (pgErrorCode(error) === '23P01')
-			throw new ConflictError('pattern_overlap', m.roster_error_overlap(), { cause: error });
-		throw error;
-	}
-}
-
-async function savePattern(
-	actor: Actor,
-	owner: Owner,
-	versions: PatternRow[],
-	input: PatternInput
-): Promise<void> {
-	requireFutureDate(input.effectiveFrom, 'effectiveFrom');
-	await requireActiveSlots(input.slots);
-
-	const { closed, removed } = planVersionChange(versions, input.effectiveFrom);
-	const values = {
-		id: randomUUID(),
-		teamId: owner.teamId ?? null,
-		staffId: owner.staffId ?? null,
-		type: input.type,
-		slots: input.slots,
-		anchorDate: input.type === 'cycle' ? input.anchorDate : null,
-		effectiveFrom: input.effectiveFrom,
-		effectiveTo: null,
-		reason: input.reason,
-		createdBy: actor.user.id
-	};
-	await commitVersionChange(
-		auditInsert({
-			actor: actor.user,
-			action: 'shift_pattern.set',
-			entityType: owner.teamId ? 'team' : 'staff',
-			entityId: owner.teamId ?? owner.staffId,
-			before: { closed, removed },
-			after: values,
-			reason: input.reason
-		}),
-		[
-			...(removed.length > 0 ? [deletePatterns(removed.map((v) => v.id))] : []),
-			...(closed ? [closePattern(closed.id, input.effectiveFrom)] : []),
-			...insertPatternVersion(values)
-		]
-	);
-}
-
-/** A team's new pattern from `effectiveFrom` (today or later). Earlier days keep their cycle. */
-export async function setTeamPattern(
-	actor: Actor,
-	teamId: string,
-	input: PatternInput
-): Promise<TeamRow> {
-	requireActorPermission(actor, 'roster.manage');
-	const team = await requireTeam(teamId);
-	await savePattern(actor, { teamId }, await listTeamPatterns([teamId]), input);
-	return team;
-}
-
-/** A person's own pattern from `effectiveFrom`, overriding their team's and department's. */
-export async function setPersonalPattern(
-	actor: Actor,
-	staffId: string,
-	input: PatternInput
-): Promise<RosterPersonRow> {
-	requireActorPermission(actor, 'roster.manage');
-	const person = await requirePerson(staffId);
-	await savePattern(actor, { staffId }, await listPersonalPatterns([staffId]), input);
-	return person;
-}
-
-/** Stop a person's own pattern from `effectiveFrom`; from then they follow their team. */
-export async function endPersonalPattern(
-	actor: Actor,
-	staffId: string,
-	input: EndPatternInput
-): Promise<RosterPersonRow> {
-	requireActorPermission(actor, 'roster.manage');
-	requireFutureDate(input.effectiveFrom, 'effectiveFrom');
-	const person = await requirePerson(staffId);
-	const { closed, removed } = planVersionChange(
-		await listPersonalPatterns([staffId]),
-		input.effectiveFrom
-	);
-	const changes = [
-		...(removed.length > 0 ? [deletePatterns(removed.map((v) => v.id))] : []),
-		...(closed ? [closePattern(closed.id, input.effectiveFrom)] : [])
-	];
-	if (changes.length === 0)
-		throw new InvalidInputError('no_personal_pattern', m.roster_error_no_personal());
-	await commitVersionChange(
-		auditInsert({
-			actor: actor.user,
-			action: 'shift_pattern.end',
-			entityType: 'staff',
-			entityId: staffId,
-			before: { closed, removed },
-			after: { effectiveTo: input.effectiveFrom },
-			reason: input.reason
-		}),
-		changes
-	);
-	return person;
 }
 
 /** Add a supervisor to a team (information only until supervisor accounts). */

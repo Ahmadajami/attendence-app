@@ -2,21 +2,21 @@ import { error, fail } from '@sveltejs/kit';
 import { message, superValidate, type Infer } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
-import { patternFormDefaults } from '#lib/app/roster/preview.js';
 import { m } from '#lib/paraglide/messages.js';
 import { addDays } from '#lib/roster/cycle.js';
-import { patternOn } from '#lib/roster/roster.js';
 import {
 	addPairSchema,
 	correctionSchema,
 	type AttendanceMessage
 } from '#lib/schemas/attendance.schema.js';
-import {
-	endPatternFormSchema,
-	patternFormSchema,
-	type RosterMessage
-} from '#lib/schemas/roster.schema.js';
 import { failForm } from '#lib/server/errors.js';
+import {
+	assignAction,
+	endAssignmentAction,
+	patternForms,
+	resetScheduleAction,
+	setScheduleAction
+} from '#lib/server/pattern-forms.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import {
 	addPair,
@@ -24,12 +24,8 @@ import {
 	listPersonEvents
 } from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
-import {
-	endPersonalPattern,
-	getPersonRoster,
-	setPersonalPattern
-} from '#lib/server/services/roster/roster.bl.js';
-import { personName } from '#lib/utils/locale.js';
+import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
+import { getPersonRoster, getPersonSchedule } from '#lib/server/services/roster/roster.bl.js';
 import type { Actions, PageServerLoad } from './$types';
 
 function actorFrom(locals: App.Locals): Actor {
@@ -42,30 +38,20 @@ function staffId(id: string): string {
 }
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
-	const roster = await getPersonRoster(
-		actorFrom(locals),
-		staffId(params.id),
-		url.searchParams.get('from')
-	);
-	const current = patternOn(roster.versions, roster.today) ?? roster.versions.at(-1);
 	const actor = actorFrom(locals);
+	const id = staffId(params.id);
+	const roster = await getPersonRoster(actor, id, url.searchParams.get('from'));
 	const canRecord = actor.permissions.has('attendance.record');
 	const last = addDays(roster.preview.from, roster.preview.days - 1);
 	/** `?day=` opens the day panel when it is inside the preview window. */
 	const day = url.searchParams.get('day');
-	const [events, patternForm, endForm] = await Promise.all([
+	const [events, schedule, patterns, forms] = await Promise.all([
 		canRecord
 			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
 			: Promise.resolve([]),
-		superValidate(
-			patternFormDefaults(current, roster.today, roster.preview.shifts),
-			zod4(patternFormSchema),
-			{ id: 'pattern', errors: false }
-		),
-		superValidate({ effectiveFrom: roster.today, reason: '' }, zod4(endPatternFormSchema), {
-			id: 'end-pattern',
-			errors: false
-		})
+		getPersonSchedule(actor, id),
+		listPatterns(actor),
+		patternForms(roster.today, { kind: 'staff', id })
 	]);
 	return {
 		...roster,
@@ -76,30 +62,37 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		hasPersonalPattern: roster.versions.some(
 			(v) => v.effectiveTo === null || v.effectiveTo > roster.today
 		),
-		patternForm,
-		endForm
+		schedule,
+		/** The library, for pattern names and the assign sheet. */
+		patterns: patterns.map(({ id, nameEn, nameAr, type, slots, defaultWorkShiftId, active }) => ({
+			id,
+			nameEn,
+			nameAr,
+			type,
+			slots,
+			defaultWorkShiftId,
+			active
+		})),
+		...forms
 	};
 };
 
 export const actions: Actions = {
-	savePattern: async ({ request, locals, params }) => {
-		const actor = actorFrom(locals);
-		const form = await superValidate<Infer<typeof patternFormSchema>, RosterMessage>(
-			request,
-			zod4(patternFormSchema),
-			{ id: 'pattern' }
-		);
-		if (!form.valid) return fail(400, { form });
-		try {
-			const person = await setPersonalPattern(actor, staffId(params.id), form.data);
-			return message(form, {
-				kind: 'success',
-				text: m.roster_pattern_saved({ name: personName(person) })
-			} satisfies RosterMessage);
-		} catch (cause) {
-			return failForm(form, cause);
-		}
-	},
+	assign: async ({ request, locals, params }) =>
+		assignAction(request, actorFrom(locals), { kind: 'staff', id: staffId(params.id) }, () =>
+			m.assign_saved()
+		),
+
+	endAssignment: async ({ request, locals, params }) =>
+		endAssignmentAction(request, actorFrom(locals), { kind: 'staff', id: staffId(params.id) }, () =>
+			m.assign_ended()
+		),
+
+	setSchedule: async ({ request, locals, params }) =>
+		setScheduleAction(request, actorFrom(locals), (id) => id === staffId(params.id)),
+
+	resetSchedule: async ({ request, locals, params }) =>
+		resetScheduleAction(request, actorFrom(locals), (id) => id === staffId(params.id)),
 
 	addPair: async ({ request, locals, params }) => {
 		const actor = actorFrom(locals);
@@ -132,25 +125,6 @@ export const actions: Actions = {
 				kind: 'success',
 				text: form.data.remove ? m.attendance_removed_saved() : m.attendance_corrected_saved()
 			} satisfies AttendanceMessage);
-		} catch (cause) {
-			return failForm(form, cause);
-		}
-	},
-
-	endPattern: async ({ request, locals, params }) => {
-		const actor = actorFrom(locals);
-		const form = await superValidate<Infer<typeof endPatternFormSchema>, RosterMessage>(
-			request,
-			zod4(endPatternFormSchema),
-			{ id: 'end-pattern' }
-		);
-		if (!form.valid) return fail(400, { form });
-		try {
-			const person = await endPersonalPattern(actor, staffId(params.id), form.data);
-			return message(form, {
-				kind: 'success',
-				text: m.roster_pattern_ended({ name: personName(person) })
-			} satisfies RosterMessage);
 		} catch (cause) {
 			return failForm(form, cause);
 		}

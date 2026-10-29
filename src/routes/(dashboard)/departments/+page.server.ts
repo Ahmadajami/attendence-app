@@ -3,8 +3,12 @@ import { message, superValidate, type Infer } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { m } from '#lib/paraglide/messages.js';
 import { failForm, failNotice } from '#lib/server/errors.js';
+import { assignAction, patternForms } from '#lib/server/pattern-forms.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
+import { currentAssignments } from '#lib/server/services/assignments/assignments.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
+import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
+import { todayInDamascus } from '#lib/server/time.js';
 import {
 	createDepartment,
 	editDepartment,
@@ -26,18 +30,45 @@ function actorFrom(locals: App.Locals): Actor {
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const actor = actorFrom(locals);
-	const [departments, managers] = await Promise.all([
+	const today = todayInDamascus();
+	const [departments, managers, patterns, forms] = await Promise.all([
 		listDepartments(actor),
-		listManagerOptions(actor)
+		listManagerOptions(actor),
+		listPatterns(actor),
+		patternForms(today, { kind: 'department', id: '' })
 	]);
+	const assigned = await currentAssignments(
+		actor,
+		'department',
+		departments.map((d) => d.id),
+		today
+	);
 	return {
-		departments,
+		departments: departments.map((d) => ({ ...d, assignment: assigned.get(d.id) ?? null })),
 		managers,
+		today,
+		canManage: actor.permissions.has('roster.manage'),
+		/** The library, for the Default pattern column and the assign sheet. */
+		patterns: patterns.map(({ id, nameEn, nameAr, type, slots, defaultWorkShiftId, active }) => ({
+			id,
+			nameEn,
+			nameAr,
+			type,
+			slots,
+			defaultWorkShiftId,
+			active
+		})),
+		assignForm: forms.assignForm,
 		form: await superValidate(zod4(departmentFormSchema), { id: 'department' })
 	};
 };
 
 export const actions: Actions = {
+	assign: async ({ request, locals }) =>
+		assignAction(request, actorFrom(locals), { kind: 'department', fromForm: true }, () =>
+			m.assign_saved()
+		),
+
 	save: async ({ request, locals }) => {
 		const actor = actorFrom(locals);
 		const form = await superValidate<Infer<typeof departmentFormSchema>, DepartmentMessage>(

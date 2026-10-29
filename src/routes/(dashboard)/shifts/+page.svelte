@@ -18,7 +18,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { endsNextDay, graceOf, isNightShift, requiredOf, spanOf } from '#lib/roster/shift.js';
 	import { lookupName } from '#lib/utils/locale.js';
-	import ShiftFormSheet from './ShiftFormSheet.svelte';
+	import ShiftFormSheet from '#lib/app/shifts/ShiftFormSheet.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

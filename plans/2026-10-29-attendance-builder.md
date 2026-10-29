@@ -281,7 +281,7 @@ team ── department (new FK)
       reason, audit).
       > note: done: `setSchedule` (own off days sorted and de-duplicated) and
       > `resetSchedule`.
-- [ ] 3.5 `roster.bl.ts` `loadRosterData` reads assignments + schedules;
+- [x] 3.5 `roster.bl.ts` `loadRosterData` reads assignments + schedules;
       previews, the entry sheet (`attendance.bl.ts`) and the team/employee
       pages keep working. Remove `setTeamPattern` / `setPersonalPattern` /
       `endPersonalPattern` once phase 4 replaces their UI.
@@ -298,12 +298,12 @@ team ── department (new FK)
       > "—" until edited. Not runtime-checked: phase 5 checklist.
 
 ### Phase 4 · UI (mockup F2–F5, F13)
-- [ ] 4.1 `/patterns` (sidebar entry, phosphor icon, `localizedHref`): saved
+- [x] 4.1 `/patterns` (sidebar entry, phosphor icon, `localizedHref`): saved
       pattern **cards** (name, Weekly / N-day cycle, avg h/week, N
       following, target chips 🏢/👥/👤, active), filter by department,
       "New pattern", per card Edit / Copy / Assign / Deactivate. Empty state
       via `#lib/app/state/`.
-- [ ] 4.2 `/patterns/new` and `/patterns/[id]`: the **3-step builder** in one
+- [x] 4.2 `/patterns/new` and `/patterns/[id]`: the **3-step builder** in one
       Superforms form (`dataType: 'json'`):
       1. names en/ar, Weekly/Cycle toggle, presets (B12);
       2. `CycleEditor` (tap-to-paint + drag and drop from phase 0), shift
@@ -315,7 +315,7 @@ team ── department (new FK)
          reason, and the **impact preview** ("Applies to 12 of 14. 1 has an
          own pattern, which still wins. 2 keep their own off days.").
       A used pattern opens read-only with "Edit from a date" (B3).
-- [ ] 4.3 `/teams/[id]` **Schedule card** (replaces `PatternForm` there):
+- [x] 4.3 `/teams/[id]` **Schedule card** (replaces `PatternForm` there):
       current pattern + history ("Day 2026-11-01 → 11-14, Night from 11-15"),
       "Change pattern from a date" sheet (pick from the library or build new
       → back here) with the impact preview; a **members table**: name, source
@@ -326,19 +326,32 @@ team ── department (new FK)
       > team at any time in the 28-day preview window, so people removed
       > today still show (with "until"). The new members table lists current
       > and future members only; people who left show only in the preview.
-- [ ] 4.4 `/employees/[id]` **Schedule card** (replaces `PatternForm`):
+- [x] 4.4 `/employees/[id]` **Schedule card** (replaces `PatternForm`):
       "Follows team X: Night crew" / "Follows department Y" / "Own pattern
       Z", own off-day chips (weekly) or crew start (cycle), "Use an own
       pattern from…", "Reset to team/department". The day panel and preview
       keep working.
-- [ ] 4.5 `/departments`: a "Default pattern" column + "Assign" (opens step 3
+- [x] 4.5 `/departments`: a "Default pattern" column + "Assign" (opens step 3
       prefilled with the department). The full `/departments/[id]` page stays
       in S2.3.
-- [ ] 4.6 Remove `PatternForm.svelte` / `PatternHistory.svelte` (or reuse the
+- [x] 4.6 Remove `PatternForm.svelte` / `PatternHistory.svelte` (or reuse the
       history list in 4.3), dead messages; en + ar keys for everything new
       (`patterns_*`, `assign_*`, `schedule_*`), RTL checked in `/ar`.
-- [ ] 4.7 `svelte-autofixer` on every touched `.svelte` until clean;
+- [x] 4.7 `svelte-autofixer` on every touched `.svelte` until clean;
       `pnpm check`; eslint + prettier on touched files; `pnpm test`.
+
+      > note (phase 4, 2026-10-29): `/patterns` (cards, department GET
+      > filter, copy/(de)activate, `Empty` state), `/patterns/new|[id]`
+      > (3-step builder, presets, ＋ New shift via the moved
+      > `#lib/app/shifts/ShiftFormSheet` (no `refreshAll`), 14-day strip,
+      > avg h/week, impact preview via `POST /patterns/impact`, read-only +
+      > "Change from a date" when used), team page Schedule card + members
+      > table (current/future only) + staffing strip, employee Schedule card,
+      > `/departments` Default pattern + Assign. Removed `PatternForm`,
+      > `EndPatternForm`, old per-owner services/schemas/actions. 134 new
+      > en/ar keys. `pnpm check` 0 errors, `pnpm test` 182/182, eslint +
+      > prettier clean, autofixer clean on every touched `.svelte`. Nothing
+      > runtime-checked: phase 5 checklist (still to write).
 
 ### Phase 5 · Verify
 - [ ] 5.1 Manual check **by the user** (agents never test in a browser,

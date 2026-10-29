@@ -15,7 +15,8 @@ import type {
 	AssignmentInput,
 	AssignTargetKind,
 	EditFromDateInput,
-	EndAssignmentInput
+	EndAssignmentInput,
+	PatternBuilderInput
 } from '#lib/schemas/pattern.schema.js';
 import { auditInsert } from '#lib/server/audit.js';
 import { batch } from '#lib/server/db/index.js';
@@ -29,7 +30,8 @@ import {
 	createPatternStatements,
 	defaultWorkShift,
 	requireActiveShifts,
-	requirePattern
+	requirePattern,
+	updatePatternDetails
 } from '../patterns/patterns.bl.js';
 import { loadRosterData, PREVIEW_DAYS, type RosterPerson } from '../roster/roster.bl.js';
 import { findRosterPerson, listTeamMembersBetween } from '../roster/roster.crud.js';
@@ -391,4 +393,68 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 		throw overlapConflict(error) ?? error;
 	}
 	return copyId;
+}
+
+/**
+ * The builder's save (builder plan 4.2): create the pattern, or edit an unused one (B3), and when
+ * `assign` is on, assign it. A new pattern and its assignments are one batch. Returns the id.
+ */
+export async function buildPattern(actor: Actor, input: PatternBuilderInput): Promise<string> {
+	requireActorPermission(actor, 'roster.manage');
+	const fields = {
+		nameEn: input.nameEn,
+		nameAr: input.nameAr,
+		type: input.type,
+		slots: input.slots,
+		defaultWorkShiftId: input.defaultWorkShiftId
+	};
+	const assignment = {
+		targetKind: input.targetKind,
+		targetIds: input.targetIds,
+		effectiveFrom: input.effectiveFrom,
+		anchorDate: input.anchorDate,
+		reason: input.reason
+	};
+
+	if (input.patternId) {
+		const saved = await updatePatternDetails(actor, input.patternId, fields);
+		if (input.assign) await assign(actor, { patternId: saved.id, ...assignment });
+		return saved.id;
+	}
+
+	await requireActiveShifts([...input.slots, input.defaultWorkShiftId || null]);
+	const id = randomUUID();
+	const statements = [
+		...createPatternStatements(actor, id, fields),
+		...(input.assign ? await assignStatements(actor, { id, type: input.type }, assignment) : [])
+	];
+	try {
+		await batch(statements);
+	} catch (error) {
+		if (pgErrorCode(error) === '23505')
+			throw new ConflictError('duplicate_name', m.patterns_error_duplicate(), {
+				field: 'nameEn',
+				cause: error
+			});
+		throw overlapConflict(error) ?? error;
+	}
+	return id;
+}
+
+/** The assignment each of these targets has on `date` (pattern id and start), for list columns. */
+export async function currentAssignments(
+	actor: Actor,
+	kind: AssignTargetKind,
+	ids: readonly string[],
+	date: string = todayInDamascus()
+): Promise<Map<string, { patternId: string; effectiveFrom: string }>> {
+	requireActorPermission(actor, 'staff.write');
+	const rows = await listAssignmentsOf(kind, ids);
+	const result = new Map<string, { patternId: string; effectiveFrom: string }>();
+	for (const row of rows) {
+		const id = row.staffId ?? row.teamId ?? row.departmentId;
+		if (id && row.effectiveFrom <= date && (row.effectiveTo === null || date < row.effectiveTo))
+			result.set(id, { patternId: row.patternId, effectiveFrom: row.effectiveFrom });
+	}
+	return result;
 }

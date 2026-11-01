@@ -1,6 +1,6 @@
 # Employee page redesign: profile header, tabs, sheets; new-employee page; lists managed where used
 
-**Status:** in progress (approved 2026-11-01; Phase 0 done)
+**Status:** in progress (approved 2026-11-01; Phases 0–1 done)
 **Date:** 2026-11-01
 **Goal:** As the user asked (2026-11-01): the employee page shows **the profile at the top** (an
 `Avatar` header), then **tabs**; every add / edit inside a tab opens a **sheet**. Job titles,
@@ -174,25 +174,30 @@ Made-up names and numbers only (CLAUDE.md §1).
       > both now at 11 migrations.
 
 ### Phase 1 · Shared pieces
-- [ ] 1.1 `#lib/server/staff-list-forms.ts` (V9): `staffListForm()` (superform id `staff-list`),
+- [x] 1.1 `#lib/server/staff-list-forms.ts` (V9): `staffListForm()` (superform id `staff-list`),
       `saveListItemAction(request, actor)` returning `{ kind: 'success', text, item }`,
       `setListItemActiveAction(request, actor)` returning `{ notice }`. Moved from
       `routes/(dashboard)/staff-lists/+page.server.ts`; `kindTitle()` moves to
       `#lib/app/staff-lists/labels.ts`.
-- [ ] 1.2 `#lib/app/staff-lists/ListItemSheet.svelte`: create / rename one item (today's
+- [x] 1.2 `#lib/app/staff-lists/ListItemSheet.svelte`: create / rename one item (today's
       `StaffListFormSheet`, moved). Props `data`, `kind`, `target: StaffListOption | null`,
       `open` (bindable), `onSaved?: (item: StaffListOption) => void` (called from `onUpdated`
       with `form.message.item`).
-- [ ] 1.3 `#lib/app/staff-lists/ListManageSheet.svelte`: one list (`kind`, `items`) with name,
+- [x] 1.3 `#lib/app/staff-lists/ListManageSheet.svelte`: one list (`kind`, `items`) with name,
       "required" (document types), status badge, a row menu (Rename → `ListItemSheet`,
       Activate / Deactivate → hidden plain form + `toastNotice`, like the old `/staff-lists`
       page) and **+ Add**. `Empty` from `#lib/app/state/Empty.svelte` when the list is empty.
-- [ ] 1.4 `#lib/app/staff-lists/ListSelect.svelte`: form-agnostic picker (`value = $bindable()`,
+- [x] 1.4 `#lib/app/staff-lists/ListSelect.svelte`: form-agnostic picker (`value = $bindable()`,
       `items`, `kind`, `placeholder`, `allowNone?`, `...restProps` for the trigger). Shows active
       items plus the selected one if inactive; last item **"+ New …"** (value `__new__`, never
       stored) opens `ListItemSheet`; on save sets `value` to the new id. Posting stays with the
       caller (hidden input pattern).
       **Done when** `pnpm check` is green and `svelte-autofixer` is clean on the four files
+      > note: plus `StaffListsHost.svelte` + `context.ts`: the one host per page that owns the only
+      > `ListItemSheet` and the `ListManageSheet`; pickers and "Manage …" buttons reach it through
+      > `getStaffLists()`. `statusToasts(onSuccess)` now passes the message to `onSuccess`.
+      > `findProfilePerson` already returns the header fields (3.1). Check green, autofixer clean
+      > (only the generic `enhance` / `bind:this` hints).
 
 ### Phase 2 · Staff form and the new-employee page
 - [ ] 2.1 `#lib/schemas/staff.schema.ts`: `staffFormSchema` moved from

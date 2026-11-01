@@ -841,5 +841,14 @@
 	"profile_custody_status_on_required": "أدخل تاريخ هذه الحالة.",
 	"profile_custody_dates_order": "لا يمكن أن يسبق هذا التاريخ تاريخ التسليم.",
 	"profile_error_custody_type": "اختر صنف عهدة فعّالاً.",
-	"staff_lists_custody_item_types": "أصناف العهدة"
+	"staff_lists_custody_item_types": "أصناف العهدة",
+	"staff_lists_new_job_title": "مسمى وظيفي جديد",
+	"staff_lists_new_skill": "مهارة جديدة",
+	"staff_lists_new_document_type": "نوع وثيقة جديد",
+	"staff_lists_new_custody_item_type": "صنف عهدة جديد",
+	"staff_lists_manage_job_title": "إدارة المسميات الوظيفية",
+	"staff_lists_manage_skill": "إدارة المهارات",
+	"staff_lists_manage_document_type": "إدارة أنواع الوثائق",
+	"staff_lists_manage_custody_item_type": "إدارة أصناف العهدة",
+	"staff_lists_manage_description": "أضف عناصر أو أعد تسميتها أو عطّلها. لا تُحذف العناصر أبداً: العنصر المعطّل يختفي من القوائم لكنه يبقى لدى من يملكه."
 }

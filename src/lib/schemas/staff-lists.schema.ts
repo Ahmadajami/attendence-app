@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
+import type { StaffListOption } from '#lib/types/profile.js';
 
-/** The lists HR manages on `/staff-lists` (profile plan H4–H6, H11). */
+/**
+ * The lists HR picks from on employee profiles (profile plan H4–H6, H11), managed where they are
+ * used (redesign plan V5).
+ */
 export const STAFF_LIST_KINDS = [
 	'job_title',
 	'skill',
@@ -38,5 +42,9 @@ export const setStaffListActiveSchema = z.object({
 	active: z.enum(['true', 'false'])
 });
 
-/** Superforms status message for the create / edit sheet. */
-export type StaffListMessage = { kind: 'success' | 'error'; text: string };
+/** Superforms status message for the create / edit sheet; `item` is the saved item (V9). */
+export type StaffListMessage = {
+	kind: 'success' | 'error';
+	text: string;
+	item?: StaffListOption;
+};

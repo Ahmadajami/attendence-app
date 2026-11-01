@@ -18,7 +18,7 @@
 	import type { StaffListOption } from '#lib/types/profile.js';
 	import { lookupName } from '#lib/utils/locale.js';
 	import { toastNotice } from '#lib/utils/notice-toasts.js';
-	import { kindTitle } from './labels.js';
+	import { kindTitle } from '#lib/app/staff-lists/labels.js';
 	import StaffListFormSheet from './StaffListFormSheet.svelte';
 	import type { PageProps } from './$types';
 

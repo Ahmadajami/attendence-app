@@ -841,5 +841,14 @@
 	"profile_custody_status_on_required": "Enter the date of this condition.",
 	"profile_custody_dates_order": "This date can't be before the hand-out date.",
 	"profile_error_custody_type": "Choose an active item type.",
-	"staff_lists_custody_item_types": "Custody items"
+	"staff_lists_custody_item_types": "Custody items",
+	"staff_lists_new_job_title": "New job title",
+	"staff_lists_new_skill": "New skill",
+	"staff_lists_new_document_type": "New document type",
+	"staff_lists_new_custody_item_type": "New custody item",
+	"staff_lists_manage_job_title": "Manage job titles",
+	"staff_lists_manage_skill": "Manage skills",
+	"staff_lists_manage_document_type": "Manage document types",
+	"staff_lists_manage_custody_item_type": "Manage custody items",
+	"staff_lists_manage_description": "Add, rename or deactivate items. Items are never deleted: a deactivated item leaves the pickers but stays on the people who have it."
 }

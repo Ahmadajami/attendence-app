@@ -16,7 +16,7 @@
 	import type { StaffListOption } from '#lib/types/profile.js';
 	import { statusToasts } from '#lib/utils/form-toasts.js';
 	import { endSide } from '#lib/utils/locale.js';
-	import { kindTitle } from './labels.js';
+	import { kindTitle } from '#lib/app/staff-lists/labels.js';
 
 	type Props = {
 		data: SuperValidated<Infer<typeof staffListFormSchema>, StaffListMessage>;

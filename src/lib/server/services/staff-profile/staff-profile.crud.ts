@@ -2,6 +2,7 @@ import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import {
 	custodyItemType,
+	department,
 	jobTitle,
 	skill,
 	staff,
@@ -10,7 +11,8 @@ import {
 	staffEmergencyContact,
 	staffExperience,
 	staffSkill,
-	staffSocialAccount
+	staffSocialAccount,
+	team
 } from '#lib/server/db/schema/index.js';
 import type { ProfileItemKind } from '#lib/schemas/staff-profile.schema.js';
 import type { BatchQuery } from '../common.js';
@@ -27,9 +29,22 @@ export async function findProfilePerson(staffId: string) {
 			lastNameAr: staff.lastNameAr,
 			jobTitleId: staff.jobTitleId,
 			personalEmail: staff.personalEmail,
-			startDate: staff.startDate
+			startDate: staff.startDate,
+			employeeNo: staff.employeeNo,
+			phone: staff.phone,
+			workEmail: staff.workEmail,
+			active: staff.active,
+			functionId: staff.functionId,
+			departmentId: staff.departmentId,
+			departmentNameEn: department.nameEn,
+			departmentNameAr: department.nameAr,
+			teamId: staff.teamId,
+			teamNameEn: team.nameEn,
+			teamNameAr: team.nameAr
 		})
 		.from(staff)
+		.leftJoin(department, eq(department.id, staff.departmentId))
+		.leftJoin(team, eq(team.id, staff.teamId))
 		.where(eq(staff.id, staffId))
 		.limit(1);
 	return row;

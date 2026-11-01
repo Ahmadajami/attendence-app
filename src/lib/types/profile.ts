@@ -1,6 +1,6 @@
 /** Client-safe shapes returned by the staff-profile service (plan 2026-11-01-employee-profile). */
 
-/** An item of one of the lists on `/staff-lists`; `required` is `false` except for document types. */
+/** An item of one of the staff lists (job titles, skills, …); `required` is `false` except for document types. */
 export type StaffListOption = {
 	id: string;
 	nameEn: string;
@@ -20,6 +20,17 @@ export type ProfilePerson = {
 	jobTitleId: string | null;
 	personalEmail: string | null;
 	startDate: string | null;
+	employeeNo: string;
+	phone: string | null;
+	workEmail: string | null;
+	active: boolean;
+	functionId: string | null;
+	departmentId: string | null;
+	departmentNameEn: string | null;
+	departmentNameAr: string | null;
+	teamId: string | null;
+	teamNameEn: string | null;
+	teamNameAr: string | null;
 };
 
 export type ProfileContact = {

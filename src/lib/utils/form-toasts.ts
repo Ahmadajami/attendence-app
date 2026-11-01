@@ -38,16 +38,17 @@ export type StatusMessage = { kind: 'success' | 'error'; text: string };
 
 /**
  * Like `formToasts`, for forms whose status message is a `StatusMessage`. `onSuccess` runs after
- * the success toast (e.g. to close a sheet).
+ * the success toast (e.g. to close a sheet) and gets the message, for messages that carry more.
  */
-export function statusToasts<T extends Record<string, unknown>>(
-	onSuccess?: () => void
-): Pick<FormOptions<T, StatusMessage>, 'onUpdated' | 'onError'> {
+export function statusToasts<
+	T extends Record<string, unknown>,
+	M extends StatusMessage = StatusMessage
+>(onSuccess?: (message: M) => void): Pick<FormOptions<T, M>, 'onUpdated' | 'onError'> {
 	return {
 		onUpdated: ({ form }) => {
 			if (form.message?.kind === 'success') {
 				toast.success(form.message.text);
-				onSuccess?.();
+				onSuccess?.(form.message);
 			} else if (form.message?.kind === 'error') {
 				toast.error(form.message.text);
 			}

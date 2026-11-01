@@ -152,19 +152,21 @@
 </section>
 
 <DragDropProvider onDragEnd={handleDragEnd}>
-	<div class="grid items-start gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+	<!-- Employees full width on top (scrolling inside, so the teams stay in reach for a drag),
+	     teams in a grid below. -->
+	<div class="flex flex-col gap-4">
 		<EmployeesTable
 			{employees}
 			{teamById}
 			onToggleActive={toggleActive}
-			class="lg:sticky lg:top-4 lg:max-h-[calc(100dvh-var(--header-height)-4rem)]"
+			class="max-h-[55dvh]"
 		/>
 
 		<section aria-labelledby="teams-heading" class="flex flex-col gap-4">
 			<h3 id="teams-heading" class="text-sm font-medium text-muted-foreground">
 				{m.employees_teams()}
 			</h3>
-			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
+			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 				{#each teams as team (team.id)}
 					<TeamTable {team} members={membersByTeam[team.id]} />
 				{/each}

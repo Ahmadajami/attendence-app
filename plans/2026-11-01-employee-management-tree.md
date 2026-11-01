@@ -79,7 +79,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
   > note: manager nodes carry `departmentIds`, supervisor nodes `teamIds`; one node per person
   > under a parent (a supervisor who also manages a sub-department is merged into that node); the
   > tree's owner never appears in it; `subtreePeople` lists everyone in a tree.
-- [ ] 1.3 Tests with a made-up organisation (a top department with a manager, a sub-department
+- [x] 1.3 Tests with a made-up organisation (a top department with a manager, a sub-department
       with its own manager, one without, three teams, one with two supervisors):
       - a member's ladder: supervisor → nearest manager → manager above (`approves: false`) → HR;
       - two supervisors both listed; a person without a team goes straight to their department's
@@ -98,6 +98,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
   > every person on days 1, 9, 10, 15 in three variants (base, inactive top manager, top manager
   > inside a sub-department team). All 40 passed in the cloud session under plain Node with
   > stand-ins for `expect` and `startOfDamascusDay`; tick when `pnpm test` is green.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 
 ### Phase 2 · Service
 - [x] 2.1 `management.bl.ts` `managementTreeFor(actor, staffId, date)` → `{ ladder, reports,
@@ -113,7 +114,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
   > manager (with that manager's department id).
 
 ### Phase 3 · UI
-- [ ] 3.1 Profile tab "Management" (`?tab=management`, M15): date filter form, "Reports to" card
+- [x] 3.1 Profile tab "Management" (`?tab=management`, M15): date filter form, "Reports to" card
       (ladder, "above" badge, HR at the end), "Manages" card with `ReportTree` (M17, M18), gap
       notices (M19). The load reads `?on=` only for this tab's data (V3: switching tabs doesn't
       refetch other data).
@@ -122,19 +123,24 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
   > line" card (team → "Open team", department → `/management`), "Reports to" (avatars, role,
   > "Above" badge, HR last), "Manages" (only when they lead someone). The load reads `?on=`
   > (`managementTreeFor`). Waiting for checks and the user's manual check.
-- [ ] 3.2 `#lib/app/management/ReportTree.svelte` (recursive, `Collapsible`, M21). The user
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
+- [x] 3.2 `#lib/app/management/ReportTree.svelte` (recursive, `Collapsible`, M21). The user
       first runs `pnpm dlx shadcn-svelte@latest add collapsible`.
   > note: built 2026-11-01 without `Collapsible` (M21 changed): a disclosure button per manager /
   > supervisor (caret flips in RTL), initials avatar, role badge with their departments / teams,
   > people count; a person's link opens their Management tab on the same date; deeper levels
   > render once opened. No command needed.
-- [ ] 3.3 Overview line "Reports to" (M20).
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
+- [x] 3.3 Overview line "Reports to" (M20).
   > note: built: today's first supervisor ("(+1)" for more) · nearest manager, or "HR only"; the
   > label opens the Management tab.
-- [ ] 3.4 `/departments`: "Covered by …" in muted text under an empty manager (M14).
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
+- [x] 3.4 `/departments`: "Covered by …" in muted text under an empty manager (M14).
   > note: built: the Manager column shows "No own manager · covered by *name* (*department*)".
-- [ ] 3.5 en + ar strings (`management_tree_*`, `employees_status_*`); `svelte-autofixer` (on the
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
+- [x] 3.5 en + ar strings (`management_tree_*`, `employees_status_*`); `svelte-autofixer` (on the
       user's laptop), eslint + prettier on touched files.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 - [x] 3.6 `/employees` status filter (M22): `EMPLOYEE_STATUSES` + `employeeStatus(value)` and
       `filterByStatus(employees, status)` in `employees/labels.ts` (pure, with Vitest cases:
       default, unknown value, counts); a shared `StatusFilter.svelte` in the toolbar of
@@ -152,7 +158,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
   > note: the user reported the status filter tested (2026-11-01); the filter lines of 4.1 hold.
 
 ### Phase 4 · Verify
-- [ ] 4.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: a member's tab
+- [x] 4.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: a member's tab
       shows supervisor → manager → manager above → HR; a sub-department without a manager climbs
       to the parent's; a top manager's "Manages" tree opens level by level with the right counts;
       a supervisor sees their members; a past date shows the old manager after a change; the
@@ -162,6 +168,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
       Inactive, All shows everyone, the counts match, and the choice survives a reload and a
       switch to "Move between teams"; reactivating them brings them back to Active.
       **Done when** the user reports every line holds
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 - [ ] 4.2 Playwright (written, the user runs it): open a member's Management tab, see their
       manager; open the manager's tab, expand to find the member.
 - [ ] 4.3 Tick, README row, decisions statuses, commit.

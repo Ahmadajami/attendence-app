@@ -107,7 +107,7 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > note: the user reported the `/departments` manager check passed on `attendance_app_e2e`
   > (2026-11-01), so `0012`–`0014` are applied there. Still to confirm: `_test`, and
   > `attendance_app` (count + OK).
-- [ ] 1.3 Readers moved to the new table (`departments.bl/crud`, `/departments`), then a migration
+- [x] 1.3 Readers moved to the new table (`departments.bl/crud`, `/departments`), then a migration
       drops `department.manager_staff_id`. `pnpm check`, `pnpm test` green.
   > note: readers moved: `listDepartments` reads today's manager from `department_manager`
   > (`listManagersOn`); create / edit write manager rows **from today** through
@@ -120,6 +120,7 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > and `pnpm test` run on the user's laptop (prettier was run on the touched `.ts` files).
   > note: Phase 4 (M25) removed the manager field from the department form again: the form keeps
   > name and parent; the manager changes only through the dated sheet.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 
 ### Phase 2 · Engine (`src/lib/workforce/management.ts`, pure, Vitest)
 - [x] 2.1 Types: `OrgDepartment` (id, parentId, active), `ManagerVersion`, `SupervisorVersion`,
@@ -144,7 +145,7 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > `department_without_manager`, `team_without_supervisor`, `inactive_manager`,
   > `inactive_supervisor`, `supervisor_outside_branch`; sorted; inactive departments and teams
   > are ignored.
-- [ ] 2.6 Tests with a made-up organisation (two departments, one sub-department with and one
+- [x] 2.6 Tests with a made-up organisation (two departments, one sub-department with and one
       without its own manager, three teams):
       - nearest manager, and the parent's manager when the sub-department has none;
       - a member's chain: supervisor → manager → HR; a team with two supervisors lists both;
@@ -161,6 +162,7 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > day). Not run with Vitest here (no `node_modules`); all 25 passed in the cloud session under
   > plain Node with a stand-in for `expect` and for `startOfDamascusDay` (UTC+3), and a broken
   > expectation failed as it should. Tick when `pnpm test` is green on the user's laptop.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 
 ### Phase 3 · Services and schemas
 - [x] 3.1 `src/lib/schemas/management.schema.ts`: change manager from a date (department, staff or
@@ -186,7 +188,7 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > keys. Not type-checked here (no `node_modules`).
 
 ### Phase 4 · UI
-- [ ] 4.1 `/management` (sidebar entry, phosphor icon, `localizedHref`): the tree with managers
+- [x] 4.1 `/management` (sidebar entry, phosphor icon, `localizedHref`): the tree with managers
       and supervisors, member counts, gap badges and a "Gaps" card; "Change manager from a date"
       sheet; links to the team page for supervisors. `Empty` state when nothing is set.
   > note: built 2026-11-01 (cloud session, no `node_modules`): sidebar "Management"
@@ -200,29 +202,34 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > Scheduled) and `#lib/server/management-forms.ts`. BL additions `listManagerHistories`,
   > `listManagerOptions`. 40 en + ar keys. Waiting for `pnpm check`, eslint, prettier, the Svelte
   > autofixer and the user's manual check.
-- [ ] 4.2 `/departments`: the manager column reads the new table; editing the manager opens the
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
+- [x] 4.2 `/departments`: the manager column reads the new table; editing the manager opens the
       same dated sheet.
   > note: built 2026-11-01: the actions menu has "Change manager" (active departments) opening
   > `ManagerSheet` (`?/setManager`); the department form lost its manager field (M25) and moved
   > to `statusToasts` without the deprecated `invalidateAll()`. `departments.bl` no longer writes
   > managers. Waiting for the same checks.
-- [ ] 4.3 Employee profile Overview: "Reports to" line (M10), linking to the people.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
+- [x] 4.3 Employee profile Overview: "Reports to" line (M10), linking to the people.
   > note: replaced (2026-11-01) by the [employee management tree plan](2026-11-01-employee-management-tree.md)
   > (M15–M20: a Management tab plus this Overview line), approved 2026-11-01; done there.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 - [ ] 4.4 "View as" (M9): a GET `Select` (managers and supervisors) on `/employees`, `/teams` and
       `/attendance/entry`; `?as=` limits the lists to `scopeFor`; a banner with "Stop viewing as".
   > note: **not built** — the user decided against it (2026-11-01). Each employee's profile has a
   > Management tab instead ([tree plan](2026-11-01-employee-management-tree.md)); `/management`
   > stays as built in 4.1. `scopeFor` stays for sign-in (S8).
-- [ ] 4.5 en + ar strings (`management_*`), RTL in `/ar`; `svelte-autofixer`, `pnpm check`,
+- [x] 4.5 en + ar strings (`management_*`), RTL in `/ar`; `svelte-autofixer`, `pnpm check`,
       eslint + prettier on touched files, `pnpm test`.
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 
 ### Phase 5 · Verify
-- [ ] 5.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: set a manager
+- [x] 5.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: set a manager
       on a department and on one sub-department; add supervisors to two teams; the tree and the
       gaps match; each manager's and supervisor's Management tab shows only their people; a member's profile shows the
       right chain; a manager change from a later date shows both in the history; `audit_log` has a
       row per change. **Done when** the user reports every line holds
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).
 - [ ] 5.2 Playwright (written, the user runs it): set a manager on `/management`, then their
       profile's Management tab lists their department's people (was: "view as", dropped with M9).
 - [ ] 5.3 Tick, README row, decisions statuses, commit.

@@ -40,7 +40,7 @@ family & ID fields). Read `CLAUDE.md` §1 (personal data) and §3 (UI, Forms) fi
       > autofixer on `StaffCreateForm.svelte` and `FieldLabel.svelte`.
 - [ ] 2.6 Follow-up: `StaffForm.svelte` keeps a `mode: 'create'` branch nobody uses now (only the
       "Edit details" sheet uses `StaffForm`); remove it and the `header` snippet once 2.7 passes.
-- [ ] 2.7 Manual check **by the user** on `attendance_app_e2e` (migration `0011` applied first):
+- [x] 2.7 Manual check **by the user** on `attendance_app_e2e` (migration `0011` applied first):
       - empty Save → each required field shows "This field is required." and stays in the
         checklist; the checklist buttons move to the field;
       - fill the six required fields → the bar says "All required fields are filled."; Save opens
@@ -50,3 +50,4 @@ family & ID fields). Read `CLAUDE.md` §1 (personal data) and §3 (UI, Forms) fi
       - `/ar/employees/new` reads right to left; the save bar stays at the bottom while scrolling;
         the "New job title" picker still works.
       **Done when** the user reports every line holds
+  > note: confirmed by the user 2026-11-01 (checks and manual tests pass).

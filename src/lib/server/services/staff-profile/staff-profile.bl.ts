@@ -13,6 +13,7 @@ import {
 	custodySummary,
 	documentSummary,
 	experienceMonths,
+	idDatesInOrder,
 	resolveNames,
 	type NameParts
 } from '#lib/workforce/profile.js';
@@ -254,11 +255,7 @@ export async function setProfileIdentity(
 ): Promise<void> {
 	requireActorPermission(actor, 'staff.write');
 	const before = await requirePerson(staffId);
-	if (
-		input.nationalIdIssuedOn &&
-		input.nationalIdExpiresOn &&
-		input.nationalIdExpiresOn < input.nationalIdIssuedOn
-	)
+	if (!idDatesInOrder(input.nationalIdIssuedOn, input.nationalIdExpiresOn))
 		throw new InvalidInputError('id_dates_order', m.profile_id_expiry_before_issue(), {
 			field: 'nationalIdExpiresOn'
 		});

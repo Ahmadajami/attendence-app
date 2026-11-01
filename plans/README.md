@@ -30,3 +30,4 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | 2026-10-29 | [Attendance builder: pattern library, assignment to teams, member rules](2026-10-29-attendance-builder.md) (S2.4, part of S3.6) | in progress (approved 2026-10-29) |
 | 2026-11-01 | [Employee profile: names, contacts, experience, skills, documents, job, custody](2026-11-01-employee-profile.md) | in progress (approved 2026-11-01) |
 | 2026-11-01 | [Employee page redesign: avatar header, tabs, sheets, new-employee page; lists managed where used](2026-11-01-employee-page-redesign.md) | in progress (built 2026-11-01; manual check by the user pending) |
+| 2026-11-01 | [Employee creation rebuilt: one page, required fields marked](2026-11-01-employee-create.md) | in progress (built 2026-11-01; manual check by the user pending) |

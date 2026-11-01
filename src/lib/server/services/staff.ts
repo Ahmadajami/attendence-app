@@ -11,7 +11,7 @@ import {
 } from '#lib/server/errors.js';
 import { department, staff, staffFunction, team } from '#lib/server/db/schema/index.js';
 import { nextEmployeeNo } from '#lib/workforce/employee-no.js';
-import { resolveNames, type NameParts } from '#lib/workforce/profile.js';
+import { idDatesInOrder, resolveNames, type NameParts } from '#lib/workforce/profile.js';
 import type {
 	DepartmentOption,
 	StaffRow,
@@ -35,6 +35,22 @@ export type StaffInput = NameParts & {
 	workEmail: string | null;
 	startDate: string | null;
 	teamId: string | null;
+};
+
+/**
+ * What only the create page sets (create plan C3): parents' names, the ID card / passport (H13) and
+ * the personal email. `null` = not given.
+ */
+export type StaffCreateExtras = {
+	fatherNameEn: string | null;
+	fatherNameAr: string | null;
+	motherNameEn: string | null;
+	motherNameAr: string | null;
+	nationalIdNo: string | null;
+	nationalIdIssuedOn: string | null;
+	nationalIdExpiresOn: string | null;
+	passportNo: string | null;
+	personalEmail: string | null;
 };
 
 /** Retries when a concurrent create took the generated number first. */
@@ -184,8 +200,34 @@ async function allEmployeeNumbers(): Promise<string[]> {
 	return rows.map((row) => row.employeeNo);
 }
 
-export async function createStaff(actor: Actor, input: StaffInput) {
+/**
+ * The create page's required fields (create plan C2): names in both languages, the start date and
+ * the ID number, plus the ID dates in order. Not checked on edit (C4).
+ */
+function requireCreateFields(input: StaffInput, extras: StaffCreateExtras): void {
+	const missing = (
+		[
+			['firstNameEn', input.firstNameEn],
+			['lastNameEn', input.lastNameEn],
+			['firstNameAr', input.firstNameAr],
+			['lastNameAr', input.lastNameAr],
+			['nationalIdNo', extras.nationalIdNo],
+			['startDate', input.startDate]
+		] as const
+	).find(([, value]) => !value?.trim());
+	if (missing)
+		throw new InvalidInputError('required_missing', m.staff_create_field_required(), {
+			field: missing[0]
+		});
+	if (!idDatesInOrder(extras.nationalIdIssuedOn, extras.nationalIdExpiresOn))
+		throw new InvalidInputError('id_dates_order', m.profile_id_expiry_before_issue(), {
+			field: 'nationalIdExpiresOn'
+		});
+}
+
+export async function createStaff(actor: Actor, input: StaffInput, extras: StaffCreateExtras) {
 	requireStaffWrite(actor);
+	requireCreateFields(input, extras);
 	const names = storedNames(input, true);
 	await validateLookups(input);
 	await validateJobTitle(input.jobTitleId, null);
@@ -194,7 +236,7 @@ export async function createStaff(actor: Actor, input: StaffInput) {
 	for (let attempt = 1; ; attempt++) {
 		const id = randomUUID();
 		const employeeNo = input.employeeNo ?? nextEmployeeNo(await allEmployeeNumbers());
-		const values = { ...input, ...names, employeeNo };
+		const values = { ...input, ...extras, ...names, employeeNo };
 		try {
 			await batch([
 				db.insert(staff).values({ id, ...values }),

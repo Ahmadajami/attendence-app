@@ -49,14 +49,17 @@ export const profileNamesFormSchema = z.object({
 });
 export type ProfileNamesFormSchema = typeof profileNamesFormSchema;
 
-/** An ID or passport number: letters, digits and dashes; Arabic-Indic digits become ASCII. */
-const documentNumber = z
+/**
+ * An ID or passport number: letters, digits and dashes; Arabic-Indic digits become ASCII. Shared
+ * with the create form (`staff.schema.ts`), which requires the ID number.
+ */
+export const documentNumberSchema = z
 	.string()
 	.trim()
 	.max(30)
 	.overwrite(toAsciiDigits)
-	.regex(/^[0-9A-Za-z-]*$/, { error: () => m.profile_document_number_invalid() })
-	.default('');
+	.regex(/^[0-9A-Za-z-]*$/, { error: () => m.profile_document_number_invalid() });
+const documentNumber = documentNumberSchema.default('');
 
 /**
  * Parents' names and the ID card / passport (H13). The expiry not before the issue date is checked

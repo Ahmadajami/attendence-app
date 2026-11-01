@@ -6,6 +6,7 @@ import {
 	documentSummary,
 	experienceMonths,
 	formatExperience,
+	idDatesInOrder,
 	initials,
 	resolveNames
 } from './profile.js';
@@ -194,5 +195,18 @@ describe('documentSummary', () => {
 
 	it('is zero of zero with no required types', () => {
 		expect(documentSummary([], [])).toEqual({ required: 0, received: 0, missing: [] });
+	});
+});
+
+describe('idDatesInOrder (H13)', () => {
+	it('accepts an expiry on or after the issue date, or a missing date', () => {
+		expect(idDatesInOrder('2020-01-01', '2030-01-01')).toBe(true);
+		expect(idDatesInOrder('2020-01-01', '2020-01-01')).toBe(true);
+		expect(idDatesInOrder(null, '2030-01-01')).toBe(true);
+		expect(idDatesInOrder('2020-01-01', null)).toBe(true);
+	});
+
+	it('refuses an expiry before the issue date', () => {
+		expect(idDatesInOrder('2020-01-02', '2020-01-01')).toBe(false);
 	});
 });

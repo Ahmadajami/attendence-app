@@ -34,6 +34,9 @@ test('add an employee, then a skill and a custody item created from the pickers'
 	await page.getByLabel('Last name (English)').fill('Example');
 	await page.getByLabel('First name (Arabic)').fill('سامي');
 	await page.getByLabel('Last name (Arabic)').fill('مثال');
+	// Required on create (create plan C2): ID number and start date (made-up values).
+	await page.getByLabel('ID number').fill('00000000001');
+	await page.getByLabel('Start date').fill('2026-01-01');
 	// The avatar preview follows the typed names.
 	await expect(page.getByText('SE', { exact: true })).toBeVisible();
 

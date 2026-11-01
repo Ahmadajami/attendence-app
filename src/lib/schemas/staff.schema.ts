@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
 import { toAsciiDigits } from '#lib/schemas/auth.schema.js';
+import { documentNumberSchema } from '#lib/schemas/staff-profile.schema.js';
 
 const optionalId = z.union([z.literal(''), z.uuid()]);
 
@@ -36,6 +37,53 @@ export const staffFormSchema = z.object({
 });
 
 export type StaffFormSchema = typeof staffFormSchema;
+
+const required = () => m.staff_create_field_required();
+const requiredName = z.string().trim().min(1, { error: required }).max(60);
+const optionalName = z.string().trim().max(60).default('');
+const optionalDate = z.union([z.literal(''), z.iso.date()]).default('');
+
+/**
+ * Add an employee (`/employees/new`, create plan C2): names in both languages, the start date and
+ * the ID number are required (marked *); everything else is optional. Editing keeps
+ * `staffFormSchema` (C4: these rules apply on create only). The BL checks the same rules.
+ */
+export const staffCreateFormSchema = z.object({
+	employeeNo: staffFormSchema.shape.employeeNo,
+	firstNameEn: requiredName,
+	lastNameEn: requiredName,
+	firstNameAr: requiredName,
+	lastNameAr: requiredName,
+	fatherNameEn: optionalName,
+	fatherNameAr: optionalName,
+	motherNameEn: optionalName,
+	motherNameAr: optionalName,
+	nationalIdNo: documentNumberSchema.min(1, { error: required }),
+	nationalIdIssuedOn: optionalDate,
+	nationalIdExpiresOn: optionalDate,
+	passportNo: documentNumberSchema.default(''),
+	jobTitleId: optionalId.default(''),
+	departmentId: optionalId.default(''),
+	functionId: optionalId.default(''),
+	teamId: optionalId.default(''),
+	startDate: z.iso.date({ error: required }),
+	phone: staffFormSchema.shape.phone,
+	workEmail: staffFormSchema.shape.workEmail,
+	personalEmail: staffFormSchema.shape.workEmail
+});
+
+export type StaffCreateFormSchema = typeof staffCreateFormSchema;
+
+/** The create form's required fields, in page order (the "Required fields" checklist). */
+export const STAFF_CREATE_REQUIRED = [
+	'firstNameEn',
+	'lastNameEn',
+	'firstNameAr',
+	'lastNameAr',
+	'nationalIdNo',
+	'startDate'
+] as const;
+export type StaffCreateRequiredField = (typeof STAFF_CREATE_REQUIRED)[number];
 
 export const setStaffTeamSchema = z.object({
 	staffId: z.uuid(),

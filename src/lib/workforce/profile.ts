@@ -165,3 +165,8 @@ export function documentSummary(
 	const missing = required.filter((t) => !received.has(t.id)).map((t) => t.id);
 	return { required: required.length, received: required.length - missing.length, missing };
 }
+
+/** An ID card's expiry is not before its issue date (H13); a missing date is not checked. */
+export function idDatesInOrder(issuedOn: string | null, expiresOn: string | null): boolean {
+	return !issuedOn || !expiresOn || expiresOn >= issuedOn;
+}

@@ -2,23 +2,34 @@ import { fail } from '@sveltejs/kit';
 import { message, superValidate, type Infer } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { m } from '#lib/paraglide/messages.js';
-import { staffFormSchema, type StaffMessage } from '#lib/schemas/staff.schema.js';
+import {
+	staffCreateFormSchema,
+	staffFormSchema,
+	type StaffMessage
+} from '#lib/schemas/staff.schema.js';
 import { failForm } from '#lib/server/errors.js';
 import type { Actor } from '#lib/server/services/common.js';
-import { createStaff, updateStaff, type StaffInput } from '#lib/server/services/staff.js';
+import {
+	createStaff,
+	updateStaff,
+	type StaffCreateExtras,
+	type StaffInput
+} from '#lib/server/services/staff.js';
 import type { ProfilePerson } from '#lib/types/profile.js';
 import { personName } from '#lib/utils/locale.js';
 
-// The staff form (redesign plan V7): `/employees/new` creates with it, the profile header's
-// "Edit details" sheet edits with it. The edited person comes from the page, never from the form.
+// The staff forms: `/employees/new` creates with `staffCreateFormSchema` (create plan C1–C3), the
+// profile header's "Edit details" sheet edits with `staffFormSchema` (redesign plan V7). The edited
+// person comes from the page, never from the form.
 
 const ids = { create: 'staff', edit: 'staff-edit' } as const;
 
 type StaffFormData = Infer<typeof staffFormSchema>;
+type StaffCreateData = Infer<typeof staffCreateFormSchema>;
 
-/** An empty form for a new person. */
+/** An empty create form (no errors shown until the first submit). */
 export function newStaffForm() {
-	return superValidate(zod4(staffFormSchema), { id: ids.create });
+	return superValidate(zod4(staffCreateFormSchema), { id: ids.create, errors: false });
 }
 
 /** The edit form, holding the person's current values. */
@@ -46,7 +57,10 @@ export function editStaffForm(person: ProfilePerson) {
 	);
 }
 
-function staffInput(data: StaffFormData): StaffInput {
+function staffInput(data: Omit<StaffFormData, 'staffId' | 'fullName' | 'fullNameAr'> & {
+	fullName?: string;
+	fullNameAr?: string;
+}): StaffInput {
 	return {
 		employeeNo: data.employeeNo || null,
 		firstNameEn: data.firstNameEn || null,
@@ -65,14 +79,30 @@ function staffInput(data: StaffFormData): StaffInput {
 	};
 }
 
+function createExtras(data: StaffCreateData): StaffCreateExtras {
+	return {
+		fatherNameEn: data.fatherNameEn || null,
+		fatherNameAr: data.fatherNameAr || null,
+		motherNameEn: data.motherNameEn || null,
+		motherNameAr: data.motherNameAr || null,
+		nationalIdNo: data.nationalIdNo || null,
+		nationalIdIssuedOn: data.nationalIdIssuedOn || null,
+		nationalIdExpiresOn: data.nationalIdExpiresOn || null,
+		passportNo: data.passportNo || null,
+		personalEmail: data.personalEmail || null
+	};
+}
+
 /** Create a person; the message carries the new id so the page can open the profile. */
 export async function createStaffAction(request: Request, actor: Actor) {
-	const form = await superValidate<StaffFormData, StaffMessage>(request, zod4(staffFormSchema), {
-		id: ids.create
-	});
+	const form = await superValidate<StaffCreateData, StaffMessage>(
+		request,
+		zod4(staffCreateFormSchema),
+		{ id: ids.create }
+	);
 	if (!form.valid) return fail(400, { form });
 	try {
-		const row = await createStaff(actor, staffInput(form.data));
+		const row = await createStaff(actor, staffInput(form.data), createExtras(form.data));
 		return message(form, {
 			kind: 'success',
 			text: m.staff_created({ name: personName(row) }),

@@ -854,6 +854,44 @@
       ]
     },
     {
+      id: 'C1', group: 'profile', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-create.md §1',
+      title: { en: "Add employee: one page with sections, a checklist and a save bar", ar: "إضافة موظف: صفحة واحدة بأقسام وقائمة تحقق وشريط حفظ" },
+      decision: { en: "The create page shows Identity, Family & ID, Job and Contact as cards on one page, a \"Required fields\" checklist beside them (a click moves to the field) and a save bar that stays at the bottom of the screen with the number of required fields filled.", ar: "تعرض صفحة الإنشاء أقسام الهوية والعائلة والهوية والوظيفة والتواصل كبطاقات في صفحة واحدة، مع قائمة «الحقول المطلوبة» بجانبها (النقر ينقل إلى الحقل) وشريط حفظ يبقى أسفل الشاشة مع عدد الحقول المطلوبة المعبأة." },
+      why: { en: "The user chose it (2026-11-01): everything is visible at once and nothing hides behind \"Next\".", ar: "اختاره المستخدم (2026-11-01): كل شيء ظاهر دفعة واحدة ولا شيء مخفي خلف «التالي»." },
+      alts: [
+        { en: "A step-by-step wizard (Identity → Job → Family & ID → Contact → Review): not chosen — the user prefers one page.", ar: "معالج خطوة بخطوة (الهوية ← الوظيفة ← العائلة والهوية ← التواصل ← المراجعة): لم يُختر — يفضّل المستخدم صفحة واحدة." }
+      ]
+    },
+    {
+      id: 'C2', group: 'profile', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-create.md §1',
+      title: { en: "Required on create: names in both languages, start date, ID number", ar: "المطلوب عند الإنشاء: الأسماء باللغتين وتاريخ البدء ورقم الهوية" },
+      decision: { en: "Creating an employee requires first and last name in English and in Arabic, the start date and the ID number. Labels show a red * for required fields and \"(optional)\" for the others. The shared form schema checks them in the browser and on the server, and the service checks them again.", ar: "يتطلب إنشاء موظف الاسم الأول والأخير بالإنجليزية والعربية وتاريخ البدء ورقم الهوية. تُظهر العناوين * حمراء للحقول المطلوبة و«(اختياري)» لغيرها. يتحقق منها مخطط النموذج المشترك في المتصفح وعلى الخادم، وتتحقق منها الخدمة مرة أخرى." },
+      why: { en: "The user chose these fields (2026-11-01). The service check means a crafted request can't skip them.", ar: "اختار المستخدم هذه الحقول (2026-11-01). وتحقق الخدمة يمنع تجاوزها بطلب مُعدّ يدوياً." },
+      alts: [
+        { en: "Department required too: not chosen by the user.", ar: "جعل القسم مطلوباً أيضاً: لم يختره المستخدم." },
+        { en: "Only English names required (the old rule): not chosen — HR needs both languages and the ID number from day one.", ar: "الأسماء الإنجليزية فقط مطلوبة (القاعدة القديمة): لم يُختر — تحتاج الموارد البشرية اللغتين ورقم الهوية من اليوم الأول." }
+      ]
+    },
+    {
+      id: 'C3', group: 'profile', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-create.md §1',
+      title: { en: "Family & ID and personal email on the create page", ar: "العائلة والهوية والبريد الشخصي في صفحة الإنشاء" },
+      decision: { en: "The create page also takes the Family & ID fields (H13) and the personal email. Contacts, experience, skills, documents and custody are still added on the profile after saving.", ar: "تأخذ صفحة الإنشاء أيضاً حقول العائلة والهوية (H13) والبريد الشخصي. أما جهات الاتصال والخبرة والمهارات والوثائق والعهدة فتُضاف في الملف الشخصي بعد الحفظ." },
+      why: { en: "The user chose it (2026-11-01).", ar: "اختاره المستخدم (2026-11-01)." },
+      alts: [
+        { en: "One emergency contact on the create page: not chosen by the user.", ar: "جهة اتصال طوارئ واحدة في صفحة الإنشاء: لم يختره المستخدم." },
+        { en: "Keep the create page to the basics: not chosen — the ID number is now required, so its card belongs here.", ar: "إبقاء صفحة الإنشاء على الأساسيات: لم يُختر — رقم الهوية صار مطلوباً فمكان بطاقته هنا." }
+      ]
+    },
+    {
+      id: 'C4', group: 'profile', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-create.md §1',
+      title: { en: "Required rules apply on create only", ar: "قواعد الحقول المطلوبة عند الإنشاء فقط" },
+      decision: { en: "Editing an existing employee keeps today's rules, so older or seeded records without Arabic names, an ID number or a start date can still be saved.", ar: "يبقى تعديل موظف موجود على القواعد الحالية، فتُحفظ السجلات القديمة أو المستوردة التي ليس فيها أسماء عربية أو رقم هوية أو تاريخ بدء." },
+      why: { en: "The user chose it (2026-11-01); seeded people from Odoo have none of these yet.", ar: "اختاره المستخدم (2026-11-01)؛ فالموظفون المستوردون من Odoo ليس لديهم أي منها بعد." },
+      alts: [
+        { en: "The same rules on edit: not chosen — every older record would have to be completed before any other change could be saved.", ar: "القواعد نفسها عند التعديل: لم يُختر — سيلزم إكمال كل سجل قديم قبل حفظ أي تغيير آخر." }
+      ]
+    },
+    {
       id: 'V11', group: 'profile', status: 'approved', date: '2026-11-01', src: 'src/routes/(dashboard)/employees/+page.svelte (user, chat 2026-11-01)',
       title: { en: 'Employees list: full width, teams below', ar: 'قائمة الموظفين: بعرض الصفحة والفرق تحتها' },
       decision: { en: 'The all-employees table takes the full page width (at most 55% of the screen height, scrolling inside); the team cards sit below it in a grid of up to four columns. View only: drag and drop and saving are unchanged.', ar: 'يأخذ جدول جميع الموظفين عرض الصفحة كاملاً (بارتفاع أقصاه 55% من الشاشة مع تمرير داخلي)؛ وتأتي بطاقات الفرق تحته في شبكة حتى أربعة أعمدة. تغيير في العرض فقط: السحب والإفلات والحفظ كما هي.' },

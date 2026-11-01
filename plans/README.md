@@ -32,3 +32,4 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | 2026-11-01 | [Employee page redesign: avatar header, tabs, sheets, new-employee page; lists managed where used](2026-11-01-employee-page-redesign.md) | in progress (built 2026-11-01; manual check by the user pending) |
 | 2026-11-01 | [Employee creation rebuilt: one page, required fields marked](2026-11-01-employee-create.md) | in progress (built 2026-11-01; manual check by the user pending) |
 | 2026-11-01 | [Two-level management: department managers above team supervisors](2026-11-01-two-level-management.md) | in progress (approved 2026-11-01; Phase 1 written, migrations waiting for the user) |
+| 2026-11-01 | [Management tree for each employee: who manages whom](2026-11-01-employee-management-tree.md) (after the two-level plan's Phases 1–2) | proposed (waiting for the user's approval) |

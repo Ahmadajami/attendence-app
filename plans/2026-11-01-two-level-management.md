@@ -147,6 +147,8 @@ Questions for the user (answered 2026-11-01: **every default kept**):
 - [ ] 4.2 `/departments`: the manager column reads the new table; editing the manager opens the
       same dated sheet.
 - [ ] 4.3 Employee profile Overview: "Reports to" line (M10), linking to the people.
+  > note: replaced (2026-11-01) by the [employee management tree plan](2026-11-01-employee-management-tree.md)
+  > (M15–M20: a Management tab plus this Overview line), once that plan is approved.
 - [ ] 4.4 "View as" (M9): a GET `Select` (managers and supervisors) on `/employees`, `/teams` and
       `/attendance/entry`; `?as=` limits the lists to `scopeFor`; a banner with "Stop viewing as".
 - [ ] 4.5 en + ar strings (`management_*`), RTL in `/ar`; `svelte-autofixer`, `pnpm check`,

@@ -1,0 +1,130 @@
+# Management tree for each employee: who manages whom
+
+**Status:** proposed (2026-11-01; waiting for the user's approval and answers to Q-T1–Q-T5)
+**Date:** 2026-11-01
+**Goal:** Every employee's profile gets a **Management** tab: the line **up** (their supervisor(s)
+→ department manager → managers higher up the department tree → HR) and, for anyone who
+supervises or manages, the people **below** them as a tree they can open level by level, on any
+date. Assigning a manager to a department stays **optional** and stays on `/departments`.
+
+**Lane:** A. Builds on the approved
+[two-level management plan](2026-11-01-two-level-management.md): manager history (M3, Phase 1,
+written), chain (M5), scope (M6) and the pure engine (Phase 2). Do that plan's Phases 1–2 first.
+This plan **replaces its task 4.3** (the "Reports to" line becomes M20 below, plus the tab). Read
+`CLAUDE.md` §1 (no personal data in tests, plans, commits), §3 (UI, Forms) and §8 (hand-off)
+first. One commit per phase, plan file included.
+
+---
+
+## 0. Where a department's manager is set (the user's question, 2026-11-01)
+
+- **Today:** `/departments` → a department's actions menu → **Edit** → **Manager** →
+  pick an active employee or **"No manager"** → Save. It is **optional**: nothing requires it.
+- Since Phase 1 of the two-level plan (`bd9cecd`), a new manager takes over **from today** and
+  the old one stays in the history (M3, M13). Migrations `0012`–`0014` must be applied first, or
+  `/departments` fails.
+- **Later (two-level plan 4.1 / 4.2):** `/management` and `/departments` get a "Change manager
+  from a date" sheet with a reason.
+- A department **without** its own manager is covered by the **nearest manager up the tree**
+  (M2). It is only flagged (a "gap", never an error) when **no** department above it has one.
+
+## 1. Decisions (defaults; stop and ask before departing from one)
+
+| # | Decision | Why |
+|---|---|---|
+| M14 | **A department's manager stays optional** (the user, 2026-11-01). The form keeps "No manager"; nothing refuses a save without one. A department without its own manager shows "Covered by *name* (*parent department*)" in muted text on `/departments` and in the tree; with nobody up the tree it is a gap (M8) | The user's answer; matches M2 and Q-M1 |
+| M15 | **A "Management" tab on the employee profile** (`?tab=management`, after Overview; phosphor `TreeStructureIcon`), read-only. It holds a **date** field (GET `?on=yyyy-mm-dd`, default today; a filter form, not Superforms), a **"Reports to"** card and, when the person supervises or manages on that date, a **"Manages"** card | One place per person, where HR already looks (V2 tabs); the date shows the history M3 keeps |
+| M16 | **Line up** = `ladderOf(person, date, org)`: the supervisors of their team that day → the nearest manager of the team's department (or of their own department when they have no team) → every manager **further up** the department tree, each once → HR. Never the person themself (M5). The first steps are exactly M5's chain (who approves); the higher managers are marked **"above"** (they see, Q-M4, but don't approve first) | A full ladder answers "who is their manager" at every level, without changing who approves |
+| M17 | **Tree down** = `reportsOf(staffId, date, org)`, one level per node. **As a manager** of department D: the managers of D's sub-departments that have their own manager (each a node), the supervisors of the teams in D and in its sub-departments without their own manager (each a node), and the people there with no team or in a team without a supervisor (leaves). **As a supervisor:** their team's members that day (leaves). Someone appears once under the same parent; each node shows a count ("12 people") | Follows the same rules as scopes (M6), so the tree and "view as" (M9) always agree |
+| M18 | **Built from one server load:** the service computes the person's whole scope for that date once and sends the tree; opening a node needs no new request. First level open, deeper levels closed. Inactive people are left out (Q-T4) | Hundreds of staff, not thousands: one load is simpler and fast |
+| M19 | **Read-only, with links:** each person links to their profile (and their Management tab); a department links to `/departments`, a team to `/teams/[id]`. Gaps in the person's line (no manager up the tree, team without supervisor, inactive manager or supervisor) show as a `warning` notice with the link to fix it | Managers are set where they are today; the tree only shows |
+| M20 | **Overview tab line** "Reports to: *supervisor* · *manager*" (first supervisor, "+1" when there are two), linking to the Management tab. Replaces task 4.3 of the two-level plan (M10) | The answer at a glance; details one click away |
+| M21 | **UI:** a recursive `#lib/app/management/ReportTree.svelte` built from shadcn `Collapsible` (added by the user with `pnpm dlx shadcn-svelte@latest add collapsible`) inside `Card`; indentation with logical `ps-*`; caret icons `rtl:rotate-180`; initials `Avatar` as on the employee cards; strings `management_tree_*` in en + ar | The template's UI rules; reads right to left in `/ar` |
+
+Questions for the user (each default above is used until answered):
+
+| # | Question | Default |
+|---|---|---|
+| Q-T1 | Should the line up show the managers **above** the nearest one (up to the top department)? | Yes, marked "above" (M16) |
+| Q-T2 | When a team has **two supervisors**, show both in the line up? | Yes, side by side |
+| Q-T3 | Also a page with the **whole organisation** as one tree (top manager down)? | No: `/management` (M8) shows departments; the person tree starts from any employee |
+| Q-T4 | Show **inactive** people in the tree? | No; an inactive manager or supervisor still in place shows as a gap |
+| Q-T5 | May the date field show **past** dates? | Yes, to read the history; changes stay today or later (Q-M5) |
+
+---
+
+## 2. Tasks
+
+### Phase 0 · Agree the plan
+- [ ] 0.1 The user approves M14–M21 or changes them, and answers Q-T1–Q-T5 (or keeps the
+      defaults). Update this plan, the two-level plan (task 4.3 pointer) and `docs/decisions.html`
+      (`proposed` → `approved`).
+
+### Phase 1 · Engine (in `src/lib/workforce/management.ts`, pure, Vitest)
+Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
+- [ ] 1.1 `ladderOf(person, date, org)` → `[{ level: 'supervisor' | 'manager' | 'hr', staffId?,
+      teamId?, departmentId?, approves: boolean }]` (M16).
+- [ ] 1.2 `reportsOf(staffId, date, org)` → `ReportNode[]` (`kind: 'manager' | 'supervisor' |
+      'person'`, ids, `count`, `children`) (M17).
+- [ ] 1.3 Tests with a made-up organisation (a top department with a manager, a sub-department
+      with its own manager, one without, three teams, one with two supervisors):
+      - a member's ladder: supervisor → nearest manager → manager above (`approves: false`) → HR;
+      - two supervisors both listed; a person without a team goes straight to their department's
+        manager;
+      - a manager's ladder starts at the parent's manager; nobody is ever in their own ladder;
+      - a sub-department without a manager: its people climb to the parent's manager;
+      - a team change on day 10 and a manager change on day 15 (M3): ladder before and after;
+      - `reportsOf` a top manager: the sub-department manager is a node (its people under it,
+        not repeated directly), supervisors are nodes with their members, people without a
+        supervised team are leaves; counts add up; nobody appears twice under one parent;
+      - `reportsOf` a supervisor: their members that day; someone who left on day 10 is gone on
+        day 11.
+      **Done when** `pnpm test` is green with these cases (on the user's laptop)
+
+### Phase 2 · Service
+- [ ] 2.1 `management.bl.ts` `managementTreeFor(actor, staffId, date)` → `{ ladder, reports,
+      gaps }` with names, initials, team and department names; `staff.write` (M12). Reads only,
+      no audit. Uses the two-level plan's `management.crud.ts` loaders.
+- [ ] 2.2 `listDepartments` adds `coveredBy` (the nearest manager above when a department has
+      none, M14).
+
+### Phase 3 · UI
+- [ ] 3.1 Profile tab "Management" (`?tab=management`, M15): date filter form, "Reports to" card
+      (ladder, "above" badge, HR at the end), "Manages" card with `ReportTree` (M17, M18), gap
+      notices (M19). The load reads `?on=` only for this tab's data (V3: switching tabs doesn't
+      refetch other data).
+- [ ] 3.2 `#lib/app/management/ReportTree.svelte` (recursive, `Collapsible`, M21). The user
+      first runs `pnpm dlx shadcn-svelte@latest add collapsible`.
+- [ ] 3.3 Overview line "Reports to" (M20).
+- [ ] 3.4 `/departments`: "Covered by …" in muted text under an empty manager (M14).
+- [ ] 3.5 en + ar strings (`management_tree_*`); `svelte-autofixer` (on the user's laptop),
+      eslint + prettier on touched files.
+
+### Phase 4 · Verify
+- [ ] 4.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: a member's tab
+      shows supervisor → manager → manager above → HR; a sub-department without a manager climbs
+      to the parent's; a top manager's "Manages" tree opens level by level with the right counts;
+      a supervisor sees their members; a past date shows the old manager after a change; the
+      Overview line links to the tab; `/departments` shows "Covered by"; `/ar` reads right to
+      left. **Done when** the user reports every line holds
+- [ ] 4.2 Playwright (written, the user runs it): open a member's Management tab, see their
+      manager; open the manager's tab, expand to find the member.
+- [ ] 4.3 Tick, README row, decisions statuses, commit.
+
+---
+
+## Risks
+
+- **Two plans, one engine:** `ladderOf` / `reportsOf` must reuse `managerOn` and `scopeOf`, not
+  copy them, or the tree and "view as" drift apart.
+- **Mixed date kinds:** supervisors are dated by instant, managers and memberships by day; read
+  all of them at 00:00 Damascus of the chosen date (as the two-level plan says), tested across a
+  change.
+- **Large departments:** the first level of a top manager can be long; the tree opens one level
+  and shows counts, and each level is sorted by name.
+
+## Verification (each phase)
+
+`pnpm check`, eslint + prettier on touched files, `pnpm test`, `svelte-autofixer` clean (on the
+user's laptop, CLAUDE.md §8), `git status` without data files, no real names in fixtures, tests,
+plans or commits.

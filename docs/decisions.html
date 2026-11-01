@@ -974,6 +974,79 @@
       ]
     },
     {
+      id: 'M14', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "Department manager stays optional", ar: "يبقى مدير القسم اختيارياً" },
+      decision: { en: "A department's manager is optional: the form keeps \"No manager\" and nothing refuses a save without one. A department without its own manager shows \"Covered by …\" (the nearest manager above); with nobody above it is a gap, never an error.", ar: "مدير القسم اختياري: يحتفظ النموذج بخيار «بلا مدير» ولا شيء يرفض الحفظ بدونه. القسم بلا مدير خاص يعرض «يغطيه …» (أقرب مدير أعلى منه)؛ وإن لم يوجد أحد أعلى منه فهو فجوة وليس خطأ." },
+      why: { en: "The user asked for it (2026-11-01); it matches M2 and Q-M1.", ar: "طلب المستخدم ذلك (2026-11-01)؛ ويتوافق مع M2 وQ-M1." },
+      alts: [
+        { en: "Require a manager for every department: not chosen — the user wants it optional; sub-departments are covered from above.", ar: "إلزام كل قسم بمدير: لم يُختر — يريده المستخدم اختيارياً؛ والأقسام الفرعية مغطاة من الأعلى." }
+      ]
+    },
+    {
+      id: 'M15', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "A Management tab on the employee profile", ar: "تبويب «الإدارة» في ملف الموظف" },
+      decision: { en: "The profile gets a read-only Management tab (?tab=management) with a date filter (?on=, default today), a \"Reports to\" card and, for supervisors and managers, a \"Manages\" card.", ar: "يحصل الملف على تبويب «الإدارة» للعرض فقط (?tab=management) مع مرشح تاريخ (?on=، افتراضياً اليوم)، وبطاقة «يتبع إلى»، وللمشرفين والمديرين بطاقة «يدير»." },
+      why: { en: "One place per person, where HR already looks; the date shows the manager history (M3).", ar: "مكان واحد لكل شخص حيث تبحث الموارد البشرية أصلاً؛ ويعرض التاريخ سجل المديرين (M3)." },
+      alts: [
+        { en: "A separate org-chart page only: not chosen — HR usually starts from the person (kept as question Q-T3).", ar: "صفحة هيكل تنظيمي منفصلة فقط: لم يُختر — تبدأ الموارد البشرية عادة من الشخص (تُرك كسؤال Q-T3)." }
+      ]
+    },
+    {
+      id: 'M16', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "Line up: supervisors, nearest manager, managers above, HR", ar: "السلسلة إلى الأعلى: المشرفون، أقرب مدير، المديرون الأعلى، الموارد البشرية" },
+      decision: { en: "ladderOf lists the supervisors of the person's team that day, the nearest manager, every manager further up the department tree (each once, marked \"above\"), then HR; never the person themself. The first steps are exactly the approval chain of M5.", ar: "تعرض ladderOf مشرفي فريق الشخص في ذلك اليوم، ثم أقرب مدير، ثم كل مدير أعلى في شجرة الأقسام (مرة واحدة ومعلَّماً بـ«أعلى»)، ثم الموارد البشرية؛ ولا تتضمن الشخص نفسه أبداً. والخطوات الأولى هي سلسلة الموافقة في M5 تماماً." },
+      why: { en: "A full ladder answers \"who is their manager\" at every level without changing who approves.", ar: "تجيب السلسلة الكاملة عن «من مديره» في كل مستوى دون تغيير من يوافق." },
+      alts: [
+        { en: "Stop at the nearest manager (M5 only): not chosen — the higher managers also see the person (Q-M4) and HR asked for the whole tree.", ar: "التوقف عند أقرب مدير (M5 فقط): لم يُختر — المديرون الأعلى يرون الشخص أيضاً (Q-M4) وطلبت الموارد البشرية الشجرة كاملة." }
+      ]
+    },
+    {
+      id: 'M17', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "Tree down follows the scope rules", ar: "الشجرة إلى الأسفل تتبع قواعد النطاق" },
+      decision: { en: "reportsOf shows, for a manager, the managers of sub-departments with their own manager, the supervisors of teams in their branch, and people without a supervised team; for a supervisor, their team's members that day. Each node shows a count; nobody appears twice under one parent.", ar: "تعرض reportsOf للمدير: مديري الأقسام الفرعية التي لها مديرها، ومشرفي الفرق في فرعه، والأشخاص بلا فريق له مشرف؛ وللمشرف: أعضاء فريقه في ذلك اليوم. تعرض كل عقدة عدداً؛ ولا يظهر أحد مرتين تحت الأب نفسه." },
+      why: { en: "The same rules as the scopes (M6), so the tree and \"view as\" (M9) always agree.", ar: "القواعد نفسها للنطاقات (M6)، فتتفق الشجرة و«العرض باسم» (M9) دائماً." },
+      alts: [
+        { en: "List everyone in the branch flat under the manager: not chosen — loses who supervises whom.", ar: "سرد كل من في الفرع مباشرة تحت المدير: لم يُختر — يضيع من يشرف على من." }
+      ]
+    },
+    {
+      id: 'M18', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "Tree built from one load", ar: "الشجرة من تحميل واحد" },
+      decision: { en: "The service computes the person's whole scope for the date once; opening a node needs no new request. First level open, deeper levels closed; inactive people left out.", ar: "تحسب الخدمة نطاق الشخص كاملاً للتاريخ مرة واحدة؛ وفتح عقدة لا يحتاج طلباً جديداً. المستوى الأول مفتوح والأعمق مغلق؛ ويُستبعد غير النشطين." },
+      why: { en: "Hundreds of staff, not thousands: one load is simpler and fast.", ar: "مئات الموظفين لا آلافهم: التحميل الواحد أبسط وسريع." },
+      alts: [
+        { en: "Load each level on demand: not chosen — more requests and code for no gain at this size.", ar: "تحميل كل مستوى عند الطلب: لم يُختر — طلبات وكود أكثر بلا فائدة بهذا الحجم." }
+      ]
+    },
+    {
+      id: 'M19', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "Read-only tree with links and gap notices", ar: "شجرة للعرض فقط مع روابط وتنبيهات الفجوات" },
+      decision: { en: "People link to their profiles, departments to /departments, teams to /teams/[id]. Gaps in the person's line (no manager up the tree, team without supervisor, inactive manager or supervisor) show as a warning with the link to fix it.", ar: "يرتبط الأشخاص بملفاتهم، والأقسام بـ/departments، والفرق بـ/teams/[id]. وتظهر الفجوات في سلسلة الشخص (لا مدير في الشجرة، فريق بلا مشرف، مدير أو مشرف غير نشط) كتنبيه مع رابط الإصلاح." },
+      why: { en: "Managers and supervisors are set where they are today; the tree only shows.", ar: "يُعيَّن المديرون والمشرفون حيث يُعيَّنون اليوم؛ والشجرة تعرض فقط." },
+      alts: [
+        { en: "Edit managers inside the tree: not chosen — a second place to change the same thing.", ar: "تعديل المديرين داخل الشجرة: لم يُختر — مكان ثانٍ لتغيير الشيء نفسه." }
+      ]
+    },
+    {
+      id: 'M20', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "\"Reports to\" line on the Overview tab", ar: "سطر «يتبع إلى» في تبويب النظرة العامة" },
+      decision: { en: "The Overview tab shows \"Reports to: supervisor · manager\" linking to the Management tab. It replaces task 4.3 of the two-level plan (M10).", ar: "يعرض تبويب النظرة العامة «يتبع إلى: المشرف · المدير» مع رابط إلى تبويب الإدارة. ويحل محل المهمة 4.3 في خطة الإدارة على مستويين (M10)." },
+      why: { en: "The answer at a glance; details one click away.", ar: "الجواب بنظرة؛ والتفاصيل بنقرة." },
+      alts: [
+        { en: "Only the line, no tab (M10 alone): not chosen — the user asked for a tree per employee.", ar: "السطر فقط دون تبويب (M10 وحده): لم يُختر — طلب المستخدم شجرة لكل موظف." }
+      ]
+    },
+    {
+      id: 'M21', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
+      title: { en: "Tree UI from shadcn Collapsible, RTL-safe", ar: "واجهة الشجرة من Collapsible في shadcn وآمنة للاتجاه من اليمين" },
+      decision: { en: "A recursive ReportTree component built from shadcn Collapsible inside a Card, logical ps-* indentation, carets with rtl:rotate-180, initials avatars, en + ar strings. The user adds Collapsible with the shadcn command.", ar: "مكوّن ReportTree متكرر مبني من Collapsible في shadcn داخل Card، بإزاحة منطقية ps-*، وأسهم مع rtl:rotate-180، وصور رمزية بالأحرف الأولى، ونصوص بالعربية والإنجليزية. يضيف المستخدم Collapsible بأمر shadcn." },
+      why: { en: "The template's UI rules; reads right to left in /ar.", ar: "قواعد واجهة القالب؛ وتُقرأ من اليمين إلى اليسار في /ar." },
+      alts: [
+        { en: "A tree library: not chosen — a new package for a small, read-only tree.", ar: "مكتبة أشجار: لم يُختر — حزمة جديدة لشجرة صغيرة للعرض فقط." },
+        { en: "Native details/summary: not chosen — shadcn components keep the look and keyboard handling consistent.", ar: "عنصرا details/summary الأصليان: لم يُختارا — مكونات shadcn تحافظ على اتساق المظهر ولوحة المفاتيح." }
+      ]
+    },
+    {
       id: 'C1', group: 'profile', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-create.md §1',
       title: { en: "Add employee: one page with sections, a checklist and a save bar", ar: "إضافة موظف: صفحة واحدة بأقسام وقائمة تحقق وشريط حفظ" },
       decision: { en: "The create page shows Identity, Family & ID, Job and Contact as cards on one page, a \"Required fields\" checklist beside them (a click moves to the field) and a save bar that stays at the bottom of the screen with the number of required fields filled.", ar: "تعرض صفحة الإنشاء أقسام الهوية والعائلة والهوية والوظيفة والتواصل كبطاقات في صفحة واحدة، مع قائمة «الحقول المطلوبة» بجانبها (النقر ينقل إلى الحقل) وشريط حفظ يبقى أسفل الشاشة مع عدد الحقول المطلوبة المعبأة." },
@@ -1056,6 +1129,11 @@
     ["Q-M5", "May a change of manager start on a past date? (answered 2026-11-01: default kept)", "Today or later until payroll periods exist", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "اليوم أو لاحقاً حتى توجد فترات الرواتب"],
     ["Q-M6", "Is HR the last level after the manager, or a parallel path? (answered 2026-11-01: default kept)", "Last level, and can always act directly", "هل الموارد البشرية المستوى الأخير بعد المدير أم مسار موازٍ؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "المستوى الأخير، وتستطيع التصرف مباشرة دائماً"],
     ["Q-M7", "Until the dated sheet (task 4.2), may the department form change the manager from today, with a fixed reason?", "Yes, from today (M13)", "حتى اللوحة المؤرخة (المهمة 4.2)، هل يجوز لنموذج القسم تغيير المدير من اليوم بسبب ثابت؟", "نعم، من اليوم (M13)"],
+    ["Q-T1", "Show the managers above the nearest one in a person's line up?", "Yes, marked \"above\"", "هل تُعرض المديرون فوق أقرب مدير في سلسلة الشخص؟", "نعم، معلَّمين بـ«أعلى»"],
+    ["Q-T2", "When a team has two supervisors, show both?", "Yes", "عندما يكون للفريق مشرفان، هل يُعرض كلاهما؟", "نعم"],
+    ["Q-T3", "Also a page with the whole organisation as one tree?", "No: /management shows departments; the person tree starts from any employee", "هل توجد أيضاً صفحة للمؤسسة كلها كشجرة واحدة؟", "لا: /management تعرض الأقسام؛ وشجرة الشخص تبدأ من أي موظف"],
+    ["Q-T4", "Show inactive people in the tree?", "No; an inactive manager or supervisor still in place is a gap", "هل يُعرض غير النشطين في الشجرة؟", "لا؛ والمدير أو المشرف غير النشط الباقي في مكانه فجوة"],
+    ["Q-T5", "May the tree's date field show past dates?", "Yes, to read the history; changes stay today or later", "هل يجوز أن يعرض حقل التاريخ في الشجرة تواريخ سابقة؟", "نعم، لقراءة السجل؛ والتغييرات تبقى من اليوم أو لاحقاً"],
   ];
 
   function el(tag, attrs, children) {

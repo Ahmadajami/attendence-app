@@ -1,36 +1,66 @@
 <script lang="ts">
 	import type { Infer, SuperValidated } from 'sveltekit-superforms';
+	import FilesIcon from 'phosphor-svelte/lib/FilesIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import { getStaffLists } from '#lib/app/staff-lists/context.js';
+	import { manageLabel, newItemLabel } from '#lib/app/staff-lists/labels.js';
+	import Empty from '#lib/app/state/Empty.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { documentFormSchema, ProfileMessage } from '#lib/schemas/staff-profile.schema.js';
 	import type { ProfileDocument } from '#lib/types/profile.js';
 	import { formatDate } from '#lib/utils/datetime.js';
 	import { lookupName } from '#lib/utils/locale.js';
 	import DocumentForm from './DocumentForm.svelte';
+	import FormSheet from './FormSheet.svelte';
 
 	type Props = {
 		data: SuperValidated<Infer<typeof documentFormSchema>, ProfileMessage>;
 		documents: ProfileDocument[];
 		summary: { required: number; received: number };
 		today: string;
+		/** The person's name, for the sheet's description. */
+		name: string;
 	};
 
-	let { data, documents, summary, today }: Props = $props();
+	let { data, documents, summary, today, name }: Props = $props();
 
+	const lists = getStaffLists();
+	let open = $state(false);
 	let editingTypeId = $state<string | null>(null);
 	/** Follows the reloaded list, so the form shows the saved state. */
 	const editing = $derived(documents.find((d) => d.type.id === editingTypeId) ?? null);
+
+	function openForm(doc: ProfileDocument) {
+		editingTypeId = doc.type.id;
+		open = true;
+	}
 </script>
 
-<div class="grid gap-8 lg:grid-cols-2">
-	<div class="flex flex-col gap-2">
-		<p class="text-sm text-muted-foreground">
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{m.profile_documents_title()}</Card.Title>
+		<Card.Description>
 			{m.profile_documents_received_of({ received: summary.received, required: summary.required })}
-		</p>
+		</Card.Description>
+		<Card.Action class="flex flex-wrap justify-end gap-2">
+			<Button variant="ghost" size="sm" onclick={() => lists.manage('document_type')}>
+				<ListChecksIcon data-icon="inline-start" />
+				{manageLabel('document_type')}
+			</Button>
+			<Button variant="outline" size="sm" onclick={() => lists.create('document_type')}>
+				<PlusIcon data-icon="inline-start" />
+				{newItemLabel('document_type')}
+			</Button>
+		</Card.Action>
+	</Card.Header>
+	<Card.Content>
 		{#if documents.length === 0}
-			<p class="text-sm text-muted-foreground">{m.profile_documents_empty()}</p>
+			<Empty icon={FilesIcon} title={m.profile_documents_empty()} />
 		{:else}
 			<ul class="flex flex-col gap-3">
 				{#each documents as doc (doc.type.id)}
@@ -76,7 +106,7 @@
 							variant="ghost"
 							size="icon"
 							aria-label={m.profile_edit_item({ name: lookupName(doc.type) })}
-							onclick={() => (editingTypeId = doc.type.id)}
+							onclick={() => openForm(doc)}
 						>
 							<PencilSimpleIcon />
 						</Button>
@@ -84,11 +114,15 @@
 				{/each}
 			</ul>
 		{/if}
-	</div>
+	</Card.Content>
+</Card.Root>
 
+<FormSheet
+	title={editing ? m.profile_document_edit({ name: lookupName(editing.type) }) : ''}
+	description={name}
+	bind:open
+>
 	{#if editing}
-		{#key editing.type.id}
-			<DocumentForm {data} document={editing} {today} onDone={() => (editingTypeId = null)} />
-		{/key}
+		<DocumentForm {data} document={editing} {today} onDone={() => (open = false)} />
 	{/if}
-</div>
+</FormSheet>

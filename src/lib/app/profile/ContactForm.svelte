@@ -3,7 +3,6 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
-	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -15,7 +14,7 @@
 		data: SuperValidated<Infer<typeof contactFormSchema>, ProfileMessage>;
 		/** The contact being edited; `null` adds one. */
 		editing: ProfileContact | null;
-		/** After a save or a cancel: stop editing. */
+		/** After a save: close the sheet. */
 		onDone: () => void;
 	};
 
@@ -40,7 +39,6 @@
 </script>
 
 <form method="POST" action="?/saveContact" class="flex flex-col gap-4" use:enhance>
-	<h4 class="font-medium">{editing ? m.profile_contact_edit() : m.profile_contact_add()}</h4>
 	<input type="hidden" name="contactId" value={$formData.contactId} />
 
 	<Form.Field {form} name="name">
@@ -85,15 +83,10 @@
 		</Form.Field>
 	</div>
 
-	<div class="flex gap-2">
-		<Form.Button class="flex-1" disabled={$delayed}>
-			{#if $delayed}
-				<SpinnerGapIcon data-icon="inline-start" class="animate-spin" />
-			{/if}
-			{editing ? m.profile_save() : m.profile_add()}
-		</Form.Button>
-		{#if editing}
-			<Button type="button" variant="outline" onclick={onDone}>{m.profile_cancel()}</Button>
+	<Form.Button class="w-full" disabled={$delayed}>
+		{#if $delayed}
+			<SpinnerGapIcon data-icon="inline-start" class="animate-spin" />
 		{/if}
-	</div>
+		{editing ? m.profile_save() : m.profile_add()}
+	</Form.Button>
 </form>

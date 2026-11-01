@@ -859,5 +859,15 @@
 	"employee_new_section_dates": "Dates",
 	"employee_new_after_save": "Contacts, experience, skills, documents and custody are added on the profile after saving.",
 	"employee_new_cancel": "Cancel",
-	"employee_new_submit": "Save employee"
+	"employee_new_submit": "Save employee",
+	"profile_tab_schedule": "Schedule",
+	"profile_tab_personal": "Personal",
+	"profile_tab_history": "History",
+	"profile_header_edit": "Edit details",
+	"profile_header_status_active": "Active",
+	"profile_header_since": "Since",
+	"profile_header_separator": "›",
+	"profile_edit": "Edit",
+	"profile_name_en": "Name in English",
+	"profile_name_ar": "Name in Arabic"
 }

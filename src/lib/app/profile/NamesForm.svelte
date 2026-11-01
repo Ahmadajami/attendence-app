@@ -3,51 +3,39 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
+	import ListSelect from '#lib/app/staff-lists/ListSelect.svelte';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import * as Select from '#lib/components/ui/select/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import {
 		profileNamesFormSchema,
 		type ProfileMessage
 	} from '#lib/schemas/staff-profile.schema.js';
-	import type { ProfilePerson, StaffListOption } from '#lib/types/profile.js';
+	import type { StaffListOption } from '#lib/types/profile.js';
 	import { statusToasts } from '#lib/utils/form-toasts.js';
-	import { lookupName } from '#lib/utils/locale.js';
 
 	type Props = {
+		/** The page's names form, holding the saved values (the sheet remounts it on open). */
 		data: SuperValidated<Infer<typeof profileNamesFormSchema>, ProfileMessage>;
-		person: ProfilePerson;
-		/** Active job titles, plus the person's own if inactive. */
+		/** Every job title; the picker offers the active ones and the person's own. */
 		jobTitles: StaffListOption[];
+		/** After a save: close the sheet. */
+		onDone: () => void;
 	};
 
-	let { data, person, jobTitles }: Props = $props();
+	let { data, jobTitles, onDone }: Props = $props();
 
 	const form = superForm(
 		untrack(() => data),
 		{
 			validators: zod4Client(profileNamesFormSchema),
-			...statusToasts()
+			...statusToasts(() => onDone())
 		}
 	);
 	const { form: formData, enhance, delayed } = form;
-
-	// Start from the saved values; the load reruns after a save, so this follows it.
-	$effect(() => {
-		$formData.firstNameEn = person.firstNameEn ?? '';
-		$formData.lastNameEn = person.lastNameEn ?? '';
-		$formData.firstNameAr = person.firstNameAr ?? '';
-		$formData.lastNameAr = person.lastNameAr ?? '';
-		$formData.jobTitleId = person.jobTitleId ?? '';
-		$formData.personalEmail = person.personalEmail ?? '';
-	});
-
-	const jobTitleValue = $derived($formData.jobTitleId || 'none');
-	const jobTitleLabel = $derived(jobTitles.find((t) => t.id === jobTitleValue));
 </script>
 
-<form method="POST" action="?/saveNames" class="flex max-w-xl flex-col gap-4" use:enhance>
+<form method="POST" action="?/saveNames" class="flex flex-col gap-4" use:enhance>
 	<div class="grid grid-cols-2 gap-4">
 		{@render textField('firstNameEn', m.profile_field_first_name_en(), 'ltr')}
 		{@render textField('lastNameEn', m.profile_field_last_name_en(), 'ltr')}
@@ -60,23 +48,17 @@
 		<Form.Control>
 			{#snippet children({ props })}
 				<Form.Label>{m.profile_field_job_title()}</Form.Label>
-				<!-- "No title" is the `none` item only inside the select; post '' or an id. -->
+				<!-- The picker's placeholder items are never posted: post '' or an id. -->
 				<input type="hidden" name={props.name} value={$formData.jobTitleId} />
-				<Select.Root
-					type="single"
-					value={jobTitleValue}
-					onValueChange={(value) => ($formData.jobTitleId = value === 'none' ? '' : value)}
-				>
-					<Select.Trigger {...props} class="w-full">
-						{jobTitleLabel ? lookupName(jobTitleLabel) : m.profile_no_job_title()}
-					</Select.Trigger>
-					<Select.Content>
-						<Select.Item value="none" label={m.profile_no_job_title()} />
-						{#each jobTitles as title (title.id)}
-							<Select.Item value={title.id} label={lookupName(title)} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				<ListSelect
+					{...props}
+					bind:value={$formData.jobTitleId}
+					items={jobTitles}
+					kind="job_title"
+					placeholder={m.profile_no_job_title()}
+					allowNone
+					noneLabel={m.profile_no_job_title()}
+				/>
 			{/snippet}
 		</Form.Control>
 		<Form.FieldErrors />

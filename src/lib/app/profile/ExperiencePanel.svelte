@@ -1,12 +1,17 @@
 <script lang="ts">
 	import type { Infer, SuperValidated } from 'sveltekit-superforms';
+	import BriefcaseIcon from 'phosphor-svelte/lib/BriefcaseIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import Empty from '#lib/app/state/Empty.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { experienceFormSchema, ProfileMessage } from '#lib/schemas/staff-profile.schema.js';
 	import type { ProfileExperience } from '#lib/types/profile.js';
 	import { formatDate } from '#lib/utils/datetime.js';
 	import ExperienceForm from './ExperienceForm.svelte';
+	import FormSheet from './FormSheet.svelte';
 	import { dateRange, experienceText } from './labels.js';
 	import RemoveItemButton from './RemoveItemButton.svelte';
 
@@ -17,32 +22,45 @@
 		totalMonths: number;
 		/** The person's start date here, `null` when unknown. */
 		startDate: string | null;
+		/** The person's name, for the sheet's description. */
+		name: string;
 	};
 
-	let { data, experience, totalMonths, startDate }: Props = $props();
+	let { data, experience, totalMonths, startDate, name }: Props = $props();
 
+	let open = $state(false);
 	let editing = $state<ProfileExperience | null>(null);
+
+	function openForm(job: ProfileExperience | null) {
+		editing = job;
+		open = true;
+	}
 </script>
 
-<div class="grid gap-8 lg:grid-cols-2">
-	<div class="flex flex-col gap-4">
-		<div class="flex flex-col gap-1 text-sm">
-			<p>
-				<span class="text-muted-foreground">{m.profile_experience_total()}</span>
-				<span class="font-medium">{experienceText(totalMonths)}</span>
-			</p>
-			<p class="text-muted-foreground">
-				{#if startDate}
-					{m.profile_experience_here_since()}
-					<bdi>{formatDate(startDate)}</bdi>
-				{:else}
-					{m.profile_experience_no_start_date()}
-				{/if}
-			</p>
-		</div>
-
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{m.profile_experience_title()}</Card.Title>
+		<Card.Description>
+			{m.profile_experience_total()}
+			<span class="font-medium text-foreground">{experienceText(totalMonths)}</span>
+			·
+			{#if startDate}
+				{m.profile_experience_here_since()}
+				<bdi>{formatDate(startDate)}</bdi>
+			{:else}
+				{m.profile_experience_no_start_date()}
+			{/if}
+		</Card.Description>
+		<Card.Action>
+			<Button variant="outline" size="sm" onclick={() => openForm(null)}>
+				<PlusIcon data-icon="inline-start" />
+				{m.profile_add()}
+			</Button>
+		</Card.Action>
+	</Card.Header>
+	<Card.Content>
 		{#if experience.length === 0}
-			<p class="text-sm text-muted-foreground">{m.profile_experience_empty()}</p>
+			<Empty icon={BriefcaseIcon} title={m.profile_experience_empty()} />
 		{:else}
 			<ul class="flex flex-col gap-3">
 				{#each experience as job (job.id)}
@@ -60,7 +78,7 @@
 								variant="ghost"
 								size="icon"
 								aria-label={m.profile_edit_item({ name: job.jobTitle })}
-								onclick={() => (editing = job)}
+								onclick={() => openForm(job)}
 							>
 								<PencilSimpleIcon />
 							</Button>
@@ -74,7 +92,13 @@
 				{/each}
 			</ul>
 		{/if}
-	</div>
+	</Card.Content>
+</Card.Root>
 
-	<ExperienceForm {data} {editing} onDone={() => (editing = null)} />
-</div>
+<FormSheet
+	title={editing ? m.profile_experience_edit() : m.profile_experience_add()}
+	description={name}
+	bind:open
+>
+	<ExperienceForm {data} {editing} onDone={() => (open = false)} />
+</FormSheet>

@@ -1,7 +1,12 @@
 <script lang="ts">
 	import type { Infer, SuperValidated } from 'sveltekit-superforms';
+	import AddressBookIcon from 'phosphor-svelte/lib/AddressBookIcon';
+	import AtIcon from 'phosphor-svelte/lib/AtIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import Empty from '#lib/app/state/Empty.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type {
 		contactFormSchema,
@@ -10,6 +15,7 @@
 	} from '#lib/schemas/staff-profile.schema.js';
 	import type { ProfileContact, ProfileSocial } from '#lib/types/profile.js';
 	import ContactForm from './ContactForm.svelte';
+	import FormSheet from './FormSheet.svelte';
 	import { platformLabel } from './labels.js';
 	import RemoveItemButton from './RemoveItemButton.svelte';
 	import SocialForm from './SocialForm.svelte';
@@ -19,21 +25,43 @@
 		socialData: SuperValidated<Infer<typeof socialFormSchema>, ProfileMessage>;
 		contacts: ProfileContact[];
 		socials: ProfileSocial[];
+		/** The person's name, for the sheets' descriptions. */
+		name: string;
 	};
 
-	let { contactData, socialData, contacts, socials }: Props = $props();
+	let { contactData, socialData, contacts, socials, name }: Props = $props();
 
+	let contactOpen = $state(false);
 	let editingContact = $state<ProfileContact | null>(null);
+	let socialOpen = $state(false);
 	let editingSocial = $state<ProfileSocial | null>(null);
+
+	function openContact(contact: ProfileContact | null) {
+		editingContact = contact;
+		contactOpen = true;
+	}
+
+	function openSocial(social: ProfileSocial | null) {
+		editingSocial = social;
+		socialOpen = true;
+	}
 </script>
 
-<div class="grid gap-8 lg:grid-cols-2">
-	<section class="flex flex-col gap-3">
-		<h3 class="font-semibold">{m.profile_emergency_contacts()}</h3>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{m.profile_emergency_contacts()}</Card.Title>
+		<Card.Action>
+			<Button variant="outline" size="sm" onclick={() => openContact(null)}>
+				<PlusIcon data-icon="inline-start" />
+				{m.profile_add()}
+			</Button>
+		</Card.Action>
+	</Card.Header>
+	<Card.Content>
 		{#if contacts.length === 0}
-			<p class="text-sm text-muted-foreground">{m.profile_contacts_empty()}</p>
+			<Empty icon={AddressBookIcon} title={m.profile_contacts_empty()} />
 		{:else}
-			<ul class="flex flex-col gap-2">
+			<ul class="flex flex-col gap-3">
 				{#each contacts as contact (contact.id)}
 					<li class="flex items-start justify-between gap-2 text-sm">
 						<div class="flex flex-col">
@@ -51,7 +79,7 @@
 								variant="ghost"
 								size="icon"
 								aria-label={m.profile_edit_item({ name: contact.name })}
-								onclick={() => (editingContact = contact)}
+								onclick={() => openContact(contact)}
 							>
 								<PencilSimpleIcon />
 							</Button>
@@ -65,19 +93,24 @@
 				{/each}
 			</ul>
 		{/if}
-		<ContactForm
-			data={contactData}
-			editing={editingContact}
-			onDone={() => (editingContact = null)}
-		/>
-	</section>
+	</Card.Content>
+</Card.Root>
 
-	<section class="flex flex-col gap-3">
-		<h3 class="font-semibold">{m.profile_social_accounts()}</h3>
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{m.profile_social_accounts()}</Card.Title>
+		<Card.Action>
+			<Button variant="outline" size="sm" onclick={() => openSocial(null)}>
+				<PlusIcon data-icon="inline-start" />
+				{m.profile_add()}
+			</Button>
+		</Card.Action>
+	</Card.Header>
+	<Card.Content>
 		{#if socials.length === 0}
-			<p class="text-sm text-muted-foreground">{m.profile_socials_empty()}</p>
+			<Empty icon={AtIcon} title={m.profile_socials_empty()} />
 		{:else}
-			<ul class="flex flex-col gap-2">
+			<ul class="flex flex-col gap-3">
 				{#each socials as social (social.id)}
 					<li class="flex items-center justify-between gap-2 text-sm">
 						<div class="flex min-w-0 flex-col">
@@ -89,7 +122,7 @@
 								variant="ghost"
 								size="icon"
 								aria-label={m.profile_edit_item({ name: platformLabel(social.platform) })}
-								onclick={() => (editingSocial = social)}
+								onclick={() => openSocial(social)}
 							>
 								<PencilSimpleIcon />
 							</Button>
@@ -103,6 +136,21 @@
 				{/each}
 			</ul>
 		{/if}
-		<SocialForm data={socialData} editing={editingSocial} onDone={() => (editingSocial = null)} />
-	</section>
-</div>
+	</Card.Content>
+</Card.Root>
+
+<FormSheet
+	title={editingContact ? m.profile_contact_edit() : m.profile_contact_add()}
+	description={name}
+	bind:open={contactOpen}
+>
+	<ContactForm data={contactData} editing={editingContact} onDone={() => (contactOpen = false)} />
+</FormSheet>
+
+<FormSheet
+	title={editingSocial ? m.profile_social_edit() : m.profile_social_add()}
+	description={name}
+	bind:open={socialOpen}
+>
+	<SocialForm data={socialData} editing={editingSocial} onDone={() => (socialOpen = false)} />
+</FormSheet>

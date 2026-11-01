@@ -859,5 +859,15 @@
 	"employee_new_section_dates": "التواريخ",
 	"employee_new_after_save": "تُضاف جهات الاتصال والخبرة والمهارات والوثائق والعهدة من الملف بعد الحفظ.",
 	"employee_new_cancel": "إلغاء",
-	"employee_new_submit": "حفظ الموظف"
+	"employee_new_submit": "حفظ الموظف",
+	"profile_tab_schedule": "الجدول",
+	"profile_tab_personal": "البيانات الشخصية",
+	"profile_tab_history": "السجل",
+	"profile_header_edit": "تعديل البيانات",
+	"profile_header_status_active": "فعّال",
+	"profile_header_since": "منذ",
+	"profile_header_separator": "‹",
+	"profile_edit": "تعديل",
+	"profile_name_en": "الاسم بالإنجليزية",
+	"profile_name_ar": "الاسم بالعربية"
 }

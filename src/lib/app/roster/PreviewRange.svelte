@@ -6,13 +6,22 @@
 	import { addDays } from '#lib/roster/cycle.js';
 	import { formatCalendarDate } from './labels.js';
 
-	type Props = { from: string; days: number; today: string };
+	type Props = {
+		from: string;
+		days: number;
+		today: string;
+		/** Other query values to keep when paging, e.g. `{ tab: 'schedule' }`. */
+		keep?: Record<string, string>;
+	};
 
-	let { from, days, today }: Props = $props();
+	let { from, days, today, keep = {} }: Props = $props();
 </script>
 
 <!-- A GET form: the preview window is in the URL (`?from=`), so it survives a reload. -->
 <form method="GET" class="flex flex-wrap items-center gap-2" data-sveltekit-noscroll>
+	{#each Object.entries(keep) as [key, value] (key)}
+		<input type="hidden" name={key} {value} />
+	{/each}
 	<Button
 		type="submit"
 		name="from"

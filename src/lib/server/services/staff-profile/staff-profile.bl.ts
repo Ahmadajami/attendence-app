@@ -117,8 +117,8 @@ async function requireItem(kind: ProfileItemKind, staffId: string, id: string) {
 }
 
 /**
- * Everything the profile card shows. Lists offer active items, plus the inactive ones the person
- * already has, so their current values still show.
+ * Everything the employee page shows about the person, and the four lists (active and inactive)
+ * for its pickers and "Manage …" sheets; the pickers offer the active items and the chosen one.
  */
 export async function getStaffProfile(actor: Actor, staffId: string): Promise<StaffProfile> {
 	requireActorPermission(actor, 'staff.write');
@@ -161,11 +161,12 @@ export async function getStaffProfile(actor: Actor, staffId: string): Promise<St
 		socials,
 		documents,
 		custody,
-		custodyTypes: custodyTypes.filter(
-			(t) => t.active || custody.some((item) => item.itemTypeId === t.id)
-		),
-		jobTitles: jobTitles.filter((t) => t.active || t.id === person.jobTitleId),
-		skillOptions: skillList.filter((s) => s.active || skills.some((own) => own.skillId === s.id)),
+		lists: {
+			jobTitles,
+			skills: skillList,
+			documentTypes,
+			custodyItemTypes: custodyTypes
+		},
 		summary: {
 			experienceMonths: experienceMonths(experience, person.startDate, todayInDamascus()),
 			documents: documentSummary(

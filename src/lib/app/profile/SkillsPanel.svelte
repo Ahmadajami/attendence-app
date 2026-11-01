@@ -1,12 +1,20 @@
 <script lang="ts">
 	import type { Infer, SuperValidated } from 'sveltekit-superforms';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import StarIcon from 'phosphor-svelte/lib/StarIcon';
+	import { getStaffLists } from '#lib/app/staff-lists/context.js';
+	import { manageLabel } from '#lib/app/staff-lists/labels.js';
+	import Empty from '#lib/app/state/Empty.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Card from '#lib/components/ui/card/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { ProfileMessage, skillFormSchema } from '#lib/schemas/staff-profile.schema.js';
 	import type { ProfileSkill, StaffListOption } from '#lib/types/profile.js';
 	import { lookupName } from '#lib/utils/locale.js';
+	import FormSheet from './FormSheet.svelte';
 	import { levelLabel } from './labels.js';
 	import RemoveItemButton from './RemoveItemButton.svelte';
 	import SkillForm from './SkillForm.svelte';
@@ -14,23 +22,46 @@
 	type Props = {
 		data: SuperValidated<Infer<typeof skillFormSchema>, ProfileMessage>;
 		skills: ProfileSkill[];
-		/** Active skills, plus inactive ones the person has. */
-		options: StaffListOption[];
+		/** The whole skill list, active and inactive. */
+		list: StaffListOption[];
+		/** The person's name, for the sheet's description. */
+		name: string;
 	};
 
-	let { data, skills, options }: Props = $props();
+	let { data, skills, list, name }: Props = $props();
 
+	const lists = getStaffLists();
+	let open = $state(false);
 	let editing = $state<ProfileSkill | null>(null);
-	/** A skill is given once: offer the active ones the person doesn't hold. */
-	const addable = $derived(
-		options.filter((o) => o.active && !skills.some((s) => s.skillId === o.id))
+
+	/** A skill is given once: offer the ones the person doesn't hold (plus the edited one). */
+	const options = $derived(
+		list.filter((o) => o.id === editing?.skillId || !skills.some((s) => s.skillId === o.id))
 	);
+
+	function openForm(skill: ProfileSkill | null) {
+		editing = skill;
+		open = true;
+	}
 </script>
 
-<div class="grid gap-8 lg:grid-cols-2">
-	<div class="flex flex-col gap-2">
+<Card.Root>
+	<Card.Header>
+		<Card.Title>{m.profile_skills_title()}</Card.Title>
+		<Card.Action class="flex flex-wrap justify-end gap-2">
+			<Button variant="ghost" size="sm" onclick={() => lists.manage('skill')}>
+				<ListChecksIcon data-icon="inline-start" />
+				{manageLabel('skill')}
+			</Button>
+			<Button variant="outline" size="sm" onclick={() => openForm(null)}>
+				<PlusIcon data-icon="inline-start" />
+				{m.profile_add()}
+			</Button>
+		</Card.Action>
+	</Card.Header>
+	<Card.Content>
 		{#if skills.length === 0}
-			<p class="text-sm text-muted-foreground">{m.profile_skills_empty()}</p>
+			<Empty icon={StarIcon} title={m.profile_skills_empty()} />
 		{:else}
 			<ul class="flex flex-col gap-2">
 				{#each skills as skill (skill.id)}
@@ -46,7 +77,7 @@
 								variant="ghost"
 								size="icon"
 								aria-label={m.profile_edit_item({ name: lookupName(skill) })}
-								onclick={() => (editing = skill)}
+								onclick={() => openForm(skill)}
 							>
 								<PencilSimpleIcon />
 							</Button>
@@ -60,7 +91,13 @@
 				{/each}
 			</ul>
 		{/if}
-	</div>
+	</Card.Content>
+</Card.Root>
 
-	<SkillForm {data} options={addable} {editing} onDone={() => (editing = null)} />
-</div>
+<FormSheet
+	title={editing ? m.profile_skill_edit() : m.profile_skill_add()}
+	description={name}
+	bind:open
+>
+	<SkillForm {data} {options} {editing} onDone={() => (open = false)} />
+</FormSheet>

@@ -1,6 +1,6 @@
 # Employee page redesign: profile header, tabs, sheets; new-employee page; lists managed where used
 
-**Status:** in progress (approved 2026-11-01; Phases 0–2 done)
+**Status:** in progress (approved 2026-11-01; Phases 0–3 done)
 **Date:** 2026-11-01
 **Goal:** As the user asked (2026-11-01): the employee page shows **the profile at the top** (an
 `Avatar` header), then **tabs**; every add / edit inside a tab opens a **sheet**. Job titles,
@@ -229,7 +229,7 @@ Made-up names and numbers only (CLAUDE.md §1).
       > 205 tests pass.
 
 ### Phase 3 · Employee page
-- [ ] 3.1 `#lib/app/profile/ProfileHeader.svelte` (V1): `Avatar` (initials helper `initials(name)`
+- [x] 3.1 `#lib/app/profile/ProfileHeader.svelte` (V1): `Avatar` (initials helper `initials(name)`
       in `#lib/app/profile/labels.ts`, made-up tests in `src/lib/app/profile/labels.test.ts` if it
       stays pure, else in `#lib/workforce/profile.ts` + tests), names, number, title, department ›
       team, badges, quick facts, **Edit details** (opens `StaffDetailsSheet`) and
@@ -237,23 +237,33 @@ Made-up names and numbers only (CLAUDE.md §1).
       the page doesn't load yet (department, phone, work email, start date, active, function)
       come from one extra read: extend `getStaffProfile`'s `person` (preferred) — no second query
       for the same row.
-- [ ] 3.2 `/employees/[id]/+page.svelte`: header + page-level `UnderlineTabs.Root value={tab}`
+- [x] 3.2 `/employees/[id]/+page.svelte`: header + page-level `UnderlineTabs.Root value={tab}`
       with `onValueChange` → `goto` with `?tab=` (V3); move the Schedule and Day cards into the
       Schedule tab (a `?day=` in the URL selects Schedule), Pattern history into History. The
       three schedule sheets stay outside the tabs, as now. Remove `ProfileCard`.
-- [ ] 3.3 Tabs as lists + sheets (V4): turn each `*Panel` into a read-only list with **+ Add** and
+- [x] 3.3 Tabs as lists + sheets (V4): turn each `*Panel` into a read-only list with **+ Add** and
       per-row **Edit** / `RemoveItemButton`; wrap each existing `*Form` in a sheet
       (`NamesSheet`, `ContactSheet`, `SocialSheet`, `ExperienceSheet`, `SkillSheet`,
       `DocumentSheet`, `CustodySheet`; one `Sheet.Root` per form, `onDone` closes it). Pickers in
       `SkillForm` and `CustodyForm` (and `NamesForm`'s job title) use `ListSelect` (+ New …);
       `DocumentsPanel` gets "+ New document type". "Manage …" buttons open `ListManageSheet`
       (V5). The Personal tab merges names / email (from `NamesForm`) with `ContactsPanel`.
-- [ ] 3.4 Overview tab (V10): today's summary (from `ProfileCard`) with links that set `?tab=`.
-- [ ] 3.5 `[id]/+page.server.ts`: load the list form and a prefilled staff edit form
+- [x] 3.4 Overview tab (V10): today's summary (from `ProfileCard`) with links that set `?tab=`.
+- [x] 3.5 `[id]/+page.server.ts`: load the list form and a prefilled staff edit form
       (id `staff-edit`); actions `saveStaff` (→ `updateStaff`), `setActive`
       (→ `setStaffActive`), `saveListItem`, `setListItemActive`, besides today's profile actions.
       **Done when** every group can be added, edited and removed from its tab, a list item can be
       created from a picker and is selected in one go, and `pnpm check` is green
+      > note: built and statically green (check, eslint, autofixer, 205 tests); the runtime half
+      > of "done when" is confirmed by the user in 5.2. Details: one `FormSheet.svelte` shell
+      > holds each form (one `Sheet.Root` per form) instead of seven `*Sheet` files; forms mount
+      > when their sheet opens, so they start from the latest data (NamesForm no longer follows
+      > the person with an `$effect`). `getStaffProfile` now returns `lists` (all four lists) in
+      > place of `jobTitles` / `skillOptions` / `custodyTypes`, so the page doesn't read the lists
+      > twice; `findProfilePerson` returns the header fields. Tab switch:
+      > `goto(url, { replace: true, reset: false })` (SvelteKit 3 names for `replaceState` /
+      > `noScroll` / `keepFocus`). `PreviewRange` takes `keep` so paging keeps `?tab=schedule`.
+      > `ProfileCard.svelte` deleted.
 
 ### Phase 4 · Remove `/staff-lists`, strings, decisions
 - [ ] 4.1 Delete `routes/(dashboard)/staff-lists/` and its `nav.ts` entry. Grep for `staff-lists`

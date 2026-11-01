@@ -1,5 +1,7 @@
 /** Client-safe shapes returned by the staff-profile service (plan 2026-11-01-employee-profile). */
 
+import type { StaffLists } from './staff-lists.js';
+
 /** An item of one of the staff lists (job titles, skills, …); `required` is `false` except for document types. */
 export type StaffListOption = {
 	id: string;
@@ -105,12 +107,8 @@ export type StaffProfile = {
 	socials: ProfileSocial[];
 	documents: ProfileDocument[];
 	custody: ProfileCustodyItem[];
-	/** Active custody item types, plus inactive ones the person holds. */
-	custodyTypes: StaffListOption[];
-	/** Active titles, plus the person's own if inactive. */
-	jobTitles: StaffListOption[];
-	/** Active skills, plus inactive ones the person has. */
-	skillOptions: StaffListOption[];
+	/** The four lists, active and inactive (redesign plan V5). */
+	lists: StaffLists;
 	summary: {
 		experienceMonths: number;
 		documents: { required: number; received: number; missing: string[] };

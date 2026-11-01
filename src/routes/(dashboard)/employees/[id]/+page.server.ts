@@ -9,7 +9,8 @@ import {
 	correctionSchema,
 	type AttendanceMessage
 } from '#lib/schemas/attendance.schema.js';
-import { failForm } from '#lib/server/errors.js';
+import { setStaffActiveSchema } from '#lib/schemas/staff.schema.js';
+import { failForm, failNotice } from '#lib/server/errors.js';
 import {
 	assignAction,
 	endAssignmentAction,
@@ -37,7 +38,20 @@ import {
 import type { Actor } from '#lib/server/services/common.js';
 import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
 import { getPersonRoster, getPersonSchedule } from '#lib/server/services/roster/roster.bl.js';
+import {
+	listActiveDepartments,
+	listActiveTeams,
+	listFunctions,
+	setStaffActive
+} from '#lib/server/services/staff.js';
 import { getStaffProfile } from '#lib/server/services/staff-profile/staff-profile.bl.js';
+import { editStaffForm, updateStaffAction } from '#lib/server/staff-forms.js';
+import {
+	saveListItemAction,
+	setListItemActiveAction,
+	staffListForm
+} from '#lib/server/staff-list-forms.js';
+import { personName } from '#lib/utils/locale.js';
 import type { Actions, PageServerLoad } from './$types';
 
 function actorFrom(locals: App.Locals): Actor {
@@ -57,15 +71,20 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const last = addDays(roster.preview.from, roster.preview.days - 1);
 	/** `?day=` opens the day panel when it is inside the preview window. */
 	const day = url.searchParams.get('day');
-	const [events, schedule, patterns, forms, profile] = await Promise.all([
-		canRecord
-			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
-			: Promise.resolve([]),
-		getPersonSchedule(actor, id),
-		listPatterns(actor),
-		patternForms(roster.today, { kind: 'staff', id }),
-		getStaffProfile(actor, id)
-	]);
+	const [events, schedule, patterns, forms, profile, teams, departments, functions, listForm] =
+		await Promise.all([
+			canRecord
+				? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
+				: Promise.resolve([]),
+			getPersonSchedule(actor, id),
+			listPatterns(actor),
+			patternForms(roster.today, { kind: 'staff', id }),
+			getStaffProfile(actor, id),
+			listActiveTeams(actor),
+			listActiveDepartments(actor),
+			listFunctions(actor),
+			staffListForm()
+		]);
 	return {
 		...roster,
 		canRecord,
@@ -88,11 +107,48 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		})),
 		...forms,
 		profile,
+		/** The four lists, for the pickers and the "Manage …" sheets (V5). */
+		lists: profile.lists,
+		teams,
+		departments,
+		functions,
+		listForm,
+		staffEditForm: await editStaffForm(profile.person),
 		...(await profileForms(profile.person))
 	};
 };
 
 export const actions: Actions = {
+	saveStaff: async ({ request, locals, params }) =>
+		updateStaffAction(request, actorFrom(locals), staffId(params.id)),
+
+	/** Plain action (`{ notice }`): the header's Deactivate / Activate. */
+	setActive: async ({ request, locals, params }) => {
+		const actor = actorFrom(locals);
+		const id = staffId(params.id);
+		const parsed = setStaffActiveSchema
+			.pick({ active: true })
+			.safeParse(Object.fromEntries(await request.formData()));
+		if (!parsed.success) return fail(400, { notice: m.staff_error_not_found() });
+
+		const active = parsed.data.active === 'true';
+		try {
+			const row = await setStaffActive(actor, id, active);
+			return {
+				notice: active
+					? m.staff_activated({ name: personName(row) })
+					: m.staff_deactivated({ name: personName(row) })
+			};
+		} catch (cause) {
+			return failNotice(cause);
+		}
+	},
+
+	saveListItem: async ({ request, locals }) => saveListItemAction(request, actorFrom(locals)),
+
+	setListItemActive: async ({ request, locals }) =>
+		setListItemActiveAction(request, actorFrom(locals)),
+
 	saveNames: async ({ request, locals, params }) =>
 		namesAction(request, actorFrom(locals), staffId(params.id)),
 

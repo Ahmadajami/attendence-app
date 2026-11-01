@@ -3,7 +3,6 @@
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
-	import { Button } from '#lib/components/ui/button/index.js';
 	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
@@ -12,14 +11,13 @@
 	import { documentFormSchema, type ProfileMessage } from '#lib/schemas/staff-profile.schema.js';
 	import type { ProfileDocument } from '#lib/types/profile.js';
 	import { statusToasts } from '#lib/utils/form-toasts.js';
-	import { lookupName } from '#lib/utils/locale.js';
 
 	type Props = {
 		data: SuperValidated<Infer<typeof documentFormSchema>, ProfileMessage>;
 		/** The document type being recorded. */
 		document: ProfileDocument;
 		today: string;
-		/** After a save or a cancel: close the form. */
+		/** After a save: close the sheet. */
 		onDone: () => void;
 	};
 
@@ -46,7 +44,6 @@
 </script>
 
 <form method="POST" action="?/setDocument" class="flex flex-col gap-4" use:enhance>
-	<h4 class="font-medium">{m.profile_document_edit({ name: lookupName(document.type) })}</h4>
 	<input type="hidden" name="documentTypeId" value={$formData.documentTypeId} />
 
 	<Form.Field {form} name="received" class="flex flex-row items-center gap-2">
@@ -109,13 +106,10 @@
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<div class="flex gap-2">
-		<Form.Button class="flex-1" disabled={$delayed}>
-			{#if $delayed}
-				<SpinnerGapIcon data-icon="inline-start" class="animate-spin" />
-			{/if}
-			{m.profile_save()}
-		</Form.Button>
-		<Button type="button" variant="outline" onclick={onDone}>{m.profile_cancel()}</Button>
-	</div>
+	<Form.Button class="w-full" disabled={$delayed}>
+		{#if $delayed}
+			<SpinnerGapIcon data-icon="inline-start" class="animate-spin" />
+		{/if}
+		{m.profile_save()}
+	</Form.Button>
 </form>

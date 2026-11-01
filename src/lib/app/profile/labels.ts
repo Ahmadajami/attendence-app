@@ -63,3 +63,22 @@ const CUSTODY_LABELS: Record<CustodyStatus, () => string> = {
 export function custodyStatusLabel(status: string): string {
 	return CUSTODY_LABELS[status as CustodyStatus]?.() ?? status;
 }
+
+/** The employee page's tabs, in order (redesign plan V2); the value is `?tab=`. */
+export const PROFILE_TABS = [
+	'overview',
+	'schedule',
+	'personal',
+	'experience',
+	'skills',
+	'documents',
+	'custody',
+	'history'
+] as const;
+export type ProfileTab = (typeof PROFILE_TABS)[number];
+
+/** `?tab=` as a tab: an unknown value opens Overview, or Schedule when a day is asked for (V3). */
+export function profileTab(value: string | null, hasDay: boolean): ProfileTab {
+	if (value && (PROFILE_TABS as readonly string[]).includes(value)) return value as ProfileTab;
+	return hasDay ? 'schedule' : 'overview';
+}

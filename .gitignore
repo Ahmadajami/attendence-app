@@ -33,3 +33,6 @@ project.inlang/cache/
 /data/
 playwright-report/
 test-results/
+
+# --- graphify (local knowledge graph, rebuilt with /graphify) ---
+graphify-out/

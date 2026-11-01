@@ -306,6 +306,17 @@
       ]
     },
     {
+      id: 'T1', group: 'foundation', status: 'approved', date: '2026-11-01', src: 'CLAUDE.md §7',
+      title: { en: 'Agents use graphify and RTK to save tokens', ar: 'يستخدم الوكلاء graphify و RTK لتوفير الرموز' },
+      decision: { en: 'Agents query the local graphify knowledge graph (graphify-out/, gitignored) before exploring files, and run shell commands through RTK, which trims their output. Generated code, vendored UI, message catalogs, drizzle snapshots and data files are excluded in .graphifyignore.', ar: 'يستعلم الوكلاء رسم المعرفة المحلي graphify (graphify-out/، خارج git) قبل استكشاف الملفات، ويشغّلون أوامر الطرفية عبر RTK الذي يختصر مخرجاتها. تُستثنى في .graphifyignore الشيفرة المولّدة ومكوّنات الواجهة المنسوخة وملفات الرسائل ولقطات drizzle وملفات البيانات.' },
+      why: { en: 'Fewer files and less command output in the context: answers come faster and cost less. Both run locally, so no data leaves the laptop (§1).', ar: 'ملفات أقل ومخرجات أوامر أقل في السياق: إجابات أسرع وأقل كلفة. كلاهما يعمل محلياً، فلا تخرج أي بيانات من الحاسوب (§1).' },
+      alts: [
+        { en: 'Read files and full command output directly: not chosen — wastes context on large files and noisy output.', ar: 'قراءة الملفات ومخرجات الأوامر كاملة مباشرة: لم يُختر — يهدر السياق على الملفات الكبيرة والمخرجات المزدحمة.' },
+        { en: 'graphify with its Gemini backend for docs: not chosen — sends repo text to a cloud service (§1 no cloud).', ar: 'graphify مع واجهة Gemini للمستندات: لم يُختر — يرسل نص المستودع إلى خدمة سحابية (§1 لا سحابة).' },
+        { en: 'Index the whole repo including generated code: not chosen — generated nodes swamp the graph and hide the hand-written code.', ar: 'فهرسة المستودع كله بما فيه الشيفرة المولّدة: لم يُختر — العقد المولّدة تغمر الرسم وتخفي الشيفرة المكتوبة يدوياً.' }
+      ]
+    },
+    {
       id: 'D5', group: 'foundation', status: 'approved', date: '2026-10-27', src: 'docs/reference/DECISIONS_PHASE0_1.md',
       title: { en: 'Four HR access levels (for when login returns)', ar: 'أربعة مستويات صلاحيات للموارد البشرية (عند عودة تسجيل الدخول)' },
       decision: { en: 'Supervisor → HR Officer → HR Approver → HR Manager, each including the previous one.', ar: 'مشرف ← موظف موارد بشرية ← معتمِد موارد بشرية ← مدير موارد بشرية، وكل مستوى يشمل ما قبله.' },

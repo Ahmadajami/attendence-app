@@ -220,3 +220,29 @@ records **every decision**: what was decided, **why**, and the
   decisions to `approved`.
 - No personal data (§1): IDs, counts and made-up examples only.
 - Check the script after editing (`node --check` on the extracted script).
+
+## 7. Token saving: graphify and RTK
+
+Use both on every task to keep context small.
+
+- **graphify** (knowledge graph of this repo, `graphify-out/`, gitignored,
+  local only). Before broad exploration ("where is X", "what calls Y",
+  how a flow works), read `graphify-out/GRAPH_REPORT.md` or run
+  `graphify query "<question>"`, `graphify path "A" "B"`,
+  `graphify explain "X"`; open files only where the graph points. The graph
+  can lag behind the code: confirm in the source before editing.
+  - Refresh: `graphify update .` after code changes (AST only, no LLM);
+    `/graphify . --update` after docs or plans change.
+  - `.graphifyignore` excludes generated code, vendored `ui/`, `messages/`,
+    `drizzle/meta/` and data files. Add any new generated folder there.
+  - Known gaps: `.svelte` files with `<script lang="ts">` parse only
+    partially, and `.sql` adds nothing without `graphifyy[sql]`: read those
+    files directly.
+  - §1 applies: build the graph from this repo only. Never point graphify at
+    `~/secure/syravia/` or the old Odoo module (real names), and never use
+    its Gemini backend (no cloud).
+- **RTK** (`rtk`, Rust Token Killer). A Claude Code hook rewrites shell
+  commands (`git status` → `rtk git status`) and trims their output. Use
+  `rtk proxy <cmd>` when the full raw output matters (an exact test failure,
+  a diff to read line by line); `rtk gain` shows the savings. Don't bypass
+  or disable the hook.

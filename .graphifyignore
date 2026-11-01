@@ -1,0 +1,71 @@
+# graphify ignore — gitignore syntax, merged on top of .gitignore.
+# Adding a pattern here can only exclude MORE; it cannot re-include something
+# .gitignore already dropped.
+#
+# Everything below is GENERATED, VENDORED or DATA-ONLY. Indexing it buries the
+# hand-written code: generated nodes dominate the community hubs and can push
+# the graph past graphify's 5,000-node visualization limit.
+
+# GENERATED CODE. Regenerate instead of reading:
+#   src/lib/paraglide  →  vite dev/build (Paraglide plugin)
+#   drizzle/meta       →  pnpm db:generate (drizzle-kit snapshots of the whole
+#                         schema, ~1 MB of repeated JSON; read
+#                         src/lib/server/db/schema/ instead)
+# The first two lines are carried over from the template (Prisma/enum output);
+# they match nothing here today and stay as a guard.
+src/lib/server/db/generated/
+src/lib/generated/
+src/lib/paraglide/
+drizzle/meta/
+project.inlang/
+
+# Framework output
+.svelte-kit/
+build/
+.output/
+.vercel/
+node_modules/
+
+# Editor settings, static assets, favicon (no project logic; the SVG would
+# cost a vision pass)
+.vscode/
+static/
+src/lib/assets/
+
+# VENDORED UI primitives. `src/lib/components/ui/*` is shadcn-svelte output —
+# thin re-export wrappers around bits-ui with almost no project logic; they
+# hijack community names with Root/Trigger/Content re-exports. Re-add a
+# component with `pnpm dlx shadcn-svelte@latest add <name>`. Project wrappers
+# live in `src/lib/app/` and stay indexed.
+src/lib/components/ui/
+
+# TRANSLATION CATALOGS. messages/{en,ar}.json are Paraglide message sources —
+# leaf string keys with no relationships. grep messages/en.json directly when
+# you need a message key.
+messages/
+
+# DEPENDENCY MANIFEST. Every dependency becomes two dead-end nodes joined by
+# one edge, forming dozens of two-node communities. Read package.json directly
+# for versions.
+/package.json
+
+# Large, no useful symbols
+pnpm-lock.yaml
+
+# Graphify's own output
+graphify-out/
+
+# REAL DATA GUARD (CLAUDE.md §1). Data files never belong in this repo, and
+# .gitignore already drops them; repeated here so a stray file is never sent
+# to an extraction subagent either.
+.env
+.env.*
+*.dump
+*.backup
+*.sql.gz
+*.log
+*.csv
+*.xlsx
+*.xls
+playwright-report/
+test-results/

@@ -192,6 +192,7 @@
 		const key = impactKey;
 		impactLoading = true;
 		try {
+			console.log(impactRequest);
 			result = { key, impacts: await fetchImpact(impactRequest), error: null };
 		} catch (cause) {
 			result = {

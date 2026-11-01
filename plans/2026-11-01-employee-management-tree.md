@@ -1,11 +1,12 @@
 # Management tree for each employee: who manages whom
 
-**Status:** proposed (2026-11-01; waiting for the user's approval and answers to Q-T1–Q-T5)
+**Status:** proposed (2026-11-01; waiting for the user's approval and answers to Q-T1–Q-T6)
 **Date:** 2026-11-01
 **Goal:** Every employee's profile gets a **Management** tab: the line **up** (their supervisor(s)
 → department manager → managers higher up the department tree → HR) and, for anyone who
 supervises or manages, the people **below** them as a tree they can open level by level, on any
-date. Assigning a manager to a department stays **optional** and stays on `/departments`.
+date. Assigning a manager to a department stays **optional** and stays on `/departments`. Once
+any employee is deactivated, `/employees` shows a **status filter** (Active · Inactive · All).
 
 **Lane:** A. Builds on the approved
 [two-level management plan](2026-11-01-two-level-management.md): manager history (M3, Phase 1,
@@ -40,6 +41,7 @@ first. One commit per phase, plan file included.
 | M19 | **Read-only, with links:** each person links to their profile (and their Management tab); a department links to `/departments`, a team to `/teams/[id]`. Gaps in the person's line (no manager up the tree, team without supervisor, inactive manager or supervisor) show as a `warning` notice with the link to fix it | Managers are set where they are today; the tree only shows |
 | M20 | **Overview tab line** "Reports to: *supervisor* · *manager*" (first supervisor, "+1" when there are two), linking to the Management tab. Replaces task 4.3 of the two-level plan (M10) | The answer at a glance; details one click away |
 | M21 | **UI:** a recursive `#lib/app/management/ReportTree.svelte` built from shadcn `Collapsible` (added by the user with `pnpm dlx shadcn-svelte@latest add collapsible`) inside `Card`; indentation with logical `ps-*`; caret icons `rtl:rotate-180`; initials `Avatar` as on the employee cards; strings `management_tree_*` in en + ar | The template's UI rules; reads right to left in `/ar` |
+| M22 | **Status filter on `/employees`** (the user, 2026-11-01). As soon as **at least one employee is inactive**, the toolbar of both tabs (cards and "Move between teams") shows a `Select` beside the search: **Active (n) · Inactive (n) · All (n)**, default **Active** (Q-T6). It is a GET filter (`?status=active\|inactive\|all`, `name` on `Select.Root`, submits on change), so it stays in the URL with `?view=`; the page filters the list it already loads, counts come from the whole list, an unknown value falls back to the default. With no inactive employee the filter is hidden. Deactivating someone from the actions menu toasts "… was deactivated: shown under Inactive". The team cards of "Move between teams" keep listing active members only (unchanged). An inactive manager or supervisor still in place stays a gap in the tree (M19, Q-T4) | Deactivated people no longer clutter the daily list but are one click away; nothing to filter while everyone is active |
 
 Questions for the user (each default above is used until answered):
 
@@ -50,13 +52,14 @@ Questions for the user (each default above is used until answered):
 | Q-T3 | Also a page with the **whole organisation** as one tree (top manager down)? | No: `/management` (M8) shows departments; the person tree starts from any employee |
 | Q-T4 | Show **inactive** people in the tree? | No; an inactive manager or supervisor still in place shows as a gap |
 | Q-T5 | May the date field show **past** dates? | Yes, to read the history; changes stay today or later (Q-M5) |
+| Q-T6 | On `/employees`, which status does the filter show **by default**? (M22, added 2026-11-01) | Active |
 
 ---
 
 ## 2. Tasks
 
 ### Phase 0 · Agree the plan
-- [ ] 0.1 The user approves M14–M21 or changes them, and answers Q-T1–Q-T5 (or keeps the
+- [ ] 0.1 The user approves M14–M22 or changes them, and answers Q-T1–Q-T6 (or keeps the
       defaults). Update this plan, the two-level plan (task 4.3 pointer) and `docs/decisions.html`
       (`proposed` → `approved`).
 
@@ -97,8 +100,14 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
       first runs `pnpm dlx shadcn-svelte@latest add collapsible`.
 - [ ] 3.3 Overview line "Reports to" (M20).
 - [ ] 3.4 `/departments`: "Covered by …" in muted text under an empty manager (M14).
-- [ ] 3.5 en + ar strings (`management_tree_*`); `svelte-autofixer` (on the user's laptop),
-      eslint + prettier on touched files.
+- [ ] 3.5 en + ar strings (`management_tree_*`, `employees_status_*`); `svelte-autofixer` (on the
+      user's laptop), eslint + prettier on touched files.
+- [ ] 3.6 `/employees` status filter (M22): `EMPLOYEE_STATUSES` + `employeeStatus(value)` and
+      `filterByStatus(employees, status)` in `employees/labels.ts` (pure, with Vitest cases:
+      default, unknown value, counts); a shared `StatusFilter.svelte` in the toolbar of
+      `EmployeeCards` and `EmployeesTable`, shown only when an inactive employee exists; the
+      deactivate toast names the Inactive filter. No load or action change. This task does not
+      need Phases 1–2 and can be built first.
 
 ### Phase 4 · Verify
 - [ ] 4.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: a member's tab
@@ -106,7 +115,11 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
       to the parent's; a top manager's "Manages" tree opens level by level with the right counts;
       a supervisor sees their members; a past date shows the old manager after a change; the
       Overview line links to the tab; `/departments` shows "Covered by"; `/ar` reads right to
-      left. **Done when** the user reports every line holds
+      left; on `/employees` with everyone active there is no status filter; deactivate one
+      employee → the filter appears on Active, the person leaves the list and shows under
+      Inactive, All shows everyone, the counts match, and the choice survives a reload and a
+      switch to "Move between teams"; reactivating them brings them back to Active.
+      **Done when** the user reports every line holds
 - [ ] 4.2 Playwright (written, the user runs it): open a member's Management tab, see their
       manager; open the manager's tab, expand to find the member.
 - [ ] 4.3 Tick, README row, decisions statuses, commit.

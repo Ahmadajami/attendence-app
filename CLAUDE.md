@@ -246,3 +246,24 @@ Use both on every task to keep context small.
   `rtk proxy <cmd>` when the full raw output matters (an exact test failure,
   a diff to read line by line); `rtk gain` shows the savings. Don't bypass
   or disable the hook.
+
+## 8. Hand-off to the user: "On your laptop" (every reply that changes code)
+
+Agents in a cloud session have no `node_modules`, database or browser, so every reply that
+changes code ends with an **"On your laptop"** section. Always include it, in this order:
+
+1. **Get the change:** the git commands to fetch and merge the agent's branch into `app/main`
+   (each command in its own `bash` block).
+2. **Checks the agent could not run:** `pnpm check && pnpm test`, eslint on the touched folders,
+   and "Also run the Svelte autofixer on `<each touched .svelte file>`" naming the files.
+3. **Migrations:** every migration not yet applied, why it is needed ("must be applied before …,
+   or … will fail"), and the commands: `_e2e` first, `attendance_app` only after the row count and
+   the user's OK.
+4. **Start the test server:** `pnpm exec vite dev --mode e2e --port 5174`.
+5. **"Please test on http://127.0.0.1:5174/<route>:"** a numbered checklist, one observable result
+   per line (what to click, what must appear), including `/ar/...` (right to left) and anything
+   an earlier change could have broken.
+6. **Still pending from earlier changes:** repeat every check the user has not yet confirmed
+   (keep the list until the user reports it holds), then "paste me any errors".
+
+Keep the pending list in step with the plans' unticked manual-check boxes.

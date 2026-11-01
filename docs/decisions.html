@@ -974,6 +974,25 @@
       ]
     },
     {
+      id: 'M23', group: 'management', status: 'default', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1, Phase 2',
+      title: { en: "When the management engine reads the organisation", ar: "متى يقرأ محرك الإدارة الهيكل التنظيمي" },
+      decision: { en: "The engine reads day-dated manager rows by date and instant-dated memberships and supervisors at an instant. By default that instant is 00:00 Damascus of the date (like the roster's teamOnDate); a live view of today may pass the current instant so a change made this morning counts at once.", ar: "يقرأ المحرك صفوف المديرين المؤرخة باليوم حسب التاريخ، والعضويات والمشرفين المؤرخة بلحظة حسب لحظة محددة. افتراضياً هذه اللحظة هي 00:00 بتوقيت دمشق من التاريخ (مثل teamOnDate في الجدول)؛ ويجوز لعرض حيّ لليوم تمرير اللحظة الحالية كي يُحتسب تغيير أُجري هذا الصباح فوراً." },
+      why: { en: "One rule for every date, matching the roster, without hiding today's changes until tomorrow.", ar: "قاعدة واحدة لكل تاريخ تطابق الجدول، دون إخفاء تغييرات اليوم حتى الغد." },
+      alts: [
+        { en: "Always 00:00 of the day: not chosen — a supervisor added at 10:00 would show as missing until tomorrow.", ar: "دائماً 00:00 من اليوم: لم يُختر — سيظهر المشرف المضاف الساعة 10:00 مفقوداً حتى الغد." },
+        { en: "Always now: not chosen — past and future dates need a fixed time of day.", ar: "دائماً الآن: لم يُختر — التواريخ الماضية والمستقبلية تحتاج وقتاً ثابتاً من اليوم." }
+      ]
+    },
+    {
+      id: 'M24', group: 'management', status: 'default', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1, Phase 2',
+      title: { en: "Inactive supervisors and managers are skipped in the chain", ar: "تخطي المشرفين والمديرين غير النشطين في السلسلة" },
+      decision: { en: "An inactive supervisor still in place is left out of a person's chain, and an inactive manager is passed over to the next manager up (or HR). The gap list still reports both; scopes list active people only.", ar: "يُستبعد المشرف غير النشط الباقي في مكانه من سلسلة الشخص، ويُتجاوز المدير غير النشط إلى المدير التالي الأعلى (أو الموارد البشرية). وتبقى قائمة الفجوات تُظهر الحالتين؛ والنطاقات تضم النشطين فقط." },
+      why: { en: "An inactive person can't approve; the chain must still reach someone who can.", ar: "لا يستطيع الشخص غير النشط الموافقة؛ ويجب أن تصل السلسلة إلى من يستطيع." },
+      alts: [
+        { en: "Keep them in the chain, marked inactive: not chosen — approvals would stop at someone who can't act.", ar: "إبقاؤهم في السلسلة مع علامة عدم النشاط: لم يُختر — ستتوقف الموافقات عند شخص لا يستطيع التصرف." }
+      ]
+    },
+    {
       id: 'M14', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-management-tree.md §1',
       title: { en: "Department manager stays optional", ar: "يبقى مدير القسم اختيارياً" },
       decision: { en: "A department's manager is optional: the form keeps \"No manager\" and nothing refuses a save without one. A department without its own manager shows \"Covered by …\" (the nearest manager above); with nobody above it is a gap, never an error.", ar: "مدير القسم اختياري: يحتفظ النموذج بخيار «بلا مدير» ولا شيء يرفض الحفظ بدونه. القسم بلا مدير خاص يعرض «يغطيه …» (أقرب مدير أعلى منه)؛ وإن لم يوجد أحد أعلى منه فهو فجوة وليس خطأ." },
@@ -1139,6 +1158,8 @@
     ["Q-M5", "May a change of manager start on a past date? (answered 2026-11-01: default kept)", "Today or later until payroll periods exist", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "اليوم أو لاحقاً حتى توجد فترات الرواتب"],
     ["Q-M6", "Is HR the last level after the manager, or a parallel path? (answered 2026-11-01: default kept)", "Last level, and can always act directly", "هل الموارد البشرية المستوى الأخير بعد المدير أم مسار موازٍ؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "المستوى الأخير، وتستطيع التصرف مباشرة دائماً"],
     ["Q-M7", "Until the dated sheet (task 4.2), may the department form change the manager from today, with a fixed reason?", "Yes, from today (M13)", "حتى اللوحة المؤرخة (المهمة 4.2)، هل يجوز لنموذج القسم تغيير المدير من اليوم بسبب ثابت؟", "نعم، من اليوم (M13)"],
+    ["Q-M8", "Read memberships and supervisors at 00:00 of the day, with live views of today allowed to read now?", "Yes (M23)", "هل تُقرأ العضويات والمشرفون عند 00:00 من اليوم، مع السماح للعروض الحية لليوم بقراءة الآن؟", "نعم (M23)"],
+    ["Q-M9", "Skip an inactive supervisor or manager still in place in a person's chain?", "Yes, falling through to the next one up (M24)", "هل يُتخطى المشرف أو المدير غير النشط الباقي في مكانه في سلسلة الشخص؟", "نعم، مع الانتقال إلى التالي الأعلى (M24)"],
     ["Q-T1", "Show the managers above the nearest one in a person's line up? (answered 2026-11-01: default kept)", "Yes, marked \"above\"", "هل تُعرض المديرون فوق أقرب مدير في سلسلة الشخص؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم، معلَّمين بـ«أعلى»"],
     ["Q-T2", "When a team has two supervisors, show both? (answered 2026-11-01: default kept)", "Yes", "عندما يكون للفريق مشرفان، هل يُعرض كلاهما؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم"],
     ["Q-T3", "Also a page with the whole organisation as one tree? (answered 2026-11-01: default kept)", "No: /management shows departments; the person tree starts from any employee", "هل توجد أيضاً صفحة للمؤسسة كلها كشجرة واحدة؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا: /management تعرض الأقسام؛ وشجرة الشخص تبدأ من أي موظف"],

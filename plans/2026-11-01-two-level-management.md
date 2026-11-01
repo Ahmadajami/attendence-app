@@ -47,6 +47,8 @@ supervisor, else department manager, else HR), D10 (sub-departments inherit) and
 | M11 | **Out of scope here:** manager/supervisor **accounts and sign-in** (S8: roles with permission keys, every BL checks the actor's scope server-side), and the **approval workflow** itself (S3.5 `/changes` will use M5). This plan only provides the chain and the scopes they will use | No login yet (D17); approvals need `/changes` first |
 | M12 | **Permissions now:** viewing `/management` needs `staff.write`; changing managers and supervisors needs `staff.write` (as departments and teams today). No new keys until S8 | Single local user; keys come with the roles in S8 |
 | M13 | **Until the dated sheet (4.2), the department form changes the manager from today** (default, 2026-11-01, task 1.3): the row in force ends today and stays in the history, a row that started today is replaced; the form has no reason field, so the row stores the fixed reason "Set on the departments page" | HR keeps editing managers where they do today, and the history starts at once; the reason field comes with the 4.2 sheet so the form isn't built twice |
+| M23 | **When the engine reads the organisation** (default, 2026-11-01, Phase 2): an `OrgMoment` = the **date** for day-dated manager rows and an **instant** for memberships and supervisors (dated by instant). `momentOf(date)` uses 00:00 Damascus of the date, like `teamOnDate`; a live view of **today** may pass the current instant, so a supervisor added at 10:00 counts at once (Phase 3 decides per page) | One rule for every date, as the risks section asks, without hiding today's changes until tomorrow |
+| M24 | **Inactive leaders are skipped in the chain** (default, 2026-11-01, Phase 2): an inactive supervisor is left out, an inactive manager is passed over to the next manager up (or HR). `gaps` still reports both. Scopes list active people only | An inactive person can't approve; the chain must still reach someone who can |
 
 Questions for the user (answered 2026-11-01: **every default kept**):
 
@@ -59,6 +61,8 @@ Questions for the user (answered 2026-11-01: **every default kept**):
 | Q-M5 | Should a **change of manager** be allowed from a past date? | Only today or later until payroll periods exist (as B7); then inside an open period with a reason |
 | Q-M6 | Is **HR** the last level after the manager (approves anything), or a parallel path? | Last level, and can always act directly |
 | Q-M7 | Until the dated sheet (4.2), may the department form change the manager **from today** with a fixed reason? (added 2026-11-01, task 1.3) | Yes (M13) |
+| Q-M8 | Should the engine read memberships and supervisors at **00:00 of the day**, with a live view of today allowed to read **now**? (added 2026-11-01, Phase 2) | Yes (M23) |
+| Q-M9 | Should an **inactive** supervisor or manager still in place be **skipped** in a person's chain? (added 2026-11-01, Phase 2) | Yes, falling through to the next one up (M24) |
 
 ---
 
@@ -111,14 +115,28 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > and `pnpm test` run on the user's laptop (prettier was run on the touched `.ts` files).
 
 ### Phase 2 · Engine (`src/lib/workforce/management.ts`, pure, Vitest)
-- [ ] 2.1 Types: `OrgDepartment` (id, parentId, active), `ManagerVersion`, `SupervisorVersion`,
+- [x] 2.1 Types: `OrgDepartment` (id, parentId, active), `ManagerVersion`, `SupervisorVersion`,
       `Membership`, `OrgPerson` (staffId, departmentId, active).
-- [ ] 2.2 `managerOn(departmentChain, managers, date)` → nearest manager (M2).
-- [ ] 2.3 `chainOf(person, date, org)` → `[{ level: 'supervisor' | 'manager' | 'hr', staffId? }]`
+  > note: also `OrgTeam` (id, departmentId, active: a team's department is needed for the chain),
+  > `Org` (all six lists), `OrgMoment` + `momentOf` (M23), `ChainStep`, `Scope`, `Gap`; helpers
+  > `teamAt`, `departmentOf` (the team's department, else the person's own).
+- [x] 2.2 `managerOn(departmentChain, managers, date)` → nearest manager (M2).
+  > note: optional 4th argument `skip(staffId)` (the person themself, M5; inactive managers, M24).
+- [x] 2.3 `chainOf(person, date, org)` → `[{ level: 'supervisor' | 'manager' | 'hr', staffId? }]`
       (M5), never containing the person.
-- [ ] 2.4 `scopeOf(staffId, date, org)` → `{ asManager: departmentIds, asSupervisor: teamIds,
+  > note: signature `chainOf(staffId, moment, org)`; steps also carry `teamId` / `departmentId`.
+  > Anyone who supervises a team that day skips the supervisor level (M5 "a supervisor's chain
+  > starts at their manager"); supervisors are sorted by id.
+- [x] 2.4 `scopeOf(staffId, date, org)` → `{ asManager: departmentIds, asSupervisor: teamIds,
       people: staffIds }` (M6).
-- [ ] 2.5 `gaps(org, date)` → the four gap kinds of M8, with record IDs only.
+  > note: people = those working in the managed departments and every sub-department (Q-M4), the
+  > supervisors of the teams there (also from outside), and the members of supervised teams;
+  > active only, never the person, sorted.
+- [x] 2.5 `gaps(org, date)` → the four gap kinds of M8, with record IDs only.
+  > note: five `kind`s, because "inactive manager/supervisor" is split by role:
+  > `department_without_manager`, `team_without_supervisor`, `inactive_manager`,
+  > `inactive_supervisor`, `supervisor_outside_branch`; sorted; inactive departments and teams
+  > are ignored.
 - [ ] 2.6 Tests with a made-up organisation (two departments, one sub-department with and one
       without its own manager, three teams):
       - nearest manager, and the parent's manager when the sub-department has none;
@@ -131,6 +149,11 @@ Questions for the user (answered 2026-11-01: **every default kept**):
       - gaps: department without any manager up the tree, team without supervisor, inactive
         supervisor, supervisor from another department branch.
       **Done when** `pnpm test` is green with these cases
+  > note: `src/lib/workforce/management.test.ts`, 25 cases covering every line above (plus an
+  > inactive manager skipped in the chain, an unknown person, a supervisor removed before the
+  > day). Not run with Vitest here (no `node_modules`); all 25 passed in the cloud session under
+  > plain Node with a stand-in for `expect` and for `startOfDamascusDay` (UTC+3), and a broken
+  > expectation failed as it should. Tick when `pnpm test` is green on the user's laptop.
 
 ### Phase 3 · Services and schemas
 - [ ] 3.1 `src/lib/schemas/management.schema.ts`: change manager from a date (department, staff or

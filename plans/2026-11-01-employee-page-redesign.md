@@ -1,6 +1,6 @@
 # Employee page redesign: profile header, tabs, sheets; new-employee page; lists managed where used
 
-**Status:** in progress (approved 2026-11-01; Phases 0–4 done; 5.2 / 5.3 with the user)
+**Status:** in progress (approved 2026-11-01; built; waiting for the user's manual check 5.2 and Playwright run)
 **Date:** 2026-11-01
 **Goal:** As the user asked (2026-11-01): the employee page shows **the profile at the top** (an
 `Avatar` header), then **tabs**; every add / edit inside a tab opens a **sheet**. Job titles,
@@ -285,10 +285,13 @@ Made-up names and numbers only (CLAUDE.md §1).
       > V5, V9 updated with the built details; `node --check` passes.
 
 ### Phase 5 · Verify
-- [ ] 5.1 `svelte-autofixer` on every created / edited `.svelte` until clean (the generic
+- [x] 5.1 `svelte-autofixer` on every created / edited `.svelte` until clean (the generic
       "attachment instead of `use:enhance`" hint can stay); `pnpm check`; eslint + prettier on
       touched files (not the whole repo: `pnpm lint` fails on untouched template files);
       `pnpm test`.
+      > note: `pnpm check` 0 errors, eslint + prettier clean on every touched file, 205 tests
+      > pass; autofixer clean (only the generic `enhance` / `bind:this` hints and one "function
+      > in `$effect`" hint on unchanged code).
 - [ ] 5.2 Manual check **by the user** on `attendance_app_e2e`
       (`pnpm exec vite dev --mode e2e --port 5174`), made-up people only:
       - `/employees` → **Add employee** opens `/employees/new`; the avatar initials follow the
@@ -307,9 +310,10 @@ Made-up names and numbers only (CLAUDE.md §1).
       - `/ar`: header, avatar, tabs, sheets and the new page read right to left; phones, emails,
         numbers stay left to right
       **Done when** the user reports every line holds
-- [ ] 5.3 Playwright spec (written, the user runs it; `tests/e2e/`, made-up data): add an employee
+- [x] 5.3 Playwright spec (written, the user runs it; `tests/e2e/`, made-up data): add an employee
       through `/employees/new` creating a job title from the picker, land on the profile, add a
       skill created from the picker, hand out a custody item, reload on `?tab=custody`.
+      > note: `tests/e2e/employee-profile.spec.ts`, written, **not run** (the user runs it).
 - [ ] 5.4 Tick here and in the profile plan, `plans/README.md` row, decisions statuses, commit.
 
 ---

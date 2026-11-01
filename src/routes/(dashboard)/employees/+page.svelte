@@ -8,11 +8,11 @@
 	import { toast } from 'svelte-sonner';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { StaffRow, TeamOption } from '#lib/types/workforce.js';
 	import type { PageProps } from './$types';
 	import EmployeesTable from './EmployeesTable.svelte';
-	import StaffFormSheet from './StaffFormSheet.svelte';
 	import TeamTable from './TeamTable.svelte';
 	import { ALL_EMPLOYEES, employeeName } from './labels.js';
 	import { setPersonalPatternIds } from './context.js';
@@ -23,8 +23,6 @@
 	setPersonalPatternIds(() => personalPatternIds);
 
 	let teamOverrides = $state<Record<string, TeamOption | null>>({});
-	let formOpen = $state(false);
-	let target = $state<StaffRow | null>(null);
 
 	const employees = $derived(
 		data.employees.map((employee) => ({
@@ -52,16 +50,6 @@
 			])
 		)
 	);
-
-	function openCreate() {
-		target = null;
-		formOpen = true;
-	}
-
-	function openEdit(employee: StaffRow) {
-		target = employee;
-		formOpen = true;
-	}
 
 	// ---- Drag and drop: optimistic move, persisted through ?/setTeam ----
 	let teamForm: HTMLFormElement | null = $state(null);
@@ -157,7 +145,7 @@
 		<h2 class="text-2xl font-semibold tracking-tight">{m.employees_title()}</h2>
 		<p class="max-w-prose text-muted-foreground">{m.employees_description()}</p>
 	</div>
-	<Button onclick={openCreate}>
+	<Button href={localizedHref('/employees/new')}>
 		<PlusIcon data-icon="inline-start" />
 		{m.staff_new()}
 	</Button>
@@ -168,7 +156,6 @@
 		<EmployeesTable
 			{employees}
 			{teamById}
-			onEdit={openEdit}
 			onToggleActive={toggleActive}
 			class="lg:sticky lg:top-4 lg:max-h-[calc(100dvh-var(--header-height)-4rem)]"
 		/>
@@ -207,13 +194,3 @@
 	<input type="hidden" name="staffId" value={activeRequest.staffId} />
 	<input type="hidden" name="active" value={activeRequest.active} />
 </form>
-
-<StaffFormSheet
-	data={data.form}
-	{target}
-	functions={data.functions}
-	departments={data.departments}
-	{teams}
-	jobTitles={data.jobTitles}
-	bind:open={formOpen}
-/>

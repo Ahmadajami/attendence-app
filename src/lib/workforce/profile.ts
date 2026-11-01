@@ -34,6 +34,24 @@ export function displayName(
 	return a && b ? `${a} ${b}` : null;
 }
 
+const ARABIC = /\p{Script=Arabic}/u;
+/** Zero-width non-joiner: keeps two Arabic initials as separate letters instead of a word. */
+const ZWNJ = '\u200c';
+
+/**
+ * Avatar initials (redesign plan V1): the first letter of the first two words, upper-cased; two
+ * Arabic letters are kept apart with a zero-width non-joiner. `''` for an empty name.
+ */
+export function initials(name: string | null | undefined): string {
+	const letters = (name ?? '')
+		.trim()
+		.split(/\s+/)
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((word) => Array.from(word)[0].toLocaleUpperCase());
+	return letters.every((letter) => ARABIC.test(letter)) ? letters.join(ZWNJ) : letters.join('');
+}
+
 export type NameParts = {
 	firstNameEn: string | null;
 	lastNameEn: string | null;

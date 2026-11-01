@@ -6,6 +6,7 @@ import {
 	documentSummary,
 	experienceMonths,
 	formatExperience,
+	initials,
 	resolveNames
 } from './profile.js';
 
@@ -26,6 +27,25 @@ describe('displayName', () => {
 		expect(displayName('Sam', '')).toBeNull();
 		expect(displayName(null, 'Example')).toBeNull();
 		expect(displayName('  ', '  ')).toBeNull();
+	});
+});
+
+describe('initials', () => {
+	it('takes the first letter of the first two words', () => {
+		expect(initials('Sam Example')).toBe('SE');
+		expect(initials('  ana  maria test ')).toBe('AM');
+		expect(initials('Sam')).toBe('S');
+	});
+
+	it('keeps two Arabic letters apart', () => {
+		expect(initials('سامي مثال')).toBe('س\u200cم');
+		expect(initials('سامي')).toBe('س');
+	});
+
+	it('is empty for no name', () => {
+		expect(initials('')).toBe('');
+		expect(initials('   ')).toBe('');
+		expect(initials(null)).toBe('');
 	});
 });
 

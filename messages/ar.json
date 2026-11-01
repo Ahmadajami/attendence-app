@@ -850,5 +850,14 @@
 	"staff_lists_manage_skill": "إدارة المهارات",
 	"staff_lists_manage_document_type": "إدارة أنواع الوثائق",
 	"staff_lists_manage_custody_item_type": "إدارة أصناف العهدة",
-	"staff_lists_manage_description": "أضف عناصر أو أعد تسميتها أو عطّلها. لا تُحذف العناصر أبداً: العنصر المعطّل يختفي من القوائم لكنه يبقى لدى من يملكه."
+	"staff_lists_manage_description": "أضف عناصر أو أعد تسميتها أو عطّلها. لا تُحذف العناصر أبداً: العنصر المعطّل يختفي من القوائم لكنه يبقى لدى من يملكه.",
+	"employee_new_title": "موظف جديد",
+	"employee_new_description": "تتبع الأحرف الأولى الأسماء التي تكتبها.",
+	"employee_new_section_identity": "الهوية",
+	"employee_new_section_job": "الوظيفة",
+	"employee_new_section_contact": "التواصل",
+	"employee_new_section_dates": "التواريخ",
+	"employee_new_after_save": "تُضاف جهات الاتصال والخبرة والمهارات والوثائق والعهدة من الملف بعد الحفظ.",
+	"employee_new_cancel": "إلغاء",
+	"employee_new_submit": "حفظ الموظف"
 }

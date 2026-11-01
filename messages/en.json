@@ -850,5 +850,14 @@
 	"staff_lists_manage_skill": "Manage skills",
 	"staff_lists_manage_document_type": "Manage document types",
 	"staff_lists_manage_custody_item_type": "Manage custody items",
-	"staff_lists_manage_description": "Add, rename or deactivate items. Items are never deleted: a deactivated item leaves the pickers but stays on the people who have it."
+	"staff_lists_manage_description": "Add, rename or deactivate items. Items are never deleted: a deactivated item leaves the pickers but stays on the people who have it.",
+	"employee_new_title": "New employee",
+	"employee_new_description": "The initials follow the names you type.",
+	"employee_new_section_identity": "Identity",
+	"employee_new_section_job": "Job",
+	"employee_new_section_contact": "Contact",
+	"employee_new_section_dates": "Dates",
+	"employee_new_after_save": "Contacts, experience, skills, documents and custody are added on the profile after saving.",
+	"employee_new_cancel": "Cancel",
+	"employee_new_submit": "Save employee"
 }

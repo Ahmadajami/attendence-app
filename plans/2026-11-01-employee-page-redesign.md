@@ -1,6 +1,6 @@
 # Employee page redesign: profile header, tabs, sheets; new-employee page; lists managed where used
 
-**Status:** in progress (approved 2026-11-01; Phases 0–1 done)
+**Status:** in progress (approved 2026-11-01; Phases 0–2 done)
 **Date:** 2026-11-01
 **Goal:** As the user asked (2026-11-01): the employee page shows **the profile at the top** (an
 `Avatar` header), then **tabs**; every add / edit inside a tab opens a **sheet**. Job titles,
@@ -200,25 +200,33 @@ Made-up names and numbers only (CLAUDE.md §1).
       > (only the generic `enhance` / `bind:this` hints).
 
 ### Phase 2 · Staff form and the new-employee page
-- [ ] 2.1 `#lib/schemas/staff.schema.ts`: `staffFormSchema` moved from
+- [x] 2.1 `#lib/schemas/staff.schema.ts`: `staffFormSchema` moved from
       `routes/(dashboard)/employees/schema.ts` (with `setStaffTeamSchema`,
       `setStaffActiveSchema`, `StaffMessage`, now `{ kind, text, staffId? }`); update imports.
-- [ ] 2.2 `#lib/app/staff/StaffForm.svelte` (V7): the form of today's `StaffFormSheet` without the
+- [x] 2.2 `#lib/app/staff/StaffForm.svelte` (V7): the form of today's `StaffFormSheet` without the
       sheet, in the four sections of §2 (`Separator` or section headings, `flex flex-col gap-*`),
       job title through `ListSelect` (+ New job title), `mode` decides name parts vs full names
       exactly as today (`useParts`). `#lib/app/staff/StaffDetailsSheet.svelte` wraps it in a sheet
       for edit mode.
-- [ ] 2.3 Route `routes/(dashboard)/employees/new/` (V6): `+page.server.ts` (`staff.write`;
+- [x] 2.3 Route `routes/(dashboard)/employees/new/` (V6): `+page.server.ts` (`staff.write`;
       load: staff form, list form, teams, departments, functions, job titles; actions `save`
       → `createStaff`, returns `staffId` in the message; `saveListItem`). `+page.svelte`: back
       button, header preview (`Avatar` with initials from the typed names, via `$derived` on the
       form store), `StaffForm` in `Card`s, Cancel link. On success: `goto(localizedHref(
       '/employees/[id]', { id }) + '?tab=personal')`; the toast comes from `statusToasts`.
-- [ ] 2.4 `/employees` (V8): "Add employee" becomes `Button href={localizedHref('/employees/new')}`;
+- [x] 2.4 `/employees` (V8): "Add employee" becomes `Button href={localizedHref('/employees/new')}`;
       remove `StaffFormSheet`, its form from the load and the `save` action; row menu **Edit** →
       link to the profile. Delete `routes/(dashboard)/employees/StaffFormSheet.svelte` and
       `schema.ts` once nothing imports them.
       **Done when** `pnpm check` is green and no file imports the deleted ones
+      > note: server side in `#lib/server/staff-forms.ts` (`newStaffForm`, `editStaffForm(person)`,
+      > `createStaffAction`, `updateStaffAction`). `initials()` lives in `#lib/workforce/profile.ts`
+      > (3 made-up tests). `/employees` no longer loads departments, functions or job titles;
+      > `listJobTitleOptions` removed (unused). The new route pushed SvelteKit's route union past
+      > TypeScript's 25-member limit: `localizedHref` now passes `resolve` one argument tuple.
+      > The redirect after the save carries `?tab=`, so it has one `eslint-disable` line (rule
+      > `no-navigation-without-resolve`; the path itself comes from `localizedHref`). Check green,
+      > 205 tests pass.
 
 ### Phase 3 · Employee page
 - [ ] 3.1 `#lib/app/profile/ProfileHeader.svelte` (V1): `Avatar` (initials helper `initials(name)`

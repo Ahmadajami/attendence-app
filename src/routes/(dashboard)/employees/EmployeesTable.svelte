@@ -13,13 +13,11 @@
 	let {
 		employees,
 		teamById,
-		onEdit,
 		onToggleActive,
 		class: className
 	}: {
 		employees: StaffRow[];
 		teamById: Map<string, TeamOption>;
-		onEdit: (employee: StaffRow) => void;
 		onToggleActive: (employee: StaffRow) => void;
 		class?: string;
 	} = $props();
@@ -82,7 +80,6 @@
 						{employee}
 						from={ALL_EMPLOYEES}
 						team={team ? teamName(team) : null}
-						{onEdit}
 						{onToggleActive}
 					/>
 				{:else}

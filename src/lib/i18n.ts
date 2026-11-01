@@ -35,6 +35,8 @@ export function localizedHref(
 	const filled = params
 		? url.replace(/\[([^\]]+)\]/g, (_, key: string) => encodeURIComponent(params[key] ?? ''))
 		: url;
-	const resolved = resolve(filled.slice(1) as Path);
+	// One argument tuple, not `Path`: TypeScript checks a union argument against `resolve`'s
+	// per-route tuples only up to 25 routes.
+	const resolved = resolve(...([filled.slice(1)] as Parameters<typeof resolve>));
 	return localizeHref(resolved, { locale: targetLocale }) as ResolvedPathname;
 }

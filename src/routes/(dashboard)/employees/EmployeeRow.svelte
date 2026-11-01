@@ -19,7 +19,6 @@
 		employee,
 		from,
 		team,
-		onEdit,
 		onToggleActive
 	}: {
 		employee: StaffRow;
@@ -28,7 +27,6 @@
 		/** Team cell for the All table: the team's name, `null` for no team, omitted to hide the column. */
 		team?: string | null;
 		/** When given, an actions menu is rendered (All table only). */
-		onEdit?: (employee: StaffRow) => void;
 		onToggleActive?: (employee: StaffRow) => void;
 	} = $props();
 
@@ -85,7 +83,7 @@
 			{team ?? m.employees_no_team()}
 		</Table.Cell>
 	{/if}
-	{#if onEdit && onToggleActive}
+	{#if onToggleActive}
 		<Table.Cell class="text-end">
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
@@ -96,9 +94,14 @@
 					{/snippet}
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content align="end">
-					<DropdownMenu.Item onSelect={() => onEdit(employee)}>
-						<PencilSimpleIcon />
-						{m.staff_edit()}
+					<!-- Editing lives on the profile (redesign plan V8). -->
+					<DropdownMenu.Item>
+						{#snippet child({ props })}
+							<a href={localizedHref('/employees/[id]', { id: employee.id })} {...props}>
+								<PencilSimpleIcon />
+								{m.staff_edit()}
+							</a>
+						{/snippet}
 					</DropdownMenu.Item>
 					<DropdownMenu.Separator />
 					<DropdownMenu.Item

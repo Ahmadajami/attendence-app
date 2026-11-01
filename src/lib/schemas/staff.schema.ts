@@ -4,6 +4,7 @@ import { toAsciiDigits } from '#lib/schemas/auth.schema.js';
 
 const optionalId = z.union([z.literal(''), z.uuid()]);
 
+/** Add an employee (`/employees/new`) or edit one (profile header, redesign plan V7). */
 export const staffFormSchema = z.object({
 	staffId: optionalId.default(''),
 	/** Empty on create = generate the next number (plan D28); empty on edit = keep it. */
@@ -34,6 +35,8 @@ export const staffFormSchema = z.object({
 	teamId: optionalId.default('')
 });
 
+export type StaffFormSchema = typeof staffFormSchema;
+
 export const setStaffTeamSchema = z.object({
 	staffId: z.uuid(),
 	teamId: optionalId
@@ -44,4 +47,5 @@ export const setStaffActiveSchema = z.object({
 	active: z.enum(['true', 'false'])
 });
 
-export type StaffMessage = { kind: 'success' | 'error'; text: string };
+/** `staffId` is the saved person (a new one's profile opens after the save). */
+export type StaffMessage = { kind: 'success' | 'error'; text: string; staffId?: string };

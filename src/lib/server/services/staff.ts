@@ -9,12 +9,11 @@ import {
 	InvalidInputError,
 	NotFoundError
 } from '#lib/server/errors.js';
-import { department, jobTitle, staff, staffFunction, team } from '#lib/server/db/schema/index.js';
+import { department, staff, staffFunction, team } from '#lib/server/db/schema/index.js';
 import { nextEmployeeNo } from '#lib/workforce/employee-no.js';
 import { resolveNames, type NameParts } from '#lib/workforce/profile.js';
 import type {
 	DepartmentOption,
-	JobTitleOption,
 	StaffRow,
 	StaffFunctionOption,
 	TeamOption
@@ -163,21 +162,6 @@ export async function listActiveDepartments(actor: Actor): Promise<DepartmentOpt
 		.from(department)
 		.where(eq(department.active, true))
 		.orderBy(asc(department.nameEn));
-}
-
-/** Active job titles for the create / edit sheet (an inactive one a person has still shows). */
-export async function listJobTitleOptions(actor: Actor): Promise<JobTitleOption[]> {
-	requireStaffWrite(actor);
-	return db
-		.select({
-			id: jobTitle.id,
-			nameEn: jobTitle.nameEn,
-			nameAr: jobTitle.nameAr,
-			active: jobTitle.active
-		})
-		.from(jobTitle)
-		.where(eq(jobTitle.active, true))
-		.orderBy(asc(jobTitle.nameEn));
 }
 
 export async function listActiveTeams(actor: Actor): Promise<TeamOption[]> {

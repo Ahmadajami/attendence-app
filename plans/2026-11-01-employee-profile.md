@@ -130,9 +130,13 @@ Questions for the user (each default above is used until answered):
       (emergency contacts + personal email + social accounts), experience, skills, documents.
       > note: built as tabs (H12) instead of sheets, plus a Custody tab (H11). Personal email sits
       > with names & job title (the user's item 6 groups them), not under contacts.
+      > note (2026-11-01): replaced by the [employee page redesign](2026-11-01-employee-page-redesign.md)
+      > (V1–V4, V10): avatar header, page tabs, sheets; `ProfileCard` is gone.
 - [x] 4.3 `/staff-lists` (sidebar entry, phosphor icon, `localizedHref`): three cards for job
       titles, skills, document types (with the "required" switch); `Empty` state.
       > note: a fourth card for custody item types (H11).
+      > note (2026-11-01): `/staff-lists` removed by the [employee page redesign](2026-11-01-employee-page-redesign.md)
+      > (V5, V9): lists are created from the pickers ("New …") and managed from the tabs.
 - [ ] 4.4 en + ar strings (`profile_*`, `staff_lists_*`), RTL checked in `/ar`; phone numbers,
       emails, URLs and reference numbers in `<bdi dir="ltr">`.
       > note: strings and `<bdi>` done; the `/ar` check is part of 5.1 (the user's).

@@ -18,9 +18,9 @@ import {
 
 export type { StaffListItem } from './staff-lists.crud.js';
 
-// Job titles, skills, document types and custody item types (profile plan H4–H6, H11), managed on
-// `/staff-lists`. Items are deactivated, never deleted (H10); people keep a deactivated item they
-// already have.
+// Job titles, skills, document types and custody item types (profile plan H4–H6, H11), managed where
+// they are picked (redesign plan V5). Items are deactivated, never deleted (H10); people keep a
+// deactivated item they already have.
 
 async function requireItem(kind: StaffListKind, id: string): Promise<StaffListItem> {
 	const row = await findItem(kind, id);

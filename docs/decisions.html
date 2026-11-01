@@ -755,7 +755,7 @@
     {
       id: "V1", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
       title: { en: "Profile header with an avatar", ar: "ترويسة الملف مع صورة رمزية" },
-      decision: { en: "One card at the top of the employee page: the shadcn Avatar with the person's initials (no photo yet) and a badge for active / inactive, both names, employee number, job title, department and team, status badges, phone, work email, start date and years of experience, with Edit details and Deactivate.", ar: "بطاقة واحدة أعلى صفحة الموظف: مكوّن Avatar بالأحرف الأولى من الاسم (دون صورة حالياً) وشارة للحالة فعّال / معطّل، الاسمان، الرقم الوظيفي، المسمى، القسم والفريق، شارات الحالة، الهاتف، البريد الوظيفي، تاريخ المباشرة وسنوات الخبرة، مع تعديل البيانات والتعطيل." },
+      decision: { en: "One card at the top of the employee page: the shadcn Avatar with the person's initials (no photo yet) and a badge for active / inactive, both names, employee number, job title, department and team, status badges, phone, work email, start date and years of experience, with Edit details and Deactivate / Activate.", ar: "بطاقة واحدة أعلى صفحة الموظف: مكوّن Avatar بالأحرف الأولى من الاسم (دون صورة حالياً) وشارة للحالة فعّال / معطّل، الاسمان، الرقم الوظيفي، المسمى، القسم والفريق، شارات الحالة، الهاتف، البريد الوظيفي، تاريخ المباشرة وسنوات الخبرة، مع تعديل البيانات والتعطيل / التفعيل." },
       why: { en: "The user asked for the profile at the top and chose the Avatar component (2026-11-01).", ar: "طلب المستخدم الملف في الأعلى واختار مكوّن Avatar (2026-11-01)." },
       alts: [ { en: "A photo in the avatar now: not chosen — needs file storage and access rules that come with login (Q-V4).", ar: "صورة في الـAvatar الآن: لم يُختر — يحتاج تخزين ملفات وقواعد وصول تأتي مع تسجيل الدخول (Q-V4)." } ]
     },
@@ -769,21 +769,21 @@
     {
       id: "V3", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
       title: { en: "Open tab kept in the URL", ar: "حفظ التبويب المفتوح في الرابط" },
-      decision: { en: "The tab is ?tab=<name>, changed without reloading data; ?day= opens the Schedule tab.", ar: "التبويب هو ?tab=<الاسم>، ويتغير دون إعادة تحميل البيانات؛ و?day= يفتح تبويب الجدول." },
+      decision: { en: "The tab is ?tab=<name>, changed without reloading data (the load never reads it); ?day= opens the Schedule tab, and paging the roster preview keeps ?tab=schedule.", ar: "التبويب هو ?tab=<الاسم>، ويتغير دون إعادة تحميل البيانات (لا تقرؤه دالة التحميل)؛ و?day= يفتح تبويب الجدول، وتقليب معاينة الدوام يُبقي ?tab=schedule." },
       why: { en: "Reload, Back and links such as \"2 documents missing\" land on the right tab.", ar: "إعادة التحميل وزر الرجوع والروابط مثل \"وثيقتان ناقصتان\" تفتح التبويب الصحيح." },
       alts: [ { en: "Tab only in page state: not chosen — lost on reload and cannot be linked.", ar: "التبويب في حالة الصفحة فقط: لم يُختر — يضيع عند إعادة التحميل ولا يمكن ربطه." } ]
     },
     {
       id: "V4", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
       title: { en: "Tabs show, sheets edit", ar: "التبويبات للعرض والنماذج الجانبية للتعديل" },
-      decision: { en: "Each tab is a read-only list with Add; each row has Edit and Remove. Add and Edit open a sheet with the form.", ar: "كل تبويب قائمة للقراءة مع زر إضافة؛ ولكل صف تعديل وإزالة. تفتح الإضافة والتعديل نموذجاً جانبياً." },
+      decision: { en: "Each tab is a read-only list with Add; each row has Edit and Remove. Add and Edit open a sheet with the form. One sheet shell (FormSheet) wraps each form, and the form mounts when its sheet opens, so it always starts from the latest saved data.", ar: "كل تبويب قائمة للقراءة مع زر إضافة؛ ولكل صف تعديل وإزالة. تفتح الإضافة والتعديل نموذجاً جانبياً. يلفّ غلاف واحد (FormSheet) كل نموذج، ويُنشأ النموذج عند فتح غلافه فيبدأ دائماً من آخر البيانات المحفوظة." },
       why: { en: "The user asked for sheets to add; lists stay readable on a phone.", ar: "طلب المستخدم نماذج جانبية للإضافة؛ وتبقى القوائم مقروءة على الهاتف." },
       alts: [ { en: "List and form side by side in the tab (H12): replaced — crowded, and the form shows even when nothing is being edited.", ar: "القائمة والنموذج متجاوران في التبويب (H12): استُبدل — مزدحم، ويظهر النموذج حتى دون تعديل." } ]
     },
     {
       id: "V5", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
       title: { en: "Lists managed where they are used; /staff-lists removed", ar: "إدارة القوائم حيث تُستخدم وإزالة صفحة /staff-lists" },
-      decision: { en: "Every picker of a job title, skill, document type or custody item ends with \"+ New …\" (a small sheet; the new item is selected). Tabs have a \"Manage …\" sheet to rename and (de)activate items. The /staff-lists page and its sidebar entry go away.", ar: "تنتهي كل قائمة اختيار لمسمى أو مهارة أو نوع وثيقة أو صنف عهدة بخيار \"+ جديد…\" (نموذج صغير ويُختار العنصر الجديد). وللتبويبات نموذج \"إدارة…\" لإعادة التسمية والتفعيل والتعطيل. تُزال صفحة /staff-lists ومدخلها في القائمة الجانبية." },
+      decision: { en: "Every picker of a job title, skill, document type or custody item ends with \"+ New …\" (a small sheet; the new item is selected). Tabs have a \"Manage …\" sheet to rename and (de)activate items. The Documents tab also has a \"New document type\" button. One host per page (StaffListsHost) owns the only create sheet and the manage sheet. The /staff-lists page and its sidebar entry go away.", ar: "تنتهي كل قائمة اختيار لمسمى أو مهارة أو نوع وثيقة أو صنف عهدة بخيار \"+ جديد…\" (نموذج صغير ويُختار العنصر الجديد). وللتبويبات نموذج \"إدارة…\" لإعادة التسمية والتفعيل والتعطيل. ولتبويب الوثائق أيضاً زر \"نوع وثيقة جديد\". ويملك مضيف واحد لكل صفحة (StaffListsHost) نموذج الإنشاء الوحيد ونموذج الإدارة. تُزال صفحة /staff-lists ومدخلها في القائمة الجانبية." },
       why: { en: "The user's request (2026-11-01): create an item at the moment it is needed.", ar: "طلب المستخدم (2026-11-01): إنشاء العنصر لحظة الحاجة إليه." },
       alts: [ { en: "A separate /staff-lists page (profile plan 4.3): replaced — one more page to find, away from where the items are used.", ar: "صفحة /staff-lists منفصلة (خطة الملف 4.3): استُبدل — صفحة إضافية بعيدة عن مكان استخدام العناصر." }, { en: "Only \"+ New …\", no manage sheet: not chosen by default — renaming and deactivating would have no place (Q-V2).", ar: "\"+ جديد…\" فقط دون نموذج إدارة: لم يُختر افتراضياً — لن يبقى مكان لإعادة التسمية والتعطيل (Q-V2)." } ]
     },
@@ -811,7 +811,7 @@
     {
       id: "V9", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
       title: { en: "List actions reused on the employee pages", ar: "إعادة استخدام إجراءات القوائم في صفحات الموظفين" },
-      decision: { en: "The create / rename / (de)activate actions move from /staff-lists into #lib/server/staff-list-forms.ts and are mounted on /employees/new and /employees/[id]. The service and the staff.write permission stay.", ar: "تنتقل إجراءات الإنشاء وإعادة التسمية والتفعيل من /staff-lists إلى #lib/server/staff-list-forms.ts وتُركَّب في /employees/new و/employees/[id]. وتبقى الخدمة وصلاحية staff.write." },
+      decision: { en: "The create / rename / (de)activate actions move from /staff-lists into #lib/server/staff-list-forms.ts and are mounted on /employees/new and /employees/[id]; the save message carries the saved item so the picker selects it. The service and the staff.write permission stay.", ar: "تنتقل إجراءات الإنشاء وإعادة التسمية والتفعيل من /staff-lists إلى #lib/server/staff-list-forms.ts وتُركَّب في /employees/new و/employees/[id]؛ وتحمل رسالة الحفظ العنصر المحفوظ ليختاره الحقل. وتبقى الخدمة وصلاحية staff.write." },
       why: { en: "No new business logic; one place for the actions.", ar: "لا منطق عمل جديد؛ ومكان واحد للإجراءات." },
       alts: []
     },

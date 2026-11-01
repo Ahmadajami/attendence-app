@@ -1,6 +1,6 @@
 # Employee page redesign: profile header, tabs, sheets; new-employee page; lists managed where used
 
-**Status:** in progress (approved 2026-11-01; Phases 0–3 done)
+**Status:** in progress (approved 2026-11-01; Phases 0–4 done; 5.2 / 5.3 with the user)
 **Date:** 2026-11-01
 **Goal:** As the user asked (2026-11-01): the employee page shows **the profile at the top** (an
 `Avatar` header), then **tabs**; every add / edit inside a tab opens a **sheet**. Job titles,
@@ -266,17 +266,23 @@ Made-up names and numbers only (CLAUDE.md §1).
       > `ProfileCard.svelte` deleted.
 
 ### Phase 4 · Remove `/staff-lists`, strings, decisions
-- [ ] 4.1 Delete `routes/(dashboard)/staff-lists/` and its `nav.ts` entry. Grep for `staff-lists`
+- [x] 4.1 Delete `routes/(dashboard)/staff-lists/` and its `nav.ts` entry. Grep for `staff-lists`
       and `/staff-lists` (hints such as `profile_skill_no_options`, `profile_documents_empty`,
       `profile_custody_no_types`, `staff_name_parts_hint` must now point to "+ New …" / the
       Personal tab). Remove unused keys (`nav_staff_lists`, `staff_lists_title`,
       `staff_lists_description`, …) from both message files.
-- [ ] 4.2 en + ar strings for every new label (`employee_new_*`, `profile_header_*`,
+- [x] 4.2 en + ar strings for every new label (`employee_new_*`, `profile_header_*`,
       `profile_tab_*`, `staff_lists_manage_*`, `staff_lists_new_*`); recompile paraglide.
-- [ ] 4.3 `docs/decisions.html` (CLAUDE.md §6): re-read V1–V10 against what was built and fix
+- [x] 4.3 `docs/decisions.html` (CLAUDE.md §6): re-read V1–V10 against what was built and fix
       any detail that changed (they are `approved` since 2026-11-01; H12 is already `replaced`).
       `node --check` on the extracted script. Profile plan: `> note:` on its 4.2 / 4.3 pointing
       here.
+      > note: route and sidebar entry deleted; hints reworded (`profile_skill_no_options`,
+      > `profile_documents_empty`, `staff_name_parts_hint`); 8 keys no longer used removed from
+      > both files (`nav_staff_lists`, `staff_lists_title`, `staff_lists_description`,
+      > `staff_lists_new`, `staff_create_description`, `staff_create_submit`, `profile_cancel`,
+      > `profile_custody_no_types`). Strings were added phase by phase. Decisions: V1, V3, V4,
+      > V5, V9 updated with the built details; `node --check` passes.
 
 ### Phase 5 · Verify
 - [ ] 5.1 `svelte-autofixer` on every created / edited `.svelte` until clean (the generic

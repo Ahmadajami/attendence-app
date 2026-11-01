@@ -26,7 +26,7 @@ export const staffFunction = pgTable('staff_function', {
 		.$onUpdate(() => new Date())
 });
 
-/** Job titles (supervisor, agent…), managed on `/staff-lists`; separate from the work area (profile plan H6). */
+/** Job titles (supervisor, agent…), managed where they are picked (redesign plan V5); separate from the work area (profile plan H6). */
 export const jobTitle = pgTable('job_title', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	nameEn: text('name_en').notNull().unique(),

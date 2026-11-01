@@ -46,9 +46,10 @@ supervisor, else department manager, else HR), D10 (sub-departments inherit) and
 | M10 | **The employee profile** shows "Reports to: supervisor(s) · manager" (Overview tab) | The chain is visible where HR looks for a person |
 | M11 | **Out of scope here:** manager/supervisor **accounts and sign-in** (S8: roles with permission keys, every BL checks the actor's scope server-side), and the **approval workflow** itself (S3.5 `/changes` will use M5). This plan only provides the chain and the scopes they will use | No login yet (D17); approvals need `/changes` first |
 | M12 | **Permissions now:** viewing `/management` needs `staff.write`; changing managers and supervisors needs `staff.write` (as departments and teams today). No new keys until S8 | Single local user; keys come with the roles in S8 |
-| M13 | **Until the dated sheet (4.2), the department form changes the manager from today** (default, 2026-11-01, task 1.3): the row in force ends today and stays in the history, a row that started today is replaced; the form has no reason field, so the row stores the fixed reason "Set on the departments page" | HR keeps editing managers where they do today, and the history starts at once; the reason field comes with the 4.2 sheet so the form isn't built twice |
+| M13 | ~~replaced by M25 (2026-11-01, Phase 4)~~ **Until the dated sheet (4.2), the department form changes the manager from today** (default, 2026-11-01, task 1.3): the row in force ends today and stays in the history, a row that started today is replaced; the form has no reason field, so the row stores the fixed reason "Set on the departments page" | HR keeps editing managers where they do today, and the history starts at once; the reason field comes with the 4.2 sheet so the form isn't built twice |
 | M23 | **When the engine reads the organisation** (default, 2026-11-01, Phase 2): an `OrgMoment` = the **date** for day-dated manager rows and an **instant** for memberships and supervisors (dated by instant). `momentOf(date)` uses 00:00 Damascus of the date, like `teamOnDate`; the management service reads **today** at the current instant (Phase 3), so a supervisor added at 10:00 counts at once | One rule for every date, as the risks section asks, without hiding today's changes until tomorrow |
 | M24 | **Inactive leaders are skipped in the chain** (default, 2026-11-01, Phase 2): an inactive supervisor is left out, an inactive manager is passed over to the next manager up (or HR). `gaps` still reports both. Scopes list active people only | An inactive person can't approve; the chain must still reach someone who can |
+| M25 | **The manager changes only through the dated sheet** (default, 2026-11-01, task 4.2; replaces M13): the department form keeps name and parent; "Change manager" (in the `/departments` actions menu and on `/management`) asks for the person or "No manager", the start date (today or later) and a reason, and shows the department's history. A new department gets its manager the same way, after it is created | One way to change a manager, always with a date and a reason; the fixed reason of M13 goes away |
 
 Questions for the user (answered 2026-11-01: **every default kept**):
 
@@ -60,9 +61,10 @@ Questions for the user (answered 2026-11-01: **every default kept**):
 | Q-M4 | When a sub-department has its own manager, does the **parent's manager** still see it? | Yes, they see it; the nearest manager is first in the chain |
 | Q-M5 | Should a **change of manager** be allowed from a past date? | Only today or later until payroll periods exist (as B7); then inside an open period with a reason |
 | Q-M6 | Is **HR** the last level after the manager (approves anything), or a parallel path? | Last level, and can always act directly |
-| Q-M7 | Until the dated sheet (4.2), may the department form change the manager **from today** with a fixed reason? (added 2026-11-01, task 1.3) | Yes (M13) |
+| Q-M7 | Until the dated sheet (4.2), may the department form change the manager **from today** with a fixed reason? (added 2026-11-01, task 1.3; **obsolete** since M25) | Yes (M13) |
 | Q-M8 | Should the engine read memberships and supervisors at **00:00 of the day**, and **today** at the current instant? (added 2026-11-01, Phase 2; today = now since Phase 3) | Yes (M23) |
 | Q-M9 | Should an **inactive** supervisor or manager still in place be **skipped** in a person's chain? (added 2026-11-01, Phase 2) | Yes, falling through to the next one up (M24) |
+| Q-M10 | Should **creating** a department also let HR pick its manager, or only "Change manager" afterwards? (added 2026-11-01, task 4.2) | Only afterwards (M25) |
 
 ---
 
@@ -102,6 +104,9 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > `pnpm db:generate` must say "No schema changes", then `pnpm db:migrate` (`_test`, `_e2e`,
   > then `attendance_app` after the OK), then `SELECT count(*) FROM department_manager;` must equal
   > the first count.
+  > note: the user reported the `/departments` manager check passed on `attendance_app_e2e`
+  > (2026-11-01), so `0012`–`0014` are applied there. Still to confirm: `_test`, and
+  > `attendance_app` (count + OK).
 - [ ] 1.3 Readers moved to the new table (`departments.bl/crud`, `/departments`), then a migration
       drops `department.manager_staff_id`. `pnpm check`, `pnpm test` green.
   > note: readers moved: `listDepartments` reads today's manager from `department_manager`
@@ -113,6 +118,8 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > sheet are unchanged (the list item still carries `managerStaffId`, now today's).
   > `0014_drop_department_manager_staff_id` drops the column and its FK. Not ticked: `pnpm check`
   > and `pnpm test` run on the user's laptop (prettier was run on the touched `.ts` files).
+  > note: Phase 4 (M25) removed the manager field from the department form again: the form keeps
+  > name and parent; the manager changes only through the dated sheet.
 
 ### Phase 2 · Engine (`src/lib/workforce/management.ts`, pure, Vitest)
 - [x] 2.1 Types: `OrgDepartment` (id, parentId, active), `ManagerVersion`, `SupervisorVersion`,
@@ -182,8 +189,23 @@ Questions for the user (answered 2026-11-01: **every default kept**):
 - [ ] 4.1 `/management` (sidebar entry, phosphor icon, `localizedHref`): the tree with managers
       and supervisors, member counts, gap badges and a "Gaps" card; "Change manager from a date"
       sheet; links to the team page for supervisors. `Empty` state when nothing is set.
+  > note: built 2026-11-01 (cloud session, no `node_modules`): sidebar "Management"
+  > (`TreeStructureIcon`, `staff.write`) after Departments; GET date filter `?on=` (default
+  > today, "Today" link); "Gaps" card (five kinds with names, "Set a manager" or "Open team");
+  > "Structure" card (active departments indented by depth: own manager with "since", or
+  > "covered by …", or "No manager"; people count; "Change manager"; active teams with member
+  > count and supervisors linking to their profiles, "No supervisor"); teams without a department;
+  > `Empty` state linking to `/departments`. Shared `#lib/app/management/ManagerSheet.svelte`
+  > (person or "No manager", date ≥ today, reason, the department's history with Current /
+  > Scheduled) and `#lib/server/management-forms.ts`. BL additions `listManagerHistories`,
+  > `listManagerOptions`. 40 en + ar keys. Waiting for `pnpm check`, eslint, prettier, the Svelte
+  > autofixer and the user's manual check.
 - [ ] 4.2 `/departments`: the manager column reads the new table; editing the manager opens the
       same dated sheet.
+  > note: built 2026-11-01: the actions menu has "Change manager" (active departments) opening
+  > `ManagerSheet` (`?/setManager`); the department form lost its manager field (M25) and moved
+  > to `statusToasts` without the deprecated `invalidateAll()`. `departments.bl` no longer writes
+  > managers. Waiting for the same checks.
 - [ ] 4.3 Employee profile Overview: "Reports to" line (M10), linking to the people.
   > note: replaced (2026-11-01) by the [employee management tree plan](2026-11-01-employee-management-tree.md)
   > (M15–M20: a Management tab plus this Overview line), approved 2026-11-01; done there.

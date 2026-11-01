@@ -134,6 +134,42 @@ export async function listDepartmentManagerHistory(departmentId: string) {
 		.orderBy(desc(departmentManager.validFrom));
 }
 
+/** Every department's manager history with names and reasons, newest first. */
+export async function listAllDepartmentManagerHistory() {
+	return db
+		.select({
+			id: departmentManager.id,
+			departmentId: departmentManager.departmentId,
+			validFrom: departmentManager.validFrom,
+			validTo: departmentManager.validTo,
+			reason: departmentManager.reason,
+			staffId: staff.id,
+			employeeNo: staff.employeeNo,
+			fullName: staff.fullName,
+			fullNameAr: staff.fullNameAr,
+			active: staff.active
+		})
+		.from(departmentManager)
+		.innerJoin(staff, eq(staff.id, departmentManager.staffId))
+		.orderBy(desc(departmentManager.validFrom));
+}
+
+export type ManagerHistoryRow = Awaited<ReturnType<typeof listAllDepartmentManagerHistory>>[number];
+
+/** Active staff who can be chosen as a manager. */
+export async function listManagerCandidates() {
+	return db
+		.select({
+			id: staff.id,
+			employeeNo: staff.employeeNo,
+			fullName: staff.fullName,
+			fullNameAr: staff.fullNameAr
+		})
+		.from(staff)
+		.where(eq(staff.active, true))
+		.orderBy(asc(staff.fullName));
+}
+
 export function insertDepartmentManager(values: typeof departmentManager.$inferInsert): BatchQuery {
 	return db.insert(departmentManager).values(values);
 }

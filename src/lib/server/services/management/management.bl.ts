@@ -29,10 +29,13 @@ import {
 	findDepartmentForManager,
 	findStaffForManager,
 	insertDepartmentManager,
+	listAllDepartmentManagerHistory,
 	listDepartmentManagerHistory,
+	listManagerCandidates,
 	listDepartmentManagerRows,
 	loadOrgRows,
 	type DepartmentManagerRow,
+	type ManagerHistoryRow,
 	type OrgRows
 } from './management.crud.js';
 
@@ -249,6 +252,24 @@ export async function listManagerHistory(actor: Actor, departmentId: string) {
 	if (!(await findDepartmentForManager(departmentId)))
 		throw new NotFoundError(m.departments_error_not_found());
 	return listDepartmentManagerHistory(departmentId);
+}
+
+/** Every department's managers, newest first, keyed by department (for the sheet, M3). */
+export async function listManagerHistories(
+	actor: Actor
+): Promise<Record<string, ManagerHistoryRow[]>> {
+	requireActorPermission(actor, 'staff.write');
+	const out: Record<string, ManagerHistoryRow[]> = {};
+	for (const row of await listAllDepartmentManagerHistory()) {
+		(out[row.departmentId] ??= []).push(row);
+	}
+	return out;
+}
+
+/** Active employees who can be chosen as a department's manager. */
+export async function listManagerOptions(actor: Actor) {
+	requireActorPermission(actor, 'staff.write');
+	return listManagerCandidates();
 }
 
 /** The manager row in force on `date`, if any. */

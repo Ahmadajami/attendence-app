@@ -963,9 +963,9 @@
       ]
     },
     {
-      id: 'M13', group: 'management', status: 'default', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1, task 1.3',
+      id: 'M13', group: 'management', status: 'replaced', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1, task 1.3',
       title: { en: "Department form: a new manager takes over from today", ar: "نموذج القسم: المدير الجديد يتولى من اليوم" },
-      decision: { en: "Until the dated \"change manager\" sheet exists (task 4.2), choosing another manager in the department form writes the history from today: the old manager's row ends today and is kept, a row that started today is replaced, and the new row stores the fixed reason \"Set on the departments page\" (the form has no reason field). The manager is checked as an active employee only when it changes.", ar: "حتى توجد لوحة «تغيير المدير» المؤرخة (المهمة 4.2)، يكتب اختيار مدير آخر في نموذج القسم السجل من اليوم: ينتهي صف المدير السابق اليوم ويُحفظ، ويُستبدل صف بدأ اليوم، ويخزّن الصف الجديد السبب الثابت «عُيّن من صفحة الأقسام» (لا يوجد حقل سبب في النموذج). ويُتحقق من أن المدير موظف فعّال فقط عند تغييره." },
+      decision: { en: "Replaced 2026-11-01 by M25. Was: Until the dated \"change manager\" sheet exists (task 4.2), choosing another manager in the department form writes the history from today: the old manager's row ends today and is kept, a row that started today is replaced, and the new row stores the fixed reason \"Set on the departments page\" (the form has no reason field). The manager is checked as an active employee only when it changes.", ar: "استُبدل في 2026-11-01 بـ M25. كان: حتى توجد لوحة «تغيير المدير» المؤرخة (المهمة 4.2)، يكتب اختيار مدير آخر في نموذج القسم السجل من اليوم: ينتهي صف المدير السابق اليوم ويُحفظ، ويُستبدل صف بدأ اليوم، ويخزّن الصف الجديد السبب الثابت «عُيّن من صفحة الأقسام» (لا يوجد حقل سبب في النموذج). ويُتحقق من أن المدير موظف فعّال فقط عند تغييره." },
       why: { en: "HR keeps editing managers where they do today and the history starts at once; the reason field comes with the 4.2 sheet so the form is not built twice.", ar: "تستمر الموارد البشرية في تعديل المديرين حيث تفعل اليوم ويبدأ السجل فوراً؛ ويأتي حقل السبب مع لوحة 4.2 كي لا يُبنى النموذج مرتين." },
       alts: [
         { en: "Keep overwriting a single field until 4.2: not chosen — the column is dropped in Phase 1 and the history would start late.", ar: "الاستمرار في الكتابة فوق حقل واحد حتى 4.2: لم يُختر — يُحذف العمود في المرحلة 1 وسيبدأ السجل متأخراً." },
@@ -990,6 +990,16 @@
       why: { en: "An inactive person can't approve; the chain must still reach someone who can.", ar: "لا يستطيع الشخص غير النشط الموافقة؛ ويجب أن تصل السلسلة إلى من يستطيع." },
       alts: [
         { en: "Keep them in the chain, marked inactive: not chosen — approvals would stop at someone who can't act.", ar: "إبقاؤهم في السلسلة مع علامة عدم النشاط: لم يُختر — ستتوقف الموافقات عند شخص لا يستطيع التصرف." }
+      ]
+    },
+    {
+      id: 'M25', group: 'management', status: 'default', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1, task 4.2',
+      title: { en: "A manager changes only through the dated sheet", ar: "لا يتغير المدير إلا عبر اللوحة المؤرخة" },
+      decision: { en: "The department form keeps name and parent. \"Change manager\" (in the departments actions menu and on /management) asks for the person or \"No manager\", the start date (today or later) and a reason, and shows the department's history. A new department gets its manager the same way, after it is created. Replaces M13.", ar: "يحتفظ نموذج القسم بالاسم والقسم الأب. وتطلب «تغيير المدير» (في قائمة إجراءات الأقسام وفي /management) الشخص أو «بلا مدير»، وتاريخ البدء (اليوم أو لاحقاً)، وسبباً، وتعرض سجل القسم. ويحصل القسم الجديد على مديره بالطريقة نفسها بعد إنشائه. يحل محل M13." },
+      why: { en: "One way to change a manager, always with a date and a reason; the fixed reason of M13 goes away.", ar: "طريقة واحدة لتغيير المدير، دائماً بتاريخ وسبب؛ ويزول السبب الثابت في M13." },
+      alts: [
+        { en: "Keep the manager field in the department form (M13): not chosen — two ways to change the same thing, one without a date or reason.", ar: "إبقاء حقل المدير في نموذج القسم (M13): لم يُختر — طريقتان لتغيير الشيء نفسه، إحداهما بلا تاريخ أو سبب." },
+        { en: "Keep it only when creating a department: not chosen — the sheet already does it in one more click, with a reason (kept as question Q-M10).", ar: "إبقاؤه عند إنشاء القسم فقط: لم يُختر — اللوحة تفعل ذلك بنقرة إضافية واحدة مع سبب (تُرك كسؤال Q-M10)." }
       ]
     },
     {
@@ -1157,9 +1167,10 @@
     ["Q-M4", "When a sub-department has its own manager, does the parent's manager still see it? (answered 2026-11-01: default kept)", "Yes; the nearest manager is first in the chain", "عندما يكون للقسم الفرعي مديره، هل يبقى مدير القسم الأب يراه؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم؛ والمدير الأقرب أولاً في السلسلة"],
     ["Q-M5", "May a change of manager start on a past date? (answered 2026-11-01: default kept)", "Today or later until payroll periods exist", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "اليوم أو لاحقاً حتى توجد فترات الرواتب"],
     ["Q-M6", "Is HR the last level after the manager, or a parallel path? (answered 2026-11-01: default kept)", "Last level, and can always act directly", "هل الموارد البشرية المستوى الأخير بعد المدير أم مسار موازٍ؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "المستوى الأخير، وتستطيع التصرف مباشرة دائماً"],
-    ["Q-M7", "Until the dated sheet (task 4.2), may the department form change the manager from today, with a fixed reason?", "Yes, from today (M13)", "حتى اللوحة المؤرخة (المهمة 4.2)، هل يجوز لنموذج القسم تغيير المدير من اليوم بسبب ثابت؟", "نعم، من اليوم (M13)"],
+    ["Q-M7", "Until the dated sheet (task 4.2), may the department form change the manager from today, with a fixed reason? (obsolete: replaced by M25)", "Yes, from today (M13)", "حتى اللوحة المؤرخة (المهمة 4.2)، هل يجوز لنموذج القسم تغيير المدير من اليوم بسبب ثابت؟", "نعم، من اليوم (M13)"],
     ["Q-M8", "Read memberships and supervisors at 00:00 of the day, and today at the current instant?", "Yes (M23)", "هل تُقرأ العضويات والمشرفون عند 00:00 من اليوم، واليوم الحالي عند اللحظة الحالية؟", "نعم (M23)"],
     ["Q-M9", "Skip an inactive supervisor or manager still in place in a person's chain?", "Yes, falling through to the next one up (M24)", "هل يُتخطى المشرف أو المدير غير النشط الباقي في مكانه في سلسلة الشخص؟", "نعم، مع الانتقال إلى التالي الأعلى (M24)"],
+    ["Q-M10", "Should creating a department also let HR pick its manager, or only \"Change manager\" afterwards?", "Only afterwards (M25)", "هل يتيح إنشاء القسم أيضاً اختيار مديره، أم فقط «تغيير المدير» بعد ذلك؟", "بعد ذلك فقط (M25)"],
     ["Q-T1", "Show the managers above the nearest one in a person's line up? (answered 2026-11-01: default kept)", "Yes, marked \"above\"", "هل تُعرض المديرون فوق أقرب مدير في سلسلة الشخص؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم، معلَّمين بـ«أعلى»"],
     ["Q-T2", "When a team has two supervisors, show both? (answered 2026-11-01: default kept)", "Yes", "عندما يكون للفريق مشرفان، هل يُعرض كلاهما؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم"],
     ["Q-T3", "Also a page with the whole organisation as one tree? (answered 2026-11-01: default kept)", "No: /management shows departments; the person tree starts from any employee", "هل توجد أيضاً صفحة للمؤسسة كلها كشجرة واحدة؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا: /management تعرض الأقسام؛ وشجرة الشخص تبدأ من أي موظف"],

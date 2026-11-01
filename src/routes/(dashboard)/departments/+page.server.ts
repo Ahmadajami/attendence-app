@@ -3,6 +3,7 @@ import { message, superValidate, type Infer } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { m } from '#lib/paraglide/messages.js';
 import { failForm, failNotice } from '#lib/server/errors.js';
+import { managerForm, setManagerAction } from '#lib/server/management-forms.js';
 import { assignAction, patternForms } from '#lib/server/pattern-forms.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import { currentAssignments } from '#lib/server/services/assignments/assignments.bl.js';
@@ -13,9 +14,12 @@ import {
 	createDepartment,
 	editDepartment,
 	listDepartments,
-	listManagerOptions,
 	setDepartmentActive
 } from '#lib/server/services/departments/departments.bl.js';
+import {
+	listManagerHistories,
+	listManagerOptions
+} from '#lib/server/services/management/management.bl.js';
 import { teamName } from '#lib/utils/locale.js';
 import {
 	departmentFormSchema,
@@ -31,11 +35,13 @@ function actorFrom(locals: App.Locals): Actor {
 export const load: PageServerLoad = async ({ locals }) => {
 	const actor = actorFrom(locals);
 	const today = todayInDamascus();
-	const [departments, managers, patterns, forms] = await Promise.all([
+	const [departments, managers, histories, patterns, forms, managerSheetForm] = await Promise.all([
 		listDepartments(actor),
 		listManagerOptions(actor),
+		listManagerHistories(actor),
 		listPatterns(actor),
-		patternForms(today, { kind: 'department', id: '' })
+		patternForms(today, { kind: 'department', id: '' }),
+		managerForm(today)
 	]);
 	const assigned = await currentAssignments(
 		actor,
@@ -46,6 +52,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		departments: departments.map((d) => ({ ...d, assignment: assigned.get(d.id) ?? null })),
 		managers,
+		/** Each department's managers, newest first, for the change-manager sheet (M3). */
+		histories,
+		managerForm: managerSheetForm,
 		today,
 		canManage: actor.permissions.has('roster.manage'),
 		/** The library, for the Default pattern column and the assign sheet. */
@@ -64,6 +73,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
+	setManager: async ({ request, locals }) => setManagerAction(request, actorFrom(locals)),
+
 	assign: async ({ request, locals }) =>
 		assignAction(request, actorFrom(locals), { kind: 'department', fromForm: true }, () =>
 			m.assign_saved()
@@ -81,8 +92,7 @@ export const actions: Actions = {
 		const input = {
 			nameEn: form.data.nameEn,
 			nameAr: form.data.nameAr,
-			parentId: form.data.parentId || null,
-			managerStaffId: form.data.managerStaffId || null
+			parentId: form.data.parentId || null
 		};
 		try {
 			const row = form.data.departmentId

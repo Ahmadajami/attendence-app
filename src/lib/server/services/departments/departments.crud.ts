@@ -54,31 +54,6 @@ export async function listManagersOn(date: string) {
 		);
 }
 
-export async function findActiveStaff(id: string) {
-	const [row] = await db
-		.select({ id: staff.id })
-		.from(staff)
-		.where(and(eq(staff.id, id), eq(staff.active, true)))
-		.limit(1);
-	return row;
-}
-
-/** Active staff a department can choose as its manager. */
-export async function listActiveStaffOptions() {
-	return db
-		.select({
-			id: staff.id,
-			employeeNo: staff.employeeNo,
-			fullName: staff.fullName,
-			fullNameAr: staff.fullNameAr
-		})
-		.from(staff)
-		.where(eq(staff.active, true))
-		.orderBy(asc(staff.fullName));
-}
-
-export type StaffOption = Awaited<ReturnType<typeof listActiveStaffOptions>>[number];
-
 export function insertDepartment(values: typeof department.$inferInsert): BatchQuery {
 	return db.insert(department).values(values);
 }

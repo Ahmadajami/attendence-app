@@ -16,9 +16,8 @@ export const departmentFormSchema = z.object({
 		.min(1, { error: () => m.departments_name_required() })
 		.max(120),
 	/** '' = top level. */
-	parentId: optionalId.default(''),
-	/** '' = no manager. A change takes effect from today (management plan M3). */
-	managerStaffId: optionalId.default('')
+	parentId: optionalId.default('')
+	// The manager is changed with the dated sheet (`management.schema.ts`, management M25).
 });
 export type DepartmentFormSchema = typeof departmentFormSchema;
 
@@ -27,8 +26,6 @@ export type DepartmentInput = {
 	nameEn: string;
 	nameAr: string;
 	parentId: string | null;
-	/** The manager from today (`department_manager`, M3); `null` = none from today. */
-	managerStaffId: string | null;
 };
 
 export const setDepartmentActiveSchema = z.object({

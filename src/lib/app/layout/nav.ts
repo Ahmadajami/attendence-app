@@ -4,6 +4,7 @@ import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 import FingerprintIcon from 'phosphor-svelte/lib/FingerprintIcon';
 import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
 import SquaresFourIcon from 'phosphor-svelte/lib/SquaresFourIcon';
+import TreeStructureIcon from 'phosphor-svelte/lib/TreeStructureIcon';
 import UploadSimpleIcon from 'phosphor-svelte/lib/UploadSimpleIcon';
 import UserGearIcon from 'phosphor-svelte/lib/UserGearIcon';
 import UsersFourIcon from 'phosphor-svelte/lib/UsersFourIcon';
@@ -28,6 +29,12 @@ export const dashboardNav: NavItem[] = [
 		path: '/departments',
 		label: m.nav_departments,
 		icon: BuildingsIcon,
+		permission: 'staff.write'
+	},
+	{
+		path: '/management',
+		label: m.nav_management,
+		icon: TreeStructureIcon,
 		permission: 'staff.write'
 	},
 	{ path: '/employees', label: m.nav_employees, icon: UsersThreeIcon },

@@ -9,6 +9,8 @@
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
 	import CalendarPlusIcon from 'phosphor-svelte/lib/CalendarPlusIcon';
+	import UserSwitchIcon from 'phosphor-svelte/lib/UserSwitchIcon';
+	import ManagerSheet from '#lib/app/management/ManagerSheet.svelte';
 	import AssignSheet from '#lib/app/patterns/AssignSheet.svelte';
 	import { formatCalendarDate } from '#lib/app/roster/labels.js';
 	import { localizedHref } from '#lib/i18n.js';
@@ -37,6 +39,15 @@
 	function openEdit(row: Department) {
 		target = row;
 		formOpen = true;
+	}
+
+	// The manager changes from a date, with a reason, in its own sheet (management M25).
+	let managerOpen = $state(false);
+	let managerOf = $state<Department | null>(null);
+
+	function openManager(row: Department) {
+		managerOf = row;
+		managerOpen = true;
 	}
 
 	const patternById = $derived(new Map(data.patterns.map((p) => [p.id, p])));
@@ -172,6 +183,12 @@
 											<PencilSimpleIcon />
 											{m.departments_edit()}
 										</DropdownMenu.Item>
+										{#if row.active}
+											<DropdownMenu.Item onSelect={() => openManager(row)}>
+												<UserSwitchIcon />
+												{m.management_change_manager()}
+											</DropdownMenu.Item>
+										{/if}
 										{#if data.canManage && row.active}
 											<DropdownMenu.Item onSelect={() => openAssign(row)}>
 												<CalendarPlusIcon />
@@ -238,6 +255,16 @@
 	data={data.form}
 	{target}
 	departments={data.departments}
-	managers={data.managers}
 	bind:open={formOpen}
+/>
+
+<ManagerSheet
+	data={data.managerForm}
+	action="?/setManager"
+	department={managerOf}
+	currentStaffId={managerOf?.managerStaffId ?? null}
+	people={data.managers}
+	history={managerOf ? (data.histories[managerOf.id] ?? []) : []}
+	today={data.today}
+	bind:open={managerOpen}
 />

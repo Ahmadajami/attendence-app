@@ -21,6 +21,9 @@ first. One commit per phase, plan file included.
 
 - **Today:** `/departments` → a department's actions menu → **Edit** → **Manager** →
   pick an active employee or **"No manager"** → Save. It is **optional**: nothing requires it.
+  > note (2026-11-01, two-level plan 4.2, M25): now `/departments` → actions menu → **Change
+  > manager** (or the same button on `/management`): person or "No manager", start date, reason.
+  > The department form no longer has a Manager field.
 - Since Phase 1 of the two-level plan (`bd9cecd`), a new manager takes over **from today** and
   the old one stays in the history (M3, M13). Migrations `0012`–`0014` must be applied first, or
   `/departments` fails.
@@ -104,7 +107,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
 - [ ] 3.4 `/departments`: "Covered by …" in muted text under an empty manager (M14).
 - [ ] 3.5 en + ar strings (`management_tree_*`, `employees_status_*`); `svelte-autofixer` (on the
       user's laptop), eslint + prettier on touched files.
-- [ ] 3.6 `/employees` status filter (M22): `EMPLOYEE_STATUSES` + `employeeStatus(value)` and
+- [x] 3.6 `/employees` status filter (M22): `EMPLOYEE_STATUSES` + `employeeStatus(value)` and
       `filterByStatus(employees, status)` in `employees/labels.ts` (pure, with Vitest cases:
       default, unknown value, counts); a shared `StatusFilter.svelte` in the toolbar of
       `EmployeeCards` and `EmployeesTable`, shown only when an inactive employee exists; the
@@ -118,6 +121,7 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
   > `employees_deactivated` (the profile's toast is unchanged); 5 en + ar keys. Not ticked until
   > `pnpm check`, `pnpm test`, eslint and the Svelte autofixer pass on the user's laptop (prettier
   > ran on the `.ts` / `.json` files; the `.svelte` files were formatted by hand).
+  > note: the user reported the status filter tested (2026-11-01); the filter lines of 4.1 hold.
 
 ### Phase 4 · Verify
 - [ ] 4.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: a member's tab

@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
@@ -11,44 +9,34 @@
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { departmentFormSchema, type DepartmentMessage } from '#lib/schemas/departments.schema.js';
+	import { statusToasts } from '#lib/utils/form-toasts.js';
 	import { descendantIds } from '#lib/workforce/departments.js';
-	import { endSide, lookupName, personName } from '#lib/utils/locale.js';
+	import { endSide, lookupName } from '#lib/utils/locale.js';
 
 	type Department = {
 		id: string;
 		nameEn: string;
 		nameAr: string;
 		parentId: string | null;
-		managerStaffId: string | null;
 		active: boolean;
 		depth: number;
 	};
-	type Manager = { id: string; employeeNo: string; fullName: string; fullNameAr: string | null };
 
 	type Props = {
 		data: SuperValidated<Infer<typeof departmentFormSchema>, DepartmentMessage>;
 		target: Department | null;
 		departments: Department[];
-		managers: Manager[];
 		open: boolean;
 	};
 
-	let { data, target, departments, managers, open = $bindable() }: Props = $props();
+	let { data, target, departments, open = $bindable() }: Props = $props();
 
 	const form = superForm(
 		untrack(() => data),
 		{
 			validators: zod4Client(departmentFormSchema),
-			onUpdated: ({ form }) => {
-				if (form.message?.kind === 'success') {
-					toast.success(form.message.text);
-					open = false;
-					void invalidateAll();
-				} else if (form.message?.kind === 'error') {
-					toast.error(form.message.text);
-				}
-			},
-			onError: ({ result }) => toast.error(result.error.message)
+			// The default `invalidateAll: true` reruns the page load, so the list updates.
+			...statusToasts(() => (open = false))
 		}
 	);
 	const { form: formData, enhance, delayed } = form;
@@ -58,7 +46,6 @@
 		$formData.nameEn = target?.nameEn ?? '';
 		$formData.nameAr = target?.nameAr ?? '';
 		$formData.parentId = target?.parentId ?? '';
-		$formData.managerStaffId = target?.managerStaffId ?? '';
 	});
 
 	/** Active departments, minus the edited one and everything below it (no cycles). */
@@ -69,12 +56,6 @@
 	});
 
 	const parentValue = $derived($formData.parentId || 'none');
-	const managerValue = $derived($formData.managerStaffId || 'none');
-
-	function managerLabel(id: string) {
-		const row = managers.find((s) => s.id === id);
-		return row ? `${personName(row)} · ${row.employeeNo}` : m.departments_no_manager();
-	}
 </script>
 
 <Sheet.Root bind:open>
@@ -140,31 +121,6 @@
 											{lookupName(dept)}
 										</span>
 									</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
-
-			<Form.Field {form} name="managerStaffId">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>{m.departments_field_manager()}</Form.Label>
-						<input type="hidden" name={props.name} value={$formData.managerStaffId} />
-						<Select.Root
-							type="single"
-							value={managerValue}
-							onValueChange={(value) => ($formData.managerStaffId = value === 'none' ? '' : value)}
-						>
-							<Select.Trigger {...props} class="w-full">
-								{managerValue === 'none' ? m.departments_no_manager() : managerLabel(managerValue)}
-							</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="none" label={m.departments_no_manager()} />
-								{#each managers as person (person.id)}
-									<Select.Item value={person.id} label={managerLabel(person.id)} />
 								{/each}
 							</Select.Content>
 						</Select.Root>

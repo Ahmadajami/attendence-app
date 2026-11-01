@@ -669,73 +669,157 @@
       alts: [ { en: 'A minimum per team with warnings when a change breaks it: not chosen — setup for every team and a check on every change, not needed yet.', ar: 'حد أدنى لكل فريق مع تنبيه عند مخالفته: لم يُختر — يحتاج إعداداً لكل فريق وفحصاً عند كل تغيير، وليس مطلوباً بعد.' } ]
     },
     {
-      id: "H1", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H1", group: 'profile', status: 'default', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Names: first + last in both languages", ar: "الأسماء: الاسم الأول والأخير باللغتين" },
       decision: { en: "Add first and last name in English and Arabic. The full names stay the display names everywhere; the service sets them to \"first last\" when both parts are given. Existing names are not split automatically.", ar: "إضافة الاسم الأول والأخير بالإنجليزية والعربية. يبقى الاسم الكامل هو المعروض في كل مكان؛ وتضبطه الخدمة إلى \"الأول الأخير\" عند توفر الجزأين. لا تُقسَّم الأسماء الحالية تلقائياً." },
       why: { en: "No screen that shows a name has to change (37 files), the Odoo seed has one name field, and splitting Arabic names by spaces would often be wrong.", ar: "لا تتغير أي شاشة تعرض الاسم (37 ملفاً)، وبيانات Odoo الأولية فيها حقل اسم واحد، وتقسيم الأسماء العربية بالمسافات سيكون خاطئاً غالباً." },
       alts: [ { en: "Replace the full name by the parts everywhere: not chosen — 37 files change and seeded people would lose their names until split.", ar: "استبدال الاسم الكامل بالأجزاء في كل مكان: لم يُختر — يتغير 37 ملفاً ويفقد الموظفون المستوردون أسماءهم حتى تُقسَّم." }, { en: "Split existing names on the first space: not chosen — wrong for many Arabic names.", ar: "تقسيم الأسماء الحالية عند أول مسافة: لم يُختر — خاطئ لكثير من الأسماء العربية." } ]
     },
     {
-      id: "H2", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H2", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Emergency contacts in their own table", ar: "جهات اتصال الطوارئ في جدول مستقل" },
       decision: { en: "Any number of emergency contacts per employee (name, relationship, phone, second phone, order); none required.", ar: "عدد غير محدود من جهات اتصال الطوارئ لكل موظف (الاسم، الصلة، الهاتف، هاتف ثانٍ، الترتيب)؛ ولا يُشترط وجود أي منها." },
       why: { en: "More than one contact is common, and a table keeps their order and history.", ar: "وجود أكثر من جهة اتصال أمر شائع، والجدول يحفظ ترتيبها وتاريخها." },
       alts: [ { en: "One contact as columns on the employee: not chosen — a second contact would need new columns.", ar: "جهة اتصال واحدة كأعمدة في سجل الموظف: لم يُختر — تحتاج جهة ثانية إلى أعمدة جديدة." } ]
     },
     {
-      id: "H3", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H3", group: 'profile', status: 'default', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Work experience as a list; years computed", ar: "الخبرة العملية كقائمة وسنوات محسوبة" },
       decision: { en: "Past jobs (employer, title, from, to, note). Years of experience = earlier jobs (overlaps counted once) + time here since the start date. \"Experience\" and \"work experience\" are taken as one thing.", ar: "الوظائف السابقة (جهة العمل، المسمى، من، إلى، ملاحظة). سنوات الخبرة = الوظائف السابقة (التداخل يُحسب مرة واحدة) + المدة هنا منذ تاريخ البدء. تُعامل \"الخبرة\" و\"الخبرة العملية\" كشيء واحد." },
       why: { en: "One source of truth; a typed number of years would go stale.", ar: "مصدر واحد للحقيقة؛ أما عدد السنوات المكتوب يدوياً فيصبح قديماً." },
       alts: [ { en: "A typed \"years of experience\" field: not chosen — it goes out of date and cannot be checked.", ar: "حقل \"سنوات الخبرة\" يُكتب يدوياً: لم يُختر — يصبح قديماً ولا يمكن التحقق منه." } ]
     },
     {
-      id: "H4", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H4", group: 'profile', status: 'default', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Skills from a managed list", ar: "المهارات من قائمة مُدارة" },
       decision: { en: "HR keeps a list of skills (English/Arabic); each employee gets skills from it with an optional level 1–3. \"Social skill\" is read as skills in general.", ar: "تحتفظ الموارد البشرية بقائمة مهارات (بالإنجليزية والعربية)؛ ويُمنح كل موظف مهارات منها مع مستوى اختياري من 1 إلى 3. تُفهم \"المهارات الاجتماعية\" على أنها المهارات عموماً." },
       why: { en: "A controlled list can be filtered and counted; free text cannot.", ar: "القائمة المضبوطة يمكن تصفيتها وعدّها؛ أما النص الحر فلا." },
       alts: [ { en: "Free-text skills: not chosen — spelling variants break filters and reports.", ar: "مهارات بنص حر: لم يُختر — اختلاف الكتابة يفسد التصفية والتقارير." } ]
     },
     {
-      id: "H5", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H5", group: 'profile', status: 'default', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Documents: track receipt, no scans", ar: "المستندات: تتبّع الاستلام دون صور ممسوحة" },
       decision: { en: "HR keeps a list of document types (required or not). Per employee: received yes/no, date, reference number, expiry, note. The profile shows \"received 3 of 5 required\". No files are uploaded.", ar: "تحتفظ الموارد البشرية بقائمة أنواع المستندات (مطلوب أو غير مطلوب). لكل موظف: مُستلم نعم/لا، التاريخ، الرقم المرجعي، تاريخ الانتهاء، ملاحظة. يعرض الملف \"تم استلام 3 من 5 مطلوبة\". لا تُرفع ملفات." },
       why: { en: "Scans of IDs are the most sensitive data there is; storing files needs storage, backups and access rules that only come with login (S8).", ar: "صور الهويات أكثر البيانات حساسية؛ وتخزين الملفات يحتاج تخزيناً ونسخاً احتياطياً وقواعد وصول لا تتوفر إلا مع تسجيل الدخول (S8)." },
       alts: [ { en: "Upload scans now: not chosen — no access rules or backups yet (Q-H5).", ar: "رفع الصور الممسوحة الآن: لم يُختر — لا قواعد وصول ولا نسخ احتياطي بعد (Q-H5)." } ]
     },
     {
-      id: "H6", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H6", group: 'profile', status: 'default', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Job title separate from function", ar: "المسمى الوظيفي منفصل عن مجال العمل" },
       decision: { en: "A managed list of job titles (English/Arabic) and one job title per employee, separate from the existing function (ramp, baggage…).", ar: "قائمة مُدارة للمسميات الوظيفية (بالإنجليزية والعربية) ومسمى واحد لكل موظف، منفصل عن مجال العمل الحالي (الساحة، الأمتعة…)." },
       why: { en: "Title (e.g. supervisor) and work area (e.g. ramp) answer different questions in reports.", ar: "المسمى (مثل مشرف) ومجال العمل (مثل الساحة) يجيبان عن أسئلة مختلفة في التقارير." },
       alts: [ { en: "Reuse function as the job title: not chosen — it would mix two meanings (Q-H6).", ar: "استخدام مجال العمل كمسمى وظيفي: لم يُختر — يخلط معنيين (Q-H6)." } ]
     },
     {
-      id: "H7", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H7", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Personal email and social accounts, optional", ar: "البريد الشخصي وحسابات التواصل، اختيارية" },
       decision: { en: "Add a personal email (format checked) and any number of social media accounts (platform, handle or URL). Work email and phone stay as they are.", ar: "إضافة بريد شخصي (مع التحقق من الصيغة) وأي عدد من حسابات التواصل الاجتماعي (المنصة، المعرّف أو الرابط). يبقى البريد الوظيفي والهاتف كما هما." },
       why: { en: "The user asked for them; optional because not everyone has or wants to give them.", ar: "طلبها المستخدم؛ وهي اختيارية لأن ليس الجميع يملكها أو يرغب في إعطائها." },
       alts: []
     },
     {
-      id: "H8", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H8", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "New personal fields: staff.write now, own permission with login", ar: "الحقول الشخصية الجديدة: صلاحية staff.write الآن وصلاحية خاصة مع تسجيل الدخول" },
       decision: { en: "Viewing and editing need staff.write while there is one local user. A separate staff.personal permission for contacts, social accounts and documents comes with login (S8). Every write is audited; nothing goes to Odoo, exports or emails.", ar: "العرض والتعديل يحتاجان staff.write ما دام هناك مستخدم محلي واحد. وتأتي صلاحية staff.personal منفصلة لجهات الاتصال والحسابات والمستندات مع تسجيل الدخول (S8). كل تعديل مُدقَّق؛ ولا يُرسل شيء إلى Odoo أو التصدير أو البريد." },
       why: { en: "CLAUDE.md §1: personal data stays in the app; a permission split helps only when there are several users.", ar: "CLAUDE.md §1: البيانات الشخصية تبقى داخل التطبيق؛ وتقسيم الصلاحيات مفيد فقط عند وجود عدة مستخدمين." },
       alts: [ { en: "Add staff.personal now: not chosen — one local user holds every permission anyway.", ar: "إضافة staff.personal الآن: لم يُختر — المستخدم المحلي الوحيد يملك كل الصلاحيات على أي حال." } ]
     },
     {
-      id: "H9", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H9", group: 'profile', status: 'replaced', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Short create sheet, Profile card with one sheet per group", ar: "نموذج إنشاء قصير وبطاقة ملف بنموذج لكل مجموعة" },
-      decision: { en: "Creating an employee asks only names, number, department, team and job title. The employee page gets a Profile card with one sheet per group (names & job, contacts, experience, skills, documents). Job titles, skills and document types are managed on /staff-lists.", ar: "إنشاء موظف يطلب فقط الأسماء والرقم والقسم والفريق والمسمى. وتحصل صفحة الموظف على بطاقة ملف بنموذج لكل مجموعة (الأسماء والوظيفة، جهات الاتصال، الخبرة، المهارات، المستندات). وتُدار المسميات والمهارات وأنواع المستندات في /staff-lists." },
+      decision: { en: "Replaced by H12 (tabs instead of sheets, 2026-11-01); its /staff-lists page is replaced by V5. Creating an employee asks only names, number, department, team and job title. The employee page gets a Profile card with one sheet per group (names & job, contacts, experience, skills, documents). Job titles, skills and document types are managed on /staff-lists.", ar: "استُبدل بالقرار H12 (تبويبات بدل النماذج الجانبية، 2026-11-01)؛ وصفحة /staff-lists فيه استُبدلت بالقرار V5. إنشاء موظف يطلب فقط الأسماء والرقم والقسم والفريق والمسمى. وتحصل صفحة الموظف على بطاقة ملف بنموذج لكل مجموعة (الأسماء والوظيفة، جهات الاتصال، الخبرة، المهارات، المستندات). وتُدار المسميات والمهارات وأنواع المستندات في /staff-lists." },
       why: { en: "A 30-field sheet is unusable; the groups follow the user's numbered list.", ar: "نموذج من 30 حقلاً غير قابل للاستخدام؛ والمجموعات تتبع قائمة المستخدم المرقمة." },
       alts: [ { en: "One long form for everything: not chosen — hard to fill and to check.", ar: "نموذج طويل واحد لكل شيء: لم يُختر — صعب التعبئة والمراجعة." } ]
     },
     {
-      id: "H10", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      id: "H10", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Profile rows are removed softly", ar: "حذف صفوف الملف حذفاً ناعماً" },
       decision: { en: "Contacts, experience, skills and social accounts get a removed date and who removed them; list items are deactivated. Nothing is hard-deleted.", ar: "تحصل جهات الاتصال والخبرة والمهارات والحسابات على تاريخ إزالة ومن أزالها؛ وتُعطَّل عناصر القوائم. لا يُحذف شيء نهائياً." },
       why: { en: "Template rule: never hard-delete; the audit trail stays readable.", ar: "قاعدة القالب: لا حذف نهائي؛ ويبقى سجل التدقيق مقروءاً." },
+      alts: []
+    },
+    {
+      id: "H11", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Custody items and their condition", ar: "العهدة وحالتها" },
+      decision: { en: "HR keeps a list of custody item types (phone, SIM line, uniform…). Per employee, each item handed out has an identifier (serial, IMEI, line number, size), a hand-out date, a condition (with the employee, returned, lost, damaged), the date of that condition and a note. The condition is changed in place; the audit log keeps every earlier condition.", ar: "تحتفظ الموارد البشرية بقائمة أصناف العهدة (هاتف، خط، زي…). لكل موظف، لكل صنف مُسلَّم: معرّف (رقم تسلسلي، IMEI، رقم الخط، المقاس)، تاريخ التسليم، الحالة (مع الموظف، مُعادة، مفقودة، تالفة)، تاريخ هذه الحالة، وملاحظة. تُعدَّل الحالة في مكانها، ويحفظ سجل التدقيق كل حالة سابقة." },
+      why: { en: "The user asked (2026-11-01) to keep items in an employee's custody with their current condition. A managed list keeps types consistent for counts; the audit log already gives the history without a second table.", ar: "طلب المستخدم (2026-11-01) حفظ العهدة لدى الموظف مع حالتها الحالية. القائمة المُدارة تجعل الأصناف موحدة للعدّ؛ وسجل التدقيق يعطي التاريخ دون جدول ثانٍ." },
+      alts: [ { en: "Free-text item names: not chosen — \"phone\" and \"mobile\" would count as different items.", ar: "أسماء أصناف بنص حر: لم يُختر — يُحسب \"هاتف\" و\"جوال\" صنفين مختلفين." }, { en: "A separate history table of every status change: not chosen — the audit log already records each change with before/after.", ar: "جدول تاريخ منفصل لكل تغيير حالة: لم يُختر — سجل التدقيق يسجل كل تغيير بقيمته قبل وبعد." } ]
+    },
+    {
+      id: "H12", group: 'profile', status: 'replaced', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Profile shown as tabs", ar: "عرض الملف كتبويبات" },
+      decision: { en: "Replaced by V2 and V4 (page-level tabs; sheets for editing). The Profile card on the employee page uses underline tabs: Overview, Names & job, Contacts, Experience, Skills, Documents, Custody. Each tab shows its list next to its form. Replaces the sheets of H9; the create sheet stays short.", ar: "استُبدل بالقرارين V2 وV4 (تبويبات للصفحة كلها ونماذج جانبية للتعديل). تستخدم بطاقة الملف في صفحة الموظف تبويبات مُسطَّرة: نظرة عامة، الأسماء والوظيفة، جهات الاتصال، الخبرة، المهارات، الوثائق، العهدة. يعرض كل تبويب قائمته بجانب نموذجه. يحل محل النماذج الجانبية في H9؛ ويبقى نموذج الإنشاء قصيراً." },
+      why: { en: "The user's choice (2026-11-01): one place to read and edit the profile instead of opening a sheet per group.", ar: "اختيار المستخدم (2026-11-01): مكان واحد لقراءة الملف وتعديله بدل فتح نموذج جانبي لكل مجموعة." },
+      alts: [ { en: "One sheet per group (H9): replaced — more clicks and the summary hides behind the sheet.", ar: "نموذج جانبي لكل مجموعة (H9): استُبدل — نقرات أكثر ويختفي الملخص خلف النموذج." } ]
+    },
+    {
+      id: "V1", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Profile header with an avatar", ar: "ترويسة الملف مع صورة رمزية" },
+      decision: { en: "One card at the top of the employee page: the shadcn Avatar with the person's initials (no photo yet) and a badge for active / inactive, both names, employee number, job title, department and team, status badges, phone, work email, start date and years of experience, with Edit details and Deactivate.", ar: "بطاقة واحدة أعلى صفحة الموظف: مكوّن Avatar بالأحرف الأولى من الاسم (دون صورة حالياً) وشارة للحالة فعّال / معطّل، الاسمان، الرقم الوظيفي، المسمى، القسم والفريق، شارات الحالة، الهاتف، البريد الوظيفي، تاريخ المباشرة وسنوات الخبرة، مع تعديل البيانات والتعطيل." },
+      why: { en: "The user asked for the profile at the top and chose the Avatar component (2026-11-01).", ar: "طلب المستخدم الملف في الأعلى واختار مكوّن Avatar (2026-11-01)." },
+      alts: [ { en: "A photo in the avatar now: not chosen — needs file storage and access rules that come with login (Q-V4).", ar: "صورة في الـAvatar الآن: لم يُختر — يحتاج تخزين ملفات وقواعد وصول تأتي مع تسجيل الدخول (Q-V4)." } ]
+    },
+    {
+      id: "V2", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Page-level tabs under the header", ar: "تبويبات للصفحة كلها تحت الترويسة" },
+      decision: { en: "Tabs for the whole page: Overview, Schedule, Personal, Experience, Skills, Documents, Custody, History. Schedule holds the roster preview and the day panel; History the pattern history.", ar: "تبويبات للصفحة كاملة: نظرة عامة، الجدول، البيانات الشخصية، الخبرة، المهارات، الوثائق، العهدة، السجل. يضم الجدول معاينة الدوام ولوحة اليوم؛ ويضم السجل تاريخ الأنماط." },
+      why: { en: "One layout for everything about a person, as the user asked.", ar: "تخطيط واحد لكل ما يخص الشخص، كما طلب المستخدم." },
+      alts: [ { en: "Tabs only inside a Profile card (H12): replaced — the schedule cards stayed outside, so the page had two structures.", ar: "تبويبات داخل بطاقة الملف فقط (H12): استُبدل — بقيت بطاقات الجدول خارجها فصار للصفحة بنيتان." } ]
+    },
+    {
+      id: "V3", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Open tab kept in the URL", ar: "حفظ التبويب المفتوح في الرابط" },
+      decision: { en: "The tab is ?tab=<name>, changed without reloading data; ?day= opens the Schedule tab.", ar: "التبويب هو ?tab=<الاسم>، ويتغير دون إعادة تحميل البيانات؛ و?day= يفتح تبويب الجدول." },
+      why: { en: "Reload, Back and links such as \"2 documents missing\" land on the right tab.", ar: "إعادة التحميل وزر الرجوع والروابط مثل \"وثيقتان ناقصتان\" تفتح التبويب الصحيح." },
+      alts: [ { en: "Tab only in page state: not chosen — lost on reload and cannot be linked.", ar: "التبويب في حالة الصفحة فقط: لم يُختر — يضيع عند إعادة التحميل ولا يمكن ربطه." } ]
+    },
+    {
+      id: "V4", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Tabs show, sheets edit", ar: "التبويبات للعرض والنماذج الجانبية للتعديل" },
+      decision: { en: "Each tab is a read-only list with Add; each row has Edit and Remove. Add and Edit open a sheet with the form.", ar: "كل تبويب قائمة للقراءة مع زر إضافة؛ ولكل صف تعديل وإزالة. تفتح الإضافة والتعديل نموذجاً جانبياً." },
+      why: { en: "The user asked for sheets to add; lists stay readable on a phone.", ar: "طلب المستخدم نماذج جانبية للإضافة؛ وتبقى القوائم مقروءة على الهاتف." },
+      alts: [ { en: "List and form side by side in the tab (H12): replaced — crowded, and the form shows even when nothing is being edited.", ar: "القائمة والنموذج متجاوران في التبويب (H12): استُبدل — مزدحم، ويظهر النموذج حتى دون تعديل." } ]
+    },
+    {
+      id: "V5", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Lists managed where they are used; /staff-lists removed", ar: "إدارة القوائم حيث تُستخدم وإزالة صفحة /staff-lists" },
+      decision: { en: "Every picker of a job title, skill, document type or custody item ends with \"+ New …\" (a small sheet; the new item is selected). Tabs have a \"Manage …\" sheet to rename and (de)activate items. The /staff-lists page and its sidebar entry go away.", ar: "تنتهي كل قائمة اختيار لمسمى أو مهارة أو نوع وثيقة أو صنف عهدة بخيار \"+ جديد…\" (نموذج صغير ويُختار العنصر الجديد). وللتبويبات نموذج \"إدارة…\" لإعادة التسمية والتفعيل والتعطيل. تُزال صفحة /staff-lists ومدخلها في القائمة الجانبية." },
+      why: { en: "The user's request (2026-11-01): create an item at the moment it is needed.", ar: "طلب المستخدم (2026-11-01): إنشاء العنصر لحظة الحاجة إليه." },
+      alts: [ { en: "A separate /staff-lists page (profile plan 4.3): replaced — one more page to find, away from where the items are used.", ar: "صفحة /staff-lists منفصلة (خطة الملف 4.3): استُبدل — صفحة إضافية بعيدة عن مكان استخدام العناصر." }, { en: "Only \"+ New …\", no manage sheet: not chosen by default — renaming and deactivating would have no place (Q-V2).", ar: "\"+ جديد…\" فقط دون نموذج إدارة: لم يُختر افتراضياً — لن يبقى مكان لإعادة التسمية والتعطيل (Q-V2)." } ]
+    },
+    {
+      id: "V6", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Adding an employee opens a new page", ar: "إضافة موظف تفتح صفحة جديدة" },
+      decision: { en: "Add employee always opens /employees/new: a header preview with the avatar, then the full staff form in sections (identity, job, contact, dates). Saving opens the new person's profile on the Personal tab; contacts, experience, skills, documents and custody are added there.", ar: "زر إضافة موظف يفتح دائماً /employees/new: معاينة للترويسة مع الصورة الرمزية، ثم نموذج الموظف كاملاً في أقسام (الهوية، الوظيفة، الاتصال، التواريخ). الحفظ يفتح ملف الشخص الجديد على تبويب البيانات الشخصية؛ وتُضاف هناك جهات الاتصال والخبرة والمهارات والوثائق والعهدة." },
+      why: { en: "The user's answer to Q-V3 (2026-11-01): always a new page.", ar: "إجابة المستخدم على Q-V3 (2026-11-01): صفحة جديدة دائماً." },
+      alts: [ { en: "A short sheet on the employee list, then the profile: not chosen — the user wants a full page.", ar: "نموذج جانبي قصير في قائمة الموظفين ثم الملف: لم يُختر — يريد المستخدم صفحة كاملة." }, { en: "All profile tabs on the new page before saving: not chosen — their rows need the person to exist first.", ar: "كل تبويبات الملف في الصفحة الجديدة قبل الحفظ: لم يُختر — صفوفها تحتاج وجود الشخص أولاً." } ]
+    },
+    {
+      id: "V7", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "One staff form for the new page and the edit sheet", ar: "نموذج موظف واحد للصفحة الجديدة ونموذج التعديل" },
+      decision: { en: "StaffForm (#lib/app/staff) owns the form with a create and an edit mode; /employees/new shows it in the page and the profile's Edit details shows it in a sheet. Its schema moves to #lib/schemas/staff.schema.ts.", ar: "يملك StaffForm (#lib/app/staff) النموذج بوضعي إنشاء وتعديل؛ تعرضه /employees/new داخل الصفحة ويعرضه تعديل البيانات في الملف داخل نموذج جانبي. وينتقل مخططه إلى #lib/schemas/staff.schema.ts." },
+      why: { en: "One form and one shared schema (CLAUDE.md).", ar: "نموذج واحد ومخطط مشترك واحد (CLAUDE.md)." },
+      alts: [ { en: "Separate create and edit forms: not chosen — two forms for the same fields drift apart.", ar: "نموذجان منفصلان للإنشاء والتعديل: لم يُختر — نموذجان للحقول نفسها يتباعدان مع الوقت." } ]
+    },
+    {
+      id: "V8", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Editing lives on the profile", ar: "التعديل في الملف فقط" },
+      decision: { en: "On the employee list, the row menu's Edit opens the profile instead of a sheet; Deactivate / Activate and drag and drop into teams stay.", ar: "في قائمة الموظفين يفتح خيار تعديل في قائمة الصف الملفَ بدل نموذج جانبي؛ ويبقى التعطيل / التفعيل والسحب والإفلات إلى الفرق." },
+      why: { en: "One place to edit a person (Q-V6).", ar: "مكان واحد لتعديل الشخص (Q-V6)." },
+      alts: [ { en: "Keep an edit sheet on the list too: not chosen by default — two places to maintain.", ar: "إبقاء نموذج تعديل في القائمة أيضاً: لم يُختر افتراضياً — مكانان للصيانة." } ]
+    },
+    {
+      id: "V9", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "List actions reused on the employee pages", ar: "إعادة استخدام إجراءات القوائم في صفحات الموظفين" },
+      decision: { en: "The create / rename / (de)activate actions move from /staff-lists into #lib/server/staff-list-forms.ts and are mounted on /employees/new and /employees/[id]. The service and the staff.write permission stay.", ar: "تنتقل إجراءات الإنشاء وإعادة التسمية والتفعيل من /staff-lists إلى #lib/server/staff-list-forms.ts وتُركَّب في /employees/new و/employees/[id]. وتبقى الخدمة وصلاحية staff.write." },
+      why: { en: "No new business logic; one place for the actions.", ar: "لا منطق عمل جديد؛ ومكان واحد للإجراءات." },
+      alts: []
+    },
+    {
+      id: "V10", group: 'profile', status: 'approved', date: '2026-11-01', src: "plans/2026-11-01-employee-page-redesign.md §1",
+      title: { en: "Overview tab links to the details", ar: "تبويب النظرة العامة يربط بالتفاصيل" },
+      decision: { en: "The Overview summary links to the tabs: missing documents to Documents, custody to Custody, experience to Experience, contacts to Personal.", ar: "يربط ملخص النظرة العامة بالتبويبات: الوثائق الناقصة بالوثائق، والعهدة بالعهدة، والخبرة بالخبرة، وجهات الاتصال بالبيانات الشخصية." },
+      why: { en: "The header says who; the Overview says what is missing and where to fix it.", ar: "تقول الترويسة من هو الشخص؛ وتقول النظرة العامة ما الناقص وأين يُصلح." },
       alts: []
     }
   ];
@@ -760,7 +844,8 @@
     ["Q-H3", "\"Social skill\": soft skills only, or skills in general?", "skills in general, from a managed list", "\"المهارات الاجتماعية\": المهارات الشخصية فقط، أم المهارات عموماً؟", "المهارات عموماً، من قائمة مُدارة"],
     ["Q-H4", "\"Document received number\": the count received, or each document's reference number?", "both", "\"رقم المستند المستلم\": عدد المستندات المستلمة، أم الرقم المرجعي لكل مستند؟", "كلاهما"],
     ["Q-H5", "Store scans of the documents?", "no: received / date / number only", "هل تُخزَّن صور المستندات الممسوحة؟", "لا: الاستلام والتاريخ والرقم فقط"],
-    ["Q-H6", "Is the job title different from the existing function?", "yes, a separate list", "هل المسمى الوظيفي مختلف عن مجال العمل الحالي؟", "نعم، قائمة منفصلة"]
+    ["Q-H6", "Is the job title different from the existing function?", "yes, a separate list", "هل المسمى الوظيفي مختلف عن مجال العمل الحالي؟", "نعم، قائمة منفصلة"],
+    ["Q-H7", "Custody conditions: with the employee, returned, lost, damaged — any other?", "these four", "حالات العهدة: مع الموظف، مُعادة، مفقودة، تالفة — هل توجد حالات أخرى؟", "هذه الأربع"],,,,,
   ];
 
   function el(tag, attrs, children) {

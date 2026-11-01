@@ -71,6 +71,13 @@
       "when": 1793273339413,
       "tag": "0009_drop_shift_pattern",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793515213494,
+      "tag": "0010_employee_profile",
+      "breakpoints": true
     }
   ]
 }

@@ -214,5 +214,6 @@
 	functions={data.functions}
 	departments={data.departments}
 	{teams}
+	jobTitles={data.jobTitles}
 	bind:open={formOpen}
 />

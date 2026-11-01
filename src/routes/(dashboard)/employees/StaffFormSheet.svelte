@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
-	import { toast } from 'svelte-sonner';
 	import { superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
@@ -13,10 +11,12 @@
 	import { ID_DIGITS } from '#lib/schemas/auth.schema.js';
 	import type {
 		DepartmentOption,
+		JobTitleOption,
 		StaffFunctionOption,
 		StaffRow,
 		TeamOption
 	} from '#lib/types/workforce.js';
+	import { statusToasts } from '#lib/utils/form-toasts.js';
 	import { endSide, lookupName, personName, teamName } from '#lib/utils/locale.js';
 	import { staffFormSchema, type StaffMessage } from './schema.js';
 
@@ -26,25 +26,26 @@
 		functions: StaffFunctionOption[];
 		departments: DepartmentOption[];
 		teams: TeamOption[];
+		/** Active job titles. */
+		jobTitles: JobTitleOption[];
 		open: boolean;
 	};
 
-	let { data, target, functions, departments, teams, open = $bindable() }: Props = $props();
+	let {
+		data,
+		target,
+		functions,
+		departments,
+		teams,
+		jobTitles,
+		open = $bindable()
+	}: Props = $props();
 
 	const form = superForm(
 		untrack(() => data),
 		{
 			validators: zod4Client(staffFormSchema),
-			onUpdated: ({ form }) => {
-				if (form.message?.kind === 'success') {
-					toast.success(form.message.text);
-					open = false;
-					void invalidateAll();
-				} else if (form.message?.kind === 'error') {
-					toast.error(form.message.text);
-				}
-			},
-			onError: ({ result }) => toast.error(result.error.message)
+			...statusToasts(() => (open = false))
 		}
 	);
 	const { form: formData, message, enhance, delayed } = form;
@@ -52,8 +53,13 @@
 	$effect(() => {
 		$formData.staffId = target?.id ?? '';
 		$formData.employeeNo = target?.employeeNo ?? '';
+		$formData.firstNameEn = target?.firstNameEn ?? '';
+		$formData.lastNameEn = target?.lastNameEn ?? '';
+		$formData.firstNameAr = target?.firstNameAr ?? '';
+		$formData.lastNameAr = target?.lastNameAr ?? '';
 		$formData.fullName = target?.fullName ?? '';
 		$formData.fullNameAr = target?.fullNameAr ?? '';
+		$formData.jobTitleId = target?.jobTitle?.id ?? '';
 		$formData.phone = target?.phone ?? '';
 		$formData.workEmail = target?.workEmail ?? '';
 		$formData.startDate = target?.startDate ?? '';
@@ -65,6 +71,19 @@
 	const teamValue = $derived($formData.teamId || 'none');
 	const departmentValue = $derived($formData.departmentId || 'none');
 	const functionValue = $derived($formData.functionId || 'none');
+	const jobTitleValue = $derived($formData.jobTitleId || 'none');
+	/** The active titles, plus an inactive one the person still has. */
+	const jobTitleOptions = $derived(
+		target?.jobTitle && !jobTitles.some((t) => t.id === target.jobTitle?.id)
+			? [...jobTitles, target.jobTitle]
+			: jobTitles
+	);
+
+	/**
+	 * Name parts for a new person and for one who has them; a person without parts (seeded) still
+	 * edits the full names (profile plan H1).
+	 */
+	const useParts = $derived(!target || target.firstNameEn !== null || target.firstNameAr !== null);
 
 	function digitsOnly(event: InputEvent) {
 		const text = event.data ?? event.dataTransfer?.getData('text/plain') ?? '';
@@ -83,7 +102,7 @@
 			</Sheet.Description>
 		</Sheet.Header>
 
-		<form method="POST" action="?/save" class="space-y-4 px-4 pb-4" use:enhance>
+		<form method="POST" action="?/save" class="flex flex-col gap-4 px-4 pb-4" use:enhance>
 			<input type="hidden" name="staffId" value={$formData.staffId} />
 
 			<Form.Field {form} name="employeeNo">
@@ -107,21 +126,46 @@
 				<Form.FieldErrors />
 			</Form.Field>
 
-			<Form.Field {form} name="fullName">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>{m.staff_field_full_name()}</Form.Label>
-						<Input {...props} bind:value={$formData.fullName} dir="ltr" autocomplete="off" />
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors />
-			</Form.Field>
+			{#if useParts}
+				<!-- The full names follow the parts; posted as they are for a language left empty. -->
+				<input type="hidden" name="fullName" value={$formData.fullName} />
+				<input type="hidden" name="fullNameAr" value={$formData.fullNameAr} />
+				<div class="grid grid-cols-2 gap-4">
+					{@render textField('firstNameEn', m.profile_field_first_name_en(), 'ltr')}
+					{@render textField('lastNameEn', m.profile_field_last_name_en(), 'ltr')}
+					{@render textField('firstNameAr', m.profile_field_first_name_ar(), 'rtl')}
+					{@render textField('lastNameAr', m.profile_field_last_name_ar(), 'rtl')}
+				</div>
+			{:else}
+				{@render textField('fullName', m.staff_field_full_name(), 'ltr')}
+				{@render textField('fullNameAr', m.staff_field_full_name_ar(), 'rtl')}
+				<p class="text-sm text-muted-foreground">{m.staff_name_parts_hint()}</p>
+			{/if}
 
-			<Form.Field {form} name="fullNameAr">
+			<Form.Field {form} name="jobTitleId">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>{m.staff_field_full_name_ar()}</Form.Label>
-						<Input {...props} bind:value={$formData.fullNameAr} dir="rtl" autocomplete="off" />
+						<Form.Label>{m.profile_field_job_title()}</Form.Label>
+						<input type="hidden" name={props.name} value={$formData.jobTitleId} />
+						<Select.Root
+							type="single"
+							value={jobTitleValue}
+							onValueChange={(value) => ($formData.jobTitleId = value === 'none' ? '' : value)}
+						>
+							<Select.Trigger {...props} class="w-full">
+								{jobTitleValue === 'none'
+									? m.profile_no_job_title()
+									: lookupName(
+											jobTitleOptions.find((t) => t.id === jobTitleValue) ?? jobTitleOptions[0]
+										)}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="none" label={m.profile_no_job_title()} />
+								{#each jobTitleOptions as title (title.id)}
+									<Select.Item value={title.id} label={lookupName(title)} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -259,3 +303,19 @@
 		</form>
 	</Sheet.Content>
 </Sheet.Root>
+
+{#snippet textField(
+	name: 'firstNameEn' | 'lastNameEn' | 'firstNameAr' | 'lastNameAr' | 'fullName' | 'fullNameAr',
+	label: string,
+	dir: 'ltr' | 'rtl'
+)}
+	<Form.Field {form} {name}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<Form.Label>{label}</Form.Label>
+				<Input {...props} bind:value={$formData[name]} {dir} autocomplete="off" />
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
+{/snippet}

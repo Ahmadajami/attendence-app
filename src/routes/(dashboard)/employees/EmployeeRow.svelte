@@ -73,6 +73,9 @@
 		{#if personalPatternIds().has(employee.id)}
 			<Badge variant="secondary" class="ms-2">{m.roster_personal_badge()}</Badge>
 		{/if}
+		{#if employee.jobTitle}
+			<p class="text-xs font-normal text-muted-foreground">{lookupName(employee.jobTitle)}</p>
+		{/if}
 	</Table.Cell>
 	<Table.Cell class={employee.department ? undefined : 'text-muted-foreground'}>
 		{employee.department ? lookupName(employee.department) : '—'}

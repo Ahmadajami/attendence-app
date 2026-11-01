@@ -3,6 +3,7 @@ import CalendarDotsIcon from 'phosphor-svelte/lib/CalendarDotsIcon';
 import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 import FingerprintIcon from 'phosphor-svelte/lib/FingerprintIcon';
 import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
+import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
 import SquaresFourIcon from 'phosphor-svelte/lib/SquaresFourIcon';
 import UploadSimpleIcon from 'phosphor-svelte/lib/UploadSimpleIcon';
 import UserGearIcon from 'phosphor-svelte/lib/UserGearIcon';
@@ -38,6 +39,12 @@ export const dashboardNav: NavItem[] = [
 		permission: 'attendance.record'
 	},
 	{ path: '/teams', label: m.nav_teams, icon: UsersFourIcon, permission: 'staff.write' },
+	{
+		path: '/staff-lists',
+		label: m.nav_staff_lists,
+		icon: ListChecksIcon,
+		permission: 'staff.write'
+	},
 	{
 		path: '/patterns',
 		label: m.nav_patterns,

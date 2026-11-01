@@ -17,6 +17,17 @@ import {
 	resetScheduleAction,
 	setScheduleAction
 } from '#lib/server/pattern-forms.js';
+import {
+	contactAction,
+	custodyAction,
+	documentAction,
+	experienceAction,
+	namesAction,
+	profileForms,
+	removeItemAction,
+	skillAction,
+	socialAction
+} from '#lib/server/profile-forms.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import {
 	addPair,
@@ -26,6 +37,7 @@ import {
 import type { Actor } from '#lib/server/services/common.js';
 import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
 import { getPersonRoster, getPersonSchedule } from '#lib/server/services/roster/roster.bl.js';
+import { getStaffProfile } from '#lib/server/services/staff-profile/staff-profile.bl.js';
 import type { Actions, PageServerLoad } from './$types';
 
 function actorFrom(locals: App.Locals): Actor {
@@ -45,13 +57,14 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const last = addDays(roster.preview.from, roster.preview.days - 1);
 	/** `?day=` opens the day panel when it is inside the preview window. */
 	const day = url.searchParams.get('day');
-	const [events, schedule, patterns, forms] = await Promise.all([
+	const [events, schedule, patterns, forms, profile] = await Promise.all([
 		canRecord
 			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
 			: Promise.resolve([]),
 		getPersonSchedule(actor, id),
 		listPatterns(actor),
-		patternForms(roster.today, { kind: 'staff', id })
+		patternForms(roster.today, { kind: 'staff', id }),
+		getStaffProfile(actor, id)
 	]);
 	return {
 		...roster,
@@ -73,11 +86,37 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			defaultWorkShiftId,
 			active
 		})),
-		...forms
+		...forms,
+		profile,
+		...(await profileForms(profile.person))
 	};
 };
 
 export const actions: Actions = {
+	saveNames: async ({ request, locals, params }) =>
+		namesAction(request, actorFrom(locals), staffId(params.id)),
+
+	saveContact: async ({ request, locals, params }) =>
+		contactAction(request, actorFrom(locals), staffId(params.id)),
+
+	saveExperience: async ({ request, locals, params }) =>
+		experienceAction(request, actorFrom(locals), staffId(params.id)),
+
+	saveSkill: async ({ request, locals, params }) =>
+		skillAction(request, actorFrom(locals), staffId(params.id)),
+
+	saveSocial: async ({ request, locals, params }) =>
+		socialAction(request, actorFrom(locals), staffId(params.id)),
+
+	setDocument: async ({ request, locals, params }) =>
+		documentAction(request, actorFrom(locals), staffId(params.id)),
+
+	saveCustody: async ({ request, locals, params }) =>
+		custodyAction(request, actorFrom(locals), staffId(params.id)),
+
+	removeProfileItem: async ({ request, locals, params }) =>
+		removeItemAction(request, actorFrom(locals), staffId(params.id)),
+
 	assign: async ({ request, locals, params }) =>
 		assignAction(request, actorFrom(locals), { kind: 'staff', id: staffId(params.id) }, () =>
 			m.assign_saved()

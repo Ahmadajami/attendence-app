@@ -11,6 +11,7 @@ import {
 	listActiveDepartments,
 	listActiveTeams,
 	listFunctions,
+	listJobTitleOptions,
 	listStaff,
 	setStaffActive,
 	setStaffTeam,
@@ -31,11 +32,12 @@ function actorFrom(locals: App.Locals): Actor {
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const actor = actorFrom(locals);
-	const [staff, teams, departments, functions, personalPatternIds] = await Promise.all([
+	const [staff, teams, departments, functions, jobTitles, personalPatternIds] = await Promise.all([
 		listStaff(actor),
 		listActiveTeams(actor),
 		listActiveDepartments(actor),
 		listFunctions(actor),
+		listJobTitleOptions(actor),
 		listPersonalPatternStaff(actor)
 	]);
 	return {
@@ -43,6 +45,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		teams,
 		departments,
 		functions,
+		jobTitles,
 		personalPatternIds,
 		form: await superValidate(zod4(staffFormSchema), { id: 'staff' })
 	};
@@ -60,8 +63,13 @@ export const actions: Actions = {
 
 		const input = {
 			employeeNo: form.data.employeeNo || null,
-			fullName: form.data.fullName,
+			firstNameEn: form.data.firstNameEn || null,
+			lastNameEn: form.data.lastNameEn || null,
+			firstNameAr: form.data.firstNameAr || null,
+			lastNameAr: form.data.lastNameAr || null,
+			fullName: form.data.fullName || null,
 			fullNameAr: form.data.fullNameAr || null,
+			jobTitleId: form.data.jobTitleId || null,
 			phone: form.data.phone || null,
 			functionId: form.data.functionId || null,
 			departmentId: form.data.departmentId || null,

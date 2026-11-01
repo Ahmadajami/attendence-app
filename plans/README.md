@@ -28,4 +28,5 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | 2026-10-28 | [Shifts, then manual punch entry](2026-10-28-shifts-and-manual-punches.md) (S2.1 → S2.2 → S1.4) | in progress |
 | 2026-10-28 | [Pattern editor: drag and drop, state in sync](2026-10-28-cycle-editor-dnd.md) | done |
 | 2026-10-29 | [Attendance builder: pattern library, assignment to teams, member rules](2026-10-29-attendance-builder.md) (S2.4, part of S3.6) | in progress (approved 2026-10-29) |
-| 2026-11-01 | [Employee profile: names, contacts, experience, skills, documents, job](2026-11-01-employee-profile.md) | in progress (awaiting approval) |
+| 2026-11-01 | [Employee profile: names, contacts, experience, skills, documents, job, custody](2026-11-01-employee-profile.md) | in progress (approved 2026-11-01) |
+| 2026-11-01 | [Employee page redesign: avatar header, tabs, sheets, new-employee page; lists managed where used](2026-11-01-employee-page-redesign.md) | in progress (approved 2026-11-01, ready to implement) |

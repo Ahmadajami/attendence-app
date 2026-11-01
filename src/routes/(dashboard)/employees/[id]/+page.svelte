@@ -9,6 +9,7 @@
 	import EndAssignmentSheet from '#lib/app/patterns/EndAssignmentSheet.svelte';
 	import ScheduleSheet from '#lib/app/patterns/ScheduleSheet.svelte';
 	import PatternHistory from '#lib/app/roster/PatternHistory.svelte';
+	import ProfileCard from '#lib/app/profile/ProfileCard.svelte';
 	import PreviewRange from '#lib/app/roster/PreviewRange.svelte';
 	import RosterPreview from '#lib/app/roster/RosterPreview.svelte';
 	import { weekdayNames } from '#lib/app/roster/labels.js';
@@ -189,6 +190,21 @@
 			</Card.Content>
 		</Card.Root>
 	{/if}
+
+	<!-- Remounted per person, like the sheets below, so its forms hold this person. -->
+	{#key person.staffId}
+		<ProfileCard
+			profile={data.profile}
+			namesForm={data.namesForm}
+			contactForm={data.contactForm}
+			socialForm={data.socialForm}
+			experienceForm={data.experienceForm}
+			skillForm={data.skillForm}
+			documentForm={data.documentForm}
+			custodyForm={data.custodyForm}
+			today={data.today}
+		/>
+	{/key}
 
 	<Card.Root>
 		<Card.Header>

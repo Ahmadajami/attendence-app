@@ -9,22 +9,27 @@ import {
 	InvalidInputError,
 	NotFoundError
 } from '#lib/server/errors.js';
-import { department, staff, staffFunction, team } from '#lib/server/db/schema/index.js';
+import { department, jobTitle, staff, staffFunction, team } from '#lib/server/db/schema/index.js';
 import { nextEmployeeNo } from '#lib/workforce/employee-no.js';
+import { resolveNames, type NameParts } from '#lib/workforce/profile.js';
 import type {
 	DepartmentOption,
+	JobTitleOption,
 	StaffRow,
 	StaffFunctionOption,
 	TeamOption
 } from '#lib/types/workforce.js';
 import { pgErrorCode, type Actor } from './common.js';
 import { membershipChange } from './membership.js';
+import { validateJobTitle } from './staff-profile/staff-profile.bl.js';
 
-export type StaffInput = {
+export type StaffInput = NameParts & {
 	/** `null` on create = generate the next number (plan D28). */
 	employeeNo: string | null;
-	fullName: string;
+	/** Used when the English name parts are empty (a person without parts, profile plan H1). */
+	fullName: string | null;
 	fullNameAr: string | null;
+	jobTitleId: string | null;
 	phone: string | null;
 	functionId: string | null;
 	departmentId: string | null;
@@ -39,7 +44,8 @@ const GENERATED_NUMBER_ATTEMPTS = 3;
 const staffRelations = {
 	function: { columns: { id: true, key: true, nameEn: true, nameAr: true } },
 	department: { columns: { id: true, nameEn: true, nameAr: true, active: true } },
-	team: { columns: { id: true, nameEn: true, nameAr: true, active: true } }
+	team: { columns: { id: true, nameEn: true, nameAr: true, active: true } },
+	jobTitle: { columns: { id: true, nameEn: true, nameAr: true, active: true } }
 } as const;
 
 function requireStaffWrite(actor: Actor) {
@@ -91,6 +97,23 @@ async function validateLookups(input: {
 		throw new InvalidInputError('invalid_team', m.staff_error_team(), { field: 'teamId' });
 }
 
+/**
+ * The stored names (H1): both parts of a language give "first last", none keeps the posted full
+ * name. A new person needs the English parts; an existing one at least a full name.
+ */
+function storedNames(input: StaffInput, creating: boolean) {
+	const names = resolveNames(input, input);
+	if (!names.ok)
+		throw new InvalidInputError('name_part_missing', m.profile_name_part_missing(), {
+			field: names.field
+		});
+	if (!names.fullName)
+		throw new InvalidInputError('name_missing', m.staff_name_required(), {
+			field: creating ? 'firstNameEn' : 'fullName'
+		});
+	return { ...names.parts, fullName: names.fullName, fullNameAr: names.fullNameAr };
+}
+
 /** All staff, including deactivated, newest changes last. */
 export async function listStaff(actor: Actor): Promise<StaffRow[]> {
 	requireStaffWrite(actor);
@@ -100,6 +123,10 @@ export async function listStaff(actor: Actor): Promise<StaffRow[]> {
 			employeeNo: true,
 			fullName: true,
 			fullNameAr: true,
+			firstNameEn: true,
+			lastNameEn: true,
+			firstNameAr: true,
+			lastNameAr: true,
 			phone: true,
 			workEmail: true,
 			startDate: true,
@@ -138,6 +165,21 @@ export async function listActiveDepartments(actor: Actor): Promise<DepartmentOpt
 		.orderBy(asc(department.nameEn));
 }
 
+/** Active job titles for the create / edit sheet (an inactive one a person has still shows). */
+export async function listJobTitleOptions(actor: Actor): Promise<JobTitleOption[]> {
+	requireStaffWrite(actor);
+	return db
+		.select({
+			id: jobTitle.id,
+			nameEn: jobTitle.nameEn,
+			nameAr: jobTitle.nameAr,
+			active: jobTitle.active
+		})
+		.from(jobTitle)
+		.where(eq(jobTitle.active, true))
+		.orderBy(asc(jobTitle.nameEn));
+}
+
 export async function listActiveTeams(actor: Actor): Promise<TeamOption[]> {
 	requireStaffWrite(actor);
 	return db
@@ -160,13 +202,15 @@ async function allEmployeeNumbers(): Promise<string[]> {
 
 export async function createStaff(actor: Actor, input: StaffInput) {
 	requireStaffWrite(actor);
+	const names = storedNames(input, true);
 	await validateLookups(input);
+	await validateJobTitle(input.jobTitleId, null);
 	const generate = input.employeeNo === null;
 
 	for (let attempt = 1; ; attempt++) {
 		const id = randomUUID();
 		const employeeNo = input.employeeNo ?? nextEmployeeNo(await allEmployeeNumbers());
-		const values = { ...input, employeeNo };
+		const values = { ...input, ...names, employeeNo };
 		try {
 			await batch([
 				db.insert(staff).values({ id, ...values }),
@@ -194,9 +238,11 @@ export async function createStaff(actor: Actor, input: StaffInput) {
 export async function updateStaff(actor: Actor, id: string, input: StaffInput) {
 	requireStaffWrite(actor);
 	const before = await findStaff(id);
+	const names = storedNames(input, false);
 	await validateLookups(input);
+	await validateJobTitle(input.jobTitleId, before.jobTitleId);
 	// Editing never generates: an empty number keeps the current one.
-	const values = { ...input, employeeNo: input.employeeNo ?? before.employeeNo };
+	const values = { ...input, ...names, employeeNo: input.employeeNo ?? before.employeeNo };
 
 	try {
 		await batch([
@@ -211,6 +257,11 @@ export async function updateStaff(actor: Actor, id: string, input: StaffInput) {
 					employeeNo: before.employeeNo,
 					fullName: before.fullName,
 					fullNameAr: before.fullNameAr,
+					firstNameEn: before.firstNameEn,
+					lastNameEn: before.lastNameEn,
+					firstNameAr: before.firstNameAr,
+					lastNameAr: before.lastNameAr,
+					jobTitleId: before.jobTitleId,
 					phone: before.phone,
 					functionId: before.function?.id ?? null,
 					departmentId: before.department?.id ?? null,

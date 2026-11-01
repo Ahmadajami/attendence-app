@@ -1,4 +1,4 @@
-import { DateFormatter, fromDate, parseDateTime } from '@internationalized/date';
+import { DateFormatter, fromDate, parseDate, parseDateTime } from '@internationalized/date';
 import { getLocale } from '#lib/paraglide/runtime.js';
 
 /** Airport time zone: every instant is shown in Damascus time, whatever the device's zone (CLAUDE.md §6.4). */
@@ -11,6 +11,13 @@ export function formatDateTime(date: Date): string {
 		timeStyle: 'short',
 		timeZone: AIRPORT_TIME_ZONE
 	}).format(date);
+}
+
+/** A calendar date (`YYYY-MM-DD`) as `26 Oct 2026` in the current locale. Wrap it in `<bdi>`. */
+export function formatDate(date: string): string {
+	return new DateFormatter(getLocale(), { dateStyle: 'medium', timeZone: 'UTC' }).format(
+		parseDate(date).toDate('UTC')
+	);
 }
 
 /** `13:17` in Damascus time, in the current locale. Wrap the result in `<bdi>`. */

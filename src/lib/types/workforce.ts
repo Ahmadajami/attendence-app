@@ -21,11 +21,22 @@ export type DepartmentOption = {
 	active: boolean;
 };
 
+export type JobTitleOption = {
+	id: string;
+	nameEn: string;
+	nameAr: string;
+	active: boolean;
+};
+
 export type StaffRow = {
 	id: string;
 	employeeNo: string;
 	fullName: string;
 	fullNameAr: string | null;
+	firstNameEn: string | null;
+	lastNameEn: string | null;
+	firstNameAr: string | null;
+	lastNameAr: string | null;
 	phone: string | null;
 	workEmail: string | null;
 	startDate: string | null;
@@ -33,4 +44,5 @@ export type StaffRow = {
 	function: StaffFunctionOption | null;
 	department: DepartmentOption | null;
 	team: TeamOption | null;
+	jobTitle: JobTitleOption | null;
 };

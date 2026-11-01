@@ -6,3 +6,4 @@ export * from './imports.js';
 export * from './settings.js';
 export * from './roster.js';
 export * from './attendance.js';
+export * from './profile.js';

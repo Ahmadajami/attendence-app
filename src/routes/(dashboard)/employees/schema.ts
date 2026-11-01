@@ -13,12 +13,17 @@ export const staffFormSchema = z.object({
 		.regex(/^([0-9٠-٩۰-۹]+)?$/, { error: () => m.staff_employee_no_digits() })
 		.overwrite(toAsciiDigits)
 		.default(''),
-	fullName: z
-		.string()
-		.trim()
-		.min(1, { error: () => m.staff_name_required() })
-		.max(120),
+	/**
+	 * Name parts (profile plan H1): required for a new person (checked by the service), shown for
+	 * someone who has them. The full names are edited only for a person without parts.
+	 */
+	firstNameEn: z.string().trim().max(60).default(''),
+	lastNameEn: z.string().trim().max(60).default(''),
+	firstNameAr: z.string().trim().max(60).default(''),
+	lastNameAr: z.string().trim().max(60).default(''),
+	fullName: z.string().trim().max(120).default(''),
 	fullNameAr: z.string().trim().max(120).default(''),
+	jobTitleId: optionalId.default(''),
 	phone: z.string().trim().max(40).default(''),
 	workEmail: z
 		.union([z.literal(''), z.email({ error: () => m.staff_email_invalid() })])

@@ -26,6 +26,19 @@ export const staffFunction = pgTable('staff_function', {
 		.$onUpdate(() => new Date())
 });
 
+/** Job titles (supervisor, agent…), managed on `/staff-lists`; separate from the work area (profile plan H6). */
+export const jobTitle = pgTable('job_title', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	nameEn: text('name_en').notNull().unique(),
+	nameAr: text('name_ar').notNull(),
+	active: boolean('active').notNull().default(true),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true })
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date())
+});
+
 /**
  * The department tree, managed in the app (plan D25: seeded once from Odoo, `odoo_id` kept for
  * seeded rows). A name is unique among its siblings. Deactivated, never deleted; the BL refuses
@@ -86,6 +99,17 @@ export const staff = pgTable(
 		employeeNo: text('employee_no').notNull().unique(),
 		fullName: text('full_name').notNull(),
 		fullNameAr: text('full_name_ar'),
+		/**
+		 * Name parts (profile plan H1). When both parts of a language are set, the service keeps
+		 * `full_name` / `full_name_ar` as "first last"; seeded rows keep their full name until HR
+		 * fills the parts.
+		 */
+		firstNameEn: text('first_name_en'),
+		lastNameEn: text('last_name_en'),
+		firstNameAr: text('first_name_ar'),
+		lastNameAr: text('last_name_ar'),
+		jobTitleId: uuid('job_title_id').references(() => jobTitle.id, { onDelete: 'restrict' }),
+		personalEmail: text('personal_email'),
 		phone: text('phone'),
 		functionId: uuid('function_id').references(() => staffFunction.id, { onDelete: 'restrict' }),
 		departmentId: uuid('department_id').references((): AnyPgColumn => department.id, {
@@ -110,7 +134,12 @@ export const staff = pgTable(
 		index('staff_function_id_idx').on(t.functionId),
 		index('staff_team_id_idx').on(t.teamId),
 		index('staff_department_id_idx').on(t.departmentId),
-		check('staff_employee_no_digits', sql`${t.employeeNo} ~ '^[0-9]+$'`)
+		index('staff_job_title_id_idx').on(t.jobTitleId),
+		check('staff_employee_no_digits', sql`${t.employeeNo} ~ '^[0-9]+$'`),
+		check(
+			'staff_personal_email_format',
+			sql`${t.personalEmail} ~ '^[^@[:space:]]+@[^@[:space:]]+$'`
+		)
 	]
 );
 
@@ -149,6 +178,10 @@ export const staffFunctionRelations = relations(staffFunction, ({ many }) => ({
 	staff: many(staff)
 }));
 
+export const jobTitleRelations = relations(jobTitle, ({ many }) => ({
+	staff: many(staff)
+}));
+
 export const departmentRelations = relations(department, ({ one, many }) => ({
 	parent: one(department, {
 		fields: [department.parentId],
@@ -177,6 +210,7 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 		references: [staffFunction.id]
 	}),
 	team: one(team, { fields: [staff.teamId], references: [team.id] }),
+	jobTitle: one(jobTitle, { fields: [staff.jobTitleId], references: [jobTitle.id] }),
 	department: one(department, {
 		fields: [staff.departmentId],
 		references: [department.id],
@@ -194,6 +228,7 @@ export const staffTeamMembershipRelations = relations(staffTeamMembership, ({ on
 
 export type StaffFunction = typeof staffFunction.$inferSelect;
 export type NewStaffFunction = typeof staffFunction.$inferInsert;
+export type JobTitle = typeof jobTitle.$inferSelect;
 export type Department = typeof department.$inferSelect;
 export type NewDepartment = typeof department.$inferInsert;
 export type Team = typeof team.$inferSelect;

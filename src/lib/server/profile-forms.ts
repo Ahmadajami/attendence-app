@@ -7,6 +7,7 @@ import {
 	custodyFormSchema,
 	documentFormSchema,
 	experienceFormSchema,
+	profileIdentityFormSchema,
 	profileNamesFormSchema,
 	removeProfileItemSchema,
 	skillFormSchema,
@@ -22,6 +23,7 @@ import {
 	saveExperience,
 	saveSocialAccount,
 	saveStaffSkill,
+	setProfileIdentity,
 	setProfileNames,
 	setStaffDocument
 } from '#lib/server/services/staff-profile/staff-profile.bl.js';
@@ -32,6 +34,7 @@ import type { ProfilePerson } from '#lib/types/profile.js';
 
 const ids = {
 	names: 'profile-names',
+	identity: 'profile-identity',
 	contact: 'profile-contact',
 	experience: 'profile-experience',
 	skill: 'profile-skill',
@@ -54,6 +57,20 @@ export async function profileForms(person: ProfilePerson) {
 			},
 			zod4(profileNamesFormSchema),
 			{ id: ids.names, errors: false }
+		),
+		identityForm: await superValidate(
+			{
+				fatherNameEn: person.fatherNameEn ?? '',
+				fatherNameAr: person.fatherNameAr ?? '',
+				motherNameEn: person.motherNameEn ?? '',
+				motherNameAr: person.motherNameAr ?? '',
+				nationalIdNo: person.nationalIdNo ?? '',
+				nationalIdIssuedOn: person.nationalIdIssuedOn ?? '',
+				nationalIdExpiresOn: person.nationalIdExpiresOn ?? '',
+				passportNo: person.passportNo ?? ''
+			},
+			zod4(profileIdentityFormSchema),
+			{ id: ids.identity, errors: false }
 		),
 		contactForm: await superValidate(zod4(contactFormSchema), { id: ids.contact }),
 		experienceForm: await superValidate(zod4(experienceFormSchema), { id: ids.experience }),
@@ -87,6 +104,30 @@ export async function namesAction(request: Request, actor: Actor, staffId: strin
 			lastNameAr: orNull(form.data.lastNameAr),
 			jobTitleId: orNull(form.data.jobTitleId),
 			personalEmail: orNull(form.data.personalEmail)
+		});
+		return saved(form);
+	} catch (cause) {
+		return failForm(form, cause);
+	}
+}
+
+export async function identityAction(request: Request, actor: Actor, staffId: string) {
+	const form: Result<Infer<typeof profileIdentityFormSchema>> = await superValidate(
+		request,
+		zod4(profileIdentityFormSchema),
+		{ id: ids.identity }
+	);
+	if (!form.valid) return fail(400, { form });
+	try {
+		await setProfileIdentity(actor, staffId, {
+			fatherNameEn: orNull(form.data.fatherNameEn),
+			fatherNameAr: orNull(form.data.fatherNameAr),
+			motherNameEn: orNull(form.data.motherNameEn),
+			motherNameAr: orNull(form.data.motherNameAr),
+			nationalIdNo: orNull(form.data.nationalIdNo),
+			nationalIdIssuedOn: orNull(form.data.nationalIdIssuedOn),
+			nationalIdExpiresOn: orNull(form.data.nationalIdExpiresOn),
+			passportNo: orNull(form.data.passportNo)
 		});
 		return saved(form);
 	} catch (cause) {

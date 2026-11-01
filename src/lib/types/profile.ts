@@ -19,6 +19,14 @@ export type ProfilePerson = {
 	lastNameEn: string | null;
 	firstNameAr: string | null;
 	lastNameAr: string | null;
+	fatherNameEn: string | null;
+	fatherNameAr: string | null;
+	motherNameEn: string | null;
+	motherNameAr: string | null;
+	nationalIdNo: string | null;
+	nationalIdIssuedOn: string | null;
+	nationalIdExpiresOn: string | null;
+	passportNo: string | null;
 	jobTitleId: string | null;
 	personalEmail: string | null;
 	startDate: string | null;

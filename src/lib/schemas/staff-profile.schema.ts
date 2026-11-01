@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
+import { toAsciiDigits } from '#lib/schemas/auth.schema.js';
 
 // The employee profile forms (plan 2026-11-01-employee-profile, H1–H10). Empty strings are "not
 // given"; the BL turns them into `null`.
@@ -47,6 +48,31 @@ export const profileNamesFormSchema = z.object({
 	personalEmail: optionalEmail
 });
 export type ProfileNamesFormSchema = typeof profileNamesFormSchema;
+
+/** An ID or passport number: letters, digits and dashes; Arabic-Indic digits become ASCII. */
+const documentNumber = z
+	.string()
+	.trim()
+	.max(30)
+	.overwrite(toAsciiDigits)
+	.regex(/^[0-9A-Za-z-]*$/, { error: () => m.profile_document_number_invalid() })
+	.default('');
+
+/**
+ * Parents' names and the ID card / passport (H13). The expiry not before the issue date is checked
+ * by the BL (and the DB), not by a whole-object refine.
+ */
+export const profileIdentityFormSchema = z.object({
+	fatherNameEn: optionalText(60),
+	fatherNameAr: optionalText(60),
+	motherNameEn: optionalText(60),
+	motherNameAr: optionalText(60),
+	nationalIdNo: documentNumber,
+	nationalIdIssuedOn: optionalDate,
+	nationalIdExpiresOn: optionalDate,
+	passportNo: documentNumber
+});
+export type ProfileIdentityFormSchema = typeof profileIdentityFormSchema;
 
 /** An emergency contact (H2); `contactId` `''` adds one. */
 export const contactFormSchema = z.object({

@@ -108,6 +108,16 @@ export const staff = pgTable(
 		lastNameEn: text('last_name_en'),
 		firstNameAr: text('first_name_ar'),
 		lastNameAr: text('last_name_ar'),
+		/** Parents' names (profile plan H13): optional, one field per language. */
+		fatherNameEn: text('father_name_en'),
+		fatherNameAr: text('father_name_ar'),
+		motherNameEn: text('mother_name_en'),
+		motherNameAr: text('mother_name_ar'),
+		/** National ID card (H13): number, issue date, expiry date (not before the issue date). */
+		nationalIdNo: text('national_id_no'),
+		nationalIdIssuedOn: date('national_id_issued_on', { mode: 'string' }),
+		nationalIdExpiresOn: date('national_id_expires_on', { mode: 'string' }),
+		passportNo: text('passport_no'),
 		jobTitleId: uuid('job_title_id').references(() => jobTitle.id, { onDelete: 'restrict' }),
 		personalEmail: text('personal_email'),
 		phone: text('phone'),
@@ -139,6 +149,10 @@ export const staff = pgTable(
 		check(
 			'staff_personal_email_format',
 			sql`${t.personalEmail} ~ '^[^@[:space:]]+@[^@[:space:]]+$'`
+		),
+		check(
+			'staff_national_id_dates',
+			sql`${t.nationalIdExpiresOn} IS NULL OR ${t.nationalIdIssuedOn} IS NULL OR ${t.nationalIdExpiresOn} >= ${t.nationalIdIssuedOn}`
 		)
 	]
 );

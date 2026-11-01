@@ -844,6 +844,16 @@
       alts: []
     },
     {
+      id: 'H13', group: 'profile', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-employee-profile.md §1 (H13), Phase 4b',
+      title: { en: 'Family & ID: parents\' names, ID card, passport', ar: 'العائلة والهوية: اسما الوالدين وبطاقة الهوية وجواز السفر' },
+      decision: { en: 'Eight optional fields on the employee: father\'s and mother\'s name in English and Arabic, ID number, ID issue date, ID expiry date (not before the issue date) and passport number. They show in a "Family & ID" card on the Personal tab and are edited in its own sheet; every save is audited. ID and passport numbers take letters, digits and dashes; Arabic-Indic digits are stored as ASCII.', ar: 'ثمانية حقول اختيارية للموظف: اسم الأب واسم الأم بالإنجليزية والعربية، رقم الهوية، تاريخ منح الهوية، تاريخ انتهائها (لا يسبق تاريخ المنح) ورقم جواز السفر. تظهر في بطاقة «العائلة والهوية» في تبويب البيانات الشخصية وتُعدَّل في لوحتها الخاصة؛ ويُسجَّل كل حفظ في سجل التدقيق. أرقام الهوية والجواز تقبل الأحرف والأرقام والشرطات؛ وتُخزَّن الأرقام العربية الهندية بأرقام لاتينية.' },
+      why: { en: 'The user asked for these fields (2026-11-01); it also answers Q-H1 (parents\' names instead of a grandfather\'s name). One value per person, so plain columns like the names.', ar: 'طلب المستخدم هذه الحقول (2026-11-01)؛ وهي تجيب أيضاً على Q-H1 (اسما الوالدين بدلاً من اسم الجد). قيمة واحدة لكل شخص، لذا أعمدة عادية مثل الأسماء.' },
+      alts: [
+        { en: 'Record the ID card and passport as documents (H5, reference number per document type): not chosen — the user wants them on the person, with issue and expiry dates for the ID.', ar: 'تسجيل بطاقة الهوية والجواز كوثائق (H5، رقم مرجعي لكل نوع وثيقة): لم يُختر — يريدها المستخدم ضمن بيانات الشخص مع تاريخي منح الهوية وانتهائها.' },
+        { en: 'Put them in the add/edit employee form: not chosen — that form stays short (H9); the Personal tab holds personal details.', ar: 'وضعها في نموذج إضافة/تعديل الموظف: لم يُختر — يبقى ذلك النموذج قصيراً (H9)؛ والتفاصيل الشخصية في تبويب البيانات الشخصية.' }
+      ]
+    },
+    {
       id: 'V11', group: 'profile', status: 'approved', date: '2026-11-01', src: 'src/routes/(dashboard)/employees/+page.svelte (user, chat 2026-11-01)',
       title: { en: 'Employees list: full width, teams below', ar: 'قائمة الموظفين: بعرض الصفحة والفرق تحتها' },
       decision: { en: 'The all-employees table takes the full page width (at most 55% of the screen height, scrolling inside); the team cards sit below it in a grid of up to four columns. View only: drag and drop and saving are unchanged.', ar: 'يأخذ جدول جميع الموظفين عرض الصفحة كاملاً (بارتفاع أقصاه 55% من الشاشة مع تمرير داخلي)؛ وتأتي بطاقات الفرق تحته في شبكة حتى أربعة أعمدة. تغيير في العرض فقط: السحب والإفلات والحفظ كما هي.' },
@@ -874,7 +884,7 @@
     ['Q-A12', 'Format of generated employee numbers?', 'next integer after the highest, never reused', 'صيغة أرقام الموظفين المولّدة؟', 'العدد التالي بعد الأعلى، دون إعادة استخدام'],
     ['Q-A13', 'Must a new hire\'s number be enrolled on BioTime?', 'yes (HR process)', 'هل يجب تسجيل رقم الموظف الجديد في BioTime؟', 'نعم (إجراء الموارد البشرية)'],
     ['Q-B4', 'Do own off days and crew start also adjust a person\'s own (personal) pattern, or only a team/department one? (builder plan B2 step 4, task 2.3)', 'team/department only: a personal pattern already is the person\'s own days and has its own anchor', 'هل تُعدِّل أيام العطلة الخاصة وبداية الطاقم النمطَ الشخصي أيضاً، أم نمط الفريق/القسم فقط؟', 'نمط الفريق/القسم فقط: النمط الشخصي هو أيام الشخص نفسه وله تاريخ بدايته'],
-    ["Q-H1", "Arabic names: first + last only, or also father's / grandfather's name?", "first + last only", "الأسماء العربية: الاسم الأول والأخير فقط، أم أيضاً اسم الأب والجد؟", "الأول والأخير فقط"],
+    ["Q-H1", "Arabic names: first + last only, or also father's / grandfather's name? (answered 2026-11-01: father's and mother's names, see H13)", "first + last + father's and mother's names", "الأسماء العربية: الاسم الأول والأخير فقط، أم أيضاً اسم الأب والجد؟ (أُجيب 2026-11-01: اسما الأب والأم، انظر H13)", "الأول والأخير + اسما الأب والأم"],
     ["Q-H2", "Are \"experience\" and \"work experience\" the same thing?", "the same: past jobs + computed years", "هل \"الخبرة\" و\"الخبرة العملية\" شيء واحد؟", "شيء واحد: الوظائف السابقة + سنوات محسوبة"],
     ["Q-H3", "\"Social skill\": soft skills only, or skills in general?", "skills in general, from a managed list", "\"المهارات الاجتماعية\": المهارات الشخصية فقط، أم المهارات عموماً؟", "المهارات عموماً، من قائمة مُدارة"],
     ["Q-H4", "\"Document received number\": the count received, or each document's reference number?", "both", "\"رقم المستند المستلم\": عدد المستندات المستلمة، أم الرقم المرجعي لكل مستند؟", "كلاهما"],

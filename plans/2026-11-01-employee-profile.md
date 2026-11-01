@@ -45,13 +45,14 @@ log. Resume point = the first unticked box.
 | H9 | ~~**UI:** one sheet per group~~ **replaced by H12** (2026-11-01). The create sheet stays short (names en/ar first + last, employee number, department, team, job title). `/employees/[id]` gets a **Profile** card with one sheet per group (names & job, contacts, experience, skills, documents). The three lists (job titles, skills, document types) are managed on one page `/staff-lists` (`staff.write`) | A 30-field sheet is unusable; groups match the user's numbered list |
 | H10 | **Never hard-delete:** contacts, experience rows, skills, social accounts and custody items get `removed_at` (+ `removed_by`); list items are deactivated | Template rule §6.6; the audit trail stays readable |
 | H11 | **Custody** (user, 2026-11-01): a managed list `custody_item_type` (phone, SIM line, uniform…) and `staff_custody_item` (type, identifier: serial / IMEI / line number / size, issued on, **status** `with_employee` \| `returned` \| `lost` \| `damaged`, status date, note). The status changes in place; `audit_log` keeps every earlier status (Q-H7) | The user's request; a list keeps counts clean; the audit log already is the history |
+| H13 | **Family & ID** (user, 2026-11-01): `staff` gets `father_name_en/_ar`, `mother_name_en/_ar`, `national_id_no`, `national_id_issued_on`, `national_id_expires_on` (not before the issue date), `passport_no`, all optional. Shown and edited in a "Family & ID" card on the Personal tab (its own sheet and action `?/saveIdentity`), audited like the names. ID and passport numbers: letters, digits, dashes, max 30 | The user's request; answers Q-H1 (parents' names, no grandfather). Plain columns, like the names: one value per person, no history needed beyond the audit log |
 | H12 | **Profile as tabs** (user, 2026-11-01): the Profile card uses `UnderlineTabs` (Overview, Names & job, Contacts, Experience, Skills, Documents, Custody), each tab with its list next to its form, instead of H9's sheets | The user's choice: read and edit in one place |
 
 Questions for the user (each default above is used until answered):
 
 | # | Question | Default |
 |---|---|---|
-| Q-H1 | Arabic names: first + last only, or also father's / grandfather's name? | first + last only (H1) |
+| Q-H1 | Arabic names: first + last only, or also father's / grandfather's name? | first + last only (H1). **Answered 2026-11-01:** add father's and mother's names in both languages, no grandfather (H13) |
 | Q-H2 | Are "experience" (item 3) and "work experience" (item 6) the same, or is item 3 something else (e.g. years in the field, a level)? | the same: a list of past jobs + computed years (H3) |
 | Q-H3 | "Social skill": soft skills only, or skills in general (languages, licences, certificates)? | skills in general, from a managed list (H4) |
 | Q-H4 | "Document received number": the **count** received (3 of 5), or each document's **reference number** (ID / certificate number)? | both: the count on the profile, a reference number per document (H5) |
@@ -144,6 +145,22 @@ Questions for the user (each default above is used until answered):
       prettier on touched files; `pnpm test`.
       > note: autofixer clean on every touched `.svelte` (only the generic "attachment instead of
       > `use:enhance`" hint left); `pnpm check` 0 errors; eslint clean; 202 tests pass.
+
+### Phase 4b · Family & ID (H13, user 2026-11-01)
+- [x] 4b.1 Schema: 8 `staff` columns + check `staff_national_id_dates`; migration
+      `0011_staff_identity` (8 `ADD COLUMN` + 1 check, no data change).
+      > note: SQL, snapshot and journal written by hand in a session without `node_modules`;
+      > `pnpm db:generate` must report no changes. Not applied to any DB yet.
+- [ ] 4b.2 Migration applied: `_test` and `_e2e` freely; `attendance_app` after a `staff` row count
+      and the user's OK. **Done when** `\d staff` shows the 8 columns and the check in all three
+- [x] 4b.3 `profileIdentityFormSchema` (+ 4 Vitest cases), `setProfileIdentity` (audit
+      `staff.profile_identity`), `identityAction`, route action `saveIdentity`, `IdentityForm` in a
+      sheet, "Family & ID" card on the Personal tab, 14 en + ar keys.
+      > note: not type-checked or run here (no `node_modules`); the user runs `pnpm check`,
+      > `pnpm test`, eslint and the autofixer.
+- [ ] 4b.4 Manual check by the user on `attendance_app_e2e`: fill all eight for a made-up person,
+      reload, see them on the card; an expiry before the issue date is refused on that field;
+      Arabic-Indic digits in the ID number are saved as ASCII; `/ar` reads right to left.
 
 ### Phase 5 · Verify
 - [ ] 5.1 Manual check **by the user** on `attendance_app_e2e` (port 5174, `--mode e2e`), made-up

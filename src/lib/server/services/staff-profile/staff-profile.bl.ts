@@ -63,6 +63,17 @@ export type ProfileNamesInput = NameParts & {
 	jobTitleId: string | null;
 	personalEmail: string | null;
 };
+/** Parents' names and the ID card / passport (H13); `null` = not given. */
+export type ProfileIdentityInput = {
+	fatherNameEn: string | null;
+	fatherNameAr: string | null;
+	motherNameEn: string | null;
+	motherNameAr: string | null;
+	nationalIdNo: string | null;
+	nationalIdIssuedOn: string | null;
+	nationalIdExpiresOn: string | null;
+	passportNo: string | null;
+};
 export type ContactInput = {
 	name: string;
 	relationship: string;
@@ -231,6 +242,45 @@ export async function setProfileNames(
 				personalEmail: before.personalEmail
 			},
 			after: values
+		})
+	]);
+}
+
+/** Parents' names and the ID card / passport (H13). The ID can't expire before it was issued. */
+export async function setProfileIdentity(
+	actor: Actor,
+	staffId: string,
+	input: ProfileIdentityInput
+): Promise<void> {
+	requireActorPermission(actor, 'staff.write');
+	const before = await requirePerson(staffId);
+	if (
+		input.nationalIdIssuedOn &&
+		input.nationalIdExpiresOn &&
+		input.nationalIdExpiresOn < input.nationalIdIssuedOn
+	)
+		throw new InvalidInputError('id_dates_order', m.profile_id_expiry_before_issue(), {
+			field: 'nationalIdExpiresOn'
+		});
+
+	await batch([
+		updateStaffProfile(staffId, input),
+		auditInsert({
+			actor: actor.user,
+			action: 'staff.profile_identity',
+			entityType: 'staff',
+			entityId: staffId,
+			before: {
+				fatherNameEn: before.fatherNameEn,
+				fatherNameAr: before.fatherNameAr,
+				motherNameEn: before.motherNameEn,
+				motherNameAr: before.motherNameAr,
+				nationalIdNo: before.nationalIdNo,
+				nationalIdIssuedOn: before.nationalIdIssuedOn,
+				nationalIdExpiresOn: before.nationalIdExpiresOn,
+				passportNo: before.passportNo
+			},
+			after: input
 		})
 	]);
 }

@@ -23,6 +23,7 @@ import {
 	custodyAction,
 	documentAction,
 	experienceAction,
+	identityAction,
 	namesAction,
 	profileForms,
 	removeItemAction,
@@ -151,6 +152,9 @@ export const actions: Actions = {
 
 	saveNames: async ({ request, locals, params }) =>
 		namesAction(request, actorFrom(locals), staffId(params.id)),
+
+	saveIdentity: async ({ request, locals, params }) =>
+		identityAction(request, actorFrom(locals), staffId(params.id)),
 
 	saveContact: async ({ request, locals, params }) =>
 		contactAction(request, actorFrom(locals), staffId(params.id)),

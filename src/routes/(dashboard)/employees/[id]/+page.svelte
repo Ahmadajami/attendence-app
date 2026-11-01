@@ -239,6 +239,7 @@
 					<PersonalPanel
 						profile={data.profile}
 						namesForm={data.namesForm}
+						identityForm={data.identityForm}
 						contactForm={data.contactForm}
 						socialForm={data.socialForm}
 						jobTitles={data.lists.jobTitles}

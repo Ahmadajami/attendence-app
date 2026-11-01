@@ -1,6 +1,6 @@
 # Management tree for each employee: who manages whom
 
-**Status:** proposed (2026-11-01; waiting for the user's approval and answers to Q-T1–Q-T6)
+**Status:** in progress (approved 2026-11-01: M14–M22 as written, Q-T1–Q-T6 defaults kept)
 **Date:** 2026-11-01
 **Goal:** Every employee's profile gets a **Management** tab: the line **up** (their supervisor(s)
 → department manager → managers higher up the department tree → HR) and, for anyone who
@@ -43,7 +43,7 @@ first. One commit per phase, plan file included.
 | M21 | **UI:** a recursive `#lib/app/management/ReportTree.svelte` built from shadcn `Collapsible` (added by the user with `pnpm dlx shadcn-svelte@latest add collapsible`) inside `Card`; indentation with logical `ps-*`; caret icons `rtl:rotate-180`; initials `Avatar` as on the employee cards; strings `management_tree_*` in en + ar | The template's UI rules; reads right to left in `/ar` |
 | M22 | **Status filter on `/employees`** (the user, 2026-11-01). As soon as **at least one employee is inactive**, the toolbar of both tabs (cards and "Move between teams") shows a `Select` beside the search: **Active (n) · Inactive (n) · All (n)**, default **Active** (Q-T6). It is a GET filter (`?status=active\|inactive\|all`, `name` on `Select.Root`, submits on change), so it stays in the URL with `?view=`; the page filters the list it already loads, counts come from the whole list, an unknown value falls back to the default. With no inactive employee the filter is hidden. Deactivating someone from the actions menu toasts "… was deactivated: shown under Inactive". The team cards of "Move between teams" keep listing active members only (unchanged). An inactive manager or supervisor still in place stays a gap in the tree (M19, Q-T4) | Deactivated people no longer clutter the daily list but are one click away; nothing to filter while everyone is active |
 
-Questions for the user (each default above is used until answered):
+Questions for the user (answered 2026-11-01: **every default kept**):
 
 | # | Question | Default |
 |---|---|---|
@@ -59,9 +59,11 @@ Questions for the user (each default above is used until answered):
 ## 2. Tasks
 
 ### Phase 0 · Agree the plan
-- [ ] 0.1 The user approves M14–M22 or changes them, and answers Q-T1–Q-T6 (or keeps the
+- [x] 0.1 The user approves M14–M22 or changes them, and answers Q-T1–Q-T6 (or keeps the
       defaults). Update this plan, the two-level plan (task 4.3 pointer) and `docs/decisions.html`
       (`proposed` → `approved`).
+  > note: approved 2026-11-01 unchanged, every Q-T default kept. M15–M22 `approved` in
+  > `docs/decisions.html`; M10 `replaced` by M15 + M20; two-level task 4.3 points here.
 
 ### Phase 1 · Engine (in `src/lib/workforce/management.ts`, pure, Vitest)
 Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
@@ -108,6 +110,14 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
       `EmployeeCards` and `EmployeesTable`, shown only when an inactive employee exists; the
       deactivate toast names the Inactive filter. No load or action change. This task does not
       need Phases 1–2 and can be built first.
+  > note: built 2026-11-01 in a cloud session (no `node_modules`): `EMPLOYEE_STATUSES`,
+  > `employeeStatus`, `filterByStatus`, `statusCounts` in `employees/labels.ts` with 4 Vitest
+  > cases in `labels.test.ts`; `StatusFilter.svelte` (GET form keeping `?view=`, submits on
+  > change, no reload of the page data) rendered through a `filter` snippet in `EmployeeCards` and
+  > `EmployeesTable`; `+page.svelte` filters and counts; the `/employees` deactivate action toasts
+  > `employees_deactivated` (the profile's toast is unchanged); 5 en + ar keys. Not ticked until
+  > `pnpm check`, `pnpm test`, eslint and the Svelte autofixer pass on the user's laptop (prettier
+  > ran on the `.ts` / `.json` files; the `.svelte` files were formatted by hand).
 
 ### Phase 4 · Verify
 - [ ] 4.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: a member's tab

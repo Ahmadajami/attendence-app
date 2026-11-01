@@ -26,3 +26,34 @@ export function searchEmployees(employees: StaffRow[], query: string): StaffRow[
 			(e.fullNameAr?.includes(q) ?? false)
 	);
 }
+
+/**
+ * The status filter (management tree plan M22), kept in `?status=`. Shown only once someone is
+ * inactive; `active` by default (Q-T6).
+ */
+export const EMPLOYEE_STATUSES = ['active', 'inactive', 'all'] as const;
+export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
+
+export function employeeStatus(value: string | null): EmployeeStatus {
+	return value && (EMPLOYEE_STATUSES as readonly string[]).includes(value)
+		? (value as EmployeeStatus)
+		: 'active';
+}
+
+/** The employees `status` shows. */
+export function filterByStatus<T extends { active: boolean }>(
+	employees: readonly T[],
+	status: EmployeeStatus
+): T[] {
+	if (status === 'all') return [...employees];
+	const active = status === 'active';
+	return employees.filter((e) => e.active === active);
+}
+
+/** How many employees each status shows (from the whole list, not the filtered one). */
+export function statusCounts(
+	employees: readonly { active: boolean }[]
+): Record<EmployeeStatus, number> {
+	const active = employees.filter((e) => e.active).length;
+	return { active, inactive: employees.length - active, all: employees.length };
+}

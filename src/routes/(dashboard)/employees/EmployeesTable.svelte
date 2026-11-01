@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { createDroppable } from '@dnd-kit/svelte';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import * as Card from '#lib/components/ui/card/index.js';
@@ -14,11 +15,14 @@
 		employees,
 		teamById,
 		onToggleActive,
+		filter,
 		class: className
 	}: {
 		employees: StaffRow[];
 		teamById: Map<string, TeamOption>;
 		onToggleActive: (employee: StaffRow) => void;
+		/** The status filter (M22), beside the search; absent while everyone is active. */
+		filter?: Snippet;
 		class?: string;
 	} = $props();
 
@@ -34,17 +38,20 @@
 	<Card.Header>
 		<Card.Title>{m.employees_all()}</Card.Title>
 		<Card.Description>{m.employees_count({ count: employees.length })}</Card.Description>
-		<InputGroup.Root class="mt-2">
-			<InputGroup.Addon>
-				<MagnifyingGlassIcon />
-			</InputGroup.Addon>
-			<InputGroup.Input
-				type="search"
-				bind:value={query}
-				placeholder={m.employees_search()}
-				aria-label={m.employees_search()}
-			/>
-		</InputGroup.Root>
+		<div class="mt-2 flex flex-wrap items-center gap-2">
+			<InputGroup.Root class="min-w-48 flex-1">
+				<InputGroup.Addon>
+					<MagnifyingGlassIcon />
+				</InputGroup.Addon>
+				<InputGroup.Input
+					type="search"
+					bind:value={query}
+					placeholder={m.employees_search()}
+					aria-label={m.employees_search()}
+				/>
+			</InputGroup.Root>
+			{@render filter?.()}
+		</div>
 	</Card.Header>
 	<Card.Content
 		{@attach droppable.attach}

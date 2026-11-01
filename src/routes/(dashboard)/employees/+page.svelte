@@ -18,8 +18,16 @@
 	import type { PageProps } from './$types';
 	import EmployeeCards from './EmployeeCards.svelte';
 	import EmployeesTable from './EmployeesTable.svelte';
+	import StatusFilter from './StatusFilter.svelte';
 	import TeamTable from './TeamTable.svelte';
-	import { ALL_EMPLOYEES, employeeName, employeeView } from './labels.js';
+	import {
+		ALL_EMPLOYEES,
+		employeeName,
+		employeeStatus,
+		employeeView,
+		filterByStatus,
+		statusCounts
+	} from './labels.js';
 	import { setPersonalPatternIds } from './context.js';
 
 	let { data }: PageProps = $props();
@@ -45,6 +53,17 @@
 			team: employee.id in teamOverrides ? teamOverrides[employee.id] : employee.team
 		}))
 	);
+
+	/**
+	 * The status filter (M22) lives in `?status=` and appears only once someone is inactive;
+	 * until then everyone is shown. Counts come from the whole list.
+	 */
+	const counts = $derived(statusCounts(employees));
+	const showStatusFilter = $derived(counts.inactive > 0);
+	const status = $derived(
+		showStatusFilter ? employeeStatus(page.url.searchParams.get('status')) : 'all'
+	);
+	const visibleEmployees = $derived(filterByStatus(employees, status));
 
 	const teams = $derived(data.teams);
 	const teamById = $derived.by(() => {
@@ -179,7 +198,11 @@
 	</UnderlineTabs.List>
 
 	<UnderlineTabs.Content value="cards">
-		<EmployeeCards {employees} onToggleActive={toggleActive} />
+		<EmployeeCards
+			employees={visibleEmployees}
+			onToggleActive={toggleActive}
+			filter={showStatusFilter ? statusFilter : undefined}
+		/>
 	</UnderlineTabs.Content>
 
 	<UnderlineTabs.Content value="move" class="flex flex-col gap-4">
@@ -189,9 +212,10 @@
 			     teams in a grid below. -->
 			<div class="flex flex-col gap-4">
 				<EmployeesTable
-					{employees}
+					employees={visibleEmployees}
 					{teamById}
 					onToggleActive={toggleActive}
+					filter={showStatusFilter ? statusFilter : undefined}
 					class="max-h-[55dvh]"
 				/>
 
@@ -225,6 +249,10 @@
 		</DragDropProvider>
 	</UnderlineTabs.Content>
 </UnderlineTabs.Root>
+
+{#snippet statusFilter()}
+	<StatusFilter {status} {counts} {view} />
+{/snippet}
 
 <form bind:this={teamForm} method="POST" action="?/setTeam" use:enhance={onMoveResult} hidden>
 	<input type="hidden" name="staffId" value={teamRequest.staffId} />

@@ -58,7 +58,7 @@ export const actions: Actions = {
 			return {
 				notice: active
 					? m.staff_activated({ name: personName(row) })
-					: m.staff_deactivated({ name: personName(row) })
+					: m.employees_deactivated({ name: personName(row) })
 			};
 		} catch (cause) {
 			return failNotice(cause);

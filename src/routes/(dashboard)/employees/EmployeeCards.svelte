@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import Empty from '#lib/app/state/Empty.svelte';
 	import * as InputGroup from '#lib/components/ui/input-group/index.js';
@@ -9,10 +10,13 @@
 
 	let {
 		employees,
-		onToggleActive
+		onToggleActive,
+		filter
 	}: {
 		employees: StaffRow[];
 		onToggleActive: (employee: StaffRow) => void;
+		/** The status filter (M22), beside the search; absent while everyone is active. */
+		filter?: Snippet;
 	} = $props();
 
 	let query = $state('');
@@ -22,17 +26,20 @@
 <!-- The employees as cards (the "Employees" tab); moving people between teams is the other tab. -->
 <section class="flex flex-col gap-4">
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<InputGroup.Root class="max-w-sm">
-			<InputGroup.Addon>
-				<MagnifyingGlassIcon />
-			</InputGroup.Addon>
-			<InputGroup.Input
-				type="search"
-				bind:value={query}
-				placeholder={m.employees_search()}
-				aria-label={m.employees_search()}
-			/>
-		</InputGroup.Root>
+		<div class="flex flex-wrap items-center gap-2">
+			<InputGroup.Root class="max-w-sm">
+				<InputGroup.Addon>
+					<MagnifyingGlassIcon />
+				</InputGroup.Addon>
+				<InputGroup.Input
+					type="search"
+					bind:value={query}
+					placeholder={m.employees_search()}
+					aria-label={m.employees_search()}
+				/>
+			</InputGroup.Root>
+			{@render filter?.()}
+		</div>
 		<p class="text-xs text-muted-foreground">{m.employees_count({ count: filtered.length })}</p>
 	</div>
 

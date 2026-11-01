@@ -47,7 +47,7 @@ supervisor, else department manager, else HR), D10 (sub-departments inherit) and
 | M11 | **Out of scope here:** manager/supervisor **accounts and sign-in** (S8: roles with permission keys, every BL checks the actor's scope server-side), and the **approval workflow** itself (S3.5 `/changes` will use M5). This plan only provides the chain and the scopes they will use | No login yet (D17); approvals need `/changes` first |
 | M12 | **Permissions now:** viewing `/management` needs `staff.write`; changing managers and supervisors needs `staff.write` (as departments and teams today). No new keys until S8 | Single local user; keys come with the roles in S8 |
 | M13 | **Until the dated sheet (4.2), the department form changes the manager from today** (default, 2026-11-01, task 1.3): the row in force ends today and stays in the history, a row that started today is replaced; the form has no reason field, so the row stores the fixed reason "Set on the departments page" | HR keeps editing managers where they do today, and the history starts at once; the reason field comes with the 4.2 sheet so the form isn't built twice |
-| M23 | **When the engine reads the organisation** (default, 2026-11-01, Phase 2): an `OrgMoment` = the **date** for day-dated manager rows and an **instant** for memberships and supervisors (dated by instant). `momentOf(date)` uses 00:00 Damascus of the date, like `teamOnDate`; a live view of **today** may pass the current instant, so a supervisor added at 10:00 counts at once (Phase 3 decides per page) | One rule for every date, as the risks section asks, without hiding today's changes until tomorrow |
+| M23 | **When the engine reads the organisation** (default, 2026-11-01, Phase 2): an `OrgMoment` = the **date** for day-dated manager rows and an **instant** for memberships and supervisors (dated by instant). `momentOf(date)` uses 00:00 Damascus of the date, like `teamOnDate`; the management service reads **today** at the current instant (Phase 3), so a supervisor added at 10:00 counts at once | One rule for every date, as the risks section asks, without hiding today's changes until tomorrow |
 | M24 | **Inactive leaders are skipped in the chain** (default, 2026-11-01, Phase 2): an inactive supervisor is left out, an inactive manager is passed over to the next manager up (or HR). `gaps` still reports both. Scopes list active people only | An inactive person can't approve; the chain must still reach someone who can |
 
 Questions for the user (answered 2026-11-01: **every default kept**):
@@ -61,7 +61,7 @@ Questions for the user (answered 2026-11-01: **every default kept**):
 | Q-M5 | Should a **change of manager** be allowed from a past date? | Only today or later until payroll periods exist (as B7); then inside an open period with a reason |
 | Q-M6 | Is **HR** the last level after the manager (approves anything), or a parallel path? | Last level, and can always act directly |
 | Q-M7 | Until the dated sheet (4.2), may the department form change the manager **from today** with a fixed reason? (added 2026-11-01, task 1.3) | Yes (M13) |
-| Q-M8 | Should the engine read memberships and supervisors at **00:00 of the day**, with a live view of today allowed to read **now**? (added 2026-11-01, Phase 2) | Yes (M23) |
+| Q-M8 | Should the engine read memberships and supervisors at **00:00 of the day**, and **today** at the current instant? (added 2026-11-01, Phase 2; today = now since Phase 3) | Yes (M23) |
 | Q-M9 | Should an **inactive** supervisor or manager still in place be **skipped** in a person's chain? (added 2026-11-01, Phase 2) | Yes, falling through to the next one up (M24) |
 
 ---
@@ -156,12 +156,27 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > expectation failed as it should. Tick when `pnpm test` is green on the user's laptop.
 
 ### Phase 3 · Services and schemas
-- [ ] 3.1 `src/lib/schemas/management.schema.ts`: change manager from a date (department, staff or
+- [x] 3.1 `src/lib/schemas/management.schema.ts`: change manager from a date (department, staff or
       none, `validFrom`, reason). Exported schema type.
-- [ ] 3.2 `services/management/management.{crud,bl}.ts`: `getManagementTree(date)`,
+  > note: `departmentManagerFormSchema` (`staffId` '' = nobody), `DepartmentManagerFormSchema`,
+  > `DepartmentManagerInput`, `DepartmentManagerMessage`; 3 Vitest cases in
+  > `management.schema.test.ts` (not run here).
+- [x] 3.2 `services/management/management.{crud,bl}.ts`: `getManagementTree(date)`,
       `setDepartmentManager` (close the open row at the date, open the next; dates per Q-M5;
       audit), `chainFor(staffId, date)`, `scopeFor(staffId, date)`, `listGaps(date)`. Supervisors
       keep their existing team service. `staff.write`; `batch([...writes, auditInsert])`.
+  > note: `management.crud.ts` loads the whole organisation in one go (`loadOrgRows`: departments,
+  > teams, people with names, manager rows, supervisor rows, memberships) and owns the manager-row
+  > reads and writes (moved from `departments.crud.ts`). `management.bl.ts`: `getManagementTree`
+  > (flattened departments with own manager, `coveredBy` = nearest active manager above when there
+  > is no own active one, direct people count, teams with supervisors and member counts, teams
+  > without a department, gaps with the person), `chainFor`, `scopeFor`, `listGaps`,
+  > `listManagerHistory` (for the 4.2 sheet), `setDepartmentManager` (today or later, active
+  > department and employee, refused when nothing changes: `management_error_unchanged`; EXCLUDE
+  > clash → `departments_error_manager_overlap`; audited `department.manager.set` with the reason).
+  > `managerChange` / `managerRowOn` / `managerConflict` are exported and reused by the department
+  > form (M13), so there is one write path. Today is read at the current instant (M23). 2 en + ar
+  > keys. Not type-checked here (no `node_modules`).
 
 ### Phase 4 · UI
 - [ ] 4.1 `/management` (sidebar entry, phosphor icon, `localizedHref`): the tree with managers

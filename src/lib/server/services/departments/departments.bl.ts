@@ -3,25 +3,21 @@ import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
 import { batch } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
-import { planVersionChange } from '#lib/roster/versions.js';
 import type { DepartmentInput } from '#lib/schemas/departments.schema.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import { flattenTree, wouldCreateCycle } from '#lib/workforce/departments.js';
-import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
+import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
+import { listDepartmentManagerRows } from '../management/management.crud.js';
+import { managerChange, managerConflict, managerRowOn } from '../management/management.bl.js';
 import {
-	closeDepartmentManager,
 	countActiveStaffByDepartment,
-	deleteDepartmentManagers,
 	findActiveStaff,
 	findDepartment,
 	insertDepartment,
-	insertDepartmentManager,
 	listActiveStaffOptions,
-	listDepartmentManagerRows,
 	listDepartmentRows,
 	listManagersOn,
 	updateDepartment,
-	type DepartmentManagerRow,
 	type DepartmentRow,
 	type StaffOption
 } from './departments.crud.js';
@@ -106,74 +102,14 @@ async function validateManager(staffId: string | null): Promise<void> {
 	}
 }
 
-/** The manager row in force on `date`, if any. */
-function managerRowOn(
-	rows: readonly DepartmentManagerRow[],
-	date: string
-): DepartmentManagerRow | undefined {
-	return rows.find((row) => row.validFrom <= date && (row.validTo === null || row.validTo > date));
-}
-
-/**
- * The writes that make `staffId` (or nobody) the department's manager from `from` (M3), with the
- * rule of every dated version here (`planVersionChange`): the row in force on `from` ends there,
- * rows starting on or after `from` are replaced. Removals and the close come first (for the
- * `EXCLUDE`).
- */
-function managerChange(
-	actor: Actor,
-	departmentId: string,
-	rows: readonly DepartmentManagerRow[],
-	staffId: string | null,
-	from: string,
-	reason: string
-) {
-	const { closed, removed } = planVersionChange(
-		rows.map((row) => ({ ...row, effectiveFrom: row.validFrom, effectiveTo: row.validTo })),
-		from
-	);
-	const opened = staffId
-		? {
-				id: randomUUID(),
-				departmentId,
-				staffId,
-				validFrom: from,
-				validTo: null,
-				reason,
-				createdBy: actor.user.id
-			}
-		: null;
-	const statements: BatchQuery[] = [
-		...(removed.length > 0 ? [deleteDepartmentManagers(removed.map((row) => row.id))] : []),
-		...(closed ? [closeDepartmentManager(closed.id, from)] : []),
-		...(opened ? [insertDepartmentManager(opened)] : []),
-		auditInsert({
-			actor: actor.user,
-			action: 'department.manager.set',
-			entityType: 'department',
-			entityId: departmentId,
-			before: { closed: closed?.id ?? null, removed: removed.map((row) => row.id) },
-			after: opened ?? { staffId: null, validFrom: from },
-			reason
-		})
-	];
-	return statements;
-}
-
 /** A duplicate sibling name, or a manager row saved over another at the same time. */
 function conflictOf(error: unknown): ConflictError | undefined {
-	const code = pgErrorCode(error);
-	if (code === '23505')
+	if (pgErrorCode(error) === '23505')
 		return new ConflictError('duplicate_name', m.departments_error_duplicate(), {
 			field: 'nameEn',
 			cause: error
 		});
-	if (code === '23P01')
-		return new ConflictError('manager_overlap', m.departments_error_manager_overlap(), {
-			field: 'managerStaffId',
-			cause: error
-		});
-	return undefined;
+	return managerConflict(error, 'managerStaffId');
 }
 
 /** A new department; its manager, if any, from today (M3). */

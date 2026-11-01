@@ -397,6 +397,8 @@
 	"departments_error_has_children": "أوقف أقسامه الفرعية الفعّالة أو انقلها أولاً.",
 	"departments_error_manager": "اختر موظفاً فعّالاً كمدير.",
 	"departments_error_manager_overlap": "حُفظ تغيير آخر لمدير هذا القسم في الوقت نفسه. أعد تحميل الصفحة وحاول مجدداً.",
+	"management_error_department_inactive": "اختر قسماً فعّالاً.",
+	"management_error_unchanged": "لا شيء يتغير: هذا هو مدير القسم من ذلك التاريخ أصلاً.",
 	"departments_name_required": "أدخل اسماً.",
 	"departments_sub_count": "أقسام فرعية: {count}",
 	"settings_shifts_description": "لكل وردية وقت بداية ونهاية خاص بها، يُضبط في صفحة الورديات.",

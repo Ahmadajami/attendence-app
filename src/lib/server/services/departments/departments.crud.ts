@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import { department, departmentManager, staff } from '#lib/server/db/schema/index.js';
 import type { BatchQuery } from '../common.js';
@@ -54,22 +54,6 @@ export async function listManagersOn(date: string) {
 		);
 }
 
-/** One department's manager rows (management plan M3), oldest first. */
-export async function listDepartmentManagerRows(departmentId: string) {
-	return db
-		.select({
-			id: departmentManager.id,
-			staffId: departmentManager.staffId,
-			validFrom: departmentManager.validFrom,
-			validTo: departmentManager.validTo
-		})
-		.from(departmentManager)
-		.where(eq(departmentManager.departmentId, departmentId))
-		.orderBy(asc(departmentManager.validFrom));
-}
-
-export type DepartmentManagerRow = Awaited<ReturnType<typeof listDepartmentManagerRows>>[number];
-
 export async function findActiveStaff(id: string) {
 	const [row] = await db
 		.select({ id: staff.id })
@@ -104,18 +88,4 @@ export function updateDepartment(
 	values: Partial<typeof department.$inferInsert>
 ): BatchQuery {
 	return db.update(department).set(values).where(eq(department.id, id));
-}
-
-export function insertDepartmentManager(values: typeof departmentManager.$inferInsert): BatchQuery {
-	return db.insert(departmentManager).values(values);
-}
-
-/** End a manager row at `validTo` (exclusive). */
-export function closeDepartmentManager(id: string, validTo: string): BatchQuery {
-	return db.update(departmentManager).set({ validTo }).where(eq(departmentManager.id, id));
-}
-
-/** Remove scheduled manager rows that never took effect (they start on the change date or later). */
-export function deleteDepartmentManagers(ids: readonly string[]): BatchQuery {
-	return db.delete(departmentManager).where(inArray(departmentManager.id, [...ids]));
 }

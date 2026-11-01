@@ -14,7 +14,6 @@ export async function fetchImpact(request: ImpactRequest): Promise<TargetImpact[
 		headers: { 'content-type': 'application/json', accept: 'application/json' },
 		body: JSON.stringify(request)
 	});
-	console.log('SFIHJASFSDFUH', request);
 	if (!response.ok) {
 		const body = (await response.json().catch(() => null)) as { message?: string } | null;
 		throw new Error(body?.message || m.assign_preview_failed({ status: response.status }));

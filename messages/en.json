@@ -391,6 +391,7 @@
 	"departments_error_has_staff": "Move the active employees to another department first.",
 	"departments_error_has_children": "Deactivate or move its active sub-departments first.",
 	"departments_error_manager": "Choose an active employee as manager.",
+	"departments_error_manager_overlap": "Another manager change for this department was saved at the same time. Reload and try again.",
 	"departments_name_required": "Enter a name.",
 	"departments_sub_count": "{count} sub-departments",
 	"settings_shifts_description": "Each shift has its own start and end time, set on the Shifts page.",

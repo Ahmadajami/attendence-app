@@ -855,7 +855,7 @@
       ]
     },
     {
-      id: 'M1', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M1', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Two management levels under HR", ar: "مستويان إداريان تحت الموارد البشرية" },
       decision: { en: "Level 1 is the department manager, level 2 the team supervisor. HR (admin) stays above both and can do everything.", ar: "المستوى الأول مدير القسم والثاني مشرف الفريق. تبقى الموارد البشرية (المسؤول) فوقهما وتستطيع فعل كل شيء." },
       why: { en: "The user asked for two-level management (2026-11-01); it matches D22 and the supervisor level of D5.", ar: "طلب المستخدم إدارة على مستويين (2026-11-01)؛ ويتوافق ذلك مع D22 ومستوى المشرف في D5." },
@@ -864,16 +864,16 @@
       ]
     },
     {
-      id: 'M2', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M2', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "One manager per department; the nearest one covers sub-departments", ar: "مدير واحد لكل قسم؛ والأقرب يغطي الأقسام الفرعية" },
       decision: { en: "A department has at most one manager. A department without one is covered by the nearest manager up the tree. A parent's manager also sees sub-departments that have their own manager, but the nearest manager comes first in the chain.", ar: "للقسم مدير واحد على الأكثر. القسم بلا مدير يغطيه أقرب مدير في الشجرة. ويرى مدير القسم الأب الأقسام الفرعية التي لها مديرها، لكن المدير الأقرب يأتي أولاً في السلسلة." },
       why: { en: "One responsible person per place, and no sub-department is left without a manager (D10, B6).", ar: "شخص مسؤول واحد لكل مكان، ولا يبقى قسم فرعي بلا مدير (D10، B6)." },
       alts: [
-        { en: "Several managers per department: kept as question Q-M1.", ar: "عدة مديرين لكل قسم: تُرك كسؤال Q-M1." }
+        { en: "Several managers per department (e.g. a deputy): not chosen — the user kept the default of Q-M1 (2026-11-01); a deputy can come later as a second, lower row.", ar: "عدة مديرين لكل قسم (مثلاً نائب): لم يُختر — أبقى المستخدم الافتراضي في Q-M1 (2026-11-01)؛ ويمكن إضافة نائب لاحقاً كصف ثانٍ أدنى." }
       ]
     },
     {
-      id: 'M3', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M3', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Dated history of department managers", ar: "تاريخ مؤرخ لمديري الأقسام" },
       decision: { en: "A new table department_manager (department, person, valid from / to, reason) replaces department.manager_staff_id; periods never overlap per department. Today's managers are converted into open rows.", ar: "يحل جدول جديد department_manager (القسم، الشخص، صالح من/إلى، السبب) محل department.manager_staff_id؛ ولا تتداخل الفترات في القسم الواحد. يُحوَّل المديرون الحاليون إلى صفوف مفتوحة." },
       why: { en: "\"Who was the manager on the 15th?\" must be answerable for approvals and pay questions; overwriting the field loses it.", ar: "يجب الإجابة عن «من كان المدير يوم 15؟» للموافقات وأسئلة الأجور؛ والكتابة فوق الحقل تضيّع ذلك." },
@@ -882,16 +882,16 @@
       ]
     },
     {
-      id: 'M4', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M4', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Supervisors: several per team, dated, from the team's department branch", ar: "المشرفون: عدة لكل فريق، مؤرخون، من فرع قسم الفريق" },
       decision: { en: "team_supervisor stays as it is. One person may supervise several teams and manage several departments. A supervisor need not be a team member but should work in the team's department or a sub-department of it (otherwise it shows as a gap).", ar: "يبقى team_supervisor كما هو. يمكن لشخص أن يشرف على عدة فرق ويدير عدة أقسام. لا يلزم أن يكون المشرف عضواً في الفريق لكن يُفضَّل أن يعمل في قسم الفريق أو قسم فرعي منه (وإلا يظهر كفجوة)." },
       why: { en: "Uses what exists and keeps each chain inside one department branch.", ar: "يستخدم ما هو موجود ويبقي كل سلسلة داخل فرع قسم واحد." },
       alts: [
-        { en: "Refuse supervisors from other departments: not chosen — existing data would stop loading; shown as a gap instead (Q-M3).", ar: "رفض المشرفين من أقسام أخرى: لم يُختر — ستتوقف البيانات الحالية عن التحميل؛ تُعرض كفجوة بدلاً من ذلك (Q-M3)." }
+        { en: "Refuse supervisors from other departments: not chosen — existing data would stop loading; shown as a gap instead (Q-M3, default kept by the user 2026-11-01).", ar: "رفض المشرفين من أقسام أخرى: لم يُختر — ستتوقف البيانات الحالية عن التحميل؛ تُعرض كفجوة بدلاً من ذلك (Q-M3، أبقى المستخدم الافتراضي 2026-11-01)." }
       ]
     },
     {
-      id: 'M5', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M5', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Each employee's chain per date: supervisor, manager, HR", ar: "سلسلة كل موظف حسب التاريخ: المشرف ثم المدير ثم الموارد البشرية" },
       decision: { en: "On a date, an employee's chain is their team's supervisors, then the nearest manager of the team's (or their own) department, then HR. Nobody is in their own chain: a supervisor's starts at their manager, a manager's at the parent department's manager.", ar: "في تاريخ ما، سلسلة الموظف هي مشرفو فريقه، ثم أقرب مدير لقسم الفريق (أو قسمه)، ثم الموارد البشرية. لا يكون أحد في سلسلته: سلسلة المشرف تبدأ بمديره، وسلسلة المدير بمدير القسم الأب." },
       why: { en: "D22's approver order made exact per date, with no self-approval (DIFF §5).", ar: "ترتيب الموافقين في D22 محدداً بدقة لكل تاريخ، دون موافقة الشخص على نفسه (DIFF §5)." },
@@ -900,7 +900,7 @@
       ]
     },
     {
-      id: 'M6', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M6', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Scopes are computed from dated membership", ar: "النطاقات تُحسب من العضوية المؤرخة" },
       decision: { en: "A supervisor covers their teams' members on that date; a manager covers everyone in their departments and sub-departments, with their teams and supervisors. Never stored.", ar: "يغطي المشرف أعضاء فرقه في ذلك التاريخ؛ ويغطي المدير كل من في أقسامه وأقسامها الفرعية مع فرقها ومشرفيها. لا يُخزَّن أبداً." },
       why: { en: "Membership already changes by date; a stored copy would drift.", ar: "العضوية تتغير بالتاريخ أصلاً؛ والنسخة المخزنة ستنحرف." },
@@ -909,7 +909,7 @@
       ]
     },
     {
-      id: 'M7', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M7', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Pure, tested engine for chains and scopes", ar: "محرك مستقل ومختبر للسلاسل والنطاقات" },
       decision: { en: "src/lib/workforce/management.ts (no DB, no SvelteKit) with chainOf, scopeOf and gaps, tested with a made-up organisation.", ar: "src/lib/workforce/management.ts (بلا قاعدة بيانات أو SvelteKit) يضم chainOf وscopeOf وgaps، ويُختبر بمنظمة مختلقة." },
       why: { en: "Same pattern as the roster engine: rules are tested before any screen.", ar: "النمط نفسه في محرك الجداول: تُختبر القواعد قبل أي شاشة." },
@@ -918,7 +918,7 @@
       ]
     },
     {
-      id: 'M8', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M8', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "A /management page for HR, with gaps", ar: "صفحة /management للموارد البشرية مع الفجوات" },
       decision: { en: "The tree Department → manager → teams → supervisors → member counts, a Gaps card (no manager in the chain, team without supervisor, inactive manager or supervisor, supervisor outside the team's branch), change manager from a date, add or remove supervisors.", ar: "الشجرة: القسم ← المدير ← الفرق ← المشرفون ← عدد الأعضاء، وبطاقة الفجوات (لا مدير في السلسلة، فريق بلا مشرف، مدير أو مشرف غير نشط، مشرف خارج فرع الفريق)، وتغيير المدير من تاريخ، وإضافة المشرفين أو إزالتهم." },
       why: { en: "HR sets up and checks the structure before anyone signs in.", ar: "تُعدّ الموارد البشرية الهيكل وتتحقق منه قبل أن يسجّل أحد الدخول." },
@@ -927,7 +927,7 @@
       ]
     },
     {
-      id: 'M9', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M9', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "\"View as\" a manager or supervisor (preview only)", ar: "«العرض بصفة» مدير أو مشرف (معاينة فقط)" },
       decision: { en: "A GET filter ?as= on employees, teams and punch entry limits the lists to that person's scope, with a banner. It changes no permission.", ar: "مرشّح GET ‏?as= في الموظفين والفرق وإدخال البصمات يحصر القوائم في نطاق ذلك الشخص مع شريط تنبيه. ولا يغيّر أي صلاحية." },
       why: { en: "HR can check exactly what each manager will see once sign-in returns.", ar: "تستطيع الموارد البشرية التحقق مما سيراه كل مدير عند عودة تسجيل الدخول." },
@@ -936,7 +936,7 @@
       ]
     },
     {
-      id: 'M10', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M10', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "\"Reports to\" on the employee profile", ar: "«يتبع إلى» في ملف الموظف" },
       decision: { en: "The Overview tab shows the person's supervisors and manager, linking to them.", ar: "يعرض تبويب النظرة العامة مشرفي الشخص ومديره مع روابط إليهم." },
       why: { en: "The chain is visible where HR looks for a person.", ar: "تظهر السلسلة حيث تبحث الموارد البشرية عن الشخص." },
@@ -945,7 +945,7 @@
       ]
     },
     {
-      id: 'M11', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M11', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "Accounts and approvals stay out of this plan", ar: "الحسابات والموافقات خارج هذه الخطة" },
       decision: { en: "Manager and supervisor sign-in (S8: roles, permission keys, server-side scope checks in every service) and the approval workflow (S3.5 /changes, routed by the chain) come later.", ar: "تسجيل دخول المديرين والمشرفين (S8: أدوار ومفاتيح صلاحيات وفحص النطاق في كل خدمة على الخادم) وسير عمل الموافقات (S3.5 ‏/changes، حسب السلسلة) يأتيان لاحقاً." },
       why: { en: "The user chose HR-only for now (2026-11-01); approvals need /changes first.", ar: "اختار المستخدم أن تبقى الموارد البشرية وحدها الآن (2026-11-01)؛ والموافقات تحتاج /changes أولاً." },
@@ -954,12 +954,23 @@
       ]
     },
     {
-      id: 'M12', group: 'management', status: 'proposed', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
+      id: 'M12', group: 'management', status: 'approved', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1',
       title: { en: "No new permission keys until sign-in", ar: "لا مفاتيح صلاحيات جديدة حتى تسجيل الدخول" },
       decision: { en: "Viewing /management and changing managers or supervisors need staff.write, like departments and teams today.", ar: "عرض /management وتغيير المديرين أو المشرفين يتطلبان staff.write كما في الأقسام والفرق اليوم." },
       why: { en: "There is one local user; the keys come with the roles in S8.", ar: "يوجد مستخدم محلي واحد؛ والمفاتيح تأتي مع الأدوار في S8." },
       alts: [
         { en: "Add management.* keys now: not chosen — nothing would use them yet.", ar: "إضافة مفاتيح management.* الآن: لم يُختر — لا شيء سيستخدمها بعد." }
+      ]
+    },
+    {
+      id: 'M13', group: 'management', status: 'default', date: '2026-11-01', src: 'plans/2026-11-01-two-level-management.md §1, task 1.3',
+      title: { en: "Department form: a new manager takes over from today", ar: "نموذج القسم: المدير الجديد يتولى من اليوم" },
+      decision: { en: "Until the dated \"change manager\" sheet exists (task 4.2), choosing another manager in the department form writes the history from today: the old manager's row ends today and is kept, a row that started today is replaced, and the new row stores the fixed reason \"Set on the departments page\" (the form has no reason field). The manager is checked as an active employee only when it changes.", ar: "حتى توجد لوحة «تغيير المدير» المؤرخة (المهمة 4.2)، يكتب اختيار مدير آخر في نموذج القسم السجل من اليوم: ينتهي صف المدير السابق اليوم ويُحفظ، ويُستبدل صف بدأ اليوم، ويخزّن الصف الجديد السبب الثابت «عُيّن من صفحة الأقسام» (لا يوجد حقل سبب في النموذج). ويُتحقق من أن المدير موظف فعّال فقط عند تغييره." },
+      why: { en: "HR keeps editing managers where they do today and the history starts at once; the reason field comes with the 4.2 sheet so the form is not built twice.", ar: "تستمر الموارد البشرية في تعديل المديرين حيث تفعل اليوم ويبدأ السجل فوراً؛ ويأتي حقل السبب مع لوحة 4.2 كي لا يُبنى النموذج مرتين." },
+      alts: [
+        { en: "Keep overwriting a single field until 4.2: not chosen — the column is dropped in Phase 1 and the history would start late.", ar: "الاستمرار في الكتابة فوق حقل واحد حتى 4.2: لم يُختر — يُحذف العمود في المرحلة 1 وسيبدأ السجل متأخراً." },
+        { en: "Add a date and reason to the department form now: not chosen — 4.2 replaces that field with the dated sheet.", ar: "إضافة تاريخ وسبب إلى نموذج القسم الآن: لم يُختر — تستبدل المهمة 4.2 هذا الحقل باللوحة المؤرخة." },
+        { en: "Block manager changes until 4.2: not chosen — HR could not fix a wrong manager meanwhile.", ar: "منع تغيير المدير حتى 4.2: لم يُختر — لن تستطيع الموارد البشرية تصحيح مدير خاطئ في هذه الأثناء." }
       ]
     },
     {
@@ -1037,13 +1048,14 @@
     ["Q-H4", "\"Document received number\": the count received, or each document's reference number?", "both", "\"رقم المستند المستلم\": عدد المستندات المستلمة، أم الرقم المرجعي لكل مستند؟", "كلاهما"],
     ["Q-H5", "Store scans of the documents?", "no: received / date / number only", "هل تُخزَّن صور المستندات الممسوحة؟", "لا: الاستلام والتاريخ والرقم فقط"],
     ["Q-H6", "Is the job title different from the existing function?", "yes, a separate list", "هل المسمى الوظيفي مختلف عن مجال العمل الحالي؟", "نعم، قائمة منفصلة"],
-    ["Q-H7", "Custody conditions: with the employee, returned, lost, damaged — any other?", "these four", "حالات العهدة: مع الموظف، مُعادة، مفقودة، تالفة — هل توجد حالات أخرى؟", "هذه الأربع"],,,,,
-    ["Q-M1", "Can a department have more than one manager (e.g. a deputy)?", "No: one manager", "هل يمكن أن يكون للقسم أكثر من مدير (مثلاً نائب)؟", "لا: مدير واحد"],
-    ["Q-M2", "Must a supervisor be a member of the team they supervise?", "No", "هل يجب أن يكون المشرف عضواً في الفريق الذي يشرف عليه؟", "لا"],
-    ["Q-M3", "May a supervisor come from another department than the team's?", "No: same department branch (shown as a gap, not refused)", "هل يجوز أن يكون المشرف من قسم غير قسم الفريق؟", "لا: من فرع القسم نفسه (يُعرض كفجوة دون رفض)"],
-    ["Q-M4", "When a sub-department has its own manager, does the parent's manager still see it?", "Yes; the nearest manager is first in the chain", "عندما يكون للقسم الفرعي مديره، هل يبقى مدير القسم الأب يراه؟", "نعم؛ والمدير الأقرب أولاً في السلسلة"],
-    ["Q-M5", "May a change of manager start on a past date?", "Today or later until payroll periods exist", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟", "اليوم أو لاحقاً حتى توجد فترات الرواتب"],
-    ["Q-M6", "Is HR the last level after the manager, or a parallel path?", "Last level, and can always act directly", "هل الموارد البشرية المستوى الأخير بعد المدير أم مسار موازٍ؟", "المستوى الأخير، وتستطيع التصرف مباشرة دائماً"],
+    ["Q-H7", "Custody conditions: with the employee, returned, lost, damaged — any other?", "these four", "حالات العهدة: مع الموظف، مُعادة، مفقودة، تالفة — هل توجد حالات أخرى؟", "هذه الأربع"],
+    ["Q-M1", "Can a department have more than one manager (e.g. a deputy)? (answered 2026-11-01: default kept)", "No: one manager", "هل يمكن أن يكون للقسم أكثر من مدير (مثلاً نائب)؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا: مدير واحد"],
+    ["Q-M2", "Must a supervisor be a member of the team they supervise? (answered 2026-11-01: default kept)", "No", "هل يجب أن يكون المشرف عضواً في الفريق الذي يشرف عليه؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا"],
+    ["Q-M3", "May a supervisor come from another department than the team's? (answered 2026-11-01: default kept)", "No: same department branch (shown as a gap, not refused)", "هل يجوز أن يكون المشرف من قسم غير قسم الفريق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا: من فرع القسم نفسه (يُعرض كفجوة دون رفض)"],
+    ["Q-M4", "When a sub-department has its own manager, does the parent's manager still see it? (answered 2026-11-01: default kept)", "Yes; the nearest manager is first in the chain", "عندما يكون للقسم الفرعي مديره، هل يبقى مدير القسم الأب يراه؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم؛ والمدير الأقرب أولاً في السلسلة"],
+    ["Q-M5", "May a change of manager start on a past date? (answered 2026-11-01: default kept)", "Today or later until payroll periods exist", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "اليوم أو لاحقاً حتى توجد فترات الرواتب"],
+    ["Q-M6", "Is HR the last level after the manager, or a parallel path? (answered 2026-11-01: default kept)", "Last level, and can always act directly", "هل الموارد البشرية المستوى الأخير بعد المدير أم مسار موازٍ؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "المستوى الأخير، وتستطيع التصرف مباشرة دائماً"],
+    ["Q-M7", "Until the dated sheet (task 4.2), may the department form change the manager from today, with a fixed reason?", "Yes, from today (M13)", "حتى اللوحة المؤرخة (المهمة 4.2)، هل يجوز لنموذج القسم تغيير المدير من اليوم بسبب ثابت؟", "نعم، من اليوم (M13)"],
   ];
 
   function el(tag, attrs, children) {

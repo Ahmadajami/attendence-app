@@ -42,7 +42,8 @@ export const jobTitle = pgTable('job_title', {
 /**
  * The department tree, managed in the app (plan D25: seeded once from Odoo, `odoo_id` kept for
  * seeded rows). A name is unique among its siblings. Deactivated, never deleted; the BL refuses
- * moves that would make a department its own ancestor.
+ * moves that would make a department its own ancestor. Its manager lives in `department_manager`
+ * (dated, management plan M3).
  */
 export const department = pgTable(
 	'department',
@@ -52,9 +53,6 @@ export const department = pgTable(
 		nameAr: text('name_ar').notNull(),
 		parentId: uuid('parent_id').references((): AnyPgColumn => department.id, {
 			onDelete: 'restrict'
-		}),
-		managerStaffId: uuid('manager_staff_id').references((): AnyPgColumn => staff.id, {
-			onDelete: 'set null'
 		}),
 		active: boolean('active').notNull().default(true),
 		odooId: text('odoo_id').unique(),
@@ -188,6 +186,44 @@ export const staffTeamMembership = pgTable(
 	]
 );
 
+/**
+ * Who manages a department, and when (management plan M3): at most one manager per department on
+ * any day (M2), dated by day like pattern assignments. `valid_to` is exclusive, `null` while open.
+ * A custom migration adds `EXCLUDE USING gist (department_id WITH =, daterange(valid_from,
+ * valid_to, '[)') WITH &&)`. A change from a date closes the row in force there and replaces rows
+ * that start on or after it (`planVersionChange`); every change is audited.
+ */
+export const departmentManager = pgTable(
+	'department_manager',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		departmentId: uuid('department_id')
+			.notNull()
+			.references(() => department.id, { onDelete: 'restrict' }),
+		staffId: uuid('staff_id')
+			.notNull()
+			.references(() => staff.id, { onDelete: 'restrict' }),
+		validFrom: date('valid_from', { mode: 'string' }).notNull(),
+		/** Exclusive; `null` while the row is open. */
+		validTo: date('valid_to', { mode: 'string' }),
+		reason: text('reason').notNull(),
+		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		index('department_manager_department_idx').on(t.departmentId, t.validFrom),
+		index('department_manager_staff_idx').on(t.staffId, t.validFrom),
+		check(
+			'department_manager_valid_order',
+			sql`${t.validTo} IS NULL OR ${t.validTo} > ${t.validFrom}`
+		)
+	]
+);
+
 export const staffFunctionRelations = relations(staffFunction, ({ many }) => ({
 	staff: many(staff)
 }));
@@ -203,11 +239,7 @@ export const departmentRelations = relations(department, ({ one, many }) => ({
 		relationName: 'department_parent'
 	}),
 	children: many(department, { relationName: 'department_parent' }),
-	manager: one(staff, {
-		fields: [department.managerStaffId],
-		references: [staff.id],
-		relationName: 'department_manager'
-	}),
+	managers: many(departmentManager),
 	members: many(staff, { relationName: 'staff_department' }),
 	teams: many(team)
 }));
@@ -230,7 +262,7 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 		references: [department.id],
 		relationName: 'staff_department'
 	}),
-	managedDepartments: many(department, { relationName: 'department_manager' }),
+	managedDepartments: many(departmentManager),
 	user: one(user, { fields: [staff.userId], references: [user.id] }),
 	memberships: many(staffTeamMembership)
 }));
@@ -238,6 +270,14 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
 export const staffTeamMembershipRelations = relations(staffTeamMembership, ({ one }) => ({
 	staff: one(staff, { fields: [staffTeamMembership.staffId], references: [staff.id] }),
 	team: one(team, { fields: [staffTeamMembership.teamId], references: [team.id] })
+}));
+
+export const departmentManagerRelations = relations(departmentManager, ({ one }) => ({
+	department: one(department, {
+		fields: [departmentManager.departmentId],
+		references: [department.id]
+	}),
+	staff: one(staff, { fields: [departmentManager.staffId], references: [staff.id] })
 }));
 
 export type StaffFunction = typeof staffFunction.$inferSelect;
@@ -250,3 +290,5 @@ export type NewTeam = typeof team.$inferInsert;
 export type Staff = typeof staff.$inferSelect;
 export type NewStaff = typeof staff.$inferInsert;
 export type StaffTeamMembership = typeof staffTeamMembership.$inferSelect;
+export type DepartmentManager = typeof departmentManager.$inferSelect;
+export type NewDepartmentManager = typeof departmentManager.$inferInsert;

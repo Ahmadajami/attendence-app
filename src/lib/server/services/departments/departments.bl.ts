@@ -3,39 +3,54 @@ import { auditInsert } from '#lib/server/audit.js';
 import { m } from '#lib/paraglide/messages.js';
 import { batch } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
+import { planVersionChange } from '#lib/roster/versions.js';
 import type { DepartmentInput } from '#lib/schemas/departments.schema.js';
+import { todayInDamascus } from '#lib/server/time.js';
 import { flattenTree, wouldCreateCycle } from '#lib/workforce/departments.js';
-import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
+import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
 import {
+	closeDepartmentManager,
 	countActiveStaffByDepartment,
+	deleteDepartmentManagers,
 	findActiveStaff,
 	findDepartment,
 	insertDepartment,
+	insertDepartmentManager,
 	listActiveStaffOptions,
+	listDepartmentManagerRows,
 	listDepartmentRows,
-	listManagers,
+	listManagersOn,
 	updateDepartment,
+	type DepartmentManagerRow,
 	type DepartmentRow,
 	type StaffOption
 } from './departments.crud.js';
+
+/**
+ * Stored as the reason of manager rows set from the department form, which has no reason field
+ * (management plan task 1.3). The dated "change manager" sheet (task 4.2) asks HR for one.
+ */
+const DEPARTMENT_FORM_REASON = 'Set on the departments page';
 
 export type DepartmentListItem = DepartmentRow & {
 	depth: number;
 	staffCount: number;
 	activeChildCount: number;
+	/** The department's own manager today (`department_manager`, M3); `null` when it has none. */
+	managerStaffId: string | null;
 	manager: { fullName: string; fullNameAr: string | null } | null;
 };
 
-/** The whole tree, parents before children, with counts and manager names. */
+/** The whole tree, parents before children, with counts and today's manager names. */
 export async function listDepartments(actor: Actor): Promise<DepartmentListItem[]> {
 	requireActorPermission(actor, 'staff.write');
 	const [rows, staffCounts, managers] = await Promise.all([
 		listDepartmentRows(),
 		countActiveStaffByDepartment(),
-		listManagers()
+		listManagersOn(todayInDamascus())
 	]);
 	const staffBy = new Map(staffCounts.map((row) => [row.departmentId, row.count]));
-	const managerBy = new Map(managers.map((row) => [row.id, row]));
+	const managerBy = new Map(managers.map((row) => [row.departmentId, row]));
 	const activeChildren = new Map<string, number>();
 	for (const row of rows) {
 		if (row.parentId && row.active)
@@ -43,11 +58,12 @@ export async function listDepartments(actor: Actor): Promise<DepartmentListItem[
 	}
 
 	return flattenTree(rows, (a, b) => a.nameEn.localeCompare(b.nameEn)).map((row) => {
-		const manager = row.managerStaffId ? managerBy.get(row.managerStaffId) : undefined;
+		const manager = managerBy.get(row.id);
 		return {
 			...row,
 			staffCount: staffBy.get(row.id) ?? 0,
 			activeChildCount: activeChildren.get(row.id) ?? 0,
+			managerStaffId: manager?.staffId ?? null,
 			manager: manager ? { fullName: manager.fullName, fullNameAr: manager.fullNameAr } : null
 		};
 	});
@@ -64,8 +80,8 @@ async function requireDepartment(id: string): Promise<DepartmentRow> {
 	return row;
 }
 
-/** Parent must exist, be active and not create a cycle; the manager must be an active employee. */
-async function validateInput(id: string | null, input: DepartmentInput): Promise<void> {
+/** Parent must exist, be active and not create a cycle. */
+async function validateParent(id: string | null, input: DepartmentInput): Promise<void> {
 	if (input.parentId) {
 		const parent = await findDepartment(input.parentId);
 		if (!parent || !parent.active) {
@@ -79,44 +95,130 @@ async function validateInput(id: string | null, input: DepartmentInput): Promise
 			});
 		}
 	}
-	if (input.managerStaffId && !(await findActiveStaff(input.managerStaffId))) {
+}
+
+/** A new manager must be an active employee (checked only when the manager changes). */
+async function validateManager(staffId: string | null): Promise<void> {
+	if (staffId && !(await findActiveStaff(staffId))) {
 		throw new InvalidInputError('invalid_manager', m.departments_error_manager(), {
 			field: 'managerStaffId'
 		});
 	}
 }
 
-function duplicateName(error: unknown): ConflictError | undefined {
-	if (pgErrorCode(error) !== '23505') return undefined;
-	return new ConflictError('duplicate_name', m.departments_error_duplicate(), {
-		field: 'nameEn',
-		cause: error
-	});
+/** The manager row in force on `date`, if any. */
+function managerRowOn(
+	rows: readonly DepartmentManagerRow[],
+	date: string
+): DepartmentManagerRow | undefined {
+	return rows.find((row) => row.validFrom <= date && (row.validTo === null || row.validTo > date));
 }
 
-export async function createDepartment(actor: Actor, input: DepartmentInput): Promise<DepartmentRow> {
+/**
+ * The writes that make `staffId` (or nobody) the department's manager from `from` (M3), with the
+ * rule of every dated version here (`planVersionChange`): the row in force on `from` ends there,
+ * rows starting on or after `from` are replaced. Removals and the close come first (for the
+ * `EXCLUDE`).
+ */
+function managerChange(
+	actor: Actor,
+	departmentId: string,
+	rows: readonly DepartmentManagerRow[],
+	staffId: string | null,
+	from: string,
+	reason: string
+) {
+	const { closed, removed } = planVersionChange(
+		rows.map((row) => ({ ...row, effectiveFrom: row.validFrom, effectiveTo: row.validTo })),
+		from
+	);
+	const opened = staffId
+		? {
+				id: randomUUID(),
+				departmentId,
+				staffId,
+				validFrom: from,
+				validTo: null,
+				reason,
+				createdBy: actor.user.id
+			}
+		: null;
+	const statements: BatchQuery[] = [
+		...(removed.length > 0 ? [deleteDepartmentManagers(removed.map((row) => row.id))] : []),
+		...(closed ? [closeDepartmentManager(closed.id, from)] : []),
+		...(opened ? [insertDepartmentManager(opened)] : []),
+		auditInsert({
+			actor: actor.user,
+			action: 'department.manager.set',
+			entityType: 'department',
+			entityId: departmentId,
+			before: { closed: closed?.id ?? null, removed: removed.map((row) => row.id) },
+			after: opened ?? { staffId: null, validFrom: from },
+			reason
+		})
+	];
+	return statements;
+}
+
+/** A duplicate sibling name, or a manager row saved over another at the same time. */
+function conflictOf(error: unknown): ConflictError | undefined {
+	const code = pgErrorCode(error);
+	if (code === '23505')
+		return new ConflictError('duplicate_name', m.departments_error_duplicate(), {
+			field: 'nameEn',
+			cause: error
+		});
+	if (code === '23P01')
+		return new ConflictError('manager_overlap', m.departments_error_manager_overlap(), {
+			field: 'managerStaffId',
+			cause: error
+		});
+	return undefined;
+}
+
+/** A new department; its manager, if any, from today (M3). */
+export async function createDepartment(
+	actor: Actor,
+	input: DepartmentInput
+): Promise<DepartmentRow> {
 	requireActorPermission(actor, 'staff.write');
-	await validateInput(null, input);
+	await validateParent(null, input);
+	await validateManager(input.managerStaffId);
 	const id = randomUUID();
+	const values = { nameEn: input.nameEn, nameAr: input.nameAr, parentId: input.parentId };
 
 	try {
 		await batch([
-			insertDepartment({ id, ...input }),
+			insertDepartment({ id, ...values }),
 			auditInsert({
 				actor: actor.user,
 				action: 'department.create',
 				entityType: 'department',
 				entityId: id,
 				after: input
-			})
+			}),
+			...(input.managerStaffId
+				? managerChange(
+						actor,
+						id,
+						[],
+						input.managerStaffId,
+						todayInDamascus(),
+						DEPARTMENT_FORM_REASON
+					)
+				: [])
 		]);
 	} catch (error) {
-		throw duplicateName(error) ?? error;
+		throw conflictOf(error) ?? error;
 	}
 
-	return { id, ...input, active: true };
+	return { id, ...values, active: true };
 }
 
+/**
+ * Name, parent and manager. A different manager takes over from today: the old one's row ends
+ * today and stays in the history (M3); a row that started today is replaced.
+ */
 export async function editDepartment(
 	actor: Actor,
 	id: string,
@@ -124,11 +226,17 @@ export async function editDepartment(
 ): Promise<DepartmentRow> {
 	requireActorPermission(actor, 'staff.write');
 	const before = await requireDepartment(id);
-	await validateInput(id, input);
+	await validateParent(id, input);
+	const today = todayInDamascus();
+	const managerRows = await listDepartmentManagerRows(id);
+	const managerBefore = managerRowOn(managerRows, today)?.staffId ?? null;
+	const managerChanged = input.managerStaffId !== managerBefore;
+	if (managerChanged) await validateManager(input.managerStaffId);
+	const values = { nameEn: input.nameEn, nameAr: input.nameAr, parentId: input.parentId };
 
 	try {
 		await batch([
-			updateDepartment(id, input),
+			updateDepartment(id, values),
 			auditInsert({
 				actor: actor.user,
 				action: 'department.update',
@@ -138,16 +246,19 @@ export async function editDepartment(
 					nameEn: before.nameEn,
 					nameAr: before.nameAr,
 					parentId: before.parentId,
-					managerStaffId: before.managerStaffId
+					managerStaffId: managerBefore
 				},
 				after: input
-			})
+			}),
+			...(managerChanged
+				? managerChange(actor, id, managerRows, input.managerStaffId, today, DEPARTMENT_FORM_REASON)
+				: [])
 		]);
 	} catch (error) {
-		throw duplicateName(error) ?? error;
+		throw conflictOf(error) ?? error;
 	}
 
-	return { ...before, ...input };
+	return { ...before, ...values };
 }
 
 /**

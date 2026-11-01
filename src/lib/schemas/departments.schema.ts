@@ -17,7 +17,7 @@ export const departmentFormSchema = z.object({
 		.max(120),
 	/** '' = top level. */
 	parentId: optionalId.default(''),
-	/** '' = no manager. */
+	/** '' = no manager. A change takes effect from today (management plan M3). */
 	managerStaffId: optionalId.default('')
 });
 export type DepartmentFormSchema = typeof departmentFormSchema;
@@ -27,6 +27,7 @@ export type DepartmentInput = {
 	nameEn: string;
 	nameAr: string;
 	parentId: string | null;
+	/** The manager from today (`department_manager`, M3); `null` = none from today. */
 	managerStaffId: string | null;
 };
 

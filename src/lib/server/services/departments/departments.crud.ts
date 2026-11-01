@@ -1,6 +1,6 @@
-import { and, asc, eq, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
-import { department, staff } from '#lib/server/db/schema/index.js';
+import { department, departmentManager, staff } from '#lib/server/db/schema/index.js';
 import type { BatchQuery } from '../common.js';
 
 export const departmentColumns = {
@@ -8,7 +8,6 @@ export const departmentColumns = {
 	nameEn: department.nameEn,
 	nameAr: department.nameAr,
 	parentId: department.parentId,
-	managerStaffId: department.managerStaffId,
 	active: department.active
 };
 
@@ -36,13 +35,40 @@ export async function countActiveStaffByDepartment() {
 		.groupBy(staff.departmentId);
 }
 
-/** Names of the staff who manage a department (for the list). */
-export async function listManagers() {
+/** Each department's manager on `date` (at most one, M2), with their names, for the list. */
+export async function listManagersOn(date: string) {
 	return db
-		.select({ id: staff.id, fullName: staff.fullName, fullNameAr: staff.fullNameAr })
-		.from(staff)
-		.innerJoin(department, eq(department.managerStaffId, staff.id));
+		.select({
+			departmentId: departmentManager.departmentId,
+			staffId: staff.id,
+			fullName: staff.fullName,
+			fullNameAr: staff.fullNameAr
+		})
+		.from(departmentManager)
+		.innerJoin(staff, eq(staff.id, departmentManager.staffId))
+		.where(
+			and(
+				lte(departmentManager.validFrom, date),
+				or(isNull(departmentManager.validTo), gt(departmentManager.validTo, date))
+			)
+		);
 }
+
+/** One department's manager rows (management plan M3), oldest first. */
+export async function listDepartmentManagerRows(departmentId: string) {
+	return db
+		.select({
+			id: departmentManager.id,
+			staffId: departmentManager.staffId,
+			validFrom: departmentManager.validFrom,
+			validTo: departmentManager.validTo
+		})
+		.from(departmentManager)
+		.where(eq(departmentManager.departmentId, departmentId))
+		.orderBy(asc(departmentManager.validFrom));
+}
+
+export type DepartmentManagerRow = Awaited<ReturnType<typeof listDepartmentManagerRows>>[number];
 
 export async function findActiveStaff(id: string) {
 	const [row] = await db
@@ -78,4 +104,18 @@ export function updateDepartment(
 	values: Partial<typeof department.$inferInsert>
 ): BatchQuery {
 	return db.update(department).set(values).where(eq(department.id, id));
+}
+
+export function insertDepartmentManager(values: typeof departmentManager.$inferInsert): BatchQuery {
+	return db.insert(departmentManager).values(values);
+}
+
+/** End a manager row at `validTo` (exclusive). */
+export function closeDepartmentManager(id: string, validTo: string): BatchQuery {
+	return db.update(departmentManager).set({ validTo }).where(eq(departmentManager.id, id));
+}
+
+/** Remove scheduled manager rows that never took effect (they start on the change date or later). */
+export function deleteDepartmentManagers(ids: readonly string[]): BatchQuery {
+	return db.delete(departmentManager).where(inArray(departmentManager.id, [...ids]));
 }

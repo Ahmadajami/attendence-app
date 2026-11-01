@@ -85,6 +85,27 @@
       "when": 1793529625255,
       "tag": "0011_staff_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793529685255,
+      "tag": "0012_department_manager",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793529745255,
+      "tag": "0013_department_manager_constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793529805255,
+      "tag": "0014_drop_department_manager_staff_id",
+      "breakpoints": true
     }
   ]
 }

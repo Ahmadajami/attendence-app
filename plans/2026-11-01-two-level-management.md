@@ -1,6 +1,6 @@
 # Two-level management: department managers above team supervisors
 
-**Status:** proposed (2026-11-01; waiting for the user's approval and answers to Q-M1–Q-M6)
+**Status:** in progress (approved 2026-11-01: M1–M12 as written, Q-M1–Q-M6 defaults kept)
 **Date:** 2026-11-01
 **Goal:** Give the organisation two management levels under HR: **department managers** (level 1)
 over **team supervisors** (level 2). Each one has a clear **scope** (who they are responsible
@@ -46,8 +46,9 @@ supervisor, else department manager, else HR), D10 (sub-departments inherit) and
 | M10 | **The employee profile** shows "Reports to: supervisor(s) · manager" (Overview tab) | The chain is visible where HR looks for a person |
 | M11 | **Out of scope here:** manager/supervisor **accounts and sign-in** (S8: roles with permission keys, every BL checks the actor's scope server-side), and the **approval workflow** itself (S3.5 `/changes` will use M5). This plan only provides the chain and the scopes they will use | No login yet (D17); approvals need `/changes` first |
 | M12 | **Permissions now:** viewing `/management` needs `staff.write`; changing managers and supervisors needs `staff.write` (as departments and teams today). No new keys until S8 | Single local user; keys come with the roles in S8 |
+| M13 | **Until the dated sheet (4.2), the department form changes the manager from today** (default, 2026-11-01, task 1.3): the row in force ends today and stays in the history, a row that started today is replaced; the form has no reason field, so the row stores the fixed reason "Set on the departments page" | HR keeps editing managers where they do today, and the history starts at once; the reason field comes with the 4.2 sheet so the form isn't built twice |
 
-Questions for the user (each default above is used until answered):
+Questions for the user (answered 2026-11-01: **every default kept**):
 
 | # | Question | Default |
 |---|---|---|
@@ -57,6 +58,7 @@ Questions for the user (each default above is used until answered):
 | Q-M4 | When a sub-department has its own manager, does the **parent's manager** still see it? | Yes, they see it; the nearest manager is first in the chain |
 | Q-M5 | Should a **change of manager** be allowed from a past date? | Only today or later until payroll periods exist (as B7); then inside an open period with a reason |
 | Q-M6 | Is **HR** the last level after the manager (approves anything), or a parallel path? | Last level, and can always act directly |
+| Q-M7 | Until the dated sheet (4.2), may the department form change the manager **from today** with a fixed reason? (added 2026-11-01, task 1.3) | Yes (M13) |
 
 ---
 
@@ -71,18 +73,42 @@ Questions for the user (each default above is used until answered):
 ## 3. Tasks
 
 ### Phase 0 · Agree the plan
-- [ ] 0.1 The user approves M1–M12 or changes them, and answers Q-M1–Q-M6 (or keeps the
+- [x] 0.1 The user approves M1–M12 or changes them, and answers Q-M1–Q-M6 (or keeps the
       defaults). Update this plan and `docs/decisions.html` (status `proposed` → `approved`).
+  > note: approved 2026-11-01 unchanged; Q-M1–Q-M6 keep their defaults. M1–M12 are `approved`
+  > in `docs/decisions.html`, the six Q-M rows say "answered: default kept".
 
 ### Phase 1 · Schema and migration
-- [ ] 1.1 `department_manager` in `src/lib/server/db/schema/workforce.ts`, relations, types.
+- [x] 1.1 `department_manager` in `src/lib/server/db/schema/workforce.ts`, relations, types.
+  > note: columns as §2 (`valid_from` / `valid_to` dates, `reason` required, `created_by`), FKs
+  > `restrict` (`created_by` set null), indexes on (department, from) and (staff, from), check
+  > `department_manager_valid_order`. Relations `department.managers`, `staff.managedDepartments`.
 - [ ] 1.2 `pnpm db:generate` → read the SQL → custom migration: EXCLUDE, data conversion from
       `manager_staff_id` with a count check that aborts on mismatch. Count departments with a
       manager in all three DBs first.
       **Done when** the converted counts equal the old ones per DB; migrations ran on `_test` and
       `_e2e`, and on `attendance_app` after the count and **the user's OK**
+  > note: written in a cloud session without `node_modules`, so drizzle-kit could not run there:
+  > `0012_department_manager` (table, FKs, indexes; written as drizzle-kit would) and
+  > `0013_department_manager_constraints` (custom: `department_manager_no_overlap` EXCLUDE, one
+  > open row per department with a manager from its creation day in Damascus, and a `DO` block
+  > that aborts unless rows = departments with a manager = matching open rows), snapshots
+  > `0012`–`0014` and the journal by hand. **Waiting for the user:** count first, in each DB:
+  > `SELECT count(*) FROM department WHERE manager_staff_id IS NOT NULL;` then
+  > `pnpm db:generate` must say "No schema changes", then `pnpm db:migrate` (`_test`, `_e2e`,
+  > then `attendance_app` after the OK), then `SELECT count(*) FROM department_manager;` must equal
+  > the first count.
 - [ ] 1.3 Readers moved to the new table (`departments.bl/crud`, `/departments`), then a migration
       drops `department.manager_staff_id`. `pnpm check`, `pnpm test` green.
+  > note: readers moved: `listDepartments` reads today's manager from `department_manager`
+  > (`listManagersOn`); create / edit write manager rows **from today** through
+  > `planVersionChange` (the row in force ends today, a row that started today is replaced),
+  > audited as `department.manager.set` beside `department.update` (default M13, until the dated
+  > sheet of 4.2). The manager is checked as an active employee only when it changes. EXCLUDE
+  > clash → `ConflictError` `departments_error_manager_overlap` (en + ar). `/departments` and its
+  > sheet are unchanged (the list item still carries `managerStaffId`, now today's).
+  > `0014_drop_department_manager_staff_id` drops the column and its FK. Not ticked: `pnpm check`
+  > and `pnpm test` run on the user's laptop (prettier was run on the touched `.ts` files).
 
 ### Phase 2 · Engine (`src/lib/workforce/management.ts`, pure, Vitest)
 - [ ] 2.1 Types: `OrgDepartment` (id, parentId, active), `ManagerVersion`, `SupervisorVersion`,

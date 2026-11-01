@@ -170,7 +170,8 @@
     payroll: { en: 'Pay rules', ar: 'قواعد الأجر' },
     shifts: { en: 'Shifts & punches', ar: 'الورديات والبصمات' },
     editor: { en: 'Pattern editor', ar: 'محرر الأنماط' },
-    builder: { en: 'Attendance builder', ar: 'منشئ الحضور' }
+    builder: { en: 'Attendance builder', ar: 'منشئ الحضور' },
+    profile: { en: 'Employee profile', ar: 'ملف الموظف' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -666,6 +667,76 @@
       decision: { en: 'The team page shows how many people work each shift on each day (e.g. 2 D + 1 N). There is no minimum and no warning.', ar: 'تعرض صفحة الفريق عدد العاملين في كل وردية لكل يوم (مثلاً 2 نهار + 1 ليل). لا يوجد حد أدنى ولا تنبيه.' },
       why: { en: 'The user\'s answer to Q-B3 (2026-10-29): enough for the first version; a minimum can be added later without rework.', ar: 'إجابة المستخدم على Q-B3 (2026-10-29): كافٍ للنسخة الأولى؛ ويمكن إضافة حد أدنى لاحقاً دون إعادة عمل.' },
       alts: [ { en: 'A minimum per team with warnings when a change breaks it: not chosen — setup for every team and a check on every change, not needed yet.', ar: 'حد أدنى لكل فريق مع تنبيه عند مخالفته: لم يُختر — يحتاج إعداداً لكل فريق وفحصاً عند كل تغيير، وليس مطلوباً بعد.' } ]
+    },
+    {
+      id: "H1", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Names: first + last in both languages", ar: "الأسماء: الاسم الأول والأخير باللغتين" },
+      decision: { en: "Add first and last name in English and Arabic. The full names stay the display names everywhere; the service sets them to \"first last\" when both parts are given. Existing names are not split automatically.", ar: "إضافة الاسم الأول والأخير بالإنجليزية والعربية. يبقى الاسم الكامل هو المعروض في كل مكان؛ وتضبطه الخدمة إلى \"الأول الأخير\" عند توفر الجزأين. لا تُقسَّم الأسماء الحالية تلقائياً." },
+      why: { en: "No screen that shows a name has to change (37 files), the Odoo seed has one name field, and splitting Arabic names by spaces would often be wrong.", ar: "لا تتغير أي شاشة تعرض الاسم (37 ملفاً)، وبيانات Odoo الأولية فيها حقل اسم واحد، وتقسيم الأسماء العربية بالمسافات سيكون خاطئاً غالباً." },
+      alts: [ { en: "Replace the full name by the parts everywhere: not chosen — 37 files change and seeded people would lose their names until split.", ar: "استبدال الاسم الكامل بالأجزاء في كل مكان: لم يُختر — يتغير 37 ملفاً ويفقد الموظفون المستوردون أسماءهم حتى تُقسَّم." }, { en: "Split existing names on the first space: not chosen — wrong for many Arabic names.", ar: "تقسيم الأسماء الحالية عند أول مسافة: لم يُختر — خاطئ لكثير من الأسماء العربية." } ]
+    },
+    {
+      id: "H2", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Emergency contacts in their own table", ar: "جهات اتصال الطوارئ في جدول مستقل" },
+      decision: { en: "Any number of emergency contacts per employee (name, relationship, phone, second phone, order); none required.", ar: "عدد غير محدود من جهات اتصال الطوارئ لكل موظف (الاسم، الصلة، الهاتف، هاتف ثانٍ، الترتيب)؛ ولا يُشترط وجود أي منها." },
+      why: { en: "More than one contact is common, and a table keeps their order and history.", ar: "وجود أكثر من جهة اتصال أمر شائع، والجدول يحفظ ترتيبها وتاريخها." },
+      alts: [ { en: "One contact as columns on the employee: not chosen — a second contact would need new columns.", ar: "جهة اتصال واحدة كأعمدة في سجل الموظف: لم يُختر — تحتاج جهة ثانية إلى أعمدة جديدة." } ]
+    },
+    {
+      id: "H3", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Work experience as a list; years computed", ar: "الخبرة العملية كقائمة وسنوات محسوبة" },
+      decision: { en: "Past jobs (employer, title, from, to, note). Years of experience = earlier jobs (overlaps counted once) + time here since the start date. \"Experience\" and \"work experience\" are taken as one thing.", ar: "الوظائف السابقة (جهة العمل، المسمى، من، إلى، ملاحظة). سنوات الخبرة = الوظائف السابقة (التداخل يُحسب مرة واحدة) + المدة هنا منذ تاريخ البدء. تُعامل \"الخبرة\" و\"الخبرة العملية\" كشيء واحد." },
+      why: { en: "One source of truth; a typed number of years would go stale.", ar: "مصدر واحد للحقيقة؛ أما عدد السنوات المكتوب يدوياً فيصبح قديماً." },
+      alts: [ { en: "A typed \"years of experience\" field: not chosen — it goes out of date and cannot be checked.", ar: "حقل \"سنوات الخبرة\" يُكتب يدوياً: لم يُختر — يصبح قديماً ولا يمكن التحقق منه." } ]
+    },
+    {
+      id: "H4", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Skills from a managed list", ar: "المهارات من قائمة مُدارة" },
+      decision: { en: "HR keeps a list of skills (English/Arabic); each employee gets skills from it with an optional level 1–3. \"Social skill\" is read as skills in general.", ar: "تحتفظ الموارد البشرية بقائمة مهارات (بالإنجليزية والعربية)؛ ويُمنح كل موظف مهارات منها مع مستوى اختياري من 1 إلى 3. تُفهم \"المهارات الاجتماعية\" على أنها المهارات عموماً." },
+      why: { en: "A controlled list can be filtered and counted; free text cannot.", ar: "القائمة المضبوطة يمكن تصفيتها وعدّها؛ أما النص الحر فلا." },
+      alts: [ { en: "Free-text skills: not chosen — spelling variants break filters and reports.", ar: "مهارات بنص حر: لم يُختر — اختلاف الكتابة يفسد التصفية والتقارير." } ]
+    },
+    {
+      id: "H5", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Documents: track receipt, no scans", ar: "المستندات: تتبّع الاستلام دون صور ممسوحة" },
+      decision: { en: "HR keeps a list of document types (required or not). Per employee: received yes/no, date, reference number, expiry, note. The profile shows \"received 3 of 5 required\". No files are uploaded.", ar: "تحتفظ الموارد البشرية بقائمة أنواع المستندات (مطلوب أو غير مطلوب). لكل موظف: مُستلم نعم/لا، التاريخ، الرقم المرجعي، تاريخ الانتهاء، ملاحظة. يعرض الملف \"تم استلام 3 من 5 مطلوبة\". لا تُرفع ملفات." },
+      why: { en: "Scans of IDs are the most sensitive data there is; storing files needs storage, backups and access rules that only come with login (S8).", ar: "صور الهويات أكثر البيانات حساسية؛ وتخزين الملفات يحتاج تخزيناً ونسخاً احتياطياً وقواعد وصول لا تتوفر إلا مع تسجيل الدخول (S8)." },
+      alts: [ { en: "Upload scans now: not chosen — no access rules or backups yet (Q-H5).", ar: "رفع الصور الممسوحة الآن: لم يُختر — لا قواعد وصول ولا نسخ احتياطي بعد (Q-H5)." } ]
+    },
+    {
+      id: "H6", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Job title separate from function", ar: "المسمى الوظيفي منفصل عن مجال العمل" },
+      decision: { en: "A managed list of job titles (English/Arabic) and one job title per employee, separate from the existing function (ramp, baggage…).", ar: "قائمة مُدارة للمسميات الوظيفية (بالإنجليزية والعربية) ومسمى واحد لكل موظف، منفصل عن مجال العمل الحالي (الساحة، الأمتعة…)." },
+      why: { en: "Title (e.g. supervisor) and work area (e.g. ramp) answer different questions in reports.", ar: "المسمى (مثل مشرف) ومجال العمل (مثل الساحة) يجيبان عن أسئلة مختلفة في التقارير." },
+      alts: [ { en: "Reuse function as the job title: not chosen — it would mix two meanings (Q-H6).", ar: "استخدام مجال العمل كمسمى وظيفي: لم يُختر — يخلط معنيين (Q-H6)." } ]
+    },
+    {
+      id: "H7", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Personal email and social accounts, optional", ar: "البريد الشخصي وحسابات التواصل، اختيارية" },
+      decision: { en: "Add a personal email (format checked) and any number of social media accounts (platform, handle or URL). Work email and phone stay as they are.", ar: "إضافة بريد شخصي (مع التحقق من الصيغة) وأي عدد من حسابات التواصل الاجتماعي (المنصة، المعرّف أو الرابط). يبقى البريد الوظيفي والهاتف كما هما." },
+      why: { en: "The user asked for them; optional because not everyone has or wants to give them.", ar: "طلبها المستخدم؛ وهي اختيارية لأن ليس الجميع يملكها أو يرغب في إعطائها." },
+      alts: []
+    },
+    {
+      id: "H8", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "New personal fields: staff.write now, own permission with login", ar: "الحقول الشخصية الجديدة: صلاحية staff.write الآن وصلاحية خاصة مع تسجيل الدخول" },
+      decision: { en: "Viewing and editing need staff.write while there is one local user. A separate staff.personal permission for contacts, social accounts and documents comes with login (S8). Every write is audited; nothing goes to Odoo, exports or emails.", ar: "العرض والتعديل يحتاجان staff.write ما دام هناك مستخدم محلي واحد. وتأتي صلاحية staff.personal منفصلة لجهات الاتصال والحسابات والمستندات مع تسجيل الدخول (S8). كل تعديل مُدقَّق؛ ولا يُرسل شيء إلى Odoo أو التصدير أو البريد." },
+      why: { en: "CLAUDE.md §1: personal data stays in the app; a permission split helps only when there are several users.", ar: "CLAUDE.md §1: البيانات الشخصية تبقى داخل التطبيق؛ وتقسيم الصلاحيات مفيد فقط عند وجود عدة مستخدمين." },
+      alts: [ { en: "Add staff.personal now: not chosen — one local user holds every permission anyway.", ar: "إضافة staff.personal الآن: لم يُختر — المستخدم المحلي الوحيد يملك كل الصلاحيات على أي حال." } ]
+    },
+    {
+      id: "H9", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Short create sheet, Profile card with one sheet per group", ar: "نموذج إنشاء قصير وبطاقة ملف بنموذج لكل مجموعة" },
+      decision: { en: "Creating an employee asks only names, number, department, team and job title. The employee page gets a Profile card with one sheet per group (names & job, contacts, experience, skills, documents). Job titles, skills and document types are managed on /staff-lists.", ar: "إنشاء موظف يطلب فقط الأسماء والرقم والقسم والفريق والمسمى. وتحصل صفحة الموظف على بطاقة ملف بنموذج لكل مجموعة (الأسماء والوظيفة، جهات الاتصال، الخبرة، المهارات، المستندات). وتُدار المسميات والمهارات وأنواع المستندات في /staff-lists." },
+      why: { en: "A 30-field sheet is unusable; the groups follow the user's numbered list.", ar: "نموذج من 30 حقلاً غير قابل للاستخدام؛ والمجموعات تتبع قائمة المستخدم المرقمة." },
+      alts: [ { en: "One long form for everything: not chosen — hard to fill and to check.", ar: "نموذج طويل واحد لكل شيء: لم يُختر — صعب التعبئة والمراجعة." } ]
+    },
+    {
+      id: "H10", group: 'profile', status: 'proposed', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
+      title: { en: "Profile rows are removed softly", ar: "حذف صفوف الملف حذفاً ناعماً" },
+      decision: { en: "Contacts, experience, skills and social accounts get a removed date and who removed them; list items are deactivated. Nothing is hard-deleted.", ar: "تحصل جهات الاتصال والخبرة والمهارات والحسابات على تاريخ إزالة ومن أزالها؛ وتُعطَّل عناصر القوائم. لا يُحذف شيء نهائياً." },
+      why: { en: "Template rule: never hard-delete; the audit trail stays readable.", ar: "قاعدة القالب: لا حذف نهائي؛ ويبقى سجل التدقيق مقروءاً." },
+      alts: []
     }
   ];
 
@@ -683,7 +754,13 @@
     ['Q-A11', 'Punch file format?', 'user provides later; manual entry until then', 'صيغة ملف البصمات؟', 'يقدمها المستخدم لاحقاً؛ والإدخال اليدوي حتى ذلك الحين'],
     ['Q-A12', 'Format of generated employee numbers?', 'next integer after the highest, never reused', 'صيغة أرقام الموظفين المولّدة؟', 'العدد التالي بعد الأعلى، دون إعادة استخدام'],
     ['Q-A13', 'Must a new hire\'s number be enrolled on BioTime?', 'yes (HR process)', 'هل يجب تسجيل رقم الموظف الجديد في BioTime؟', 'نعم (إجراء الموارد البشرية)'],
-    ['Q-B4', 'Do own off days and crew start also adjust a person\'s own (personal) pattern, or only a team/department one? (builder plan B2 step 4, task 2.3)', 'team/department only: a personal pattern already is the person\'s own days and has its own anchor', 'هل تُعدِّل أيام العطلة الخاصة وبداية الطاقم النمطَ الشخصي أيضاً، أم نمط الفريق/القسم فقط؟', 'نمط الفريق/القسم فقط: النمط الشخصي هو أيام الشخص نفسه وله تاريخ بدايته']
+    ['Q-B4', 'Do own off days and crew start also adjust a person\'s own (personal) pattern, or only a team/department one? (builder plan B2 step 4, task 2.3)', 'team/department only: a personal pattern already is the person\'s own days and has its own anchor', 'هل تُعدِّل أيام العطلة الخاصة وبداية الطاقم النمطَ الشخصي أيضاً، أم نمط الفريق/القسم فقط؟', 'نمط الفريق/القسم فقط: النمط الشخصي هو أيام الشخص نفسه وله تاريخ بدايته'],
+    ["Q-H1", "Arabic names: first + last only, or also father's / grandfather's name?", "first + last only", "الأسماء العربية: الاسم الأول والأخير فقط، أم أيضاً اسم الأب والجد؟", "الأول والأخير فقط"],
+    ["Q-H2", "Are \"experience\" and \"work experience\" the same thing?", "the same: past jobs + computed years", "هل \"الخبرة\" و\"الخبرة العملية\" شيء واحد؟", "شيء واحد: الوظائف السابقة + سنوات محسوبة"],
+    ["Q-H3", "\"Social skill\": soft skills only, or skills in general?", "skills in general, from a managed list", "\"المهارات الاجتماعية\": المهارات الشخصية فقط، أم المهارات عموماً؟", "المهارات عموماً، من قائمة مُدارة"],
+    ["Q-H4", "\"Document received number\": the count received, or each document's reference number?", "both", "\"رقم المستند المستلم\": عدد المستندات المستلمة، أم الرقم المرجعي لكل مستند؟", "كلاهما"],
+    ["Q-H5", "Store scans of the documents?", "no: received / date / number only", "هل تُخزَّن صور المستندات الممسوحة؟", "لا: الاستلام والتاريخ والرقم فقط"],
+    ["Q-H6", "Is the job title different from the existing function?", "yes, a separate list", "هل المسمى الوظيفي مختلف عن مجال العمل الحالي؟", "نعم، قائمة منفصلة"]
   ];
 
   function el(tag, attrs, children) {

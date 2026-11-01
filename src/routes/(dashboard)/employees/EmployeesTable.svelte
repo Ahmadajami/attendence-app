@@ -8,7 +8,7 @@
 	import type { StaffRow, TeamOption } from '#lib/types/workforce.js';
 	import { cn } from '#lib/utils.js';
 	import EmployeeRow from './EmployeeRow.svelte';
-	import { ALL_EMPLOYEES, teamName } from './labels.js';
+	import { ALL_EMPLOYEES, searchEmployees, teamName } from './labels.js';
 
 	let {
 		employees,
@@ -24,16 +24,7 @@
 
 	let query = $state('');
 
-	const filtered = $derived.by(() => {
-		const q = query.trim().toLocaleLowerCase();
-		if (!q) return employees;
-		return employees.filter(
-			(e) =>
-				e.employeeNo.includes(q) ||
-				e.fullName.toLocaleLowerCase().includes(q) ||
-				(e.fullNameAr?.includes(q) ?? false)
-		);
-	});
+	const filtered = $derived(searchEmployees(employees, query));
 
 	// Dropping a team member here removes them from their team.
 	const droppable = createDroppable({ id: ALL_EMPLOYEES, accept: 'employee' });

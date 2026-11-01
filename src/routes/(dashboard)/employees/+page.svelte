@@ -1,23 +1,38 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { refreshAll } from '$app/navigation';
+	import { goto, refreshAll } from '$app/navigation';
+	import { page } from '$app/state';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import type { DragEndEvent } from '@dnd-kit/dom';
 	import { DragDropProvider, DragOverlay } from '@dnd-kit/svelte';
 	import { toast } from 'svelte-sonner';
+	import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
+	import IdentificationCardIcon from 'phosphor-svelte/lib/IdentificationCardIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as UnderlineTabs from '#lib/components/ui/underline-tabs/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { StaffRow, TeamOption } from '#lib/types/workforce.js';
 	import type { PageProps } from './$types';
+	import EmployeeCards from './EmployeeCards.svelte';
 	import EmployeesTable from './EmployeesTable.svelte';
 	import TeamTable from './TeamTable.svelte';
-	import { ALL_EMPLOYEES, employeeName } from './labels.js';
+	import { ALL_EMPLOYEES, employeeName, employeeView } from './labels.js';
 	import { setPersonalPatternIds } from './context.js';
 
 	let { data }: PageProps = $props();
+
+	/** The open tab lives in `?view=`; the load doesn't read it, so switching doesn't refetch. */
+	const view = $derived(employeeView(page.url.searchParams.get('view')));
+
+	function setView(next: string) {
+		const url = new URL(page.url.href);
+		url.searchParams.set('view', next);
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- same page, only `?view=` changes
+		void goto(url, { replace: true, reset: false });
+	}
 
 	const personalPatternIds = $derived(new Set(data.personalPatternIds));
 	setPersonalPatternIds(() => personalPatternIds);
@@ -151,41 +166,65 @@
 	</Button>
 </section>
 
-<DragDropProvider onDragEnd={handleDragEnd}>
-	<!-- Employees full width on top (scrolling inside, so the teams stay in reach for a drag),
-	     teams in a grid below. -->
-	<div class="flex flex-col gap-4">
-		<EmployeesTable
-			{employees}
-			{teamById}
-			onToggleActive={toggleActive}
-			class="max-h-[55dvh]"
-		/>
+<UnderlineTabs.Root bind:value={() => view, setView}>
+	<UnderlineTabs.List class="max-w-full overflow-x-auto">
+		<UnderlineTabs.Trigger value="cards">
+			<IdentificationCardIcon />
+			{m.employees_view_cards()}
+		</UnderlineTabs.Trigger>
+		<UnderlineTabs.Trigger value="move">
+			<ArrowsLeftRightIcon />
+			{m.employees_view_move()}
+		</UnderlineTabs.Trigger>
+	</UnderlineTabs.List>
 
-		<section aria-labelledby="teams-heading" class="flex flex-col gap-4">
-			<h3 id="teams-heading" class="text-sm font-medium text-muted-foreground">
-				{m.employees_teams()}
-			</h3>
-			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-				{#each teams as team (team.id)}
-					<TeamTable {team} members={membersByTeam[team.id]} />
-				{/each}
+	<UnderlineTabs.Content value="cards">
+		<EmployeeCards {employees} onToggleActive={toggleActive} />
+	</UnderlineTabs.Content>
+
+	<UnderlineTabs.Content value="move" class="flex flex-col gap-4">
+		<p class="max-w-prose text-muted-foreground">{m.employees_move_description()}</p>
+		<DragDropProvider onDragEnd={handleDragEnd}>
+			<!-- Employees full width on top (scrolling inside, so the teams stay in reach for a drag),
+			     teams in a grid below. -->
+			<div class="flex flex-col gap-4">
+				<EmployeesTable
+					{employees}
+					{teamById}
+					onToggleActive={toggleActive}
+					class="max-h-[55dvh]"
+				/>
+
+				<section aria-labelledby="teams-heading" class="flex flex-col gap-4">
+					<h3 id="teams-heading" class="text-sm font-medium text-muted-foreground">
+						{m.employees_teams()}
+					</h3>
+					<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+						{#each teams as team (team.id)}
+							<TeamTable {team} members={membersByTeam[team.id]} />
+						{/each}
+					</div>
+				</section>
 			</div>
-		</section>
-	</div>
 
-	<DragOverlay>
-		{#snippet children(source)}
-			{const employee = $derived(employeeById.get(source.data?.employeeId))}
-			{#if employee}
-				<div class="bg-popover px-3 py-2 text-xs font-medium shadow-lg ring-1 ring-foreground/10">
-					{employeeName(employee)}
-					<bdi dir="ltr" class="ms-2 font-mono text-muted-foreground">{employee.employeeNo}</bdi>
-				</div>
-			{/if}
-		{/snippet}
-	</DragOverlay>
-</DragDropProvider>
+			<DragOverlay>
+				{#snippet children(source)}
+					{const employee = $derived(employeeById.get(source.data?.employeeId))}
+					{#if employee}
+						<div
+							class="bg-popover px-3 py-2 text-xs font-medium shadow-lg ring-1 ring-foreground/10"
+						>
+							{employeeName(employee)}
+							<bdi dir="ltr" class="ms-2 font-mono text-muted-foreground"
+								>{employee.employeeNo}</bdi
+							>
+						</div>
+					{/if}
+				{/snippet}
+			</DragOverlay>
+		</DragDropProvider>
+	</UnderlineTabs.Content>
+</UnderlineTabs.Root>
 
 <form bind:this={teamForm} method="POST" action="?/setTeam" use:enhance={onMoveResult} hidden>
 	<input type="hidden" name="staffId" value={teamRequest.staffId} />

@@ -1,18 +1,13 @@
 <script lang="ts">
 	import { createDraggable } from '@dnd-kit/svelte';
-	import DotsThreeIcon from 'phosphor-svelte/lib/DotsThreeIcon';
-	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
-	import ProhibitIcon from 'phosphor-svelte/lib/ProhibitIcon';
-	import UserCheckIcon from 'phosphor-svelte/lib/UserCheckIcon';
 	import { Badge } from '#lib/components/ui/badge/index.js';
-	import { Button } from '#lib/components/ui/button/index.js';
-	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { StaffRow } from '#lib/types/workforce.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { getPersonalPatternIds } from './context.js';
 	import DragHandle from './DragHandle.svelte';
+	import EmployeeActions from './EmployeeActions.svelte';
 	import { employeeName, lookupName } from './labels.js';
 
 	let {
@@ -85,39 +80,7 @@
 	{/if}
 	{#if onToggleActive}
 		<Table.Cell class="text-end">
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button {...props} variant="ghost" size="icon" aria-label={m.staff_actions({ name })}>
-							<DotsThreeIcon />
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
-					<!-- Editing lives on the profile (redesign plan V8). -->
-					<DropdownMenu.Item>
-						{#snippet child({ props })}
-							<a href={localizedHref('/employees/[id]', { id: employee.id })} {...props}>
-								<PencilSimpleIcon />
-								{m.staff_edit()}
-							</a>
-						{/snippet}
-					</DropdownMenu.Item>
-					<DropdownMenu.Separator />
-					<DropdownMenu.Item
-						variant={employee.active ? 'destructive' : 'default'}
-						onSelect={() => onToggleActive(employee)}
-					>
-						{#if employee.active}
-							<ProhibitIcon />
-							{m.staff_deactivate()}
-						{:else}
-							<UserCheckIcon />
-							{m.staff_activate()}
-						{/if}
-					</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			<EmployeeActions {employee} {onToggleActive} />
 		</Table.Cell>
 	{/if}
 </Table.Row>

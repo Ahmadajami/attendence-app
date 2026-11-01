@@ -33,3 +33,4 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | 2026-11-01 | [Employee creation rebuilt: one page, required fields marked](2026-11-01-employee-create.md) | in progress (manual check confirmed 2026-11-01; open: 2.6 clean-up) |
 | 2026-11-01 | [Two-level management: department managers above team supervisors](2026-11-01-two-level-management.md) | in progress (approved 2026-11-01; built and confirmed by the user; open: `attendance_app` migration 1.2, Playwright 5.2; "view as" dropped) |
 | 2026-11-01 | [Management tree for each employee: who manages whom; status filter on /employees](2026-11-01-employee-management-tree.md) (after the two-level plan's Phases 1–2) | in progress (approved 2026-11-01; built and confirmed by the user; open: Playwright 4.2) |
+| 2026-11-01 | [Dashboard: today, staffing, people and (later) the payroll period](2026-11-01-dashboard.md) (S4.4, F14) | proposed (waiting for the user's approval) |

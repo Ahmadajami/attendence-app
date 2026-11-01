@@ -14,8 +14,10 @@
 	import ListBulletsIcon from 'phosphor-svelte/lib/ListBulletsIcon';
 	import SlidersHorizontalIcon from 'phosphor-svelte/lib/SlidersHorizontalIcon';
 	import StarIcon from 'phosphor-svelte/lib/StarIcon';
+	import TreeStructureIcon from 'phosphor-svelte/lib/TreeStructureIcon';
 	import DayPanel from '#lib/app/attendance/DayPanel.svelte';
 	import AssignSheet from '#lib/app/patterns/AssignSheet.svelte';
+	import ManagementTab from '#lib/app/management/ManagementTab.svelte';
 	import EndAssignmentSheet from '#lib/app/patterns/EndAssignmentSheet.svelte';
 	import ScheduleSheet from '#lib/app/patterns/ScheduleSheet.svelte';
 	import PatternHistory from '#lib/app/roster/PatternHistory.svelte';
@@ -105,6 +107,20 @@
 	}
 
 	const name = $derived(personName(person));
+
+	/** "Reports to" on Overview (tree plan M20): today's supervisors and nearest manager. */
+	const reportsTo = $derived.by(() => {
+		const ladder = data.management.ladderToday;
+		return {
+			supervisors: ladder.flatMap((s) =>
+				s.level === 'supervisor' && s.person ? [personName(s.person)] : []
+			),
+			manager:
+				ladder.flatMap((s) =>
+					s.level === 'manager' && s.approves && s.person ? [personName(s.person)] : []
+				)[0] ?? null
+		};
+	});
 </script>
 
 <svelte:head>
@@ -127,6 +143,7 @@
 		<UnderlineTabs.Root bind:value={() => tab, setTab}>
 			<UnderlineTabs.List class="max-w-full overflow-x-auto">
 				{@render trigger('overview', ListBulletsIcon, m.profile_tab_overview())}
+				{@render trigger('management', TreeStructureIcon, m.profile_tab_management())}
 				{@render trigger('schedule', CalendarBlankIcon, m.profile_tab_schedule())}
 				{@render trigger('personal', IdentificationCardIcon, m.profile_tab_personal())}
 				{@render trigger('experience', BriefcaseIcon, m.profile_experience_title())}
@@ -139,7 +156,11 @@
 			<!-- Remounted per person, like the sheets below, so their forms hold this person. -->
 			{#key person.staffId}
 				<UnderlineTabs.Content value="overview" class="flex flex-col gap-4">
-					<ProfileOverview profile={data.profile} onOpen={setTab} />
+					<ProfileOverview profile={data.profile} {reportsTo} onOpen={setTab} />
+				</UnderlineTabs.Content>
+
+				<UnderlineTabs.Content value="management" class="flex flex-col gap-4">
+					<ManagementTab tree={data.management} {staffId} {name} today={data.today} />
 				</UnderlineTabs.Content>
 
 				<UnderlineTabs.Content value="schedule" class="flex flex-col gap-4">

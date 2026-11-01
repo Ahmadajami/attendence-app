@@ -10,11 +10,25 @@
 
 	type Props = {
 		profile: StaffProfile;
+		/** Today's supervisors and nearest manager (tree plan M20); the label opens Management. */
+		reportsTo?: { supervisors: string[]; manager: string | null };
 		/** Open another tab (the label of each line links to where it is edited, V10). */
 		onOpen: (tab: ProfileTab) => void;
 	};
 
-	let { profile, onOpen }: Props = $props();
+	let { profile, reportsTo, onOpen }: Props = $props();
+
+	/** "Supervisor (+1) · Manager", or HR when nobody else is responsible. */
+	const reportsToText = $derived.by(() => {
+		if (!reportsTo) return '';
+		const [first, ...others] = reportsTo.supervisors;
+		const more = others.length > 0 ? ` ${m.management_tree_more({ count: others.length })}` : '';
+		const parts = [
+			...(first ? [`${first}${more}`] : []),
+			...(reportsTo.manager ? [reportsTo.manager] : [])
+		];
+		return parts.length > 0 ? parts.join(' · ') : m.management_tree_hr_only();
+	});
 
 	const person = $derived(profile.person);
 	const nameEn = $derived(displayName(person.firstNameEn, person.lastNameEn));
@@ -59,6 +73,12 @@
 					{/if}
 				</dd>
 			</div>
+			{#if reportsTo}
+				<div class="flex flex-col gap-0.5">
+					{@render label(m.management_tree_reports_to_title(), 'management')}
+					<dd>{reportsToText}</dd>
+				</div>
+			{/if}
 			<div class="flex flex-col gap-0.5">
 				{@render label(m.profile_field_job_title(), 'personal')}
 				<dd>{profile.jobTitle ? lookupName(profile.jobTitle) : '—'}</dd>

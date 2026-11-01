@@ -282,3 +282,281 @@ export function gaps(org: Org, moment: OrgMoment): Gap[] {
 		].join('|');
 	return out.sort((a, b) => key(a).localeCompare(key(b)));
 }
+
+// ---- The management tree of one person (plans/2026-11-01-employee-management-tree.md) ----
+
+export type LadderStep =
+	| { level: 'supervisor'; staffId: string; teamId: string; approves: true }
+	| { level: 'manager'; staffId: string; departmentId: string; approves: boolean }
+	| { level: 'hr'; approves: true };
+
+/**
+ * The line up from `staffId` (M16): `chainOf` (supervisors → nearest manager → HR, the ones who
+ * approve), with every active manager further up the department tree inserted before HR, each
+ * once and marked `approves: false` (they see the person, Q-M4, but don't approve first). Never
+ * the person themself.
+ */
+export function ladderOf(staffId: string, moment: OrgMoment, org: Org): LadderStep[] {
+	const chain = chainOf(staffId, moment, org);
+	const active = activeIds(org);
+	const steps: LadderStep[] = [];
+	const listed = new Set<string>([staffId]);
+	let nearest: string | null = null;
+
+	for (const step of chain) {
+		if (step.level === 'supervisor') {
+			steps.push({ ...step, approves: true });
+			listed.add(step.staffId);
+		} else if (step.level === 'manager') {
+			steps.push({ ...step, approves: true });
+			listed.add(step.staffId);
+			nearest = step.departmentId;
+		}
+	}
+
+	if (nearest) {
+		const parentOf = new Map(org.departments.map((d) => [d.id, d.parentId]));
+		const byDepartment = managersOn(org.managers, moment.date);
+		for (const departmentId of ancestorChain(org.departments, parentOf.get(nearest) ?? null)) {
+			const manager = byDepartment.get(departmentId);
+			if (!manager || listed.has(manager) || !active.has(manager)) continue;
+			steps.push({ level: 'manager', staffId: manager, departmentId, approves: false });
+			listed.add(manager);
+		}
+	}
+
+	steps.push({ level: 'hr', approves: true });
+	return steps;
+}
+
+export type ReportNode =
+	| {
+			kind: 'manager';
+			staffId: string;
+			/** The sub-department(s) they manage under this parent. */
+			departmentIds: string[];
+			/** People in the subtree. */
+			count: number;
+			children: ReportNode[];
+	  }
+	| {
+			kind: 'supervisor';
+			staffId: string;
+			/** The team(s) they supervise under this parent. */
+			teamIds: string[];
+			count: number;
+			children: ReportNode[];
+	  }
+	| { kind: 'person'; staffId: string };
+
+const KIND_ORDER: ReportNode['kind'][] = ['manager', 'supervisor', 'person'];
+
+type TreeContext = {
+	/** Whose tree it is: never shown anywhere in it. */
+	root: string;
+	org: Org;
+	moment: OrgMoment;
+	active: Set<string>;
+	managers: Map<string, string>;
+	childrenOf: Map<string, string[]>;
+};
+
+/** Nodes with the same person under one parent become one; leaves of a node's person go. */
+function mergeNodes(nodes: readonly ReportNode[]): ReportNode[] {
+	const managers = new Map<string, Extract<ReportNode, { kind: 'manager' }>>();
+	const supervisors = new Map<string, Extract<ReportNode, { kind: 'supervisor' }>>();
+	const people = new Set<string>();
+
+	for (const node of nodes) {
+		if (node.kind === 'manager') {
+			const seen = managers.get(node.staffId);
+			if (seen) {
+				seen.departmentIds = [...new Set([...seen.departmentIds, ...node.departmentIds])];
+				seen.children = [...seen.children, ...node.children];
+			} else managers.set(node.staffId, { ...node, children: [...node.children] });
+		}
+	}
+	for (const node of nodes) {
+		if (node.kind !== 'supervisor') continue;
+		const asManager = managers.get(node.staffId);
+		if (asManager) {
+			// Manages a sub-department too: their team members go under that one node.
+			asManager.children = [...asManager.children, ...node.children];
+			continue;
+		}
+		const seen = supervisors.get(node.staffId);
+		if (seen) {
+			seen.teamIds = [...new Set([...seen.teamIds, ...node.teamIds])];
+			seen.children = [...seen.children, ...node.children];
+		} else supervisors.set(node.staffId, { ...node, children: [...node.children] });
+	}
+	for (const node of nodes) {
+		if (node.kind === 'person' && !managers.has(node.staffId) && !supervisors.has(node.staffId))
+			people.add(node.staffId);
+	}
+
+	return [
+		...managers.values(),
+		...supervisors.values(),
+		...[...people].map((staffId): ReportNode => ({ kind: 'person', staffId }))
+	];
+}
+
+/** Merge every level, count each subtree's people, sort (managers, supervisors, people; by id). */
+function finalize(nodes: readonly ReportNode[]): ReportNode[] {
+	return mergeNodes(nodes)
+		.map((node): ReportNode => {
+			if (node.kind === 'person') return node;
+			const children = finalize(node.children);
+			return { ...node, children, count: subtreePeople(children).size };
+		})
+		.sort(
+			(a, b) =>
+				KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) ||
+				a.staffId.localeCompare(b.staffId)
+		);
+}
+
+/** Everyone in `nodes` and below (nodes' own people included). */
+export function subtreePeople(nodes: readonly ReportNode[]): Set<string> {
+	const out = new Set<string>();
+	const visit = (list: readonly ReportNode[]) => {
+		for (const node of list) {
+			out.add(node.staffId);
+			if (node.kind !== 'person') visit(node.children);
+		}
+	};
+	visit(nodes);
+	return out;
+}
+
+/**
+ * What `self` manages from department `root` (M17): sub-departments with their own active
+ * manager become that manager's node (their branch below them); the rest is `self`'s branch,
+ * where each team's active supervisors become nodes holding the team's members, and everyone
+ * else working there is a leaf (no team, or a team nobody else supervises).
+ */
+function branchNodes(
+	root: string,
+	self: string,
+	ctx: TreeContext
+): { nodes: ReportNode[]; departments: Set<string> } {
+	const { root: owner, org, moment, active, managers, childrenOf } = ctx;
+	const departments = new Set<string>();
+	const stops: [string, string][] = [];
+	const stack = [root];
+	while (stack.length > 0) {
+		const departmentId = stack.pop() as string;
+		if (departments.has(departmentId)) continue;
+		departments.add(departmentId);
+		for (const child of childrenOf.get(departmentId) ?? []) {
+			const manager = managers.get(child);
+			if (manager && manager !== self && manager !== owner && active.has(manager))
+				stops.push([child, manager]);
+			else stack.push(child);
+		}
+	}
+
+	const nodes: ReportNode[] = stops.map(([departmentId, manager]) => ({
+		kind: 'manager',
+		staffId: manager,
+		departmentIds: [departmentId],
+		count: 0,
+		children: branchNodes(departmentId, manager, ctx).nodes
+	}));
+
+	const supervised = new Map<string, Set<string>>();
+	const supervisedTeams = new Set<string>();
+	for (const team of org.teams) {
+		if (!team.departmentId || !departments.has(team.departmentId)) continue;
+		for (const supervisor of supervisorsAt(org, team.id, moment.at)) {
+			if (supervisor === self || supervisor === owner || !active.has(supervisor)) continue;
+			supervised.set(supervisor, (supervised.get(supervisor) ?? new Set()).add(team.id));
+			supervisedTeams.add(team.id);
+		}
+	}
+
+	for (const [supervisor, teamIds] of supervised) {
+		const members = org.people.filter((p) => {
+			if ([self, owner, supervisor].includes(p.staffId) || !active.has(p.staffId)) return false;
+			const teamId = teamAt(org, p.staffId, moment.at);
+			return teamId !== null && teamIds.has(teamId);
+		});
+		nodes.push({
+			kind: 'supervisor',
+			staffId: supervisor,
+			teamIds: [...teamIds].sort(),
+			count: 0,
+			children: members.map((p) => ({ kind: 'person', staffId: p.staffId }))
+		});
+	}
+
+	for (const person of org.people) {
+		if (!active.has(person.staffId) || person.staffId === self || person.staffId === owner)
+			continue;
+		const departmentId = departmentOf(org, person, moment);
+		if (!departmentId || !departments.has(departmentId)) continue;
+		const teamId = teamAt(org, person.staffId, moment.at);
+		if (teamId && supervisedTeams.has(teamId)) continue;
+		nodes.push({ kind: 'person', staffId: person.staffId });
+	}
+
+	return { nodes, departments };
+}
+
+/**
+ * The people below `staffId` on that day, as a tree (M17). As a manager: their department(s) and
+ * everything under them (sub-departments with their own manager as that manager's node). As a
+ * supervisor: their teams' members (also teams outside their own branch). Everyone in the tree is
+ * exactly `scopeOf(...).people`; active people only, never the person themself.
+ */
+export function reportsOf(staffId: string, moment: OrgMoment, org: Org): ReportNode[] {
+	const childrenOf = new Map<string, string[]>();
+	for (const department of org.departments) {
+		if (department.parentId)
+			childrenOf.set(department.parentId, [
+				...(childrenOf.get(department.parentId) ?? []),
+				department.id
+			]);
+	}
+	const ctx: TreeContext = {
+		root: staffId,
+		org,
+		moment,
+		active: activeIds(org),
+		managers: managersOn(org.managers, moment.date),
+		childrenOf
+	};
+
+	const managed = [...ctx.managers]
+		.filter(([, manager]) => manager === staffId)
+		.map(([departmentId]) => departmentId);
+	const tops = managed
+		.filter(
+			(id) =>
+				!managed.some((other) => other !== id && descendantIds(org.departments, other).has(id))
+		)
+		.sort();
+
+	const nodes: ReportNode[] = [];
+	const ownBranch = new Set<string>();
+	for (const departmentId of tops) {
+		const branch = branchNodes(departmentId, staffId, ctx);
+		nodes.push(...branch.nodes);
+		for (const id of branch.departments) ownBranch.add(id);
+	}
+
+	// Teams they supervise outside their own branch: the members, directly.
+	for (const s of org.supervisors) {
+		if (s.staffId !== staffId || !inForceAt(s.addedAt, s.removedAt, moment.at)) continue;
+		const team = org.teams.find((t) => t.id === s.teamId);
+		if (team?.departmentId && ownBranch.has(team.departmentId)) continue;
+		for (const person of org.people) {
+			if (!ctx.active.has(person.staffId) || person.staffId === staffId) continue;
+			if (teamAt(org, person.staffId, moment.at) === s.teamId)
+				nodes.push({ kind: 'person', staffId: person.staffId });
+		}
+	}
+
+	return finalize(nodes);
+}

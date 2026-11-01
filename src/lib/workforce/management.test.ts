@@ -4,11 +4,15 @@ import { ancestorChain } from './departments.js';
 import {
 	chainOf,
 	gaps,
+	ladderOf,
 	managerOn,
 	momentOf,
+	reportsOf,
 	scopeOf,
+	subtreePeople,
 	type Org,
-	type OrgPerson
+	type OrgPerson,
+	type ReportNode
 } from './management.js';
 
 // A made-up organisation (CLAUDE.md §1): ids only, no people.
@@ -309,5 +313,143 @@ describe('gaps (M8)', () => {
 			kind: 'team_without_supervisor',
 			teamId: 't-ops'
 		});
+	});
+});
+
+describe('ladderOf (tree plan M16)', () => {
+	const ids = (staffId: string, n: number) =>
+		ladderOf(staffId, m(n), org).map((s) =>
+			s.level === 'hr' ? 'hr' : `${s.staffId}${s.approves ? '' : ' (above)'}`
+		);
+
+	it('a member: supervisors → nearest manager → managers above → HR', () => {
+		expect(ids('p1', 1)).toEqual(['s-ramp-a', 's-ramp-b', 'm-ramp1', 'm-ops (above)', 'hr']);
+	});
+
+	it('the approval steps are exactly chainOf', () => {
+		for (const { staffId } of org.people) {
+			const approving = ladderOf(staffId, m(1), org).filter((s) => s.approves);
+			expect(approving.map((s) => ('staffId' in s ? s.staffId : 'hr'))).toEqual(
+				chainOf(staffId, m(1), org).map((s) => ('staffId' in s ? s.staffId : 'hr'))
+			);
+		}
+	});
+
+	it('a sub-department without its own manager climbs to the parent, with nobody above', () => {
+		expect(ids('p2', 1)).toEqual(['s-gate', 'm-ops', 'hr']);
+	});
+
+	it('a manager’s ladder starts at the parent’s manager; the top manager has only HR', () => {
+		expect(ids('m-ramp1', 1)).toEqual(['m-ops', 'hr']);
+		expect(ids('m-ops', 1)).toEqual(['hr']);
+	});
+
+	it('no manager anywhere up the tree: only HR', () => {
+		expect(ids('p5', 1)).toEqual(['hr']);
+	});
+
+	it('follows the manager change on day 15 and the team change on day 10', () => {
+		expect(ids('p1', 15)).toEqual(['s-ramp-a', 's-ramp-b', 'm-ramp2', 'm-ops (above)', 'hr']);
+		expect(ids('p3', 9)).toEqual(['s-ramp-a', 's-ramp-b', 'm-ramp1', 'm-ops (above)', 'hr']);
+		expect(ids('p3', 10)).toEqual(['s-gate', 'm-ops', 'hr']);
+	});
+
+	it('nobody is in their own ladder, and nobody twice', () => {
+		for (const { staffId } of org.people) {
+			for (const n of [1, 10, 15]) {
+				const people = ladderOf(staffId, m(n), org).flatMap((s) =>
+					'staffId' in s ? [s.staffId] : []
+				);
+				expect(people).not.toContain(staffId);
+				expect(new Set(people).size).toBe(people.length);
+			}
+		}
+	});
+});
+
+describe('reportsOf (tree plan M17)', () => {
+	/** A readable outline: "kind id [count]" with children indented. */
+	const outline = (nodes: ReportNode[], depth = 0): string[] =>
+		nodes.flatMap((node) => [
+			`${'  '.repeat(depth)}${node.kind} ${node.staffId}${node.kind === 'person' ? '' : ` [${node.count}]`}`,
+			...(node.kind === 'person' ? [] : outline(node.children, depth + 1))
+		]);
+
+	it('a top manager: the sub-department manager is a node, supervisors hold their members', () => {
+		expect(outline(reportsOf('m-ops', m(1), org))).toEqual([
+			'manager m-ramp1 [5]',
+			'  supervisor s-ramp-a [2]',
+			'    person p1',
+			'    person p3',
+			'  supervisor s-ramp-b [3]',
+			'    person p1',
+			'    person p3',
+			'    person s-ramp-a',
+			'  person m-ramp2',
+			'supervisor s-admin [0]',
+			'supervisor s-gate [1]',
+			'  person p2',
+			'person p4'
+		]);
+	});
+
+	it('a supervisor: their team’s members that day', () => {
+		expect(outline(reportsOf('s-gate', m(9), org))).toEqual(['person p2']);
+		expect(outline(reportsOf('s-gate', m(10), org))).toEqual(['person p2', 'person p3']);
+	});
+
+	it('a member manages nobody', () => {
+		expect(reportsOf('p1', m(1), org)).toEqual([]);
+	});
+
+	it('someone who supervises a team and manages a sub-department is one node', () => {
+		const both: Org = {
+			...org,
+			supervisors: [
+				...org.supervisors,
+				{ teamId: 't-gate', staffId: 'm-ramp1', addedAt: START, removedAt: null }
+			]
+		};
+		const top = reportsOf('m-ops', m(1), both);
+		expect(top.filter((n) => n.staffId === 'm-ramp1')).toHaveLength(1);
+		const node = top.find((n) => n.staffId === 'm-ramp1');
+		expect(node?.kind).toBe('manager');
+		expect([...subtreePeople(node && node.kind !== 'person' ? node.children : [])]).toContain('p2');
+	});
+
+	const variants: Record<string, Org> = {
+		base: org,
+		'inactive top manager': {
+			...org,
+			people: org.people.map((p) => (p.staffId === 'm-ops' ? { ...p, active: false } : p))
+		},
+		'top manager in a sub-department team': {
+			...org,
+			memberships: [
+				...org.memberships,
+				{ staffId: 'm-ops', teamId: 't-ramp', validFrom: START, validTo: null }
+			]
+		}
+	};
+
+	for (const [name, variant] of Object.entries(variants)) {
+		it(`holds exactly the scope, never the person (${name})`, () => {
+			for (const { staffId } of variant.people) {
+				for (const n of [1, 9, 10, 15]) {
+					const tree = subtreePeople(reportsOf(staffId, m(n), variant));
+					expect([...tree].sort()).toEqual(scopeOf(staffId, m(n), variant).people);
+					expect(tree.has(staffId)).toBe(false);
+				}
+			}
+		});
+	}
+
+	it('nobody appears twice under the same parent', () => {
+		const check = (nodes: ReportNode[]) => {
+			const ids = nodes.map((n) => n.staffId);
+			expect(new Set(ids).size).toBe(ids.length);
+			for (const node of nodes) if (node.kind !== 'person') check(node.children);
+		};
+		for (const { staffId } of org.people) check(reportsOf(staffId, m(1), org));
 	});
 });

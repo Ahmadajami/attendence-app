@@ -43,7 +43,7 @@ first. One commit per phase, plan file included.
 | M18 | **Built from one server load:** the service computes the person's whole scope for that date once and sends the tree; opening a node needs no new request. First level open, deeper levels closed. Inactive people are left out (Q-T4) | Hundreds of staff, not thousands: one load is simpler and fast |
 | M19 | **Read-only, with links:** each person links to their profile (and their Management tab); a department links to `/departments`, a team to `/teams/[id]`. Gaps in the person's line (no manager up the tree, team without supervisor, inactive manager or supervisor) show as a `warning` notice with the link to fix it | Managers are set where they are today; the tree only shows |
 | M20 | **Overview tab line** "Reports to: *supervisor* · *manager*" (first supervisor, "+1" when there are two), linking to the Management tab. Replaces task 4.3 of the two-level plan (M10) | The answer at a glance; details one click away |
-| M21 | **UI:** a recursive `#lib/app/management/ReportTree.svelte` built from shadcn `Collapsible` (added by the user with `pnpm dlx shadcn-svelte@latest add collapsible`) inside `Card`; indentation with logical `ps-*`; caret icons `rtl:rotate-180`; initials `Avatar` as on the employee cards; strings `management_tree_*` in en + ar | The template's UI rules; reads right to left in `/ar` |
+| M21 | **UI:** a recursive `#lib/app/management/ReportTree.svelte` inside `Card`, each manager / supervisor with a disclosure `Button` (`aria-expanded`, `aria-controls`; changed 2026-11-01 from shadcn `Collapsible`, so nothing has to be added first — switch to `Collapsible` later if wanted); indentation with logical `ps-*`; caret icons `rtl:rotate-180`; initials `Avatar` as on the employee cards; strings `management_tree_*` in en + ar | The template's UI rules; reads right to left in `/ar` |
 | M22 | **Status filter on `/employees`** (the user, 2026-11-01). As soon as **at least one employee is inactive**, the toolbar of both tabs (cards and "Move between teams") shows a `Select` beside the search: **Active (n) · Inactive (n) · All (n)**, default **Active** (Q-T6). It is a GET filter (`?status=active\|inactive\|all`, `name` on `Select.Root`, submits on change), so it stays in the URL with `?view=`; the page filters the list it already loads, counts come from the whole list, an unknown value falls back to the default. With no inactive employee the filter is hidden. Deactivating someone from the actions menu toasts "… was deactivated: shown under Inactive". The team cards of "Move between teams" keep listing active members only (unchanged). An inactive manager or supervisor still in place stays a gap in the tree (M19, Q-T4) | Deactivated people no longer clutter the daily list but are one click away; nothing to filter while everyone is active |
 
 Questions for the user (answered 2026-11-01: **every default kept**):
@@ -70,10 +70,15 @@ Questions for the user (answered 2026-11-01: **every default kept**):
 
 ### Phase 1 · Engine (in `src/lib/workforce/management.ts`, pure, Vitest)
 Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
-- [ ] 1.1 `ladderOf(person, date, org)` → `[{ level: 'supervisor' | 'manager' | 'hr', staffId?,
+- [x] 1.1 `ladderOf(person, date, org)` → `[{ level: 'supervisor' | 'manager' | 'hr', staffId?,
       teamId?, departmentId?, approves: boolean }]` (M16).
-- [ ] 1.2 `reportsOf(staffId, date, org)` → `ReportNode[]` (`kind: 'manager' | 'supervisor' |
+  > note: in `management.ts`: `chainOf` steps with `approves: true`, then every active manager
+  > further up (each once) with `approves: false`, then HR.
+- [x] 1.2 `reportsOf(staffId, date, org)` → `ReportNode[]` (`kind: 'manager' | 'supervisor' |
       'person'`, ids, `count`, `children`) (M17).
+  > note: manager nodes carry `departmentIds`, supervisor nodes `teamIds`; one node per person
+  > under a parent (a supervisor who also manages a sub-department is merged into that node); the
+  > tree's owner never appears in it; `subtreePeople` lists everyone in a tree.
 - [ ] 1.3 Tests with a made-up organisation (a top department with a manager, a sub-department
       with its own manager, one without, three teams, one with two supervisors):
       - a member's ladder: supervisor → nearest manager → manager above (`approves: false`) → HR;
@@ -88,23 +93,46 @@ Needs the two-level plan's Phase 2 (types, `managerOn`, `chainOf`, `scopeOf`).
       - `reportsOf` a supervisor: their members that day; someone who left on day 10 is gone on
         day 11.
       **Done when** `pnpm test` is green with these cases (on the user's laptop)
+  > note: 15 new cases in `management.test.ts` (40 in the file), covering every line above plus:
+  > the approving steps equal `chainOf`; the tree holds **exactly** `scopeOf(...).people` for
+  > every person on days 1, 9, 10, 15 in three variants (base, inactive top manager, top manager
+  > inside a sub-department team). All 40 passed in the cloud session under plain Node with
+  > stand-ins for `expect` and `startOfDamascusDay`; tick when `pnpm test` is green.
 
 ### Phase 2 · Service
-- [ ] 2.1 `management.bl.ts` `managementTreeFor(actor, staffId, date)` → `{ ladder, reports,
+- [x] 2.1 `management.bl.ts` `managementTreeFor(actor, staffId, date)` → `{ ladder, reports,
       gaps }` with names, initials, team and department names; `staff.write` (M12). Reads only,
       no audit. Uses the two-level plan's `management.crud.ts` loaders.
-- [ ] 2.2 `listDepartments` adds `coveredBy` (the nearest manager above when a department has
+  > note: `managementTreeFor(actor, staffId, date)` → `{ date, ladder, ladderToday, reports,
+  > reportCount, gaps, teamId, departmentId }`: names on every step and node (units = the
+  > sub-departments / teams they lead, a leaf's team), sorted managers → supervisors → people,
+  > then by name; gaps = those about the person's team or a department in their chain.
+- [x] 2.2 `listDepartments` adds `coveredBy` (the nearest manager above when a department has
       none, M14).
+  > note: `coveredBy` = the nearest **active** manager above when the department has no own active
+  > manager (with that manager's department id).
 
 ### Phase 3 · UI
 - [ ] 3.1 Profile tab "Management" (`?tab=management`, M15): date filter form, "Reports to" card
       (ladder, "above" badge, HR at the end), "Manages" card with `ReportTree` (M17, M18), gap
       notices (M19). The load reads `?on=` only for this tab's data (V3: switching tabs doesn't
       refetch other data).
+  > note: built 2026-11-01: `#lib/app/management/ManagementTab.svelte` (tab after Overview,
+  > `TreeStructureIcon`): date filter (`?on=` + `tab=management`, "Today" link), "Gaps in this
+  > line" card (team → "Open team", department → `/management`), "Reports to" (avatars, role,
+  > "Above" badge, HR last), "Manages" (only when they lead someone). The load reads `?on=`
+  > (`managementTreeFor`). Waiting for checks and the user's manual check.
 - [ ] 3.2 `#lib/app/management/ReportTree.svelte` (recursive, `Collapsible`, M21). The user
       first runs `pnpm dlx shadcn-svelte@latest add collapsible`.
+  > note: built 2026-11-01 without `Collapsible` (M21 changed): a disclosure button per manager /
+  > supervisor (caret flips in RTL), initials avatar, role badge with their departments / teams,
+  > people count; a person's link opens their Management tab on the same date; deeper levels
+  > render once opened. No command needed.
 - [ ] 3.3 Overview line "Reports to" (M20).
+  > note: built: today's first supervisor ("(+1)" for more) · nearest manager, or "HR only"; the
+  > label opens the Management tab.
 - [ ] 3.4 `/departments`: "Covered by …" in muted text under an empty manager (M14).
+  > note: built: the Manager column shows "No own manager · covered by *name* (*department*)".
 - [ ] 3.5 en + ar strings (`management_tree_*`, `employees_status_*`); `svelte-autofixer` (on the
       user's laptop), eslint + prettier on touched files.
 - [x] 3.6 `/employees` status filter (M22): `EMPLOYEE_STATUSES` + `employeeStatus(value)` and

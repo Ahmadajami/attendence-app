@@ -42,7 +42,8 @@ export async function listManagersOn(date: string) {
 			departmentId: departmentManager.departmentId,
 			staffId: staff.id,
 			fullName: staff.fullName,
-			fullNameAr: staff.fullNameAr
+			fullNameAr: staff.fullNameAr,
+			active: staff.active
 		})
 		.from(departmentManager)
 		.innerJoin(staff, eq(staff.id, departmentManager.staffId))

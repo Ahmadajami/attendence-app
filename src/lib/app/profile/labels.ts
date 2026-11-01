@@ -67,6 +67,7 @@ export function custodyStatusLabel(status: string): string {
 /** The employee page's tabs, in order (redesign plan V2); the value is `?tab=`. */
 export const PROFILE_TABS = [
 	'overview',
+	'management',
 	'schedule',
 	'personal',
 	'experience',

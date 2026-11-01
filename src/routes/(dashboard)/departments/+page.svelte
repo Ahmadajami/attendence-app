@@ -41,6 +41,13 @@
 		formOpen = true;
 	}
 
+	const departmentById = $derived(new Map(data.departments.map((d) => [d.id, d])));
+
+	function departmentName(id: string): string {
+		const department = departmentById.get(id);
+		return department ? lookupName(department) : '—';
+	}
+
 	// The manager changes from a date, with a reason, in its own sheet (management M25).
 	let managerOpen = $state(false);
 	let managerOf = $state<Department | null>(null);
@@ -131,7 +138,18 @@
 								</span>
 							</Table.Cell>
 							<Table.Cell class="text-sm">
-								{row.manager ? personName(row.manager) : '—'}
+								{#if row.manager}
+									{personName(row.manager)}
+								{:else if row.coveredBy}
+									<span class="text-muted-foreground">
+										{m.management_covered_by({
+											name: personName(row.coveredBy),
+											department: departmentName(row.coveredBy.departmentId)
+										})}
+									</span>
+								{:else}
+									—
+								{/if}
 							</Table.Cell>
 							<Table.Cell>
 								<span class="inline-flex items-center gap-1.5 text-muted-foreground">

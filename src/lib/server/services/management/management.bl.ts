@@ -12,14 +12,18 @@ import {
 	chainOf,
 	departmentOf,
 	gaps,
+	ladderOf,
 	managerOn,
 	momentOf,
+	reportsOf,
 	scopeOf,
 	teamAt,
 	type ChainStep,
 	type Gap,
+	type LadderStep,
 	type Org,
 	type OrgMoment,
+	type ReportNode,
 	type Scope
 } from '#lib/workforce/management.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
@@ -379,4 +383,124 @@ export async function setDepartmentManager(
 	} catch (error) {
 		throw managerConflict(error) ?? error;
 	}
+}
+
+// ---- One person's management tree (plans/2026-11-01-employee-management-tree.md, task 2.1) ----
+
+type Named = { id: string; nameEn: string; nameAr: string };
+
+export type PersonLadderStep = LadderStep & {
+	person: ManagementPerson | null;
+	team: Named | null;
+	department: Named | null;
+};
+
+export type PersonReportNode =
+	| {
+			kind: 'manager' | 'supervisor';
+			person: ManagementPerson;
+			/** The sub-departments (manager) or teams (supervisor) they lead under this parent. */
+			units: Named[];
+			count: number;
+			children: PersonReportNode[];
+	  }
+	| { kind: 'person'; person: ManagementPerson; team: Named | null };
+
+export type PersonManagementTree = {
+	date: string;
+	/** The line up on `date` (M16). */
+	ladder: PersonLadderStep[];
+	/** The line up today, for the Overview line (M20). */
+	ladderToday: PersonLadderStep[];
+	/** The people below them on `date` (M17), sorted by name at every level. */
+	reports: PersonReportNode[];
+	/** People in `reports`. */
+	reportCount: number;
+	/** Gaps in the person's own line on `date` (M19), with the team / department named. */
+	gaps: (ManagementGap & { team: Named | null; department: Named | null })[];
+	/** Where they work on `date`, for the gap notices. */
+	teamId: string | null;
+	departmentId: string | null;
+};
+
+/**
+ * Everything the profile's Management tab shows (M15–M20), on `date` (today by default): the line
+ * up, the tree down, and the gaps in their own line. Read-only.
+ */
+export async function managementTreeFor(
+	actor: Actor,
+	staffId: string,
+	date: string
+): Promise<PersonManagementTree> {
+	requireActorPermission(actor, 'staff.write');
+	requireDate(date);
+	const { rows, org } = await loadOrg();
+	const self = rows.people.find((p) => p.staffId === staffId);
+	if (!self) throw new NotFoundError(m.staff_error_not_found());
+
+	const people = personMap(rows);
+	const teams = new Map(
+		rows.teams.map((t) => [t.id, { id: t.id, nameEn: t.nameEn, nameAr: t.nameAr }])
+	);
+	const departments = new Map(
+		rows.departments.map((d) => [d.id, { id: d.id, nameEn: d.nameEn, nameAr: d.nameAr }])
+	);
+	const moment = momentFor(date);
+	const today = todayInDamascus();
+
+	const named = (steps: LadderStep[]): PersonLadderStep[] =>
+		steps.map((step) => ({
+			...step,
+			person: 'staffId' in step ? (people.get(step.staffId) ?? null) : null,
+			team: step.level === 'supervisor' ? (teams.get(step.teamId) ?? null) : null,
+			department: step.level === 'manager' ? (departments.get(step.departmentId) ?? null) : null
+		}));
+
+	const byName = (a: PersonReportNode, b: PersonReportNode) =>
+		a.person.fullName.localeCompare(b.person.fullName);
+	const KIND_RANK = { manager: 0, supervisor: 1, person: 2 } as const;
+	const toNodes = (nodes: readonly ReportNode[]): PersonReportNode[] =>
+		nodes
+			.flatMap((node): PersonReportNode[] => {
+				const person = people.get(node.staffId);
+				if (!person) return [];
+				if (node.kind === 'person') {
+					const teamId = teamAt(org, node.staffId, moment.at);
+					return [{ kind: 'person', person, team: teamId ? (teams.get(teamId) ?? null) : null }];
+				}
+				const units =
+					node.kind === 'manager'
+						? node.departmentIds.flatMap((id) => departments.get(id) ?? [])
+						: node.teamIds.flatMap((id) => teams.get(id) ?? []);
+				return [
+					{ kind: node.kind, person, units, count: node.count, children: toNodes(node.children) }
+				];
+			})
+			.sort((a, b) => KIND_RANK[a.kind] - KIND_RANK[b.kind] || byName(a, b));
+
+	const reportNodes = reportsOf(staffId, moment, org);
+	const teamId = teamAt(org, staffId, moment.at);
+	const departmentId = departmentOf(org, self, moment);
+	const chain = new Set(ancestorChain(rows.departments, departmentId));
+	const ownGaps = gaps(org, moment).filter((gap) =>
+		'teamId' in gap ? gap.teamId === teamId : chain.has(gap.departmentId)
+	);
+
+	return {
+		date,
+		ladder: named(ladderOf(staffId, moment, org)),
+		ladderToday: named(
+			date === today ? ladderOf(staffId, moment, org) : ladderOf(staffId, momentFor(today), org)
+		),
+		reports: toNodes(reportNodes),
+		reportCount: scopeOf(staffId, moment, org).people.length,
+		gaps: ownGaps.map((gap) => ({
+			...gap,
+			person: gapPerson(gap, people),
+			team: 'teamId' in gap ? (teams.get(gap.teamId) ?? null) : null,
+			department: 'departmentId' in gap ? (departments.get(gap.departmentId) ?? null) : null
+		})),
+		teamId,
+		departmentId
+	};
 }

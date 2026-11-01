@@ -42,7 +42,7 @@ supervisor, else department manager, else HR), D10 (sub-departments inherit) and
 | M6 | **Scope on date D:** a supervisor covers the members of their teams that day; a manager covers everyone in their department(s) **and sub-departments** that day, including the teams there and their supervisors. Computed from dated membership, never stored | Membership already moves by date; a stored copy would drift |
 | M7 | **Pure engine** `src/lib/workforce/management.ts` (no DB, no SvelteKit), Vitest with a made-up organisation: `chainOf`, `scopeOf`, `gaps` | Same pattern as `src/lib/roster/`: the rules are tested before any UI |
 | M8 | **Now (no sign-in): a `/management` page** for HR: the tree Department → manager → teams → supervisors → member counts, the **gaps** (department without a manager in its chain, team without a supervisor, inactive manager/supervisor, supervisor outside the team's department), and "change manager from a date" / add-remove supervisor | HR sets up and checks the structure before anyone signs in |
-| M9 | **"View as"** (HR only): a GET filter `?as=<staffId>` on `/employees`, `/teams` and `/attendance/entry` that limits the list to that manager's or supervisor's scope, with a banner "Viewing as X (department manager)". **Read-only preview: it changes no permission** | HR can check exactly what each manager will see once sign-in returns |
+| M9 | ~~dropped by the user (2026-11-01): not built; the employee Management tab (tree plan) is used instead~~ **"View as"** (HR only): a GET filter `?as=<staffId>` on `/employees`, `/teams` and `/attendance/entry` that limits the list to that manager's or supervisor's scope, with a banner "Viewing as X (department manager)". **Read-only preview: it changes no permission** | HR can check exactly what each manager will see once sign-in returns |
 | M10 | **The employee profile** shows "Reports to: supervisor(s) · manager" (Overview tab) | The chain is visible where HR looks for a person |
 | M11 | **Out of scope here:** manager/supervisor **accounts and sign-in** (S8: roles with permission keys, every BL checks the actor's scope server-side), and the **approval workflow** itself (S3.5 `/changes` will use M5). This plan only provides the chain and the scopes they will use | No login yet (D17); approvals need `/changes` first |
 | M12 | **Permissions now:** viewing `/management` needs `staff.write`; changing managers and supervisors needs `staff.write` (as departments and teams today). No new keys until S8 | Single local user; keys come with the roles in S8 |
@@ -211,17 +211,20 @@ Questions for the user (answered 2026-11-01: **every default kept**):
   > (M15–M20: a Management tab plus this Overview line), approved 2026-11-01; done there.
 - [ ] 4.4 "View as" (M9): a GET `Select` (managers and supervisors) on `/employees`, `/teams` and
       `/attendance/entry`; `?as=` limits the lists to `scopeFor`; a banner with "Stop viewing as".
+  > note: **not built** — the user decided against it (2026-11-01). Each employee's profile has a
+  > Management tab instead ([tree plan](2026-11-01-employee-management-tree.md)); `/management`
+  > stays as built in 4.1. `scopeFor` stays for sign-in (S8).
 - [ ] 4.5 en + ar strings (`management_*`), RTL in `/ar`; `svelte-autofixer`, `pnpm check`,
       eslint + prettier on touched files, `pnpm test`.
 
 ### Phase 5 · Verify
 - [ ] 5.1 Manual check **by the user** on `attendance_app_e2e` with made-up people: set a manager
       on a department and on one sub-department; add supervisors to two teams; the tree and the
-      gaps match; "view as" each of them shows only their people; a member's profile shows the
+      gaps match; each manager's and supervisor's Management tab shows only their people; a member's profile shows the
       right chain; a manager change from a later date shows both in the history; `audit_log` has a
       row per change. **Done when** the user reports every line holds
-- [ ] 5.2 Playwright (written, the user runs it): set a manager, view as them, see only their
-      department's people.
+- [ ] 5.2 Playwright (written, the user runs it): set a manager on `/management`, then their
+      profile's Management tab lists their department's people (was: "view as", dropped with M9).
 - [ ] 5.3 Tick, README row, decisions statuses, commit.
 
 ### Later · With sign-in (S8), not part of this plan

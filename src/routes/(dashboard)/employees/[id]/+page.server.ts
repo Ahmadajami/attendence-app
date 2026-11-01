@@ -37,6 +37,7 @@ import {
 	listPersonEvents
 } from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
+import { managementTreeFor } from '#lib/server/services/management/management.bl.js';
 import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
 import { getPersonRoster, getPersonSchedule } from '#lib/server/services/roster/roster.bl.js';
 import {
@@ -72,20 +73,34 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	const last = addDays(roster.preview.from, roster.preview.days - 1);
 	/** `?day=` opens the day panel when it is inside the preview window. */
 	const day = url.searchParams.get('day');
-	const [events, schedule, patterns, forms, profile, teams, departments, functions, listForm] =
-		await Promise.all([
-			canRecord
-				? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
-				: Promise.resolve([]),
-			getPersonSchedule(actor, id),
-			listPatterns(actor),
-			patternForms(roster.today, { kind: 'staff', id }),
-			getStaffProfile(actor, id),
-			listActiveTeams(actor),
-			listActiveDepartments(actor),
-			listFunctions(actor),
-			staffListForm()
-		]);
+	/** `?on=`: the Management tab's date (tree plan M15); only this param reruns the load for it. */
+	const on = url.searchParams.get('on');
+	const managementDate = on && z.iso.date().safeParse(on).success ? on : roster.today;
+	const [
+		events,
+		schedule,
+		patterns,
+		forms,
+		profile,
+		teams,
+		departments,
+		functions,
+		listForm,
+		management
+	] = await Promise.all([
+		canRecord
+			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
+			: Promise.resolve([]),
+		getPersonSchedule(actor, id),
+		listPatterns(actor),
+		patternForms(roster.today, { kind: 'staff', id }),
+		getStaffProfile(actor, id),
+		listActiveTeams(actor),
+		listActiveDepartments(actor),
+		listFunctions(actor),
+		staffListForm(),
+		managementTreeFor(actor, id, managementDate)
+	]);
 	return {
 		...roster,
 		canRecord,
@@ -114,6 +129,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		departments,
 		functions,
 		listForm,
+		/** The Management tab (tree plan M15–M20). */
+		management,
 		staffEditForm: await editStaffForm(profile.person),
 		...(await profileForms(profile.person))
 	};

@@ -5,7 +5,7 @@ import { batch } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
 import type { DepartmentInput } from '#lib/schemas/departments.schema.js';
 import { todayInDamascus } from '#lib/server/time.js';
-import { flattenTree, wouldCreateCycle } from '#lib/workforce/departments.js';
+import { ancestorChain, flattenTree, wouldCreateCycle } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import {
 	countActiveStaffByDepartment,
@@ -24,6 +24,11 @@ export type DepartmentListItem = DepartmentRow & {
 	/** The department's own manager today (`department_manager`, M3); `null` when it has none. */
 	managerStaffId: string | null;
 	manager: { fullName: string; fullNameAr: string | null } | null;
+	/**
+	 * Without an own active manager: the nearest active manager above (M2, tree plan M14), with
+	 * their department's id; `null` when the department has its own or nobody above has one.
+	 */
+	coveredBy: { fullName: string; fullNameAr: string | null; departmentId: string } | null;
 };
 
 /** The whole tree, parents before children, with counts and today's manager names. */
@@ -44,12 +49,25 @@ export async function listDepartments(actor: Actor): Promise<DepartmentListItem[
 
 	return flattenTree(rows, (a, b) => a.nameEn.localeCompare(b.nameEn)).map((row) => {
 		const manager = managerBy.get(row.id);
+		const above = manager?.active
+			? undefined
+			: ancestorChain(rows, row.id)
+					.slice(1)
+					.map((id) => managerBy.get(id))
+					.find((candidate) => candidate?.active);
 		return {
 			...row,
 			staffCount: staffBy.get(row.id) ?? 0,
 			activeChildCount: activeChildren.get(row.id) ?? 0,
 			managerStaffId: manager?.staffId ?? null,
-			manager: manager ? { fullName: manager.fullName, fullNameAr: manager.fullNameAr } : null
+			manager: manager ? { fullName: manager.fullName, fullNameAr: manager.fullNameAr } : null,
+			coveredBy: above
+				? {
+						fullName: above.fullName,
+						fullNameAr: above.fullNameAr,
+						departmentId: above.departmentId
+					}
+				: null
 		};
 	});
 }

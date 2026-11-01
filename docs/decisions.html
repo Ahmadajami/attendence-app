@@ -680,6 +680,16 @@
       alts: [ { en: 'A minimum per team with warnings when a change breaks it: not chosen — setup for every team and a check on every change, not needed yet.', ar: 'حد أدنى لكل فريق مع تنبيه عند مخالفته: لم يُختر — يحتاج إعداداً لكل فريق وفحصاً عند كل تغيير، وليس مطلوباً بعد.' } ]
     },
     {
+      id: 'B16', group: 'builder', status: 'approved', date: '2026-11-01', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Preset: 24-day cycle with 12 h shifts from 08:00 (D8, N8)', ar: 'قالب جاهز: دورة 24 يوماً بورديات 12 ساعة من 08:00 (D8، N8)' },
+      decision: { en: 'A builder preset 4 N8, 4 off, 4 D8, 4 off, 4 D8, 4 off (24 days). It uses two new shift codes, D8 = 08:00–20:00 and N8 = 20:00–08:00, which HR creates once in /shifts; until then the preset is greyed out with "create shift N8, D8 first". Six people with crew starts 4 apart give 1 night + 2 days + 3 off every day.', ar: 'قالب جاهز في المنشئ: 4 N8، 4 عطلة، 4 D8، 4 عطلة، 4 D8، 4 عطلة (24 يوماً). يستخدم رمزَي ورديتين جديدين، D8 = 08:00–20:00 و N8 = 20:00–08:00، تنشئهما الموارد البشرية مرة واحدة في /shifts؛ وحتى ذلك يبقى القالب باهتاً مع "أنشئ الوردية N8، D8 أولاً". ستة أشخاص ببدايات طاقم متباعدة بـ4 تعطي ليلاً واحداً + نهارين + 3 عطلات كل يوم.' },
+      why: { en: 'The user asked (2026-11-01) for a fast way to rebuild a department roster that uses this cycle with shifts starting at 08:00, not at 07:00 like the seeded D and N.', ar: 'طلب المستخدم (2026-11-01) طريقة سريعة لإعادة بناء جدول قسم يستخدم هذه الدورة بورديات تبدأ الساعة 08:00، لا 07:00 مثل D و N المزروعتين.' },
+      alts: [
+        { en: 'Change the times of D and N to 08:00: not chosen — they may already be used by patterns or punches (shift lock P1), and other departments keep 07:00.', ar: 'تغيير أوقات D و N إلى 08:00: لم يُختر — قد تكون مستخدمة في أنماط أو بصمات (قفل الوردية P1)، والأقسام الأخرى تبقى على 07:00.' },
+        { en: 'Seed D8 and N8 with a migration: not chosen — a data migration for two shifts HR can create in a minute, and it would also need the user\'s OK on the real database.', ar: 'زرع D8 و N8 عبر ترحيل: لم يُختر — ترحيل بيانات لورديتين يمكن إنشاؤهما في دقيقة، ويحتاج أيضاً موافقة المستخدم على قاعدة البيانات الحقيقية.' }
+      ]
+    },
+    {
       id: "H1", group: 'profile', status: 'default', date: '2026-11-01', src: "plans/2026-11-01-employee-profile.md §1",
       title: { en: "Names: first + last in both languages", ar: "الأسماء: الاسم الأول والأخير باللغتين" },
       decision: { en: "Add first and last name in English and Arabic. The full names stay the display names everywhere; the service sets them to \"first last\" when both parts are given. Existing names are not split automatically.", ar: "إضافة الاسم الأول والأخير بالإنجليزية والعربية. يبقى الاسم الكامل هو المعروض في كل مكان؛ وتضبطه الخدمة إلى \"الأول الأخير\" عند توفر الجزأين. لا تُقسَّم الأسماء الحالية تلقائياً." },

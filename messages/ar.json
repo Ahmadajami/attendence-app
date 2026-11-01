@@ -613,6 +613,7 @@
 	"patterns_preset_days_4_on_4_off": "نهار 12 ساعة، 4 عمل 4 عطلة",
 	"patterns_preset_missing": "أنشئ الوردية {codes} أولاً",
 	"patterns_preset_nights_4_on_4_off": "ليل 12 ساعة، 4 عمل 4 عطلة",
+	"patterns_preset_nights_days_24_8": "12 ساعة من 08:00: 4 ليل، 4 عطلة، 4 نهار، 4 عطلة، 4 نهار، 4 عطلة (24 يوماً)",
 	"patterns_preset_office_sun_thu": "مكتب الأحد–الخميس",
 	"patterns_preset_six_on_one_off": "6 عمل، 1 عطلة",
 	"patterns_presets": "ابدأ من قالب جاهز",

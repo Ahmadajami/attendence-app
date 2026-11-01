@@ -33,6 +33,26 @@ describe('resolvePreset (B12)', () => {
 		expect(resolvePreset(preset('six_on_one_off'), DN, null)).toEqual({ missing: ['*'] });
 	});
 
+	it('builds the 24-day 08:00 cycle from D8 and N8 (B16)', () => {
+		const shifts = [...DN, { id: 'id-d8', code: 'D8' }, { id: 'id-n8', code: 'N8' }];
+		const result = resolvePreset(preset('nights_days_24_8'), shifts, null);
+		const block = (id: string | null) => [id, id, id, id];
+		expect(result).toEqual({
+			type: 'cycle',
+			slots: [
+				...block('id-n8'),
+				...block(null),
+				...block('id-d8'),
+				...block(null),
+				...block('id-d8'),
+				...block(null)
+			]
+		});
+		expect(resolvePreset(preset('nights_days_24_8'), DN, null)).toEqual({
+			missing: ['N8', 'D8']
+		});
+	});
+
 	it('has a key, a type and a valid length for every preset', () => {
 		expect(new Set(PRESETS.map((p) => p.key)).size).toBe(PRESETS.length);
 		for (const p of PRESETS) {

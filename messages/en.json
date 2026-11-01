@@ -613,6 +613,7 @@
 	"patterns_preset_days_4_on_4_off": "12 h days, 4 on 4 off",
 	"patterns_preset_missing": "Create shift {codes} first",
 	"patterns_preset_nights_4_on_4_off": "12 h nights, 4 on 4 off",
+	"patterns_preset_nights_days_24_8": "12 h from 08:00: 4 N, 4 off, 4 D, 4 off, 4 D, 4 off (24 days)",
 	"patterns_preset_office_sun_thu": "Office Sun–Thu",
 	"patterns_preset_six_on_one_off": "6 on, 1 off",
 	"patterns_presets": "Start from a preset",

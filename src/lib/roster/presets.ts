@@ -19,7 +19,18 @@ export const PRESETS: readonly Preset[] = [
 	{ key: 'six_on_one_off', type: 'weekly', shape: ['*', '*', '*', '*', '*', 'O', '*'] },
 	{ key: 'day_night_2_2_4', type: 'cycle', shape: ['D', 'D', 'N', 'N', 'O', 'O', 'O', 'O'] },
 	{ key: 'nights_4_on_4_off', type: 'cycle', shape: ['N', 'N', 'N', 'N', 'O', 'O', 'O', 'O'] },
-	{ key: 'days_4_on_4_off', type: 'cycle', shape: ['D', 'D', 'D', 'D', 'O', 'O', 'O', 'O'] }
+	{ key: 'days_4_on_4_off', type: 'cycle', shape: ['D', 'D', 'D', 'D', 'O', 'O', 'O', 'O'] },
+	// 12 h shifts from 08:00 (D8 08–20, N8 20–08), builder plan B16. Six crew starts 4 apart
+	// (e.g. 1, 5, 9, 13, 17, 21) give 1 N + 2 D + 3 off every day.
+	{
+		key: 'nights_days_24_8',
+		type: 'cycle',
+		shape: [
+			...['N8', 'N8', 'N8', 'N8', 'O', 'O', 'O', 'O'],
+			...['D8', 'D8', 'D8', 'D8', 'O', 'O', 'O', 'O'],
+			...['D8', 'D8', 'D8', 'D8', 'O', 'O', 'O', 'O']
+		]
+	}
 ];
 
 /** `missing` lists the codes to create first, `*` when no brush shift is picked. */

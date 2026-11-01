@@ -130,7 +130,8 @@
 		six_on_one_off: m.patterns_preset_six_on_one_off,
 		day_night_2_2_4: m.patterns_preset_day_night_2_2_4,
 		nights_4_on_4_off: m.patterns_preset_nights_4_on_4_off,
-		days_4_on_4_off: m.patterns_preset_days_4_on_4_off
+		days_4_on_4_off: m.patterns_preset_days_4_on_4_off,
+		nights_days_24_8: m.patterns_preset_nights_days_24_8
 	};
 	/** Weekly presets fill their working days with the pattern's main shift (or the first active). */
 	const brush = $derived(mostUsedShift($formData.slots) ?? active[0]?.id ?? null);

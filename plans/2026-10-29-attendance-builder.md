@@ -90,6 +90,7 @@ Questions answered by the user (2026-10-29):
 | # | Decision | Why |
 |---|---|---|
 | B15 | The team staffing strip shows counts per shift per day only; there is no minimum and no warning | User's answer to Q-B3; a minimum can be added later without rework |
+| B16 | Preset `nights_days_24_8`: 4 N8, 4 off, 4 D8, 4 off, 4 D8, 4 off (24 days) on two new shift codes, `D8` 08:00–20:00 and `N8` 20:00–08:00, which HR creates in `/shifts` (user, 2026-11-01) | A department roster uses this cycle with 08:00 shifts; the seeded D/N (07:00) stay for everyone else |
 
 ---
 
@@ -212,6 +213,8 @@ team ── department (new FK)
       > the brush shift `*`), D D N N O O O O, N×4 O×4, D×4 O×4. The mockup's
       > M/E shapes are left out (no such codes). Keys feed
       > `patterns_preset_<key>` messages in phase 4.
+      > note: 2026-11-01: sixth preset `nights_days_24_8` (B16) on `D8` / `N8`, + 1 Vitest
+      > case; greyed out until those two shifts exist.
 - [x] 2.6 Tests (made-up people and the fixture shifts in
       `test-shifts.ts`); port every current `roster.test.ts` case, plus:
       - A1: department pattern A, team B, personal C → C; end C → B; end

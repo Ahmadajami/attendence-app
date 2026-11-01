@@ -1,45 +1,72 @@
 @import 'tailwindcss';
+
 @import 'tw-animate-css';
 @import 'shadcn-svelte/tailwind.css';
 @import '@fontsource-variable/jetbrains-mono';
 
 @custom-variant dark (&:is(.dark *));
+
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
+/* ============================================
+   LIGHT THEME — Burgundy / Soft Cream
+============================================ */
+
 :root {
-	--background: oklch(0.96 0.029 325.8 / 0.933);
-	--foreground: oklch(0.145 0 0);
+	color-scheme: light;
+
+	--background: oklch(0.988 0.006 43.3);
+	--foreground: oklch(0.232 0.057 2.3);
+
 	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.145 0 0);
+	--card-foreground: oklch(0.232 0.057 2.3);
+
 	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
-	--secondary: oklch(0.97 0 0);
-	--secondary-foreground: oklch(0.205 0 0);
-	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
+	--popover-foreground: oklch(0.232 0.057 2.3);
+
+	/* Brand */
+	--primary: oklch(0.302 0.094 10.2);
+	--primary-foreground: oklch(0.95 0.009 0.1);
+
+	--secondary: oklch(0.912 0.011 3.5);
+	--secondary-foreground: oklch(0.302 0.094 10.2);
+
+	--muted: oklch(0.968 0.006 31);
+	--muted-foreground: oklch(0.538 0.035 352.4);
+
+	--accent: oklch(0.94 0.025 5);
+	--accent-foreground: oklch(0.302 0.094 10.2);
+
 	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.922 0 0);
-	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
-	--radius: 0.625rem;
-	--sidebar: oklch(0.985 0 0);
-	--sidebar-foreground: oklch(0.145 0 0);
-	--sidebar-primary: oklch(0.205 0 0);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.97 0 0);
-	--sidebar-accent-foreground: oklch(0.205 0 0);
-	--sidebar-border: oklch(0.922 0 0);
-	--sidebar-ring: oklch(0.708 0 0);
+
+	--border: oklch(0.912 0.011 3.5);
+	--input: oklch(0.912 0.011 3.5);
+	--ring: oklch(0.529 0.119 6.5);
+
+	/* Charts */
+	--chart-1: oklch(0.302 0.094 10.2);
+	--chart-2: oklch(0.529 0.119 6.5);
+	--chart-3: oklch(0.791 0.051 2.4);
+	--chart-4: oklch(0.538 0.035 352.4);
+	--chart-5: oklch(0.65 0.11 45);
+
+	/* Radius */
+	--radius: 0.45rem;
+
+	/* Sidebar */
+	--sidebar: oklch(0.968 0.006 31);
+	--sidebar-foreground: oklch(0.232 0.057 2.3);
+
+	--sidebar-primary: oklch(0.302 0.094 10.2);
+	--sidebar-primary-foreground: oklch(0.95 0.009 0.1);
+
+	--sidebar-accent: oklch(0.94 0.025 5);
+	--sidebar-accent-foreground: oklch(0.302 0.094 10.2);
+
+	--sidebar-border: oklch(0.912 0.011 3.5);
+	--sidebar-ring: oklch(0.529 0.119 6.5);
+
 	/* Non-blocking notices (entry sheet warnings). */
 	--warning: oklch(0.555 0.163 48.998);
 	/* Shift palette (SHIFT_COLOURS order): mid-dark tones that carry shift-foreground text. */
@@ -54,51 +81,84 @@
 	--shift-foreground: oklch(0.985 0 0);
 }
 
+/* ============================================
+   DARK THEME — Deep Burgundy
+============================================ */
+
 .dark {
-	--background: oklch(0.145 0 0);
-	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.205 0 0);
-	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.205 0 0);
-	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
-	--primary-foreground: oklch(0.205 0 0);
-	--secondary: oklch(0.269 0 0);
-	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.269 0 0);
-	--muted-foreground: oklch(0.708 0 0);
-	--accent: oklch(0.269 0 0);
-	--accent-foreground: oklch(0.985 0 0);
+	color-scheme: dark;
+
+	--background: oklch(0.16 0.025 5);
+	--foreground: oklch(0.95 0.009 0.1);
+
+	--card: oklch(0.205 0.034 4.5);
+	--card-foreground: oklch(0.95 0.009 0.1);
+
+	--popover: oklch(0.205 0.034 4.5);
+	--popover-foreground: oklch(0.95 0.009 0.1);
+
+	/* Lighter brand shade for dark surfaces */
+	--primary: oklch(0.529 0.119 6.5);
+	--primary-foreground: oklch(0.99 0.003 0);
+
+	--secondary: oklch(0.29 0.035 5);
+	--secondary-foreground: oklch(0.95 0.009 0.1);
+
+	--muted: oklch(0.25 0.029 4);
+	--muted-foreground: oklch(0.72 0.025 5);
+
+	--accent: oklch(0.29 0.045 5);
+	--accent-foreground: oklch(0.95 0.009 0.1);
+
 	--destructive: oklch(0.704 0.191 22.216);
+
 	--border: oklch(1 0 0 / 10%);
 	--input: oklch(1 0 0 / 15%);
-	--ring: oklch(0.556 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
-	--sidebar: oklch(0.205 0 0);
-	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.269 0 0);
-	--sidebar-accent-foreground: oklch(0.985 0 0);
+	--ring: oklch(0.65 0.1 6);
+
+	/* Charts */
+	--chart-1: oklch(0.791 0.051 2.4);
+	--chart-2: oklch(0.65 0.13 8);
+	--chart-3: oklch(0.529 0.119 6.5);
+	--chart-4: oklch(0.72 0.06 30);
+	--chart-5: oklch(0.65 0.11 45);
+
+	/* Sidebar */
+	--sidebar: oklch(0.185 0.03 5);
+	--sidebar-foreground: oklch(0.95 0.009 0.1);
+
+	--sidebar-primary: oklch(0.529 0.119 6.5);
+	--sidebar-primary-foreground: oklch(0.99 0.003 0);
+
+	--sidebar-accent: oklch(0.29 0.045 5);
+	--sidebar-accent-foreground: oklch(0.95 0.009 0.1);
+
 	--sidebar-border: oklch(1 0 0 / 10%);
-	--sidebar-ring: oklch(0.556 0 0);
-	--warning: oklch(0.769 0.188 70.08);
+	--sidebar-ring: oklch(0.65 0.1 6);
+
+	/* Non-blocking notices (entry sheet warnings). */
+	--warning: oklch(0.555 0.163 48.998);
+	/* Shift palette (SHIFT_COLOURS order): mid-dark tones that carry shift-foreground text. */
 	--shift-1: oklch(0.555 0.163 48.998);
-	--shift-2: oklch(0.511 0.262 276.966);
+	--shift-2: oklch(0.457 0.24 277.023);
 	--shift-3: oklch(0.5 0.134 242.749);
 	--shift-4: oklch(0.508 0.118 165.612);
 	--shift-5: oklch(0.514 0.222 16.935);
-	--shift-6: oklch(0.541 0.281 293.009);
+	--shift-6: oklch(0.491 0.27 292.581);
 	--shift-7: oklch(0.511 0.096 186.391);
-	--shift-8: oklch(0.554 0.046 257.417);
+	--shift-8: oklch(0.446 0.043 257.281);
 	--shift-foreground: oklch(0.985 0 0);
 }
 
+/* ============================================
+   TAILWIND THEME TOKENS
+============================================ */
+
 @theme inline {
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono Variable', monospace;
+
+	/* This app's tokens (CLAUDE.md §3): bg-warning, bg-shift-1 … bg-shift-8, text-shift-foreground. */
 	--color-warning: var(--warning);
 	--color-shift-1: var(--shift-1);
 	--color-shift-2: var(--shift-2);
@@ -109,7 +169,7 @@
 	--color-shift-7: var(--shift-7);
 	--color-shift-8: var(--shift-8);
 	--color-shift-foreground: var(--shift-foreground);
-	--font-mono: 'JetBrains Mono Variable', monospace;
+
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -118,29 +178,39 @@
 	--color-sidebar-primary: var(--sidebar-primary);
 	--color-sidebar-foreground: var(--sidebar-foreground);
 	--color-sidebar: var(--sidebar);
-	--color-chart-5: var(--chart-5);
-	--color-chart-4: var(--chart-4);
-	--color-chart-3: var(--chart-3);
-	--color-chart-2: var(--chart-2);
+
 	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+
 	--color-ring: var(--ring);
 	--color-input: var(--input);
 	--color-border: var(--border);
 	--color-destructive: var(--destructive);
+
 	--color-accent-foreground: var(--accent-foreground);
 	--color-accent: var(--accent);
+
 	--color-muted-foreground: var(--muted-foreground);
 	--color-muted: var(--muted);
+
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-secondary: var(--secondary);
+
 	--color-primary-foreground: var(--primary-foreground);
 	--color-primary: var(--primary);
+
 	--color-popover-foreground: var(--popover-foreground);
 	--color-popover: var(--popover);
+
 	--color-card-foreground: var(--card-foreground);
 	--color-card: var(--card);
+
 	--color-foreground: var(--foreground);
 	--color-background: var(--background);
+
 	--radius-sm: calc(var(--radius) * 0.6);
 	--radius-md: calc(var(--radius) * 0.8);
 	--radius-lg: var(--radius);
@@ -150,17 +220,25 @@
 	--radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ============================================
+   BASE STYLES
+============================================ */
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
 	}
+
 	body {
 		@apply bg-background text-foreground;
 	}
+
 	html {
-		@apply font-mono;
+		@apply font-sans;
 	}
 }
+
+/* The theme toggle animates with a view transition (animated-theme-toggler). */
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	animation: none;

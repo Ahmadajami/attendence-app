@@ -5,6 +5,7 @@ import {
 	date,
 	index,
 	integer,
+	numeric,
 	pgEnum,
 	pgTable,
 	smallint,
@@ -14,7 +15,7 @@ import {
 	uniqueIndex,
 	uuid
 } from 'drizzle-orm/pg-core';
-import { PATTERN_TYPES } from '#lib/schemas/enums.js';
+import { PATTERN_TYPES, SWAP_KINDS, SWAP_SCOPES, SWAP_STATES } from '#lib/schemas/enums.js';
 import { user } from './auth.js';
 import { department, staff, team } from './workforce.js';
 
@@ -210,6 +211,159 @@ export const staffSchedule = pgTable(
 	]
 );
 
+/**
+ * A pattern's overtime rule from a date (pay plan PR4–PR6): overtime on/off and the three rates.
+ * `NULL` in a field: inherit (department rule, S2.3, then the company default `OVERTIME_DEFAULTS`).
+ * Versioned like assignments, never edited: a change closes the open version (`effective_to`) and
+ * opens the next. A custom migration adds an `EXCLUDE` so one pattern's versions never overlap.
+ */
+export const patternPayRule = pgTable(
+	'pattern_pay_rule',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patternId: uuid('pattern_id')
+			.notNull()
+			.references(() => pattern.id, { onDelete: 'restrict' }),
+		otEnabled: boolean('ot_enabled'),
+		/** Minutes past the required time on a rostered work day. */
+		workDayRate: numeric('work_day_rate', { precision: 4, scale: 2, mode: 'number' }),
+		/** Every minute worked on an off day or an extra shift. */
+		offDayRate: numeric('off_day_rate', { precision: 4, scale: 2, mode: 'number' }),
+		/** Every minute worked on an overtime-eligible holiday. */
+		holidayRate: numeric('holiday_rate', { precision: 4, scale: 2, mode: 'number' }),
+		effectiveFrom: date('effective_from', { mode: 'string' }).notNull(),
+		/** Exclusive; `null` while the version is open. */
+		effectiveTo: date('effective_to', { mode: 'string' }),
+		reason: text('reason').notNull(),
+		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		index('pattern_pay_rule_pattern_idx').on(t.patternId, t.effectiveFrom),
+		check(
+			'pattern_pay_rule_has_value',
+			sql`num_nonnulls(${t.otEnabled}, ${t.workDayRate}, ${t.offDayRate}, ${t.holidayRate}) > 0`
+		),
+		check(
+			'pattern_pay_rule_rate_range',
+			sql`(${t.workDayRate} IS NULL OR ${t.workDayRate} BETWEEN 1 AND 5) AND (${t.offDayRate} IS NULL OR ${t.offDayRate} BETWEEN 1 AND 5) AND (${t.holidayRate} IS NULL OR ${t.holidayRate} BETWEEN 1 AND 5)`
+		),
+		check('pattern_pay_rule_reason_present', sql`length(trim(${t.reason})) > 0`),
+		check(
+			'pattern_pay_rule_effective_order',
+			sql`${t.effectiveTo} IS NULL OR ${t.effectiveTo} > ${t.effectiveFrom}`
+		)
+	]
+);
+
+/**
+ * A holiday on a pattern (pay plan PR2, PR3, PR8): every follower on these shift dates (inclusive,
+ * at most 14) has the day off with required 0; work on it is paid at the holiday rate when
+ * `ot_eligible`. Cancelled, never deleted. A custom migration adds an `EXCLUDE` so one pattern's
+ * active holidays never overlap.
+ */
+export const patternHoliday = pgTable(
+	'pattern_holiday',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patternId: uuid('pattern_id')
+			.notNull()
+			.references(() => pattern.id, { onDelete: 'restrict' }),
+		startsOn: date('starts_on', { mode: 'string' }).notNull(),
+		endsOn: date('ends_on', { mode: 'string' }).notNull(),
+		nameEn: text('name_en').notNull(),
+		nameAr: text('name_ar').notNull(),
+		otEligible: boolean('ot_eligible').notNull().default(false),
+		reason: text('reason').notNull(),
+		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		cancelledBy: uuid('cancelled_by').references(() => user.id, { onDelete: 'set null' }),
+		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		index('pattern_holiday_pattern_idx').on(t.patternId, t.startsOn),
+		check(
+			'pattern_holiday_dates',
+			sql`${t.endsOn} >= ${t.startsOn} AND ${t.endsOn} - ${t.startsOn} < 14`
+		),
+		check(
+			'pattern_holiday_name_present',
+			sql`length(trim(${t.nameEn})) > 0 AND length(trim(${t.nameAr})) > 0`
+		),
+		check('pattern_holiday_reason_present', sql`length(trim(${t.reason})) > 0`)
+	]
+);
+
+export const swapKind = pgEnum('swap_kind', SWAP_KINDS);
+export const swapScope = pgEnum('swap_scope', SWAP_SCOPES);
+export const swapState = pgEnum('swap_state', SWAP_STATES);
+
+/**
+ * A swap request (pay plan PR25–PR28). It changes the roster only when approved: approving re-checks
+ * the days and creates `roster_override` rows whose `swap_group_id` is this id; cancelling an
+ * approved swap cancels them together. Self swap: `first_date` = the work day that becomes off,
+ * `second_date` = the off day that becomes work. Employee swap: `first_date` = the date A works and
+ * B is off, `second_date` = the optional return date. Never deleted.
+ */
+export const swapRequest = pgTable(
+	'swap_request',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		kind: swapKind('kind').notNull(),
+		staffId: uuid('staff_id')
+			.notNull()
+			.references(() => staff.id, { onDelete: 'restrict' }),
+		/** Employee swap only: B. */
+		otherStaffId: uuid('other_staff_id').references(() => staff.id, { onDelete: 'restrict' }),
+		firstDate: date('first_date', { mode: 'string' }).notNull(),
+		secondDate: date('second_date', { mode: 'string' }),
+		scope: swapScope('scope').notNull(),
+		/** The moved work day is paid at the off-day rate (PR28). */
+		payAsOt: boolean('pay_as_ot').notNull().default(false),
+		reason: text('reason').notNull(),
+		state: swapState('state').notNull().default('pending'),
+		requestedBy: uuid('requested_by').references(() => user.id, { onDelete: 'set null' }),
+		decidedBy: uuid('decided_by').references(() => user.id, { onDelete: 'set null' }),
+		/** When it was approved or rejected. */
+		decidedAt: timestamp('decided_at', { withTimezone: true }),
+		decisionNote: text('decision_note'),
+		cancelledBy: uuid('cancelled_by').references(() => user.id, { onDelete: 'set null' }),
+		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+		cancelReason: text('cancel_reason'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		index('swap_request_staff_idx').on(t.staffId, t.firstDate),
+		index('swap_request_other_idx').on(t.otherStaffId, t.firstDate),
+		index('swap_request_state_idx').on(t.state, t.firstDate),
+		check(
+			'swap_request_other_staff',
+			sql`(${t.kind} = 'emp_swap') = (${t.otherStaffId} IS NOT NULL) AND (${t.otherStaffId} IS NULL OR ${t.otherStaffId} <> ${t.staffId})`
+		),
+		check(
+			'swap_request_dates',
+			sql`(${t.kind} <> 'self_swap' OR ${t.secondDate} IS NOT NULL) AND (${t.secondDate} IS NULL OR ${t.secondDate} <> ${t.firstDate})`
+		),
+		check('swap_request_reason_present', sql`length(trim(${t.reason})) > 0`),
+		check(
+			'swap_request_state_fields',
+			sql`(${t.state} = 'pending') = (${t.decidedAt} IS NULL AND ${t.cancelledAt} IS NULL) AND (${t.state} = 'cancelled') = (${t.cancelledAt} IS NOT NULL) AND (${t.state} NOT IN ('approved', 'rejected') OR ${t.decidedAt} IS NOT NULL) AND (${t.cancelledAt} IS NULL OR length(trim(coalesce(${t.cancelReason}, ''))) > 0)`
+		)
+	]
+);
+
 /** Who supervises a team. Information only until supervisor accounts (ROSTER_PLAN.md, Later). */
 export const teamSupervisor = pgTable(
 	'team_supervisor',
@@ -282,7 +436,17 @@ export const rosterOverride = pgTable(
 
 export const patternRelations = relations(pattern, ({ one, many }) => ({
 	defaultWorkShift: one(shift, { fields: [pattern.defaultWorkShiftId], references: [shift.id] }),
-	assignments: many(patternAssignment)
+	assignments: many(patternAssignment),
+	payRules: many(patternPayRule),
+	holidays: many(patternHoliday)
+}));
+
+export const patternPayRuleRelations = relations(patternPayRule, ({ one }) => ({
+	pattern: one(pattern, { fields: [patternPayRule.patternId], references: [pattern.id] })
+}));
+
+export const patternHolidayRelations = relations(patternHoliday, ({ one }) => ({
+	pattern: one(pattern, { fields: [patternHoliday.patternId], references: [pattern.id] })
 }));
 
 export const patternAssignmentRelations = relations(patternAssignment, ({ one }) => ({
@@ -304,6 +468,19 @@ export const teamSupervisorRelations = relations(teamSupervisor, ({ one }) => ({
 	staff: one(staff, { fields: [teamSupervisor.staffId], references: [staff.id] })
 }));
 
+export const swapRequestRelations = relations(swapRequest, ({ one }) => ({
+	staff: one(staff, {
+		fields: [swapRequest.staffId],
+		references: [staff.id],
+		relationName: 'swap_request_staff'
+	}),
+	otherStaff: one(staff, {
+		fields: [swapRequest.otherStaffId],
+		references: [staff.id],
+		relationName: 'swap_request_other_staff'
+	})
+}));
+
 export const rosterOverrideRelations = relations(rosterOverride, ({ one }) => ({
 	staff: one(staff, { fields: [rosterOverride.staffId], references: [staff.id] }),
 	shift: one(shift, { fields: [rosterOverride.shiftId], references: [shift.id] })
@@ -321,3 +498,9 @@ export type TeamSupervisor = typeof teamSupervisor.$inferSelect;
 export type NewTeamSupervisor = typeof teamSupervisor.$inferInsert;
 export type RosterOverride = typeof rosterOverride.$inferSelect;
 export type NewRosterOverride = typeof rosterOverride.$inferInsert;
+export type PatternPayRule = typeof patternPayRule.$inferSelect;
+export type NewPatternPayRule = typeof patternPayRule.$inferInsert;
+export type PatternHoliday = typeof patternHoliday.$inferSelect;
+export type NewPatternHoliday = typeof patternHoliday.$inferInsert;
+export type SwapRequest = typeof swapRequest.$inferSelect;
+export type NewSwapRequest = typeof swapRequest.$inferInsert;

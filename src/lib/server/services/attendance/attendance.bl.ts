@@ -27,6 +27,12 @@ import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/err
 import { damascusDayRange, todayInDamascus } from '#lib/server/time.js';
 import { descendantIds, flattenTree } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
+import {
+	causeBy,
+	markNeedsRecompute,
+	recomputeAfter,
+	type RecomputeCause
+} from '../day-results/day-results.bl.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
 import { listTeamMembersBetween } from '../roster/roster.crud.js';
 import { loadRosterData } from '../roster/roster.bl.js';
@@ -264,10 +270,12 @@ async function recordRows(
 	if (events.length === 0 && absences.length === 0)
 		throw new InvalidInputError('entry_empty', m.attendance_error_empty());
 
+	const touched = [...new Set([...events, ...absences].map((r) => r.staffId))];
 	try {
 		await batch([
 			...insertEvents(events),
 			...insertAbsences(absences),
+			...markNeedsRecompute(touched, shiftDate, shiftDate),
 			auditInsert({
 				actor: actor.user,
 				action: 'attendance.entry',
@@ -289,6 +297,17 @@ async function recordRows(
 			});
 		throw error;
 	}
+	// Each person's day, logged as typed, pointing at their absence or first punch (PR23).
+	const causeOf = new Map<string, RecomputeCause>();
+	for (const a of absences) causeOf.set(a.staffId, causeBy(actor, 'typed', 'absence', a.id));
+	for (const e of events)
+		if (!causeOf.has(e.staffId)) causeOf.set(e.staffId, causeBy(actor, 'typed', 'event', e.id));
+	await recomputeAfter(
+		touched,
+		shiftDate,
+		shiftDate,
+		(staffId) => causeOf.get(staffId) ?? causeBy(actor, 'typed')
+	);
 	return { events: events.length, absences: absences.length };
 }
 
@@ -332,7 +351,7 @@ export async function correctEvent(actor: Actor, input: CorrectionInput): Promis
 	if (!shift) throw new NotFoundError(m.attendance_error_event());
 
 	let occurredAt = event.occurredAt;
-	if (!input.remove) {
+	if (!input.voidEvent) {
 		const pairs = ctx.eventPairs(event.staffId);
 		const own = pairs.find((p) => p.checkIn?.id === event.id || p.checkOut?.id === event.id);
 		occurredAt =
@@ -374,17 +393,24 @@ export async function correctEvent(actor: Actor, input: CorrectionInput): Promis
 				source: 'manual',
 				correctsEventId: event.id,
 				reason: input.reason,
-				isVoid: input.remove
+				isVoid: input.voidEvent
 			}
 		]),
+		...markNeedsRecompute([event.staffId], event.shiftDate, event.shiftDate),
 		auditInsert({
 			actor: actor.user,
-			action: input.remove ? 'attendance.void' : 'attendance.correct',
+			action: input.voidEvent ? 'attendance.void' : 'attendance.correct',
 			entityType: 'attendance_event',
 			entityId: event.id,
 			after: { correctionId: id }
 		})
 	]);
+	await recomputeAfter(
+		[event.staffId],
+		event.shiftDate,
+		event.shiftDate,
+		causeBy(actor, 'correction', 'event', id)
+	);
 }
 
 /** A person's events (corrections and corrected ones too) on shift dates `[from, to]`. */

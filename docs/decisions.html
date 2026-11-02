@@ -1136,6 +1136,272 @@
       decision: { en: 'The page opens on an "Employees" tab: a search box and a grid of cards (initials avatar with active dot, name linking to the profile, number and job title, department, team, inactive / own-pattern badges, the same actions menu). A second tab, "Move between teams", holds the drag-and-drop view of V11 unchanged. The tab is kept in ?view=. View only: no load, action or rule changed.', ar: 'تفتح الصفحة على تبويب «الموظفون»: مربع بحث وشبكة بطاقات (صورة رمزية بالأحرف الأولى مع نقطة الحالة، الاسم يربط بالملف، الرقم والمسمى الوظيفي، القسم، الفريق، شارات غير نشط / نمط خاص، وقائمة الإجراءات نفسها). ويحتوي تبويب ثانٍ «النقل بين الفرق» على عرض السحب والإفلات في V11 دون تغيير. يُحفظ التبويب في ?view=. تغيير في العرض فقط: لم يتغير أي تحميل أو إجراء أو قاعدة.' },
       why: { en: 'The user asked for it (2026-11-01): cards are easier to scan day to day, and moving people is a separate task that needs the room of its own tab.', ar: 'طلب المستخدم ذلك (2026-11-01): البطاقات أسهل في التصفح اليومي، ونقل الموظفين مهمة منفصلة تحتاج مساحة تبويبها الخاص.' },
       alts: [ { en: 'One page with the table and the teams (V11 alone): not chosen — the user prefers browsing people as cards.', ar: 'صفحة واحدة بالجدول والفرق (V11 وحده): لم يُختر — يفضّل المستخدم تصفح الموظفين كبطاقات.' }, { en: 'Draggable cards straight onto teams: not chosen — a card grid and team drop zones on one screen get crowded; the table keeps dragging precise.', ar: 'بطاقات قابلة للسحب مباشرة إلى الفرق: لم يُختر — تزدحم شبكة البطاقات ومناطق الإفلات على شاشة واحدة؛ والجدول يبقي السحب دقيقاً.' } ]
+    },
+    {
+      id: 'V13', group: 'foundation', status: 'approved', date: '2026-11-01', src: 'src/lib/app/layout/AppLogo.svelte (user, chat 2026-11-01)',
+      title: { en: 'SYRAVIA wordmark instead of the app name', ar: 'شعار SYRAVIA النصي بدلاً من اسم التطبيق' },
+      decision: { en: 'The sidebar and the top header show the SYRAVIA wordmark (an inline SVG in a Cinzel-style serif, in the primary colour, 40 px tall) on its own, without the plane icon, instead of the app name as text. Screen readers read "Syravia, HR System". The wordmark stays Latin in Arabic. Cinzel comes from a local font package (no font CDN); until it is installed the next serif in the list is used.', ar: 'يعرض الشريط الجانبي والترويسة العلوية شعار SYRAVIA النصي (SVG مضمّن بخط مزخرف على طراز Cinzel وباللون الأساسي، بارتفاع 40 بكسل) وحده دون أيقونة الطائرة، بدلاً من اسم التطبيق كنص. وتقرأ قارئات الشاشة «Syravia، نظام الموارد البشرية». يبقى الشعار بالحروف اللاتينية في العربية. يأتي خط Cinzel من حزمة خطوط محلية (لا خدمة خطوط سحابية)؛ وحتى تثبيتها يُستخدم الخط المزخرف التالي في القائمة.' },
+      why: { en: 'The user supplied the logo and asked for it (2026-11-01), then asked for it bigger and without the icon beside it.', ar: 'قدّم المستخدم الشعار وطلبه (2026-11-01)، ثم طلب تكبيره وإزالة الأيقونة بجانبه.' },
+      alts: [
+        { en: 'Load Cinzel from Google Fonts: not chosen — no external service at runtime (CLAUDE.md §1).', ar: 'تحميل Cinzel من Google Fonts: لم يُختر — لا خدمة خارجية أثناء التشغيل (CLAUDE.md §1).' },
+        { en: 'Keep the SVG\'s own <style> and var(--primary, #531323): not chosen — the colour comes from the theme token through currentColor, so it follows dark mode and no raw colour is used.', ar: 'إبقاء وسم <style> الخاص بالـSVG و var(--primary, #531323): لم يُختر — يأتي اللون من رمز السمة عبر currentColor، فيتبع الوضع الداكن ولا يُستخدم لون خام.' }
+      ]
+    },
+    {
+      id: 'V14', group: 'foundation', status: 'approved', date: '2026-11-01', src: 'src/lib/app/decor/FlowerWatermark.svelte (user, chat 2026-11-01)',
+      title: { en: 'Faint flower watermark behind the dashboard', ar: 'علامة مائية خافتة لزهرة خلف لوحة التحكم' },
+      decision: { en: 'A five-petal calligraphic flower (inline SVG, primary colour, 10% opacity, 5% in dark mode) sits in the bottom corner on the inline-end side of the dashboard main area: bottom-right in English, bottom-left in Arabic. It lives in its own clipped layer behind the content and ignores the pointer. It blooms once on page load in plain CSS (the flower turns into place while the petals grow out one after another, then the centre fades in; transform and opacity only) and then stays still; with reduced motion it shows already open. Cards can take it too (relative isolate on the card).', ar: 'تجلس زهرة مزخرفة بخمس بتلات (SVG مضمّن، اللون الأساسي، شفافية 10% و5% في الوضع الداكن) في الزاوية السفلية من جهة نهاية السطر في منطقة لوحة التحكم الرئيسية: أسفل اليمين بالإنجليزية وأسفل اليسار بالعربية. وهي في طبقة مقصوصة خاصة بها خلف المحتوى ولا تستقبل المؤشر. تتفتح مرة واحدة عند تحميل الصفحة بـCSS فقط (تدور الزهرة إلى مكانها وتنمو البتلات واحدة تلو الأخرى ثم يظهر المركز تدريجياً؛ تحويل وشفافية فقط) ثم تبقى ثابتة؛ ومع خيار تقليل الحركة تظهر متفتحة مباشرة. ويمكن إضافتها إلى البطاقات أيضاً (relative isolate على البطاقة).' },
+      why: { en: 'The user asked for it (2026-11-01).', ar: 'طلب المستخدم ذلك (2026-11-01).' },
+      alts: [
+        { en: 'overflow-hidden on the main area itself: not chosen — it would stop sticky bars (the Add Employee save bar) and clip wide content.', ar: 'overflow-hidden على المنطقة الرئيسية نفسها: لم يُختر — يوقف الأشرطة الثابتة (شريط الحفظ في إضافة موظف) ويقص المحتوى العريض.' },
+        { en: 'A looping animation (swaying or slowly turning): not chosen — the UI rules allow no looping decorative animations; it would also distract on screens kept open all day.', ar: 'حركة متكررة (تمايل أو دوران بطيء): لم تُختر — لا تسمح قواعد الواجهة بحركات زخرفية متكررة؛ كما أنها تشتت الانتباه على شاشات تبقى مفتوحة طوال اليوم.' },
+        { en: 'Physical -right-8: not chosen — the app uses logical start/end utilities so Arabic mirrors.', ar: '‎-right-8 الفيزيائي: لم يُختر — يستخدم التطبيق أدوات البداية/النهاية المنطقية لينعكس التخطيط في العربية.' }
+      ]
+    },
+    {
+      id: 'V15', group: 'foundation', status: 'approved', date: '2026-11-01', src: 'messages/en.json, messages/ar.json app_name (user, chat 2026-11-01)',
+      title: { en: 'The app is called "HR System"', ar: 'اسم التطبيق «نظام الموارد البشرية»' },
+      decision: { en: 'The app name shown in page titles, navigation labels and the logo\'s screen-reader label is "HR System" in English and "نظام الموارد البشرية" in Arabic. The repo, package and folder names stay as they are.', ar: 'اسم التطبيق في عناوين الصفحات وتسميات التنقل وتسمية الشعار لقارئات الشاشة هو «HR System» بالإنجليزية و«نظام الموارد البشرية» بالعربية. وتبقى أسماء المستودع والحزمة والمجلدات كما هي.' },
+      why: { en: 'The user asked for it (2026-11-01): the app now covers employees and HR work, not only attendance.', ar: 'طلب المستخدم ذلك (2026-11-01): يغطي التطبيق الآن الموظفين وأعمال الموارد البشرية، لا الحضور فقط.' },
+      alts: [ { en: 'Keep "Attendance App": not chosen — the user renamed it.', ar: 'إبقاء «تطبيق الحضور»: لم يُختر — غيّر المستخدم الاسم.' }, { en: 'Rename the repo, package and folders too: not chosen — not asked for, and it would break paths in plans, docs and tooling.', ar: 'تغيير اسم المستودع والحزمة والمجلدات أيضاً: لم يُختر — لم يُطلب، وسيكسر المسارات في الخطط والوثائق والأدوات.' } ]
+    },
+    {
+      id: 'PR1', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Overtime \"price\" is a rate multiplier", ar: "«سعر» العمل الإضافي معامل ضرب" },
+      decision: { en: "HR enters a multiplier of the person's own hourly pay (×1.25, ×1.5…), not an amount of money per hour.", ar: "تُدخل الموارد البشرية معاملاً يُضرب في أجر الساعة للشخص نفسه (×1.25، ×1.5…)، لا مبلغاً مالياً لكل ساعة." },
+      why: { en: "The app holds no salaries; the old rules and the golden numbers use multipliers (user, 2026-11-01).", ar: "لا يحتفظ التطبيق بالرواتب؛ والقواعد القديمة والأرقام المرجعية تستخدم المعاملات (المستخدم، 2026-11-01)." },
+      alts: [ { en: "Money per hour, the same for everyone on the pattern: not chosen — needs a currency and changes the exports.", ar: "مبلغ لكل ساعة متساوٍ لكل من يتبع النمط: لم يُختر — يحتاج عملة ويغيّر التصديرات." }, { en: "Both (multiplier, optional fixed amount): not chosen — two meanings for one field.", ar: "الاثنان (معامل ومبلغ ثابت اختياري): لم يُختر — معنيان لحقل واحد." } ]
+    },
+    {
+      id: 'PR2', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Holidays for all followers, missions for picked members", ar: "العطل لكل المتبعين، والمهمات لأعضاء مختارين" },
+      decision: { en: "A holiday date applies to everyone who follows the pattern on that date; a mission applies only to the members HR picks.", ar: "تنطبق العطلة على كل من يتبع النمط في ذلك التاريخ؛ وتنطبق المهمة فقط على الأعضاء الذين تختارهم الموارد البشرية." },
+      why: { en: "Holidays belong to the whole rhythm; missions are for one person or a few (user, 2026-11-01).", ar: "العطلة تخص النمط كله؛ والمهمة لشخص واحد أو بضعة أشخاص (المستخدم، 2026-11-01)." },
+      alts: [ { en: "Both for everyone on the pattern: not chosen — a whole crew is rarely on one mission.", ar: "كلاهما لكل من يتبع النمط: لم يُختر — نادراً ما يكون طاقم كامل في مهمة واحدة." }, { en: "Both for picked people only: not chosen — a holiday would need every follower ticked.", ar: "كلاهما لأشخاص مختارين فقط: لم يُختر — ستحتاج العطلة اختيار كل متبع." } ]
+    },
+    {
+      id: 'PR3', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Per-holiday \"overtime-eligible\" switch", ar: "مفتاح «مؤهل للعمل الإضافي» لكل عطلة" },
+      decision: { en: "On: every minute worked that day is paid at the holiday rate. Off: the day is a paid day off and minutes worked show as unpaid extra.", ar: "مفعّل: تُدفع كل دقيقة عمل في ذلك اليوم بمعامل العطلة. غير مفعّل: اليوم عطلة مدفوعة والدقائق المعمولة تظهر كوقت إضافي غير مدفوع." },
+      why: { en: "The same switch as the old holiday assignment (R13) (user, 2026-11-01).", ar: "المفتاح نفسه في تخصيص العطلة القديم (R13) (المستخدم، 2026-11-01)." },
+      alts: [ { en: "Always the holiday rate: not chosen — HR wants to choose per holiday.", ar: "معامل العطلة دائماً: لم يُختر — تريد الموارد البشرية الاختيار لكل عطلة." }, { en: "Same as an off day: not chosen — no separate holiday rate.", ar: "مثل يوم العطلة الأسبوعية: لم يُختر — لا معامل منفصل للعطلة." }, { en: "Old Q9 behaviour (OT 0 but paid ×1.5): not chosen for pattern holidays — inconsistent figures; imported old holidays keep it.", ar: "سلوك Q9 القديم (عمل إضافي 0 لكن يُدفع ×1.5): لم يُختر لعطل النمط — أرقام غير متسقة؛ والعطل القديمة المستوردة تبقى عليه." } ]
+    },
+    {
+      id: 'PR4', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Pay rule as an optional layer on the pattern", ar: "قاعدة الأجر طبقة اختيارية على النمط" },
+      decision: { en: "Each field resolves pattern → department rule (S2.3, later) → company default. A person marked \"no overtime\" (S3.6, later) always wins.", ar: "يُحسم كل حقل: النمط ← قاعدة القسم (S2.3، لاحقاً) ← الافتراضي العام. والشخص المعلَّم «بلا عمل إضافي» (S3.6، لاحقاً) يغلب دائماً." },
+      why: { en: "Different rhythms need different rules; the department layer of BRIEF §9.7 still fits in between.", ar: "الأنماط المختلفة تحتاج قواعد مختلفة؛ وطبقة القسم في BRIEF §9.7 تبقى في الوسط." },
+      alts: [ { en: "Department rules only (BRIEF §9.7): not chosen — the user asked for it on the pattern.", ar: "قواعد القسم فقط (BRIEF §9.7): لم يُختر — طلبها المستخدم على النمط." }, { en: "Pattern only, no department layer: not chosen — departments still need one switch for all their people.", ar: "النمط فقط دون طبقة القسم: لم يُختر — الأقسام ما زالت تحتاج مفتاحاً واحداً لكل أفرادها." } ]
+    },
+    {
+      id: 'PR5', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Pay rules versioned by date", ar: "قواعد الأجر بإصدارات مؤرخة" },
+      decision: { en: "A change closes the open version and opens the next, from today or later until periods exist; \"back to defaults\" closes it. Never edited in place.", ar: "التغيير يغلق الإصدار المفتوح ويفتح التالي، من اليوم أو لاحقاً حتى توجد الفترات؛ و«العودة إلى الافتراضي» تغلقه. لا تعديل في المكان أبداً." },
+      why: { en: "Changing a rate must not rewrite past pay.", ar: "تغيير المعامل يجب ألا يعيد كتابة الأجر السابق." },
+      alts: [ { en: "Columns on the pattern row: not chosen — no history, a change would reach back.", ar: "أعمدة في صف النمط: لم يُختر — بلا تاريخ، والتغيير يمتد إلى الماضي." }, { en: "Edit versions in place: not chosen — past figures would change silently.", ar: "تعديل الإصدارات في مكانها: لم يُختر — تتغير الأرقام السابقة بصمت." } ]
+    },
+    {
+      id: 'PR6', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Three rates, empty = inherit", ar: "ثلاثة معاملات، والفارغ = وراثة" },
+      decision: { en: "Work day (minutes past required), off day (all minutes on an off day or extra shift), holiday (all minutes on an eligible holiday); 1.00–5.00, two decimals. No night overtime rate here (Q3).", ar: "يوم عمل (الدقائق بعد المطلوب)، يوم عطلة أسبوعية (كل الدقائق في يوم عطلة أو وردية إضافية)، عطلة رسمية (كل الدقائق في عطلة مؤهلة)؛ 1.00–5.00 بمنزلتين. لا معامل ليلي هنا (Q3)." },
+      why: { en: "Matches R8/R9 and the old configuration fields.", ar: "يطابق R8/R9 وحقول الإعداد القديمة." },
+      alts: [ { en: "One rate for everything: not chosen — off-day and holiday work are paid higher today.", ar: "معامل واحد لكل شيء: لم يُختر — عمل أيام العطل يُدفع أعلى اليوم." }, { en: "Add the night rate now: not chosen — Q3 default is off; it belongs to the night rule.", ar: "إضافة المعامل الليلي الآن: لم يُختر — افتراضي Q3 معطّل؛ ومكانه قاعدة الليل." } ]
+    },
+    {
+      id: 'PR7', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Company default as a code constant until S2.3", ar: "الافتراضي العام ثابت في الكود حتى S2.3" },
+      decision: { en: "Overtime on, 1.25 / 1.50 / 1.50 (Q1: holiday 1.5), in src/lib/payroll/pay-rule.ts, until the settings screen of S2.3 replaces it.", ar: "العمل الإضافي مفعّل، 1.25 / 1.50 / 1.50 (Q1: العطلة 1.5)، في src/lib/payroll/pay-rule.ts، حتى تحل محله شاشة الإعدادات في S2.3." },
+      why: { en: "No settings screen yet; old values keep the golden numbers.", ar: "لا توجد شاشة إعدادات بعد؛ والقيم القديمة تحافظ على الأرقام المرجعية." },
+      alts: [ { en: "An app_setting key and form now: not chosen — that is S2.3 scope.", ar: "مفتاح app_setting ونموذج الآن: لم يُختر — هذا من نطاق S2.3." } ]
+    },
+    {
+      id: 'PR8', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A holiday is a day off; who works it gets a one-off shift", ar: "العطلة يوم راحة؛ ومن يعمل فيها يأخذ وردية لمرة واحدة" },
+      decision: { en: "Required 0 for every follower (paid through the base salary, R13). A roster override marks who still works it. Holidays apply to shift dates: a night shift starting the evening before belongs to the day before.", ar: "المطلوب 0 لكل متبع (يُدفع من الراتب الأساسي، R13). وتحدد الوردية لمرة واحدة من يعمل فيها. وتنطبق العطل على تواريخ الورديات: وردية الليل التي تبدأ مساء اليوم السابق تتبع اليوم السابق." },
+      why: { en: "The airport still staffs holidays, so who works is chosen per person and the staffing strip shows the drop.", ar: "المطار يبقى مأهولاً في العطل، فيُختار من يعمل لكل شخص ويُظهر شريط التغطية الانخفاض." },
+      alts: [ { en: "Keep planned shifts and pay the holiday rate: not chosen — a not-eligible holiday would make people work unpaid.", ar: "إبقاء الورديات المخططة ودفع معامل العطلة: لم يُختر — العطلة غير المؤهلة ستجعل الناس يعملون بلا أجر." }, { en: "Split night shifts at midnight: not chosen — BRIEF holiday_split is off by default.", ar: "تقسيم وردية الليل عند منتصف الليل: لم يُختر — holiday_split في BRIEF معطّل افتراضياً." } ]
+    },
+    {
+      id: 'PR9', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A mission is a full-day absence of type mission", ar: "المهمة غياب ليوم كامل من نوع مهمة" },
+      decision: { en: "One absence row per picked member, sharing group_id, with pattern_id. Partial missions (credit minutes) come later with day credits.", ar: "صف غياب لكل عضو مختار، يتشارك group_id، مع pattern_id. والمهمات الجزئية (دقائق رصيد) تأتي لاحقاً مع أرصدة الأيام." },
+      why: { en: "Reuses the absence overlap rule, the roster precedence (absence first, R7), cancelling and the employee page.", ar: "يعيد استخدام قاعدة عدم تداخل الغياب وأولوية الجدول (الغياب أولاً، R7) والإلغاء وصفحة الموظف." },
+      alts: [ { en: "A separate mission table: not chosen — duplicates the absence logic and needs a cross-table overlap check.", ar: "جدول مهمات منفصل: لم يُختر — يكرر منطق الغياب ويحتاج فحص تداخل بين جدولين." }, { en: "Mission minutes now: not chosen — needs the day-credit store of S3.6/S4.", ar: "دقائق المهمة الآن: لم يُختر — يحتاج مخزن أرصدة الأيام في S3.6/S4." } ]
+    },
+    {
+      id: 'PR10', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Mission members must follow the pattern; conflicts refused", ar: "أعضاء المهمة يتبعون النمط؛ والتعارضات مرفوضة" },
+      decision: { en: "Only people who follow the pattern on every date of the mission are offered. Existing absences on those dates are refused and listed.", ar: "لا يُعرض إلا من يتبع النمط في كل تواريخ المهمة. والغيابات الموجودة في تلك التواريخ تُرفض وتُعرض." },
+      why: { en: "Keeps \"mission from this pattern\" true; no silent double states.", ar: "يبقي «مهمة من هذا النمط» صحيحاً؛ بلا حالات مزدوجة صامتة." },
+      alts: [ { en: "Anyone from anywhere: not chosen — that belongs on the employee page, not the pattern.", ar: "أي شخص من أي مكان: لم يُختر — مكان ذلك صفحة الموظف لا النمط." }, { en: "Replace the existing absence: not chosen — would silently drop sick or leave days.", ar: "استبدال الغياب الموجود: لم يُختر — سيحذف أيام المرض أو الإجازة بصمت." } ]
+    },
+    {
+      id: 'PR11', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Past dates for holidays and missions, with a reason", ar: "تواريخ سابقة للعطل والمهمات مع سبب" },
+      decision: { en: "Holidays, missions, day edits and swaps may be on past dates with a reason; pay rules start today or later. Once periods exist (S3.1), closed or locked periods are refused.", ar: "يجوز أن تكون العطل والمهمات وتعديلات الأيام والتبديلات في تواريخ سابقة مع سبب؛ وقواعد الأجر من اليوم أو لاحقاً. وعند وجود الفترات (S3.1) تُرفض الفترات المغلقة أو المقفلة." },
+      why: { en: "Missions are often recorded afterwards; the period lock protects paid months.", ar: "تُسجَّل المهمات غالباً بعد حدوثها؛ وقفل الفترة يحمي الأشهر المدفوعة." },
+      alts: [ { en: "Today or later for everything: not chosen — HR could not record a mission that already happened.", ar: "اليوم أو لاحقاً لكل شيء: لم يُختر — لن تستطيع الموارد البشرية تسجيل مهمة حدثت." } ]
+    },
+    {
+      id: 'PR12', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Three tabs on the pattern page", ar: "ثلاثة تبويبات في صفحة النمط" },
+      decision: { en: "/patterns/[id] gets Days (today's builder), Overtime & pay, Holidays & missions; the tab is in the URL (?tab=days|pay|dates).", ar: "تحصل /patterns/[id] على: الأيام (المنشئ الحالي)، العمل الإضافي والأجر، العطل والمهمات؛ والتبويب في الرابط (?tab=days|pay|dates)." },
+      why: { en: "Keeps the builder unchanged; one place per pattern; a link opens the right tab.", ar: "يبقي المنشئ كما هو؛ مكان واحد لكل نمط؛ والرابط يفتح التبويب الصحيح." },
+      alts: [ { en: "A fourth builder step: not chosen — pay and dates change over time, the builder saves the days.", ar: "خطوة رابعة في المنشئ: لم يُختر — الأجر والتواريخ تتغير مع الوقت، والمنشئ يحفظ الأيام." }, { en: "A separate /holidays page: not chosen — the user asked for it on the pattern.", ar: "صفحة /holidays منفصلة: لم يُختر — طلبها المستخدم على النمط." } ]
+    },
+    {
+      id: 'PR13', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Same permissions as patterns", ar: "الصلاحيات نفسها للأنماط" },
+      decision: { en: "Pattern writes need roster.manage; day edits and recompute need attendance.record (as the entry sheet); viewing staff.write. No new permission key until the S8 roles.", ar: "كتابة النمط تحتاج roster.manage؛ وتعديل اليوم وإعادة الحساب تحتاج attendance.record (مثل ورقة الإدخال)؛ والعرض staff.write. لا مفتاح صلاحية جديد حتى أدوار S8." },
+      why: { en: "Single local user today (B14).", ar: "مستخدم محلي واحد اليوم (B14)." },
+      alts: [ { en: "A payroll.manage key now: not chosen — nobody to give it to before login (S8).", ar: "مفتاح payroll.manage الآن: لم يُختر — لا أحد يُمنح له قبل تسجيل الدخول (S8)." } ]
+    },
+    {
+      id: 'PR14', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Copies carry the pay rule and upcoming holidays", ar: "النسخ تحمل قاعدة الأجر والعطل القادمة" },
+      decision: { en: "\"Change from a date\" (B3) and Copy carry the pay rule in force from the copy's start and the holidays on or after it; missions stay with the people.", ar: "«التغيير من تاريخ» (B3) والنسخ يحملان قاعدة الأجر السارية من بداية النسخة والعطل في تاريخها أو بعده؛ وتبقى المهمات مع الأشخاص." },
+      why: { en: "The copy must behave like the original for its followers.", ar: "يجب أن تتصرف النسخة مثل الأصل لمتبعيها." },
+      alts: [ { en: "Start the copy with defaults: not chosen — followers would silently lose their rates and holidays.", ar: "بدء النسخة بالافتراضي: لم يُختر — سيفقد المتبعون معاملاتهم وعطلهم بصمت." } ]
+    },
+    {
+      id: 'PR15', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Overtime off = extra time unpaid", ar: "العمل الإضافي معطّل = الوقت الزائد غير مدفوع" },
+      decision: { en: "With overtime off, extra minutes are computed and shown as unpaid extra; off-day work is not paid (BRIEF §9.7, Q8 default).", ar: "عند تعطيل العمل الإضافي تُحسب الدقائق الزائدة وتظهر كوقت غير مدفوع؛ ولا يُدفع عمل يوم العطلة (BRIEF §9.7، افتراضي Q8)." },
+      why: { en: "Same default as the brief until HR answers Q8.", ar: "الافتراضي نفسه في BRIEF حتى تجيب الموارد البشرية عن Q8." },
+      alts: [ { en: "Paid flat ×1.0: not chosen yet — waits for HR (Q-PR1).", ar: "يُدفع ×1.0 ثابت: لم يُختر بعد — بانتظار الموارد البشرية (Q-PR1)." } ]
+    },
+    {
+      id: 'PR16', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Daily attendance is stored in day_result", ar: "الحضور اليومي يُخزَّن في day_result" },
+      decision: { en: "One row per person and shift date with what the app computes today (status, punches, worked, late, required, overtime, rate, paid and unpaid minutes, holiday, absence, pattern, source), plus inputs_hash, needs_recompute and explanation. S4.1/S4.2 add the payroll columns to the same table.", ar: "صف لكل شخص وتاريخ وردية بما يحسبه التطبيق اليوم (الحالة، البصمات، العمل، التأخير، المطلوب، العمل الإضافي، المعامل، الدقائق المدفوعة وغير المدفوعة، العطلة، الغياب، النمط، المصدر)، مع inputs_hash وneeds_recompute وexplanation. وتضيف S4.1/S4.2 أعمدة الرواتب إلى الجدول نفسه." },
+      why: { en: "The user wants every daily attendance updated after punches and day edits (2026-11-02); one place to review, filter and export; the main plan already planned this table.", ar: "يريد المستخدم تحديث كل حضور يومي بعد البصمات وتعديلات الأيام (2026-11-02)؛ مكان واحد للمراجعة والتصفية والتصدير؛ والخطة الرئيسية خططت لهذا الجدول." },
+      alts: [ { en: "Compute on every page load, store nothing (today): not chosen — no list to review or export, and slow for a whole department.", ar: "الحساب عند كل تحميل صفحة دون تخزين (الوضع الحالي): لم يُختر — لا قائمة للمراجعة أو التصدير، وبطيء لقسم كامل." }, { en: "A second table next to day_result: not chosen — two places for the same day.", ar: "جدول ثانٍ بجانب day_result: لم يُختر — مكانان لليوم نفسه." } ]
+    },
+    {
+      id: 'PR17', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Every input change recomputes the affected days", ar: "كل تغيير في المدخلات يعيد حساب الأيام المتأثرة" },
+      decision: { en: "Punches, absences, day edits, missions, holidays, pay rules, assignments, own schedules and one-off shifts recompute their person-days in the same request after commit. The write also flags them needs_recompute in its own transaction; flagged rows are caught up on the next read or with a Recompute button.", ar: "البصمات والغيابات وتعديلات الأيام والمهمات والعطل وقواعد الأجر والتخصيصات والجداول الخاصة والورديات لمرة واحدة تعيد حساب أيامها في الطلب نفسه بعد الحفظ. ويعلّمها الحفظ needs_recompute في معاملته؛ وتُستكمل الصفوف المعلّمة عند القراءة التالية أو بزر إعادة الحساب." },
+      why: { en: "Records are never stale, and a crash cannot leave them wrong.", ar: "لا تبقى السجلات قديمة، ولا يتركها عطل خاطئة." },
+      alts: [ { en: "A nightly job: not chosen — HR would see yesterday's figures, and there is no job runner.", ar: "مهمة ليلية: لم يُختر — سترى الموارد البشرية أرقام الأمس، ولا يوجد مشغّل مهام." }, { en: "Database triggers: not chosen — the rules are TypeScript, not SQL.", ar: "مشغّلات قاعدة البيانات: لم يُختر — القواعد بـTypeScript لا SQL." } ]
+    },
+    {
+      id: 'PR18', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Only days up to today are stored", ar: "تُخزَّن الأيام حتى اليوم فقط" },
+      decision: { en: "Future days are computed on the fly as now.", ar: "تُحسب الأيام المستقبلية فوراً كما الآن." },
+      why: { en: "Future days have no punches; an open-ended rule change would otherwise touch endless rows.", ar: "لا بصمات في الأيام المستقبلية؛ وإلا سيلمس تغيير قاعدة مفتوح صفوفاً بلا نهاية." },
+      alts: [ { en: "Store the whole period ahead: not chosen — rows rewritten by every roster change for no reader.", ar: "تخزين الفترة كاملة مسبقاً: لم يُختر — صفوف يعاد كتابتها مع كل تغيير في الجدول بلا قارئ." } ]
+    },
+    {
+      id: 'PR19', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "HR edits a day by setting its state", ar: "تعدّل الموارد البشرية اليوم بتحديد حالته" },
+      decision: { en: "Leave, sick, mission, no show or other, for one day or a range, with a reason; or clear it. Punches stay (append-only) but count for nothing while the day has a full-day state, and the record says so.", ar: "إجازة، مرض، مهمة، عدم حضور أو غير ذلك، ليوم أو لمدة، مع سبب؛ أو مسحها. تبقى البصمات (إضافة فقط) لكنها لا تُحتسب ما دام لليوم حالة يوم كامل، ويذكر السجل ذلك." },
+      why: { en: "Matches R7 (manual states win) and keeps the punch history.", ar: "يطابق R7 (الحالات اليدوية تغلب) ويحفظ تاريخ البصمات." },
+      alts: [ { en: "Delete the punches when a day becomes leave: not chosen — punches are append-only and the history would be lost.", ar: "حذف البصمات عندما يصبح اليوم إجازة: لم يُختر — البصمات للإضافة فقط وسيضيع التاريخ." }, { en: "Edit the computed figures by hand: not chosen — the next recompute would overwrite them.", ar: "تعديل الأرقام المحسوبة يدوياً: لم يُختر — ستكتب فوقها إعادة الحساب التالية." } ]
+    },
+    {
+      id: 'PR20', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A Daily attendance page", ar: "صفحة الحضور اليومي" },
+      decision: { en: "/attendance/days: GET filters (date, department or team, status, source), one row per person, Edit day and History per row; the employee day panel gets the same editor and history.", ar: "/attendance/days: مرشحات GET (التاريخ، القسم أو الفريق، الحالة، المصدر)، صف لكل شخص، و«تعديل اليوم» و«السجل» لكل صف؛ ويحصل لوح اليوم في صفحة الموظف على المحرر والسجل نفسيهما." },
+      why: { en: "HR needs one list to review after punches arrive.", ar: "تحتاج الموارد البشرية قائمة واحدة للمراجعة بعد وصول البصمات." },
+      alts: [ { en: "Only the entry sheet: not chosen — it is for typing punches, not for reviewing results.", ar: "ورقة الإدخال فقط: لم يُختر — هي لكتابة البصمات لا لمراجعة النتائج." } ]
+    },
+    {
+      id: 'PR21', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Recompute per person and date range, in batches", ar: "إعادة الحساب لكل شخص ومدة، على دفعات" },
+      decision: { en: "Uses the entry sheet's loaders (one query per table for the whole set), skips rows whose hash is unchanged and writes in batches of 500 rows.", ar: "يستخدم محمّلات ورقة الإدخال (استعلام واحد لكل جدول للمجموعة كلها)، ويتخطى الصفوف التي لم تتغير بصمتها، ويكتب على دفعات من 500 صف." },
+      why: { en: "A 14-day holiday for 300 followers is 4,200 rows: fast enough in one request.", ar: "عطلة 14 يوماً لـ300 متبع = 4,200 صف: سريع بما يكفي في طلب واحد." },
+      alts: [ { en: "Recompute everyone on every change: not chosen — needless work.", ar: "إعادة حساب الجميع عند كل تغيير: لم يُختر — عمل بلا داعٍ." } ]
+    },
+    {
+      id: 'PR22', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "An edit log of every value change", ar: "سجل تعديلات لكل تغيير في القيم" },
+      decision: { en: "For each person-day, one line per changed value: field, old → new, when, who (or \"system\"), the source and the cause (the punch, absence, swap, holiday or rule).", ar: "لكل يوم من أيام الشخص، سطر لكل قيمة تغيّرت: الحقل، القديم ← الجديد، متى، من (أو «النظام»)، المصدر والسبب (البصمة أو الغياب أو التبديل أو العطلة أو القاعدة)." },
+      why: { en: "The user is the only operator and needs to remember whether a value was typed or came from a punch reading (user, 2026-11-02).", ar: "المستخدم هو المشغّل الوحيد ويحتاج أن يتذكر هل كُتبت القيمة يدوياً أم جاءت من قراءة البصمات (المستخدم، 2026-11-02)." },
+      alts: [ { en: "Only inputs (punches, corrections, day edits, swaps): not chosen — the user wants the computed figures too.", ar: "المدخلات فقط (البصمات، التصحيحات، تعديلات الأيام، التبديلات): لم يُختر — يريد المستخدم الأرقام المحسوبة أيضاً." }, { en: "The existing audit_log only: not chosen — it records ids and counts per action, not old → new per day.", ar: "سجل التدقيق الحالي فقط: لم يُختر — يسجل المعرّفات والأعداد لكل إجراء، لا القديم ← الجديد لكل يوم." } ]
+    },
+    {
+      id: 'PR23', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "The recompute writes the log, with a source per change", ar: "إعادة الحساب تكتب السجل مع مصدر لكل تغيير" },
+      decision: { en: "The recompute compares the stored row with the new one and writes one line per changed field, tagged with the cause the writer passed. Sources: typed, punch reading, Odoo seed, correction, day edit, mission, swap, holiday, pay rule, roster change, system. First computation = one \"created\" line. Append-only; absence reasons never copied, only ids.", ar: "تقارن إعادة الحساب الصف المحفوظ بالجديد وتكتب سطراً لكل حقل تغيّر، موسوماً بالسبب الذي مرّره الحفظ. المصادر: مكتوب يدوياً، قراءة بصمات، بيانات Odoo الأولية، تصحيح، تعديل يوم، مهمة، تبديل، عطلة، قاعدة أجر، تغيير جدول، النظام. الحساب الأول = سطر «إنشاء» واحد. للإضافة فقط؛ ولا تُنسخ أسباب الغياب أبداً، بل المعرّفات فقط." },
+      why: { en: "One writer means nothing is missed; ids keep health details out of the log.", ar: "كاتب واحد يعني ألا يفوت شيء؛ والمعرّفات تبقي التفاصيل الصحية خارج السجل." },
+      alts: [ { en: "Each screen writes its own log lines: not chosen — easy to forget one, and computed values would be missed.", ar: "كل شاشة تكتب أسطرها: لم يُختر — سهل نسيان واحدة، وستفوت القيم المحسوبة." }, { en: "Database triggers: not chosen — they cannot know the cause or the source.", ar: "مشغّلات قاعدة البيانات: لم يُختر — لا تعرف السبب ولا المصدر." } ]
+    },
+    {
+      id: 'PR24', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Source badges on in/out and a History drawer", ar: "شارات المصدر على الدخول/الخروج ودرج السجل" },
+      decision: { en: "Each in/out time shows its source (Typed, Punch reading, Odoo seed, Corrected) on the daily page, the entry sheet and the employee page; History opens the day's log, newest first, filterable by field.", ar: "يظهر بجانب كل وقت دخول/خروج مصدره (مكتوب، قراءة بصمات، بيانات Odoo، مصحَّح) في الصفحة اليومية وورقة الإدخال وصفحة الموظف؛ و«السجل» يفتح سجل اليوم، الأحدث أولاً، مع تصفية حسب الحقل." },
+      why: { en: "Answers \"typed or read?\" at a glance; the full story one click away.", ar: "يجيب عن «مكتوب أم مقروء؟» بنظرة؛ والقصة كاملة بنقرة." },
+      alts: [ { en: "A separate log page only: not chosen — the answer is needed where the value is shown.", ar: "صفحة سجل منفصلة فقط: لم يُختر — الجواب مطلوب حيث تُعرض القيمة." } ]
+    },
+    {
+      id: 'PR25', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Swaps are requests approved before they change the roster", ar: "التبديلات طلبات تُعتمد قبل أن تغيّر الجدول" },
+      decision: { en: "pending → approved / rejected; an approved swap can be cancelled with a reason. This holds even while the user is the only operator.", ar: "قيد الانتظار ← معتمد / مرفوض؛ ويمكن إلغاء تبديل معتمد مع سبب. ويسري هذا حتى والمستخدم هو المشغّل الوحيد." },
+      why: { en: "Ready for supervisors and employees after login, with the same data and screens (user, 2026-11-02).", ar: "جاهز للمشرفين والموظفين بعد تسجيل الدخول، بالبيانات والشاشات نفسها (المستخدم، 2026-11-02)." },
+      alts: [ { en: "HR enters a swap and it applies at once: not chosen by the user.", ar: "تُدخل الموارد البشرية التبديل فيُطبَّق فوراً: لم يختره المستخدم." } ]
+    },
+    {
+      id: 'PR26', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Self swap and employee swap, within a week or a month", ar: "تبديل ذاتي وتبديل بين موظفين، ضمن أسبوع أو شهر" },
+      decision: { en: "Self swap: work day W becomes off, off day O becomes work with W's shift. Employee swap: on date D, A works and B is off → A off, B works A's shift; an optional return date D2 does the reverse. Both days in the same Sun–Sat week or the same calendar month, chosen per swap.", ar: "التبديل الذاتي: يصبح يوم العمل W عطلة، ويصبح يوم العطلة O يوم عمل بوردية W. التبديل بين موظفين: في التاريخ D يعمل أ وب في عطلة ← أ في عطلة وب يعمل وردية أ؛ وتاريخ رد اختياري D2 يعكس ذلك. اليومان في الأسبوع نفسه (الأحد–السبت) أو الشهر التقويمي نفسه، يُختار لكل تبديل." },
+      why: { en: "BRIEF §9.6 and R12, with the scope the user chose (user, 2026-11-02); the return date covers \"you work for me Monday, I work for you Thursday\".", ar: "BRIEF §9.6 وR12، بالنطاق الذي اختاره المستخدم (المستخدم، 2026-11-02)؛ وتاريخ الرد يغطي «تعمل عني الاثنين وأعمل عنك الخميس»." },
+      alts: [ { en: "Any two dates: not chosen by the user.", ar: "أي تاريخين: لم يختره المستخدم." }, { en: "Employee swaps on one date only (old R12): not chosen — no way to record the pay-back day.", ar: "تبديل الموظفين في تاريخ واحد فقط (R12 القديم): لم يُختر — لا طريقة لتسجيل يوم الرد." } ]
+    },
+    {
+      id: 'PR27', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Approval re-checks and creates linked one-off shifts", ar: "الاعتماد يعيد الفحص وينشئ ورديات مرتبطة لمرة واحدة" },
+      decision: { en: "Approving re-checks the days (A working, B off, O an off day, no absence or other one-off shift, scope, active people) and creates roster_override rows sharing swap_group_id = the request id, with an audit row, then recomputes. Cancelling cancels those overrides together.", ar: "يعيد الاعتماد فحص الأيام (أ يعمل، ب في عطلة، O يوم عطلة، لا غياب ولا وردية أخرى لمرة واحدة، النطاق، الأشخاص نشطون) وينشئ صفوف roster_override تتشارك swap_group_id = معرّف الطلب، مع سطر تدقيق، ثم يعيد الحساب. والإلغاء يلغي تلك الورديات معاً." },
+      why: { en: "Reuses the existing override machinery; a stale request cannot apply.", ar: "يعيد استخدام آلية الورديات لمرة واحدة الموجودة؛ ولا يُطبَّق طلب قديم تغيّرت ظروفه." },
+      alts: [ { en: "Store the swap result in its own table: not chosen — the roster already reads overrides.", ar: "تخزين نتيجة التبديل في جدول خاص: لم يُختر — الجدول يقرأ الورديات لمرة واحدة أصلاً." } ]
+    },
+    {
+      id: 'PR28', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Swap pay as in the old rules, with \"pay as overtime\"", ar: "أجر التبديل كما في القواعد القديمة، مع «الدفع كعمل إضافي»" },
+      decision: { en: "A swap moves the off day without changing pay (R12). \"Pay as overtime\" pays the moved work day at the off-day rate. Working one's own off day without an approved swap sets an \"unauthorised swap\" flag (shown, not penalised).", ar: "التبديل ينقل يوم العطلة دون تغيير الأجر (R12). و«الدفع كعمل إضافي» يدفع يوم العمل المنقول بمعامل يوم العطلة. والعمل في يوم العطلة دون تبديل معتمد يضع علامة «تبديل غير مصرّح» (تظهر دون عقوبة)." },
+      why: { en: "Same rules as the old module; HR keeps the choice per swap.", ar: "القواعد نفسها في الوحدة القديمة؛ وتبقى للموارد البشرية الخيار لكل تبديل." },
+      alts: [ { en: "Always pay moved days as overtime: not chosen — changes pay for every swap.", ar: "دفع الأيام المنقولة كعمل إضافي دائماً: لم يُختر — يغيّر الأجر لكل تبديل." } ]
+    },
+    {
+      id: 'PR29', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Swap permissions now, approver chain after login", ar: "صلاحيات التبديل الآن، وسلسلة المعتمدين بعد تسجيل الدخول" },
+      decision: { en: "Creating a request needs attendance.record; approving, rejecting and cancelling need roster.manage. After login (S8) the approver comes from the management chain (team supervisor → department manager → HR, D22) and nobody approves their own request.", ar: "إنشاء الطلب يحتاج attendance.record؛ والاعتماد والرفض والإلغاء تحتاج roster.manage. وبعد تسجيل الدخول (S8) يأتي المعتمد من سلسلة الإدارة (مشرف الفريق ← مدير القسم ← الموارد البشرية، D22) ولا يعتمد أحد طلبه." },
+      why: { en: "Existing keys now; the approver chain already exists (two-level plan).", ar: "مفاتيح موجودة الآن؛ وسلسلة المعتمدين موجودة أصلاً (خطة الإدارة على مستويين)." },
+      alts: [ { en: "Use the approver chain now: not chosen — one local user, nobody else can sign in.", ar: "استخدام سلسلة المعتمدين الآن: لم يُختر — مستخدم محلي واحد، ولا أحد غيره يستطيع الدخول." } ]
+    },
+    {
+      id: 'PR30', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A yearly leave balance per person", ar: "رصيد إجازات سنوي لكل شخص" },
+      decision: { en: "Yearly days (set by HR per person and year) + carried from last year − days taken = days left; future booked leave shown apart.", ar: "الأيام السنوية (تحددها الموارد البشرية لكل شخص وسنة) + المرحَّل من السنة الماضية − الأيام المأخوذة = الأيام المتبقية؛ والإجازات المحجوزة مستقبلاً تظهر منفصلة." },
+      why: { en: "What HR asked for (user, 2026-11-02); the old module had no balance.", ar: "ما طلبته الموارد البشرية (المستخدم، 2026-11-02)؛ ولم يكن في الوحدة القديمة رصيد." },
+      alts: [ { en: "Monthly accrual: not chosen by the user.", ar: "الاستحقاق الشهري: لم يختره المستخدم." }, { en: "Only count days taken: not chosen by the user.", ar: "عدّ الأيام المأخوذة فقط: لم يختره المستخدم." } ]
+    },
+    {
+      id: 'PR31', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Calendar year; only leave on planned work days counts", ar: "السنة التقويمية؛ ولا تُحتسب إلا الإجازة في أيام العمل المخططة" },
+      decision: { en: "The leave year is January–December. Only leave absences count, and only on days the person was planned to work; sick, mission, no show and other never count.", ar: "سنة الإجازات من كانون الثاني إلى كانون الأول. ولا تُحتسب إلا غيابات الإجازة، وفقط في الأيام التي كان الشخص مخططاً للعمل فيها؛ ولا يُحتسب المرض والمهمة وعدم الحضور وغير ذلك أبداً." },
+      why: { en: "Leave is taken from working days.", ar: "الإجازة تؤخذ من أيام العمل." },
+      alts: [ { en: "Count every calendar day of the leave: not chosen — off days inside a leave would be lost.", ar: "احتساب كل أيام الإجازة التقويمية: لم يُختر — تضيع أيام العطلة داخل الإجازة." } ]
+    },
+    {
+      id: 'PR32', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Carry-over suggested, HR decides", ar: "الترحيل مقترح والقرار للموارد البشرية" },
+      decision: { en: "Opening a new year suggests last year's days left as carried; HR can change it. No cap until HR gives one (Q-PR6).", ar: "فتح سنة جديدة يقترح الأيام المتبقية من السنة الماضية كرصيد مرحَّل؛ ويمكن للموارد البشرية تغييره. لا سقف حتى تحدد الموارد البشرية سقفاً (Q-PR6)." },
+      why: { en: "No carry-over rule known yet.", ar: "لا قاعدة ترحيل معروفة بعد." },
+      alts: [ { en: "Carry automatically with a fixed cap: not chosen — no cap is known.", ar: "ترحيل تلقائي بسقف ثابت: لم يُختر — لا سقف معروف." } ]
+    },
+    {
+      id: 'PR33', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Over the balance warns, does not refuse", ar: "تجاوز الرصيد يحذّر ولا يرفض" },
+      decision: { en: "The day editor and the entry sheet warn \"this leaves −2 days\" but save.", ar: "يحذّر محرر اليوم وورقة الإدخال «يتبقى −2 يوم» لكن يحفظان." },
+      why: { en: "HR may approve exceptions.", ar: "قد تعتمد الموارد البشرية استثناءات." },
+      alts: [ { en: "Refuse leave beyond the balance: not chosen — HR could not record an approved exception.", ar: "رفض الإجازة بعد الرصيد: لم يُختر — لن تستطيع الموارد البشرية تسجيل استثناء معتمد." } ]
+    },
+    {
+      id: 'PR34', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A /leave page and a Leave card", ar: "صفحة /leave وبطاقة إجازات" },
+      decision: { en: "/leave: per department or team, one row per person (yearly, carried, taken, booked, left), Set yearly days for a selection with a reason. The employee page gets a Leave card. Writes need staff.write and are audited.", ar: "/leave: لكل قسم أو فريق، صف لكل شخص (السنوي، المرحَّل، المأخوذ، المحجوز، المتبقي)، و«تحديد الأيام السنوية» لمجموعة مختارة مع سبب. وتحصل صفحة الموظف على بطاقة إجازات. الكتابة تحتاج staff.write وتُدقَّق." },
+      why: { en: "Balances are set in bulk once a year and looked up per person.", ar: "تُحدَّد الأرصدة دفعة واحدة سنوياً ويُطّلع عليها لكل شخص." },
+      alts: [ { en: "Only on the employee page: not chosen — setting 300 people one by one is slow.", ar: "في صفحة الموظف فقط: لم يُختر — تحديد 300 شخص واحداً واحداً بطيء." } ]
     }
   ];
 
@@ -1176,7 +1442,15 @@
     ["Q-T3", "Also a page with the whole organisation as one tree? (answered 2026-11-01: default kept)", "No: /management shows departments; the person tree starts from any employee", "هل توجد أيضاً صفحة للمؤسسة كلها كشجرة واحدة؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا: /management تعرض الأقسام؛ وشجرة الشخص تبدأ من أي موظف"],
     ["Q-T4", "Show inactive people in the tree? (answered 2026-11-01: default kept)", "No; an inactive manager or supervisor still in place is a gap", "هل يُعرض غير النشطين في الشجرة؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا؛ والمدير أو المشرف غير النشط الباقي في مكانه فجوة"],
     ["Q-T5", "May the tree's date field show past dates? (answered 2026-11-01: default kept)", "Yes, to read the history; changes stay today or later", "هل يجوز أن يعرض حقل التاريخ في الشجرة تواريخ سابقة؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم، لقراءة السجل؛ والتغييرات تبقى من اليوم أو لاحقاً"],
-    ["Q-T6", "Which status does the employees page filter show by default? (answered 2026-11-01: default kept)", "Active", "ما الحالة التي يعرضها مرشح صفحة الموظفين افتراضياً؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نشط"],
+    ["Q-T6", "Which status does the employees page filter show by default? (answered 2026-11-01: default kept)", "Active", "ما الحالة التي يعرضها مرشح صفحة الموظفين افتراضياً؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نشط"],,
+    ["Q-PR1", "With overtime off, is extra time unpaid or paid flat ×1.0? (Q8)", "unpaid (PR15)", "عند تعطيل العمل الإضافي، هل الوقت الزائد غير مدفوع أم يُدفع ×1.0 ثابت؟ (Q8)", "غير مدفوع (PR15)"],
+    ["Q-PR2", "Are partial missions (e.g. 2 hours) needed now?", "no: full days now, minutes with day credits", "هل المهمات الجزئية (مثلاً ساعتان) مطلوبة الآن؟", "لا: أيام كاملة الآن، والدقائق مع أرصدة الأيام"],
+    ["Q-PR3", "May pay-rate changes start on past dates before periods exist?", "no: today or later (PR5)", "هل يجوز أن تبدأ تغييرات المعاملات من تواريخ سابقة قبل وجود الفترات؟", "لا: اليوم أو لاحقاً (PR5)"],
+    ["Q-PR4", "Which states may HR set from the day editor?", "leave, sick, mission, no show, other (PR19)", "ما الحالات التي يجوز للموارد البشرية تحديدها من محرر اليوم؟", "إجازة، مرض، مهمة، عدم حضور، غير ذلك (PR19)"],
+    ["Q-PR5", "Leave year: calendar year, or from each person's start date?", "calendar year (PR31)", "سنة الإجازات: السنة التقويمية أم من تاريخ بدء كل شخص؟", "السنة التقويمية (PR31)"],
+    ["Q-PR6", "Is there a cap on carried leave days?", "no cap; HR edits the suggestion (PR32)", "هل يوجد سقف لأيام الإجازة المرحَّلة؟", "لا سقف؛ والموارد البشرية تعدّل الاقتراح (PR32)"],
+    ["Q-PR7", "Do yearly leave days depend on seniority or job?", "no: HR sets them per person (PR30)", "هل تعتمد أيام الإجازة السنوية على الأقدمية أو الوظيفة؟", "لا: تحددها الموارد البشرية لكل شخص (PR30)"],
+    ["Q-PR8", "Must an employee swap's return date be given?", "optional (PR26)", "هل يجب تحديد تاريخ الرد في التبديل بين موظفين؟", "اختياري (PR26)"]
   ];
 
   function el(tag, attrs, children) {

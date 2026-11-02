@@ -64,12 +64,16 @@ export const addPairSchema = z.object({
 });
 export type AddPairInput = z.infer<typeof addPairSchema>;
 
-/** A correction: a new time for the event, or `remove` (a void correction). */
+/**
+ * A correction: a new time for the event, or `voidEvent` (a void correction that removes it). Not
+ * `remove`: a form control's name becomes a property of its `<form>`, and an input named `remove`
+ * hides `HTMLFormElement.remove()`, which Superforms calls when the form is destroyed.
+ */
 export const correctionSchema = z
 	.object({
 		eventId: z.uuid(),
 		time: optionalClock.default(''),
-		remove: z.boolean().default(false),
+		voidEvent: z.boolean().default(false),
 		reason: z
 			.string()
 			.trim()
@@ -77,7 +81,7 @@ export const correctionSchema = z
 			.max(500)
 	})
 	.superRefine((value, ctx) => {
-		if (!value.remove && !value.time)
+		if (!value.voidEvent && !value.time)
 			ctx.addIssue({ code: 'custom', path: ['time'], message: m.attendance_time_required() });
 	});
 export type CorrectionInput = z.infer<typeof correctionSchema>;

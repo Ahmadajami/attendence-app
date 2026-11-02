@@ -106,7 +106,7 @@
 			bind:this={dateForm}
 			class="flex flex-wrap items-end gap-2"
 			data-sveltekit-noscroll
-			data-sveltekit-keepfocus
+			data-sveltekit-reset="false"
 		>
 			<div class="flex flex-col gap-1.5">
 				<Label for="management-date">{m.management_date()}</Label>

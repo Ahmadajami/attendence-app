@@ -25,6 +25,7 @@ import { todayInDamascus } from '#lib/server/time.js';
 import { descendantIds } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
 import { listActiveStaffInDepartments, listEventsBetween } from '../attendance/attendance.crud.js';
+import { causeBy, markNeedsRecompute, recomputeAfter } from '../day-results/day-results.bl.js';
 import { findDepartment, listDepartmentRows } from '../departments/departments.crud.js';
 import {
 	createPatternStatements,
@@ -120,7 +121,11 @@ async function resolveTargets(
 }
 
 /** Everyone a target can reach over `[from, from + days)`: members, department staff or the person. */
-async function peopleOf(target: TargetItem, from: string, days: number): Promise<RosterPerson[]> {
+async function peopleOf(
+	target: Pick<TargetItem, 'kind' | 'id'>,
+	from: string,
+	days: number
+): Promise<RosterPerson[]> {
 	if (target.kind === 'staff') {
 		const person = await findRosterPerson(target.id);
 		return person ? [{ staffId: person.staffId, departmentId: person.departmentId }] : [];
@@ -141,6 +146,34 @@ async function peopleOf(target: TargetItem, from: string, days: number): Promise
 		staffId: r.staffId,
 		departmentId: r.departmentId
 	}));
+}
+
+/**
+ * The people whose stored days a change from `from` reaches (pay plan PR17). Stored days stop at
+ * today (PR18) and changes start today or later (B7), so only a change from today reaches any.
+ */
+async function peopleReached(
+	targets: readonly Pick<TargetItem, 'kind' | 'id'>[],
+	from: string
+): Promise<string[]> {
+	if (from > todayInDamascus()) return [];
+	const people = await Promise.all(targets.map((t) => peopleOf(t, from, 1)));
+	return [...new Set(people.flat().map((p) => p.staffId))];
+}
+
+/** Commit an assignment change and recompute the stored days it reaches. */
+async function commitAndRecompute(
+	actor: Actor,
+	statements: readonly BatchQuery[],
+	reached: readonly string[],
+	from: string
+): Promise<void> {
+	try {
+		await batch([...statements, ...markNeedsRecompute(reached, from, from)]);
+	} catch (error) {
+		throw overlapConflict(error) ?? error;
+	}
+	await recomputeAfter(reached, from, from, causeBy(actor, 'roster_change'));
 }
 
 /**
@@ -280,11 +313,11 @@ export async function assign(actor: Actor, input: AssignmentInput): Promise<void
 			field: 'patternId'
 		});
 	const statements = await assignStatements(actor, pattern, input);
-	try {
-		await batch(statements);
-	} catch (error) {
-		throw overlapConflict(error) ?? error;
-	}
+	const reached = await peopleReached(
+		input.targetIds.map((id) => ({ kind: input.targetKind, id })),
+		input.effectiveFrom
+	);
+	await commitAndRecompute(actor, statements, reached, input.effectiveFrom);
 }
 
 /** Stop a target's assignment from a date; from then the next level (team, department) applies. */
@@ -302,8 +335,9 @@ export async function endAssignment(actor: Actor, input: EndAssignmentInput): Pr
 		throw new InvalidInputError('nothing_to_end', m.assign_error_nothing_to_end(), {
 			field: 'effectiveFrom'
 		});
-	try {
-		await batch([
+	await commitAndRecompute(
+		actor,
+		[
 			...statements,
 			auditInsert({
 				actor: actor.user,
@@ -314,10 +348,10 @@ export async function endAssignment(actor: Actor, input: EndAssignmentInput): Pr
 				after: { effectiveTo: input.effectiveFrom },
 				reason: input.reason
 			})
-		]);
-	} catch (error) {
-		throw overlapConflict(error) ?? error;
-	}
+		],
+		await peopleReached([item], input.effectiveFrom),
+		input.effectiveFrom
+	);
 }
 
 /**
@@ -339,6 +373,16 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 			field: 'effectiveFrom'
 		});
 
+	const reached = await peopleReached(
+		moving.map((a) =>
+			a.staffId
+				? { kind: 'staff' as const, id: a.staffId }
+				: a.teamId
+					? { kind: 'team' as const, id: a.teamId }
+					: { kind: 'department' as const, id: a.departmentId ?? '' }
+		),
+		from
+	);
 	const copyId = randomUUID();
 	const scheduled = moving.filter((a) => a.effectiveFrom >= from);
 	const current = moving.filter((a) => a.effectiveFrom < from);
@@ -382,7 +426,8 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 					after: moved[i],
 					reason: input.reason
 				})
-			)
+			),
+			...markNeedsRecompute(reached, from, from)
 		]);
 	} catch (error) {
 		if (pgErrorCode(error) === '23505')
@@ -392,6 +437,7 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 			});
 		throw overlapConflict(error) ?? error;
 	}
+	await recomputeAfter(reached, from, from, causeBy(actor, 'roster_change'));
 	return copyId;
 }
 
@@ -428,8 +474,17 @@ export async function buildPattern(actor: Actor, input: PatternBuilderInput): Pr
 		...createPatternStatements(actor, id, fields),
 		...(input.assign ? await assignStatements(actor, { id, type: input.type }, assignment) : [])
 	];
+	const reached = input.assign
+		? await peopleReached(
+				input.targetIds.map((targetId) => ({ kind: input.targetKind, id: targetId })),
+				input.effectiveFrom
+			)
+		: [];
 	try {
-		await batch(statements);
+		await batch([
+			...statements,
+			...markNeedsRecompute(reached, input.effectiveFrom, input.effectiveFrom)
+		]);
 	} catch (error) {
 		if (pgErrorCode(error) === '23505')
 			throw new ConflictError('duplicate_name', m.patterns_error_duplicate(), {
@@ -438,6 +493,12 @@ export async function buildPattern(actor: Actor, input: PatternBuilderInput): Pr
 			});
 		throw overlapConflict(error) ?? error;
 	}
+	await recomputeAfter(
+		reached,
+		input.effectiveFrom,
+		input.effectiveFrom,
+		causeBy(actor, 'roster_change')
+	);
 	return id;
 }
 

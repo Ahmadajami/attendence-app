@@ -239,7 +239,7 @@ export const actions: Actions = {
 			await correctEvent(actor, form.data);
 			return message(form, {
 				kind: 'success',
-				text: form.data.remove ? m.attendance_removed_saved() : m.attendance_corrected_saved()
+				text: form.data.voidEvent ? m.attendance_removed_saved() : m.attendance_corrected_saved()
 			} satisfies AttendanceMessage);
 		} catch (cause) {
 			return failForm(form, cause);

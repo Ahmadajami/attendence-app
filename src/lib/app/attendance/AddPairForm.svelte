@@ -3,7 +3,9 @@
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { normalizeClock } from '#lib/attendance/entry.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
@@ -26,9 +28,11 @@
 		shifts: Pick<RosterShift, 'id' | 'code' | 'nameEn' | 'nameAr'>[];
 		/** Called after the pair is saved. */
 		onSaved: () => void;
+		/** Called on Cancel: the panel closes the form; typed values are dropped. */
+		onCancel: () => void;
 	};
 
-	let { staffId, shiftDate, plannedShiftId, shifts, onSaved }: Props = $props();
+	let { staffId, shiftDate, plannedShiftId, shifts, onSaved, onCancel }: Props = $props();
 
 	const schema = zod4Client(addPairSchema);
 	const form = superForm(
@@ -138,4 +142,8 @@
 		{/if}
 		{m.attendance_save()}
 	</Form.Button>
+	<Button type="button" variant="ghost" size="sm" class="self-end" onclick={onCancel}>
+		<XIcon data-icon="inline-start" />
+		{m.attendance_cancel()}
+	</Button>
 </form>

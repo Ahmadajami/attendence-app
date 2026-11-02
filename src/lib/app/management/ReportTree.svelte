@@ -65,6 +65,7 @@
 						{initials(personName(node.person))}
 					</Avatar.Fallback>
 				</Avatar.Root>
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- localizedHref() resolves; only `?tab=` / `&on=` are added -->
 				<a href={profileHref(node.person.staffId)} class="font-medium hover:underline">
 					{personName(node.person)}
 				</a>
@@ -80,7 +81,7 @@
 							units: node.units.map((u) => lookupName(u)).join(m.list_separator())
 						})}
 					</Badge>
-				{:else if node.team}
+				{:else if node.kind === 'person' && node.team}
 					<span class="text-xs text-muted-foreground">{lookupName(node.team)}</span>
 				{/if}
 				{#if node.kind !== 'person'}

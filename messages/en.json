@@ -548,6 +548,7 @@
 	"attendance_reason_optional": "Reason (optional)",
 	"attendance_add_person": "Add person",
 	"attendance_save": "Save",
+	"attendance_cancel": "Cancel",
 	"attendance_saved": "Saved: {events} punches, {absences} absences.",
 	"attendance_correct_link": "Correct…",
 	"attendance_time_invalid": "Enter a time as HH:mm.",
@@ -955,5 +956,6 @@
 	"profile_header_separator": "›",
 	"profile_edit": "Edit",
 	"profile_name_en": "Name in English",
-	"profile_name_ar": "Name in Arabic"
+	"profile_name_ar": "Name in Arabic",
+	"daily_error_recompute_range": "Pick a date from the last 400 days, up to today."
 }

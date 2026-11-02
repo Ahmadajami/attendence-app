@@ -12,6 +12,7 @@ import { ancestorChain } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
 import { withSlots } from '../slots.js';
+import { listActiveHolidays, type HolidayRow } from '../pattern-pay/pattern-pay.crud.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
 import type { ShiftRow } from '../shifts/shifts.crud.js';
 import { findTeam, type TeamRow } from '../teams/teams.crud.js';
@@ -60,6 +61,8 @@ export type RosterPreviewData = {
 	schedules: ScheduleRow[];
 	overrides: OverrideRow[];
 	absences: AbsenceRow[];
+	/** Active holidays of the assigned patterns in the range (pay plan PR8). */
+	holidays: HolidayRow[];
 };
 
 export type TeamRoster = {
@@ -115,6 +118,12 @@ export async function loadRosterData(
 		listTeamPatterns(teamIds),
 		listDepartmentPatterns([...new Set(Object.values(departmentChains).flat())])
 	]);
+	const patternIds = [
+		...new Set(
+			[...personalAssignments, ...teamAssignments, ...departmentAssignments].map((a) => a.patternId)
+		)
+	];
+	const holidays = await listActiveHolidays(patternIds, from, last);
 	return {
 		from,
 		days,
@@ -126,7 +135,8 @@ export async function loadRosterData(
 		departmentChains,
 		schedules,
 		overrides,
-		absences
+		absences,
+		holidays
 	};
 }
 

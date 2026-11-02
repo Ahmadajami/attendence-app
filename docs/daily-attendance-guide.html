@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en" data-lang="both">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Attendance Guide</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --fg: #1c1d1f; --muted: #5d6066; --border: #e2e2de;
+    --accent: #0f766e; --accent-soft: #e6f2f0; --warn: #b45309; --warn-soft: #fbf0e3;
+    --bad: #be123c; --bad-soft: #fbe9ee; --ok: #047857; --ok-soft: #e5f3ec;
+    --code: #f0f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141517; --card: #1c1d20; --fg: #e8e8e6; --muted: #a0a3a8; --border: #2e3034;
+      --accent: #2dd4bf; --accent-soft: #15302d; --warn: #f59e0b; --warn-soft: #33270f;
+      --bad: #fb7185; --bad-soft: #3a1820; --ok: #34d399; --ok-soft: #12302a; --code: #26282c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141517; --card: #1c1d20; --fg: #e8e8e6; --muted: #a0a3a8; --border: #2e3034;
+    --accent: #2dd4bf; --accent-soft: #15302d; --warn: #f59e0b; --warn-soft: #33270f;
+    --bad: #fb7185; --bad-soft: #3a1820; --ok: #34d399; --ok-soft: #12302a; --code: #26282c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+  }
+  [lang="ar"] { font-family: Tahoma, "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif; line-height: 1.85; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; }
+  header.top {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    border-bottom: 1px solid var(--border); padding: 10px 0; margin-bottom: 24px;
+  }
+  header.top .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding-bottom: 0; }
+  .brand { font-weight: 700; }
+  .switch { display: flex; gap: 4px; flex-wrap: wrap; }
+  .switch button {
+    border: 1px solid var(--border); background: var(--card); color: var(--fg);
+    padding: 6px 12px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 14px;
+  }
+  .switch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  h1 { font-size: 30px; line-height: 1.25; margin: 0 0 8px; }
+  h2 { font-size: 22px; margin: 0 0 12px; display: flex; gap: 10px; align-items: baseline; }
+  h3 { font-size: 17px; margin: 18px 0 8px; }
+  p { margin: 0 0 10px; }
+  .num {
+    display: inline-flex; min-width: 30px; height: 30px; border-radius: 15px; align-items: center; justify-content: center;
+    background: var(--accent); color: var(--bg); font-size: 15px; font-weight: 700; flex: none;
+  }
+  section.card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px; margin-bottom: 18px;
+  }
+  .pair { display: grid; gap: 22px; }
+  html[data-lang="both"] .pair { grid-template-columns: 1fr 1fr; }
+  html[data-lang="both"] .pair > [lang="ar"] { border-inline-start: 1px solid var(--border); padding-inline-start: 22px; }
+  @media (max-width: 900px) {
+    html[data-lang="both"] .pair { grid-template-columns: 1fr; }
+    html[data-lang="both"] .pair > [lang="ar"] { border-inline-start: 0; padding-inline-start: 0; border-top: 1px solid var(--border); padding-top: 18px; }
+  }
+  html[data-lang="en"] [lang="ar"], html[data-lang="ar"] [lang="en"] { display: none; }
+  .muted { color: var(--muted); }
+  .lead { font-size: 18px; }
+  ul, ol { margin: 0 0 10px; padding-inline-start: 22px; }
+  li { margin-bottom: 4px; }
+  code, .mono { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 0.9em; background: var(--code); padding: 1px 5px; border-radius: 4px; }
+  bdi { unicode-bidi: isolate; }
+  .table-scroll { overflow-x: auto; margin: 6px 0 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: start; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: none; }
+  .note { border-radius: 10px; padding: 12px 14px; margin: 10px 0; background: var(--accent-soft); }
+  .note.warn { background: var(--warn-soft); }
+  .note.bad { background: var(--bad-soft); }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .tag.todo { background: var(--code); color: var(--muted); }
+  .tag.wait { background: var(--warn-soft); color: var(--warn); }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); }
+
+  /* Flow: boxes with arrows, works left-to-right and right-to-left */
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 8px 0 4px; }
+  .flow .box {
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; background: var(--bg);
+  }
+  .flow .box b { display: block; }
+  .flow .box.main { border-color: var(--accent); background: var(--accent-soft); }
+  .flow .arrow { text-align: center; color: var(--accent); font-size: 20px; line-height: 1; padding: 4px 0; }
+  .flow .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .loop { border: 2px dashed var(--accent); border-radius: 12px; padding: 10px 12px; margin-top: 8px; }
+
+  .steps-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0; padding: 0; list-style: none; }
+  .steps-nav a {
+    display: inline-block; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--fg); text-decoration: none; font-size: 14px; background: var(--card);
+  }
+  .steps-nav a:hover { border-color: var(--accent); }
+  .ex { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
+  .ex .calc { font-weight: 600; }
+  footer { color: var(--muted); font-size: 14px; margin-top: 28px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span lang="en">Daily attendance — guide</span><span lang="ar" dir="rtl"> · دليل الحضور اليومي</span></div>
+    <div class="switch" role="group" aria-label="Language / اللغة">
+      <button type="button" data-set="both" aria-pressed="true">EN + عربي</button>
+      <button type="button" data-set="en" aria-pressed="false">English</button>
+      <button type="button" data-set="ar" aria-pressed="false">العربية</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ Intro ============ -->
+<section class="card" id="intro">
+  <div class="pair">
+    <div lang="en">
+      <h1>Daily attendance: pay rules, holidays, missions, swaps, leave and the edit log</h1>
+      <p class="lead">One simple idea: <b>the app keeps one attendance record for every person, for every day</b>, and keeps it correct by itself.</p>
+      <p>Punches come in. The app works out the day from the person's pattern, their absences, swaps and the pay rules. HR reviews the days and changes one when needed, for example "this day is leave". Every record that the change touches is updated straight away, every change is written in an <b>edit log</b> that says where it came from, and each person has a <b>yearly leave balance</b>.</p>
+      <p class="muted">Plan: <code>plans/2026-11-01-pattern-pay-holidays-missions.md</code> · Decisions PR1–PR34 in <code>docs/decisions.html</code> · All examples use made-up people and numbers.</p>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h1>الحضور اليومي: قواعد الأجر والعطل والمهمات والتبديلات والإجازات وسجل التعديلات</h1>
+      <p class="lead">الفكرة بسيطة: <b>يحتفظ التطبيق بسجل حضور واحد لكل شخص، عن كل يوم</b>، ويبقيه صحيحاً من تلقاء نفسه.</p>
+      <p>تصل البصمات، فيحسب التطبيق اليوم من نمط الشخص وغياباته وتبديلاته وقواعد الأجر. تراجع الموارد البشرية الأيام وتعدّل يوماً عند الحاجة، مثلاً «هذا اليوم إجازة». ويتحدّث فوراً كل سجل يمسّه هذا التغيير، ويُكتب كل تغيير في <b>سجل تعديلات</b> يذكر مصدره، ولكل شخص <b>رصيد إجازات سنوي</b>.</p>
+      <p class="muted">الخطة: <code>plans/2026-11-01-pattern-pay-holidays-missions.md</code> · القرارات PR1–PR34 في <code>docs/decisions.html</code> · كل الأمثلة بأشخاص وأرقام وهمية.</p>
+    </div>
+  </div>
+  <ul class="steps-nav">
+    <li><a href="#flow">0 · Flow / المسار</a></li>
+    <li><a href="#s1">1 · Punches / البصمات</a></li>
+    <li><a href="#s2">2 · The day / اليوم</a></li>
+    <li><a href="#s3">3 · Overtime &amp; rates / العمل الإضافي</a></li>
+    <li><a href="#s4">4 · Holidays / العطل</a></li>
+    <li><a href="#s5">5 · Missions / المهمات</a></li>
+    <li><a href="#s6">6 · Review &amp; edit / المراجعة والتعديل</a></li>
+    <li><a href="#s7">7 · Auto update / التحديث التلقائي</a></li>
+    <li><a href="#s8">8 · Edit log / سجل التعديلات</a></li>
+    <li><a href="#s9">9 · Swaps / التبديلات</a></li>
+    <li><a href="#s10">10 · Leave balance / رصيد الإجازات</a></li>
+    <li><a href="#rank">Who wins / الأولوية</a></li>
+    <li><a href="#examples">Examples / أمثلة</a></li>
+    <li><a href="#phases">Phases / المراحل</a></li>
+    <li><a href="#questions">Questions / أسئلة</a></li>
+    <li><a href="#words">Words / مصطلحات</a></li>
+  </ul>
+</section>
+
+<!-- ============ Flow ============ -->
+<section class="card" id="flow">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">0</span> The whole flow in one picture</h2>
+      <div class="flow">
+        <div class="inputs">
+          <div class="box"><b>Punches</b><span class="muted">entry sheet, employee page, corrections; later the Odoo seed and punch files</span></div>
+          <div class="box"><b>Pattern settings</b><span class="muted">overtime on/off, rates, holidays</span></div>
+          <div class="box"><b>Absences &amp; missions</b><span class="muted">entry sheet, day editor, mission form</span></div>
+          <div class="box"><b>Approved swaps</b><span class="muted">self swap, employee swap</span></div>
+          <div class="box"><b>Roster changes</b><span class="muted">assignments, own off days, one-off shifts</span></div>
+        </div>
+        <div class="arrow" aria-hidden="true">▼</div>
+        <div class="box main"><b>Recompute</b>the app works out only the person-days that changed</div>
+        <div class="arrow" aria-hidden="true">▼</div>
+        <div class="inputs"><div class="box main"><b>Daily attendance record</b>one row per person per day, up to today: status · in / out · worked · late · overtime · rate · paid / unpaid</div><div class="box main"><b>Edit log</b>one line per changed value: old → new · when · who · source (typed, punch reading…)</div></div>
+        <div class="arrow" aria-hidden="true">▼</div>
+        <div class="box"><b>HR reviews</b>on the new page <code>/attendance/days</code></div>
+        <div class="loop">
+          <b>The loop:</b> HR edits a day (leave, sick, mission…) → the app recomputes → the row shows the new figures. Every other change (a corrected punch, a new holiday, a new rate, an approved swap) goes round the same loop. Next to it, the <b>leave balance</b> counts leave days taken against each person's yearly days.
+        </div>
+      </div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">0</span> المسار كاملاً في صورة واحدة</h2>
+      <div class="flow">
+        <div class="inputs">
+          <div class="box"><b>البصمات</b><span class="muted">ورقة الإدخال، صفحة الموظف، التصحيحات؛ ولاحقاً بيانات Odoo الأولية وملفات البصمات</span></div>
+          <div class="box"><b>إعدادات النمط</b><span class="muted">العمل الإضافي مفعّل/معطّل، المعاملات، العطل</span></div>
+          <div class="box"><b>الغيابات والمهمات</b><span class="muted">ورقة الإدخال، محرر اليوم، نموذج المهمة</span></div>
+          <div class="box"><b>التبديلات المعتمدة</b><span class="muted">تبديل ذاتي، تبديل بين موظفين</span></div>
+          <div class="box"><b>تغييرات الجدول</b><span class="muted">التخصيصات، أيام العطلة الخاصة، الورديات لمرة واحدة</span></div>
+        </div>
+        <div class="arrow" aria-hidden="true">▼</div>
+        <div class="box main"><b>إعادة الحساب</b>يحسب التطبيق فقط أيام الأشخاص التي تغيّرت</div>
+        <div class="arrow" aria-hidden="true">▼</div>
+        <div class="inputs"><div class="box main"><b>سجل الحضور اليومي</b>صف لكل شخص لكل يوم حتى اليوم: الحالة · الدخول / الخروج · مدة العمل · التأخير · العمل الإضافي · المعامل · المدفوع / غير المدفوع</div><div class="box main"><b>سجل التعديلات</b>سطر لكل قيمة تغيّرت: القديم ← الجديد · متى · من · المصدر (مكتوب، قراءة بصمات…)</div></div>
+        <div class="arrow" aria-hidden="true">▼</div>
+        <div class="box"><b>مراجعة الموارد البشرية</b>في الصفحة الجديدة <code>/attendance/days</code></div>
+        <div class="loop">
+          <b>الحلقة:</b> تعدّل الموارد البشرية يوماً (إجازة، مرض، مهمة…) ← يعيد التطبيق الحساب ← يعرض الصف الأرقام الجديدة. وكل تغيير آخر (تصحيح بصمة، عطلة جديدة، معامل جديد، تبديل معتمد) يمرّ بالحلقة نفسها. وإلى جانبها يعدّ <b>رصيد الإجازات</b> أيام الإجازة المأخوذة مقابل الأيام السنوية لكل شخص.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 1 ============ -->
+<section class="card" id="s1">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">1</span> Punches arrive</h2>
+      <p>A punch is a check-in or a check-out time. Today they come from:</p>
+      <ul>
+        <li><b>The entry sheet</b> (<code>/attendance/entry</code>): pick a date and a team, type the times.</li>
+        <li><b>The employee page</b>: add a pair of times to one day, or correct a wrong time (with a reason).</li>
+        <li><b>Later:</b> the one-time import of old punches from Odoo, and punch files from the clock machines.</li>
+      </ul>
+      <p>Punches are <b>never deleted or overwritten</b>. A correction is a new entry that points at the wrong one, so the history stays.</p>
+      <div class="note">As soon as a punch is saved, that person's day is worked out again (step 7). Nobody has to press anything.</div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">1</span> وصول البصمات</h2>
+      <p>البصمة هي وقت دخول أو خروج. وتأتي اليوم من:</p>
+      <ul>
+        <li><b>ورقة الإدخال</b> (<code>/attendance/entry</code>): تختار تاريخاً وفريقاً وتكتب الأوقات.</li>
+        <li><b>صفحة الموظف</b>: تضيف زوج أوقات ليوم واحد، أو تصحح وقتاً خاطئاً (مع سبب).</li>
+        <li><b>لاحقاً:</b> الاستيراد لمرة واحدة للبصمات القديمة من Odoo، وملفات البصمات من أجهزة الدوام.</li>
+      </ul>
+      <p>البصمات <b>لا تُحذف ولا يُكتب فوقها أبداً</b>. التصحيح سجل جديد يشير إلى الخاطئ، فيبقى التاريخ محفوظاً.</p>
+      <div class="note">بمجرد حفظ البصمة، يُحسب يوم ذلك الشخص من جديد (الخطوة 7). لا أحد يحتاج إلى الضغط على أي شيء.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 2 ============ -->
+<section class="card" id="s2">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">2</span> What the app works out for each day</h2>
+      <p>For each person and date, the app combines the <b>planned shift</b> (from the pattern), the <b>punches</b>, any <b>absence</b> or <b>holiday</b>, and the <b>pay rule</b>. The result is one stored row:</p>
+      <div class="table-scroll"><table>
+        <tr><th>Field</th><th>Meaning</th></tr>
+        <tr><td>Status</td><td>done, late, missing, absent, off…</td></tr>
+        <tr><td>In / out</td><td>first check-in and last check-out</td></tr>
+        <tr><td>Required</td><td>minutes the shift asks for (0 on off days and holidays)</td></tr>
+        <tr><td>Worked</td><td>minutes between check-in and check-out</td></tr>
+        <tr><td>Late</td><td>minutes after the shift start</td></tr>
+        <tr><td>Overtime</td><td>extra minutes, rounded to the nearest 15</td></tr>
+        <tr><td>Rate</td><td>×1.25, ×1.5… — which multiplier applies</td></tr>
+        <tr><td>Paid / unpaid</td><td>overtime minutes that are paid, and extra minutes that are not, with the reason</td></tr>
+      </table></div>
+      <h3>The six kinds of day</h3>
+      <div class="table-scroll"><table>
+        <tr><th>Kind</th><th>When</th><th>Which minutes are overtime</th></tr>
+        <tr><td>Work day</td><td>a rostered shift</td><td>minutes past the required time, at the <b>work-day rate</b></td></tr>
+        <tr><td>Off-day work</td><td>worked on an off day, or an extra shift</td><td><b>all</b> minutes, at the <b>off-day rate</b></td></tr>
+        <tr><td>Holiday work</td><td>worked on a holiday</td><td><b>all</b> minutes, at the <b>holiday rate</b> (if the holiday is overtime-eligible)</td></tr>
+        <tr><td>Holiday off</td><td>a holiday not worked</td><td>none — a paid day off</td></tr>
+        <tr><td>Absence</td><td>leave, sick, mission, no show, other</td><td>none — punches are kept but not counted</td></tr>
+        <tr><td>Off</td><td>an off day not worked</td><td>none</td></tr>
+      </table></div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">2</span> ما يحسبه التطبيق لكل يوم</h2>
+      <p>لكل شخص وتاريخ، يجمع التطبيق <b>الوردية المخططة</b> (من النمط) و<b>البصمات</b> وأي <b>غياب</b> أو <b>عطلة</b> و<b>قاعدة الأجر</b>. والنتيجة صف واحد محفوظ:</p>
+      <div class="table-scroll"><table>
+        <tr><th>الحقل</th><th>المعنى</th></tr>
+        <tr><td>الحالة</td><td>مكتمل، متأخر، مفقود، غائب، عطلة…</td></tr>
+        <tr><td>الدخول / الخروج</td><td>أول بصمة دخول وآخر بصمة خروج</td></tr>
+        <tr><td>المطلوب</td><td>الدقائق التي تطلبها الوردية (0 في أيام العطلة والعطل الرسمية)</td></tr>
+        <tr><td>مدة العمل</td><td>الدقائق بين الدخول والخروج</td></tr>
+        <tr><td>التأخير</td><td>الدقائق بعد بداية الوردية</td></tr>
+        <tr><td>العمل الإضافي</td><td>الدقائق الزائدة، مقرّبة إلى أقرب 15</td></tr>
+        <tr><td>المعامل</td><td>×1.25، ×1.5… — أي معامل يُطبَّق</td></tr>
+        <tr><td>المدفوع / غير المدفوع</td><td>دقائق العمل الإضافي المدفوعة، والدقائق الزائدة غير المدفوعة مع السبب</td></tr>
+      </table></div>
+      <h3>أنواع اليوم الستة</h3>
+      <div class="table-scroll"><table>
+        <tr><th>النوع</th><th>متى</th><th>أي دقائق تُحسب عملاً إضافياً</th></tr>
+        <tr><td>يوم عمل</td><td>وردية مجدولة</td><td>الدقائق بعد الوقت المطلوب، بـ<b>معامل يوم العمل</b></td></tr>
+        <tr><td>عمل في يوم عطلة</td><td>عمل في يوم عطلة أسبوعية، أو وردية إضافية</td><td><b>كل</b> الدقائق، بـ<b>معامل يوم العطلة</b></td></tr>
+        <tr><td>عمل في عطلة رسمية</td><td>عمل في عطلة رسمية</td><td><b>كل</b> الدقائق، بـ<b>معامل العطلة الرسمية</b> (إن كانت مؤهلة للعمل الإضافي)</td></tr>
+        <tr><td>عطلة رسمية بلا عمل</td><td>عطلة رسمية لم يُعمل فيها</td><td>لا شيء — يوم راحة مدفوع</td></tr>
+        <tr><td>غياب</td><td>إجازة، مرض، مهمة، عدم حضور، غير ذلك</td><td>لا شيء — تبقى البصمات لكنها لا تُحتسب</td></tr>
+        <tr><td>عطلة</td><td>يوم عطلة أسبوعية لم يُعمل فيه</td><td>لا شيء</td></tr>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 3 ============ -->
+<section class="card" id="s3">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">3</span> Overtime and rates on the pattern</h2>
+      <p>Each pattern's page gets a tab <b>"Overtime &amp; pay"</b>. HR sets:</p>
+      <div class="table-scroll"><table>
+        <tr><th>Setting</th><th>Default when empty</th></tr>
+        <tr><td>Overtime on / off</td><td>On</td></tr>
+        <tr><td>Work-day rate</td><td>×1.25</td></tr>
+        <tr><td>Off-day rate</td><td>×1.5</td></tr>
+        <tr><td>Holiday rate</td><td>×1.5</td></tr>
+      </table></div>
+      <ul>
+        <li><b>A rate is a multiplier</b> of the person's own hourly pay (×1.5 = one and a half times), not an amount of money. The app holds no salaries.</li>
+        <li><b>Empty means "use the default".</b> The defaults are the old Odoo values. Later, department rules will sit between the pattern and the default.</li>
+        <li><b>Each change starts on a date</b>, today or later. Days before that date keep the old rate, so past pay never changes. The tab shows the history of changes.</li>
+        <li><b>Overtime off</b>: extra minutes are still counted, but shown as "unpaid extra" with the reason "overtime off".</li>
+      </ul>
+      <div class="ex"><b>Example.</b> A 24-hour crew pattern sets the off-day rate to ×2.0 from the 10th. From the 10th, everyone who follows it gets ×2.0 for off-day work; the work-day and holiday rates stay at the defaults. Before the 10th nothing changes.</div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">3</span> العمل الإضافي والمعاملات على النمط</h2>
+      <p>تحصل صفحة كل نمط على تبويب <b>«العمل الإضافي والأجر»</b>. وتحدد فيه الموارد البشرية:</p>
+      <div class="table-scroll"><table>
+        <tr><th>الإعداد</th><th>القيمة الافتراضية عند تركه فارغاً</th></tr>
+        <tr><td>العمل الإضافي مفعّل / معطّل</td><td>مفعّل</td></tr>
+        <tr><td>معامل يوم العمل</td><td>×1.25</td></tr>
+        <tr><td>معامل يوم العطلة</td><td>×1.5</td></tr>
+        <tr><td>معامل العطلة الرسمية</td><td>×1.5</td></tr>
+      </table></div>
+      <ul>
+        <li><b>المعامل رقم يُضرب</b> في أجر الساعة للشخص نفسه (×1.5 = مرة ونصف)، وليس مبلغاً مالياً. لا يحتفظ التطبيق بالرواتب.</li>
+        <li><b>الفارغ يعني «استخدم الافتراضي».</b> والقيم الافتراضية هي قيم Odoo القديمة. ولاحقاً تأتي قواعد القسم بين النمط والافتراضي.</li>
+        <li><b>كل تغيير يبدأ من تاريخ</b>، اليوم أو لاحقاً. الأيام قبل ذلك التاريخ تبقى على المعامل القديم، فلا يتغير الأجر السابق أبداً. ويعرض التبويب تاريخ التغييرات.</li>
+        <li><b>العمل الإضافي معطّل</b>: تبقى الدقائق الزائدة محسوبة، لكنها تظهر «وقتاً زائداً غير مدفوع» بسبب «العمل الإضافي معطّل».</li>
+      </ul>
+      <div class="ex"><b>مثال.</b> نمط طاقم 24 ساعة يجعل معامل يوم العطلة ×2.0 ابتداءً من يوم 10. من يوم 10 يحصل كل من يتبعه على ×2.0 عن العمل في أيام العطلة، ويبقى معاملا يوم العمل والعطلة الرسمية على الافتراضي. وقبل يوم 10 لا يتغير شيء.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 4 ============ -->
+<section class="card" id="s4">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">4</span> Holidays on the pattern</h2>
+      <p>On the tab <b>"Holidays &amp; missions"</b>, HR adds a holiday: dates (1 to 14 days), a name in English and Arabic, a reason, and the <b>"overtime-eligible"</b> switch.</p>
+      <ul>
+        <li>The holiday applies to <b>everyone who follows the pattern</b> on those dates.</li>
+        <li>The day becomes a <b>paid day off</b>: nothing is required and nobody is marked absent.</li>
+        <li>The airport still needs people on holidays: whoever must work gets a <b>one-off shift</b> on that day.</li>
+        <li><b>Overtime-eligible on</b>: every minute worked that day is paid at the holiday rate. <b>Off</b>: minutes worked show as unpaid extra.</li>
+        <li>The 14-day preview and the staffing strip mark the holiday, so you see how many people are off.</li>
+        <li>A <b>night shift</b> that starts the evening before belongs to the day before: it is not a holiday shift.</li>
+        <li>Two holidays on the same pattern may not overlap. A cancelled holiday frees its dates (it is kept for history, never deleted).</li>
+      </ul>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">4</span> العطل على النمط</h2>
+      <p>في تبويب <b>«العطل والمهمات»</b> تضيف الموارد البشرية عطلة: التواريخ (من يوم إلى 14 يوماً)، واسماً بالإنجليزية والعربية، وسبباً، ومفتاح <b>«مؤهلة للعمل الإضافي»</b>.</p>
+      <ul>
+        <li>تنطبق العطلة على <b>كل من يتبع النمط</b> في تلك التواريخ.</li>
+        <li>يصبح اليوم <b>يوم راحة مدفوعاً</b>: لا شيء مطلوب ولا أحد يُسجَّل غائباً.</li>
+        <li>المطار يحتاج موظفين في العطل: من يجب أن يعمل يأخذ <b>وردية لمرة واحدة</b> في ذلك اليوم.</li>
+        <li><b>مؤهلة للعمل الإضافي (مفعّل)</b>: كل دقيقة عمل في ذلك اليوم تُدفع بمعامل العطلة. <b>(معطّل)</b>: الدقائق المعمولة تظهر وقتاً زائداً غير مدفوع.</li>
+        <li>تعلّم معاينةُ الأيام الأربعة عشر وشريطُ التغطية العطلةَ، فترى كم شخصاً في راحة.</li>
+        <li><b>وردية الليل</b> التي تبدأ مساء اليوم السابق تتبع اليوم السابق: ليست وردية عطلة.</li>
+        <li>لا يجوز أن تتداخل عطلتان على النمط نفسه. والعطلة الملغاة تحرر تواريخها (تبقى للتاريخ ولا تُحذف أبداً).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 5 ============ -->
+<section class="card" id="s5">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">5</span> Missions</h2>
+      <p>On the same tab, HR adds a mission: the dates, then ticks <b>which members</b> go, and a reason.</p>
+      <ul>
+        <li>Only people who follow the pattern on <b>every</b> date of the mission are offered.</li>
+        <li>Each picked person gets a <b>full-day "Mission"</b> state on those dates. It shows on their employee page like leave or sick.</li>
+        <li>If someone already has leave or sick on those dates, the app <b>refuses and shows who</b>, so nothing is silently replaced.</li>
+        <li>You can cancel the whole mission, or just one person.</li>
+        <li>A mission day counts as a paid day: no overtime, no shortage.</li>
+        <li>Missions of a few hours are <b>not</b> in this plan; they come later.</li>
+      </ul>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">5</span> المهمات</h2>
+      <p>في التبويب نفسه تضيف الموارد البشرية مهمة: التواريخ، ثم تختار <b>الأعضاء</b> الذين يذهبون، وسبباً.</p>
+      <ul>
+        <li>لا يُعرض إلا من يتبع النمط في <b>كل</b> تواريخ المهمة.</li>
+        <li>يحصل كل شخص مختار على حالة <b>«مهمة» ليوم كامل</b> في تلك التواريخ، وتظهر في صفحته مثل الإجازة أو المرض.</li>
+        <li>إن كان لأحدهم إجازة أو مرض في تلك التواريخ، <b>يرفض التطبيق ويعرض من هو</b>، فلا يُستبدل شيء بصمت.</li>
+        <li>يمكنك إلغاء المهمة كلها، أو لشخص واحد فقط.</li>
+        <li>يوم المهمة يُحسب يوماً مدفوعاً: لا عمل إضافي ولا نقص.</li>
+        <li>المهمات لبضع ساعات <b>ليست</b> في هذه الخطة؛ تأتي لاحقاً.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 6 ============ -->
+<section class="card" id="s6">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">6</span> HR reviews and edits a day</h2>
+      <p>A new page, <b>"Daily attendance"</b> (<code>/attendance/days</code>):</p>
+      <ul>
+        <li>Pick a <b>date</b>, a <b>department or team</b>, and optionally a <b>status</b>. The choices stay in the link, so you can bookmark or share it.</li>
+        <li>One row per person: planned shift, in, out, worked, late, overtime with ×rate or "not paid" (hover to see why), and a badge such as Holiday, Leave or Mission.</li>
+        <li><b>"Edit day"</b> opens the day editor:
+          <ul>
+            <li>choose <b>leave, sick, mission, no show or other</b>, for one day or a range, with a reason;</li>
+            <li>or <b>"Clear state"</b> to undo it (also with a reason).</li>
+          </ul>
+        </li>
+        <li>After saving, the row shows the new figures right away.</li>
+        <li>The punches stay stored. While the day has a full-day state they count for nothing, and the row says so.</li>
+        <li>The same editor opens from the day panel on the employee page.</li>
+        <li>Past dates are allowed, with a reason. When pay periods exist, a closed or locked month cannot be changed.</li>
+      </ul>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">6</span> الموارد البشرية تراجع وتعدّل يوماً</h2>
+      <p>صفحة جديدة باسم <b>«الحضور اليومي»</b> (<code>/attendance/days</code>):</p>
+      <ul>
+        <li>اختر <b>تاريخاً</b> و<b>قسماً أو فريقاً</b>، و<b>حالة</b> إن شئت. تبقى الاختيارات في الرابط، فيمكنك حفظه أو مشاركته.</li>
+        <li>صف لكل شخص: الوردية المخططة، الدخول، الخروج، مدة العمل، التأخير، العمل الإضافي مع ×المعامل أو «غير مدفوع» (مرّر المؤشر لترى السبب)، وشارة مثل عطلة أو إجازة أو مهمة.</li>
+        <li><b>«تعديل اليوم»</b> يفتح محرر اليوم:
+          <ul>
+            <li>اختر <b>إجازة، مرض، مهمة، عدم حضور أو غير ذلك</b>، ليوم أو لمدة، مع سبب؛</li>
+            <li>أو <b>«مسح الحالة»</b> للتراجع (مع سبب أيضاً).</li>
+          </ul>
+        </li>
+        <li>بعد الحفظ يعرض الصف الأرقام الجديدة فوراً.</li>
+        <li>تبقى البصمات محفوظة. وما دام لليوم حالة يوم كامل فهي لا تُحتسب، ويذكر الصف ذلك.</li>
+        <li>المحرر نفسه يُفتح من لوح اليوم في صفحة الموظف.</li>
+        <li>التواريخ السابقة مسموحة مع سبب. وعند وجود فترات الرواتب لا يمكن تغيير شهر مغلق أو مقفل.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 7 ============ -->
+<section class="card" id="s7">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">7</span> Every daily record updates by itself</h2>
+      <p>Whenever something that affects a day is saved, the app <b>recomputes the affected person-days in the same click</b>:</p>
+      <div class="table-scroll"><table>
+        <tr><th>You save…</th><th>Days recomputed</th></tr>
+        <tr><td>a punch or a correction</td><td>that person, that day</td></tr>
+        <tr><td>a day edit (leave, sick…)</td><td>that person, those dates</td></tr>
+        <tr><td>a mission</td><td>the picked members, those dates</td></tr>
+        <tr><td>an approved or cancelled swap</td><td>both people, both dates</td></tr>
+        <tr><td>a holiday</td><td>every follower of the pattern, those dates</td></tr>
+        <tr><td>a rate or overtime change</td><td>every follower, from its date up to today</td></tr>
+        <tr><td>an assignment, own off days, a one-off shift</td><td>the people concerned, from that date up to today</td></tr>
+      </table></div>
+      <ul>
+        <li><b>Only days up to today are stored.</b> Future days have no punches yet; they are worked out when you look at them.</li>
+        <li><b>Unchanged days are skipped</b>: each row keeps a fingerprint of what went into it.</li>
+        <li><b>Safety net:</b> the save also marks the days "to recompute" first. If the update fails halfway, those days are fixed the next time someone opens them, or with the <b>Recompute</b> button.</li>
+        <li>The stored rows are worked out, never typed by hand. Each change to them is written in the edit log (step 8), with the cause.</li>
+      </ul>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">7</span> كل سجل يومي يتحدّث من تلقاء نفسه</h2>
+      <p>كلما حُفظ شيء يؤثر في يوم ما، <b>يعيد التطبيق حساب أيام الأشخاص المتأثرة في النقرة نفسها</b>:</p>
+      <div class="table-scroll"><table>
+        <tr><th>عندما تحفظ…</th><th>الأيام التي يعاد حسابها</th></tr>
+        <tr><td>بصمة أو تصحيحاً</td><td>ذلك الشخص، ذلك اليوم</td></tr>
+        <tr><td>تعديل يوم (إجازة، مرض…)</td><td>ذلك الشخص، تلك التواريخ</td></tr>
+        <tr><td>مهمة</td><td>الأعضاء المختارون، تلك التواريخ</td></tr>
+        <tr><td>تبديلاً معتمداً أو ملغى</td><td>الشخصان، والتاريخان</td></tr>
+        <tr><td>عطلة</td><td>كل من يتبع النمط، تلك التواريخ</td></tr>
+        <tr><td>تغيير معامل أو العمل الإضافي</td><td>كل المتبعين، من تاريخه حتى اليوم</td></tr>
+        <tr><td>تخصيصاً، أيام عطلة خاصة، وردية لمرة واحدة</td><td>الأشخاص المعنيون، من ذلك التاريخ حتى اليوم</td></tr>
+      </table></div>
+      <ul>
+        <li><b>تُحفظ الأيام حتى اليوم فقط.</b> الأيام المستقبلية بلا بصمات بعد؛ وتُحسب عند عرضها.</li>
+        <li><b>تُتخطى الأيام التي لم تتغير</b>: يحتفظ كل صف ببصمة لما دخل في حسابه.</li>
+        <li><b>شبكة أمان:</b> يعلّم الحفظ الأيام أولاً «لإعادة الحساب». فإن فشل التحديث في منتصفه، تُصلح تلك الأيام عند فتحها في المرة التالية، أو بزر <b>إعادة الحساب</b>.</li>
+        <li>الصفوف المحفوظة محسوبة ولا تُكتب يدوياً أبداً. وكل تغيير فيها يُكتب في سجل التعديلات (الخطوة 8) مع سببه.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 8: edit log ============ -->
+<section class="card" id="s8">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">8</span> The edit log: where did each value come from?</h2>
+      <p>You are the only person using the app today, so the log is your memory. <b>Every time a value of a day changes, one line is written</b>:</p>
+      <div class="table-scroll"><table>
+        <tr><th>When</th><th>Field</th><th>Old → new</th><th>Source</th><th>Who</th></tr>
+        <tr><td><bdi>09:12</bdi></td><td>created</td><td>—</td><td><span class="tag ok">Typed</span></td><td>you</td></tr>
+        <tr><td><bdi>14:40</bdi></td><td>check-out</td><td><bdi>18:00 → 19:15</bdi></td><td><span class="tag wait">Correction</span></td><td>you</td></tr>
+        <tr><td><bdi>14:40</bdi></td><td>worked</td><td><bdi>660 → 735</bdi></td><td><span class="tag wait">Correction</span></td><td>you</td></tr>
+        <tr><td><bdi>16:05</bdi></td><td>state</td><td>— → Leave</td><td><span class="tag bad">Day edit</span></td><td>you</td></tr>
+      </table></div>
+      <h3>The sources</h3>
+      <ul>
+        <li><b>Typed</b> — you entered it on the entry sheet or the employee page.</li>
+        <li><b>Punch reading</b> — it came from a punch file or the clock machine (when the import exists).</li>
+        <li><b>Odoo seed</b> — it came from the one-time import of old data.</li>
+        <li><b>Correction</b> — a time was corrected (with a reason).</li>
+        <li><b>Day edit, Mission, Swap, Holiday, Pay rule, Roster change</b> — the day changed because of one of those; the line links to it.</li>
+        <li><b>System</b> — the app filled or caught up the day by itself.</li>
+      </ul>
+      <h3>Where you see it</h3>
+      <ul>
+        <li>Next to every <b>in / out time</b> a small badge: Typed, Punch reading, Odoo seed or Corrected.</li>
+        <li>A <b>History</b> button on each row of the daily page and in the employee day panel: the full list, newest first, with a filter by field.</li>
+        <li>The daily page can be filtered by source, for example "show only typed times".</li>
+      </ul>
+      <div class="note warn">The log is <b>append-only</b>: lines are never edited or deleted. It never copies the reason of a sick day (health information); it only links to the record.</div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">8</span> سجل التعديلات: من أين جاءت كل قيمة؟</h2>
+      <p>أنت الشخص الوحيد الذي يستخدم التطبيق اليوم، لذا فالسجل ذاكرتك. <b>كلما تغيّرت قيمة في يوم ما، يُكتب سطر واحد</b>:</p>
+      <div class="table-scroll"><table>
+        <tr><th>متى</th><th>الحقل</th><th>القديم ← الجديد</th><th>المصدر</th><th>من</th></tr>
+        <tr><td><bdi>09:12</bdi></td><td>إنشاء</td><td>—</td><td><span class="tag ok">مكتوب</span></td><td>أنت</td></tr>
+        <tr><td><bdi>14:40</bdi></td><td>الخروج</td><td><bdi>18:00 → 19:15</bdi></td><td><span class="tag wait">تصحيح</span></td><td>أنت</td></tr>
+        <tr><td><bdi>14:40</bdi></td><td>مدة العمل</td><td><bdi>660 → 735</bdi></td><td><span class="tag wait">تصحيح</span></td><td>أنت</td></tr>
+        <tr><td><bdi>16:05</bdi></td><td>الحالة</td><td>— ← إجازة</td><td><span class="tag bad">تعديل يوم</span></td><td>أنت</td></tr>
+      </table></div>
+      <h3>المصادر</h3>
+      <ul>
+        <li><b>مكتوب</b> — أدخلته أنت في ورقة الإدخال أو صفحة الموظف.</li>
+        <li><b>قراءة بصمات</b> — جاء من ملف بصمات أو من جهاز الدوام (عندما يوجد الاستيراد).</li>
+        <li><b>بيانات Odoo</b> — جاء من الاستيراد لمرة واحدة للبيانات القديمة.</li>
+        <li><b>تصحيح</b> — صُحّح وقت (مع سبب).</li>
+        <li><b>تعديل يوم، مهمة، تبديل، عطلة، قاعدة أجر، تغيير جدول</b> — تغيّر اليوم بسبب أحدها؛ والسطر يرتبط به.</li>
+        <li><b>النظام</b> — ملأ التطبيق اليوم أو استكمله من تلقاء نفسه.</li>
+      </ul>
+      <h3>أين تراه</h3>
+      <ul>
+        <li>بجانب كل <b>وقت دخول / خروج</b> شارة صغيرة: مكتوب، قراءة بصمات، بيانات Odoo أو مصحَّح.</li>
+        <li>زر <b>السجل</b> في كل صف من الصفحة اليومية وفي لوح اليوم بصفحة الموظف: القائمة كاملة، الأحدث أولاً، مع تصفية حسب الحقل.</li>
+        <li>يمكن تصفية الصفحة اليومية حسب المصدر، مثلاً «اعرض الأوقات المكتوبة فقط».</li>
+      </ul>
+      <div class="note warn">السجل <b>للإضافة فقط</b>: لا تُعدَّل أسطره ولا تُحذف أبداً. ولا ينسخ سبب يوم المرض (معلومات صحية)؛ بل يرتبط بالسجل فقط.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 9: swaps ============ -->
+<section class="card" id="s9">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">9</span> Swaps: self swap and employee swap</h2>
+      <p>A new page <b>"Swaps"</b> (<code>/changes</code>). A swap is a <b>request</b>: it changes the roster only once it is <b>approved</b>.</p>
+      <h3>Self swap — move my own off day</h3>
+      <p>Employee A works Tuesday and is off Saturday. After the swap: <b>Tuesday off, Saturday works Tuesday's shift</b>.</p>
+      <h3>Employee swap — A and B</h3>
+      <p>On date D, A works and B is off. After the swap: <b>A is off, B works A's shift</b>. An optional <b>return date</b> does the reverse ("you work for me Monday, I work for you Thursday").</p>
+      <h3>The rules</h3>
+      <ul>
+        <li>Both days must be in the <b>same week (Sunday–Saturday)</b> or the <b>same month</b> — you choose per swap.</li>
+        <li>Pending → <b>Approve</b> or <b>Reject</b> (with a note). An approved swap can be <b>cancelled</b> (with a reason); both days go back.</li>
+        <li>When approving, the app <b>checks again</b>: is A still working that day, is B still off, is there a leave or another change on those dates? If not, it refuses and says why.</li>
+        <li><b>Pay does not change</b>: a swap only moves the off day. The moved work day has normal required time.</li>
+        <li><b>"Pay as overtime"</b> (a tick box per swap): the moved work day is paid at the off-day rate.</li>
+        <li>Working your own off day <b>without</b> an approved swap shows an <b>"Unauthorised swap"</b> badge (no automatic penalty).</li>
+        <li>Today you create and approve. After login, the team supervisor or department manager will approve, and nobody approves their own request.</li>
+      </ul>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">9</span> التبديلات: تبديل ذاتي وتبديل بين موظفين</h2>
+      <p>صفحة جديدة <b>«التبديلات»</b> (<code>/changes</code>). التبديل <b>طلب</b>: لا يغيّر الجدول إلا بعد <b>اعتماده</b>.</p>
+      <h3>التبديل الذاتي — نقل يوم عطلتي</h3>
+      <p>الموظف أ يعمل الثلاثاء وفي عطلة يوم السبت. بعد التبديل: <b>الثلاثاء عطلة، والسبت يعمل بوردية الثلاثاء</b>.</p>
+      <h3>التبديل بين موظفين — أ وب</h3>
+      <p>في التاريخ D يعمل أ وب في عطلة. بعد التبديل: <b>أ في عطلة، وب يعمل وردية أ</b>. و<b>تاريخ رد</b> اختياري يعكس ذلك («تعمل عني الاثنين وأعمل عنك الخميس»).</p>
+      <h3>القواعد</h3>
+      <ul>
+        <li>يجب أن يكون اليومان في <b>الأسبوع نفسه (الأحد–السبت)</b> أو <b>الشهر نفسه</b> — تختار لكل تبديل.</li>
+        <li>قيد الانتظار ← <b>اعتماد</b> أو <b>رفض</b> (مع ملاحظة). ويمكن <b>إلغاء</b> التبديل المعتمد (مع سبب)؛ فيعود اليومان كما كانا.</li>
+        <li>عند الاعتماد <b>يفحص التطبيق من جديد</b>: هل ما زال أ يعمل ذلك اليوم، وهل ما زال ب في عطلة، وهل توجد إجازة أو تغيير آخر في تلك التواريخ؟ وإلا يرفض ويذكر السبب.</li>
+        <li><b>الأجر لا يتغير</b>: التبديل ينقل يوم العطلة فقط. ويوم العمل المنقول وقته المطلوب عادي.</li>
+        <li><b>«الدفع كعمل إضافي»</b> (خانة اختيار لكل تبديل): يُدفع يوم العمل المنقول بمعامل يوم العطلة.</li>
+        <li>العمل في يوم عطلتك <b>دون</b> تبديل معتمد يُظهر شارة <b>«تبديل غير مصرّح»</b> (دون عقوبة تلقائية).</li>
+        <li>اليوم أنت من ينشئ ويعتمد. وبعد تسجيل الدخول سيعتمد مشرف الفريق أو مدير القسم، ولا يعتمد أحد طلبه.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Step 10: leave balance ============ -->
+<section class="card" id="s10">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">10</span> Leave balance for each person</h2>
+      <p>Each person has a <b>yearly leave balance</b> (calendar year, January–December):</p>
+      <div class="ex"><span class="calc">days left = yearly days + carried from last year − days taken</span><br><span class="muted">Leave already booked for later dates is shown apart, as "booked".</span></div>
+      <ul>
+        <li><b>Yearly days</b>: HR sets them per person and year, for example 21. On the new page <b>"Leave"</b> (<code>/leave</code>) you can select many people and set them in one go, with a reason.</li>
+        <li><b>Carried</b>: when a new year is opened, the app suggests last year's days left; you can change it.</li>
+        <li><b>Taken</b>: only <b>leave</b> days count, and only days the person was <b>planned to work</b>. Off days and holidays inside a leave are not counted. Sick, mission, no show and other never count.</li>
+        <li>Going below zero gives a <b>warning</b> ("this leaves −2 days") but still saves, because HR may approve exceptions.</li>
+        <li>The employee page gets a <b>Leave</b> card with the numbers and the list of leave periods of the year.</li>
+      </ul>
+      <div class="ex"><b>Example.</b> Employee A has 21 yearly days and 3 carried. A takes leave Sunday–Friday: 5 planned work days and 1 off day. <span class="calc">Taken 5 → left 21 + 3 − 5 = 19.</span></div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">10</span> رصيد الإجازات لكل شخص</h2>
+      <p>لكل شخص <b>رصيد إجازات سنوي</b> (السنة التقويمية، كانون الثاني–كانون الأول):</p>
+      <div class="ex"><span class="calc">الأيام المتبقية = الأيام السنوية + المرحَّل من السنة الماضية − الأيام المأخوذة</span><br><span class="muted">الإجازات المحجوزة لتواريخ لاحقة تظهر منفصلة باسم «محجوز».</span></div>
+      <ul>
+        <li><b>الأيام السنوية</b>: تحددها الموارد البشرية لكل شخص وسنة، مثلاً 21. وفي الصفحة الجديدة <b>«الإجازات»</b> (<code>/leave</code>) يمكنك اختيار عدة أشخاص وتحديدها لهم دفعة واحدة، مع سبب.</li>
+        <li><b>المرحَّل</b>: عند فتح سنة جديدة يقترح التطبيق الأيام المتبقية من السنة الماضية؛ ويمكنك تغييرها.</li>
+        <li><b>المأخوذ</b>: لا تُحتسب إلا أيام <b>الإجازة</b>، وفقط الأيام التي كان الشخص <b>مخططاً للعمل</b> فيها. أيام العطلة والعطل الرسمية داخل الإجازة لا تُحتسب. والمرض والمهمة وعدم الحضور وغير ذلك لا تُحتسب أبداً.</li>
+        <li>النزول تحت الصفر يعطي <b>تحذيراً</b> («يتبقى −2 يوم») لكنه يحفظ، لأن الموارد البشرية قد تعتمد استثناءات.</li>
+        <li>تحصل صفحة الموظف على بطاقة <b>إجازات</b> بالأرقام وقائمة فترات الإجازة في السنة.</li>
+      </ul>
+      <div class="ex"><b>مثال.</b> للموظف أ 21 يوماً سنوياً و3 أيام مرحَّلة. يأخذ إجازة من الأحد إلى الجمعة: 5 أيام عمل مخططة ويوم عطلة واحد. <span class="calc">المأخوذ 5 ← المتبقي 21 + 3 − 5 = 19.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Who wins ============ -->
+<section class="card" id="rank">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">★</span> Who wins when things overlap</h2>
+      <ol>
+        <li><b>A full-day state</b> (leave, sick, mission, no show, other) — always first.</li>
+        <li><b>A one-off shift or an approved swap</b> — on a holiday, a one-off shift is the "worked holiday".</li>
+        <li><b>A holiday</b> on the pattern — the day becomes a paid day off.</li>
+        <li><b>The pattern's normal day</b> — after the person's own off days and crew start.</li>
+      </ol>
+      <p>For the rates, each field is taken from: <b>the pattern → the department rule (later) → the company default</b>. A person marked "no overtime" (coming later) never gets overtime, whatever the pattern says.</p>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">★</span> من يغلب عند التداخل</h2>
+      <ol>
+        <li><b>حالة يوم كامل</b> (إجازة، مرض، مهمة، عدم حضور، غير ذلك) — أولاً دائماً.</li>
+        <li><b>وردية لمرة واحدة أو تبديل معتمد</b> — في العطلة الرسمية الوردية لمرة واحدة هي «العمل في العطلة».</li>
+        <li><b>عطلة</b> على النمط — يصبح اليوم يوم راحة مدفوعاً.</li>
+        <li><b>يوم النمط العادي</b> — بعد أيام العطلة الخاصة للشخص وبداية طاقمه.</li>
+      </ol>
+      <p>وللمعاملات، يؤخذ كل حقل من: <b>النمط ← قاعدة القسم (لاحقاً) ← الافتراضي العام</b>. والشخص المعلَّم «بلا عمل إضافي» (لاحقاً) لا يحصل على عمل إضافي أبداً، مهما قال النمط.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Examples ============ -->
+<section class="card" id="examples">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">✎</span> Worked examples (made-up people and numbers)</h2>
+      <p class="muted">Shift D: <bdi>07:00 → 19:00</bdi>, required 720 minutes (12 hours). Default rates ×1.25 / ×1.5 / ×1.5.</p>
+      <div class="ex">
+        <b>A — normal work day.</b> Employee A works <bdi>07:00 → 20:00</bdi> = 780 minutes.<br>
+        <span class="calc">780 − 720 = 60 overtime minutes × 1.25</span> <span class="tag ok">paid 60</span>
+      </div>
+      <div class="ex">
+        <b>B — work on an off day.</b> Employee B has an off day but works an extra shift, 600 minutes.<br>
+        <span class="calc">all 600 minutes × 1.5</span> <span class="tag ok">paid 600</span>
+      </div>
+      <div class="ex">
+        <b>C — holiday, overtime-eligible.</b> Employee C works a one-off shift on the holiday, 600 minutes.<br>
+        <span class="calc">all 600 minutes × holiday rate 1.5</span> <span class="tag ok">paid 600</span>
+      </div>
+      <div class="ex">
+        <b>D — holiday, not eligible.</b> Employee D works 600 minutes anyway.<br>
+        <span class="calc">0 paid, 600 unpaid extra</span> <span class="tag bad">reason: holiday not eligible</span>
+      </div>
+      <div class="ex">
+        <b>E — overtime off on the pattern.</b> Employee E works 60 minutes past required.<br>
+        <span class="calc">0 paid, 60 unpaid extra</span> <span class="tag bad">reason: overtime off</span>
+      </div>
+      <div class="ex">
+        <b>F — HR sets leave after the punches.</b> Employee F has punches, then HR sets the day to Leave.<br>
+        <span class="calc">kind: absence (leave), worked kept for display, 0 paid</span> <span class="tag wait">reason: absence</span><br>
+        HR clicks "Clear state" → the day goes back to a normal work day, with the overtime from the punches.
+      </div>
+      <div class="ex">
+        <b>G — rate changes on the 10th.</b> The work-day rate becomes ×1.5 from the 10th.<br>
+        <span class="calc">the 9th stays ×1.25 · the 10th and later ×1.5</span>
+      </div>
+      <div class="ex">
+        <b>H — self swap with "pay as overtime".</b> Employee H moves Tuesday's shift to Saturday (off day) and the swap is ticked "pay as overtime". H works 600 minutes on Saturday.<br>
+        <span class="calc">Tuesday: off · Saturday: all 600 minutes × 1.5</span> <span class="tag ok">paid 600</span><br>
+        Without the tick: Saturday is a normal work day (720 required) and only minutes past 720 are overtime.
+      </div>
+      <div class="ex">
+        <b>I — typed, then read.</b> A check-in typed at <bdi>07:05</bdi>, later the punch file says <bdi>06:58</bdi> and the time is corrected.<br>
+        <span class="calc">History: check-in 07:05 (Typed) → 06:58 (Correction)</span>; the badge next to the time says <span class="tag wait">Corrected</span>.
+      </div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">✎</span> أمثلة محلولة (أشخاص وأرقام وهمية)</h2>
+      <p class="muted">الوردية D: <bdi>07:00 → 19:00</bdi>، المطلوب 720 دقيقة (12 ساعة). المعاملات الافتراضية ×1.25 / ×1.5 / ×1.5.</p>
+      <div class="ex">
+        <b>أ — يوم عمل عادي.</b> الموظف أ يعمل <bdi>07:00 → 20:00</bdi> = 780 دقيقة.<br>
+        <span class="calc"><bdi>780 − 720 = 60</bdi> دقيقة عمل إضافي × 1.25</span> <span class="tag ok">مدفوع 60</span>
+      </div>
+      <div class="ex">
+        <b>ب — عمل في يوم عطلة.</b> الموظف ب في يوم عطلة لكنه يعمل وردية إضافية، 600 دقيقة.<br>
+        <span class="calc">كل الـ600 دقيقة × 1.5</span> <span class="tag ok">مدفوع 600</span>
+      </div>
+      <div class="ex">
+        <b>ج — عطلة رسمية مؤهلة.</b> الموظف ج يعمل وردية لمرة واحدة في العطلة، 600 دقيقة.<br>
+        <span class="calc">كل الـ600 دقيقة × معامل العطلة 1.5</span> <span class="tag ok">مدفوع 600</span>
+      </div>
+      <div class="ex">
+        <b>د — عطلة رسمية غير مؤهلة.</b> الموظف د يعمل 600 دقيقة مع ذلك.<br>
+        <span class="calc">0 مدفوع، 600 وقت زائد غير مدفوع</span> <span class="tag bad">السبب: العطلة غير مؤهلة</span>
+      </div>
+      <div class="ex">
+        <b>هـ — العمل الإضافي معطّل في النمط.</b> الموظف هـ يعمل 60 دقيقة بعد المطلوب.<br>
+        <span class="calc">0 مدفوع، 60 وقت زائد غير مدفوع</span> <span class="tag bad">السبب: العمل الإضافي معطّل</span>
+      </div>
+      <div class="ex">
+        <b>و — الموارد البشرية تجعل اليوم إجازة بعد البصمات.</b> للموظف و بصمات، ثم تجعل الموارد البشرية اليوم إجازة.<br>
+        <span class="calc">النوع: غياب (إجازة)، مدة العمل تبقى للعرض، 0 مدفوع</span> <span class="tag wait">السبب: غياب</span><br>
+        تضغط الموارد البشرية «مسح الحالة» ← يعود اليوم يوم عمل عادياً، مع العمل الإضافي من البصمات.
+      </div>
+      <div class="ex">
+        <b>ز — تغيير المعامل يوم 10.</b> يصبح معامل يوم العمل ×1.5 ابتداءً من يوم 10.<br>
+        <span class="calc">يوم 9 يبقى ×1.25 · يوم 10 وما بعده ×1.5</span>
+      </div>
+      <div class="ex">
+        <b>ح — تبديل ذاتي مع «الدفع كعمل إضافي».</b> الموظف ح ينقل وردية الثلاثاء إلى السبت (يوم عطلته) والتبديل معلَّم «الدفع كعمل إضافي». يعمل ح 600 دقيقة يوم السبت.<br>
+        <span class="calc">الثلاثاء: عطلة · السبت: كل الـ600 دقيقة × 1.5</span> <span class="tag ok">مدفوع 600</span><br>
+        دون العلامة: السبت يوم عمل عادي (المطلوب 720) ولا يُحسب عملاً إضافياً إلا ما بعد 720.
+      </div>
+      <div class="ex">
+        <b>ط — مكتوب ثم مقروء.</b> بصمة دخول مكتوبة <bdi>07:05</bdi>، ثم يقول ملف البصمات <bdi>06:58</bdi> فيُصحَّح الوقت.<br>
+        <span class="calc">السجل: الدخول 07:05 (مكتوب) ← 06:58 (تصحيح)</span>؛ والشارة بجانب الوقت تقول <span class="tag wait">مصحَّح</span>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Phases ============ -->
+<section class="card" id="phases">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">⚙</span> How it is built: 8 phases</h2>
+      <div class="table-scroll"><table>
+        <tr><th>Phase</th><th>What</th><th>State</th></tr>
+        <tr><td>1</td><td><b>Database</b>: pay rules, holidays, daily record, "mission" (built); edit log, swap requests, leave balances (next)</td><td><span class="tag ok">built</span> <span class="tag wait">real DB waits for your OK</span></td></tr>
+        <tr><td>2</td><td><b>Calculation rules</b> in pure code with 24 test cases (pay, holidays, swaps, leave, log)</td><td><span class="tag ok">built, 42 tests pass</span></td></tr>
+        <tr><td>3</td><td><b>Recompute and edit log</b>: the automatic update after every save, writing the log lines; a backfill (a button on the daily page)</td><td><span class="tag ok">built</span> <span class="tag wait">backfill button with phase 5</span></td></tr>
+        <tr><td>4</td><td><b>Pattern screens</b>: Overtime &amp; pay, Holidays &amp; missions</td><td><span class="tag todo">to do</span></td></tr>
+        <tr><td>5</td><td><b>Daily attendance page</b>, day editor, History, source badges</td><td><span class="tag todo">to do</span></td></tr>
+        <tr><td>6</td><td><b>Swaps</b>: requests, approve / reject / cancel, markers</td><td><span class="tag todo">to do</span></td></tr>
+        <tr><td>7</td><td><b>Leave balance</b>: the /leave page, the Leave card, warnings</td><td><span class="tag todo">to do</span></td></tr>
+        <tr><td>8</td><td><b>Texts in both languages, checks</b>, docs, and your test list (12 steps)</td><td><span class="tag todo">to do</span></td></tr>
+      </table></div>
+      <h3>What you will test at the end</h3>
+      <ol>
+        <li>Enter punches → the daily page shows worked, overtime and ×1.25.</li>
+        <li>Edit day → Leave → overtime "not paid"; Clear state → figures come back.</li>
+        <li>Correct a check-out → the row changes without pressing anything.</li>
+        <li>Overtime off on a pattern → followers' rows show "not paid (overtime off)".</li>
+        <li>Add a holiday → rows show Holiday; preview and staffing strip mark it.</li>
+        <li>Add a mission → rows show Mission; a member on sick leave is blocked.</li>
+        <li>Recompute button → reports a count, changes nothing that was right.</li>
+        <li>History on a row shows each change with its source (Typed, Correction…).</li>
+        <li>A self swap in the same week: pending changes nothing; approved moves the days.</li>
+        <li>An employee swap where B also works is refused; cancel puts both days back.</li>
+        <li>/leave: set 21 days → taken and left are right; going below zero warns but saves.</li>
+        <li>The Arabic pages read right to left with no English left.</li>
+        <li>The pattern builder and the entry sheet still work as before.</li>
+      </ol>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">⚙</span> كيف يُبنى: 8 مراحل</h2>
+      <div class="table-scroll"><table>
+        <tr><th>المرحلة</th><th>ماذا</th><th>الحالة</th></tr>
+        <tr><td>1</td><td><b>قاعدة البيانات</b>: قواعد الأجر، العطل، السجل اليومي، «مهمة» (بُنيت)؛ سجل التعديلات، طلبات التبديل، أرصدة الإجازات (التالية)</td><td><span class="tag ok">بُنيت</span> <span class="tag wait">القاعدة الحقيقية تنتظر موافقتك</span></td></tr>
+        <tr><td>2</td><td><b>قواعد الحساب</b> بكود نقي مع 24 حالة اختبار (الأجر، العطل، التبديلات، الإجازات، السجل)</td><td><span class="tag ok">بُنيت، 42 اختباراً ناجحاً</span></td></tr>
+        <tr><td>3</td><td><b>إعادة الحساب وسجل التعديلات</b>: التحديث التلقائي بعد كل حفظ مع كتابة أسطر السجل؛ وحساب البيانات الموجودة (زر في الصفحة اليومية)</td><td><span class="tag ok">بُنيت</span> <span class="tag wait">زر الحساب مع المرحلة 5</span></td></tr>
+        <tr><td>4</td><td><b>شاشات النمط</b>: العمل الإضافي والأجر، العطل والمهمات</td><td><span class="tag todo">لم تبدأ</span></td></tr>
+        <tr><td>5</td><td><b>صفحة الحضور اليومي</b>، محرر اليوم، السجل، شارات المصدر</td><td><span class="tag todo">لم تبدأ</span></td></tr>
+        <tr><td>6</td><td><b>التبديلات</b>: الطلبات، الاعتماد / الرفض / الإلغاء، العلامات</td><td><span class="tag todo">لم تبدأ</span></td></tr>
+        <tr><td>7</td><td><b>رصيد الإجازات</b>: صفحة /leave، بطاقة الإجازات، التحذيرات</td><td><span class="tag todo">لم تبدأ</span></td></tr>
+        <tr><td>8</td><td><b>النصوص باللغتين والفحوص</b> والوثائق وقائمة اختباراتك (12 خطوة)</td><td><span class="tag todo">لم تبدأ</span></td></tr>
+      </table></div>
+      <h3>ما ستختبره في النهاية</h3>
+      <ol>
+        <li>أدخل بصمات ← تعرض الصفحة اليومية مدة العمل والعمل الإضافي و×1.25.</li>
+        <li>تعديل اليوم ← إجازة ← العمل الإضافي «غير مدفوع»؛ مسح الحالة ← تعود الأرقام.</li>
+        <li>صحّح وقت خروج ← يتغير الصف دون الضغط على أي شيء.</li>
+        <li>عطّل العمل الإضافي في نمط ← تعرض صفوف المتبعين «غير مدفوع (العمل الإضافي معطّل)».</li>
+        <li>أضف عطلة ← تعرض الصفوف «عطلة»؛ وتعلّمها المعاينة وشريط التغطية.</li>
+        <li>أضف مهمة ← تعرض الصفوف «مهمة»؛ ويُمنع عضو في إجازة مرضية.</li>
+        <li>زر إعادة الحساب ← يعرض عدداً ولا يغيّر شيئاً كان صحيحاً.</li>
+        <li>السجل في صف ما يعرض كل تغيير مع مصدره (مكتوب، تصحيح…).</li>
+        <li>تبديل ذاتي في الأسبوع نفسه: قيد الانتظار لا يغيّر شيئاً؛ والمعتمد ينقل الأيام.</li>
+        <li>تبديل بين موظفين حيث يعمل ب أيضاً يُرفض؛ والإلغاء يعيد اليومين.</li>
+        <li>/leave: حدّد 21 يوماً ← المأخوذ والمتبقي صحيحان؛ والنزول تحت الصفر يحذّر ويحفظ.</li>
+        <li>الصفحات العربية من اليمين إلى اليسار بلا كلمات إنجليزية متبقية.</li>
+        <li>منشئ الأنماط وورقة الإدخال يعملان كما كانا.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Questions ============ -->
+<section class="card" id="questions">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">?</span> Open questions (defaults until you answer)</h2>
+      <div class="table-scroll"><table>
+        <tr><th>#</th><th>Question</th><th>Default for now</th></tr>
+        <tr><td>Q-PR1</td><td>With overtime off, is extra time unpaid, or paid ×1.0?</td><td>unpaid</td></tr>
+        <tr><td>Q-PR2</td><td>Are missions of a few hours needed now?</td><td>no</td></tr>
+        <tr><td>Q-PR3</td><td>May a rate change start on a past date?</td><td>no: today or later</td></tr>
+        <tr><td>Q-PR4</td><td>Which states may HR set from the day editor?</td><td>leave, sick, mission, no show, other</td></tr>
+        <tr><td>Q-PR5</td><td>Leave year: calendar year, or from each person's start date?</td><td>calendar year</td></tr>
+        <tr><td>Q-PR6</td><td>Is there a cap on carried leave days?</td><td>no cap; you edit the suggestion</td></tr>
+        <tr><td>Q-PR7</td><td>Do yearly leave days depend on seniority or job?</td><td>no: set per person</td></tr>
+        <tr><td>Q-PR8</td><td>Must an employee swap's return date be given?</td><td>optional</td></tr>
+      </table></div>
+      <h3>Not in this plan (comes later)</h3>
+      <ul>
+        <li>Payroll figures (Final, Deduction, tardiness brackets) — added to the same daily record by the payroll engine.</li>
+        <li>Department rules and the company settings screen.</li>
+        <li>The per-person "no overtime" switch.</li>
+        <li>Missions of a few hours; night overtime rate; old Odoo holiday windows.</li>
+        <li>Temporary pattern changes; notifications and the approver chain for swaps (after login); leave by seniority or monthly accrual.</li>
+      </ul>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">?</span> أسئلة مفتوحة (قيم افتراضية حتى تجيب)</h2>
+      <div class="table-scroll"><table>
+        <tr><th>#</th><th>السؤال</th><th>الافتراضي الآن</th></tr>
+        <tr><td>Q-PR1</td><td>عند تعطيل العمل الإضافي، هل الوقت الزائد غير مدفوع أم يُدفع ×1.0؟</td><td>غير مدفوع</td></tr>
+        <tr><td>Q-PR2</td><td>هل المهمات لبضع ساعات مطلوبة الآن؟</td><td>لا</td></tr>
+        <tr><td>Q-PR3</td><td>هل يجوز أن يبدأ تغيير المعامل من تاريخ سابق؟</td><td>لا: اليوم أو لاحقاً</td></tr>
+        <tr><td>Q-PR4</td><td>ما الحالات التي تحددها الموارد البشرية من محرر اليوم؟</td><td>إجازة، مرض، مهمة، عدم حضور، غير ذلك</td></tr>
+        <tr><td>Q-PR5</td><td>سنة الإجازات: السنة التقويمية أم من تاريخ بدء كل شخص؟</td><td>السنة التقويمية</td></tr>
+        <tr><td>Q-PR6</td><td>هل يوجد سقف لأيام الإجازة المرحَّلة؟</td><td>لا سقف؛ وأنت تعدّل الاقتراح</td></tr>
+        <tr><td>Q-PR7</td><td>هل تعتمد الأيام السنوية على الأقدمية أو الوظيفة؟</td><td>لا: تُحدَّد لكل شخص</td></tr>
+        <tr><td>Q-PR8</td><td>هل يجب تحديد تاريخ الرد في التبديل بين موظفين؟</td><td>اختياري</td></tr>
+      </table></div>
+      <h3>ليست في هذه الخطة (تأتي لاحقاً)</h3>
+      <ul>
+        <li>أرقام الرواتب (الصافي، الخصم، شرائح التأخير) — يضيفها محرك الرواتب إلى السجل اليومي نفسه.</li>
+        <li>قواعد القسم وشاشة الإعدادات العامة.</li>
+        <li>مفتاح «بلا عمل إضافي» لكل شخص.</li>
+        <li>المهمات لبضع ساعات؛ معامل العمل الإضافي الليلي؛ نوافذ العطل القديمة من Odoo.</li>
+        <li>تغييرات النمط المؤقتة؛ الإشعارات وسلسلة المعتمدين للتبديلات (بعد تسجيل الدخول)؛ الإجازات حسب الأقدمية أو الاستحقاق الشهري.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Glossary ============ -->
+<section class="card" id="words">
+  <div class="pair">
+    <div lang="en">
+      <h2><span class="num">Aa</span> Words used here</h2>
+      <div class="table-scroll"><table>
+        <tr><td><b>Pattern</b></td><td>the repeating rhythm of shifts and off days (weekly or a cycle)</td></tr>
+        <tr><td><b>Follower</b></td><td>a person who follows the pattern on a date (directly, through their team or their department)</td></tr>
+        <tr><td><b>Punch</b></td><td>one check-in or check-out time</td></tr>
+        <tr><td><b>Required</b></td><td>the minutes a shift asks for</td></tr>
+        <tr><td><b>Overtime</b></td><td>extra minutes, rounded to 15</td></tr>
+        <tr><td><b>Rate</b></td><td>the multiplier of the hourly pay for overtime</td></tr>
+        <tr><td><b>Unpaid extra</b></td><td>extra minutes that are counted but not paid, always with a reason</td></tr>
+        <tr><td><b>One-off shift</b></td><td>a shift for one person on one date, outside the pattern</td></tr>
+        <tr><td><b>Recompute</b></td><td>working a stored day out again from its inputs</td></tr>
+        <tr><td><b>Shift date</b></td><td>the date a shift starts on; a night shift belongs to its start date</td></tr>
+        <tr><td><b>Swap</b></td><td>moving an off day: your own (self swap) or with a colleague (employee swap)</td></tr>
+        <tr><td><b>Edit log</b></td><td>the list of every change to a day's values, with its source</td></tr>
+        <tr><td><b>Leave balance</b></td><td>yearly days + carried − taken = days left</td></tr>
+      </table></div>
+    </div>
+    <div lang="ar" dir="rtl">
+      <h2><span class="num">Aa</span> المصطلحات المستخدمة</h2>
+      <div class="table-scroll"><table>
+        <tr><td><b>النمط</b></td><td>الإيقاع المتكرر للورديات وأيام العطلة (أسبوعي أو دورة)</td></tr>
+        <tr><td><b>المتبع</b></td><td>شخص يتبع النمط في تاريخ ما (مباشرة، أو عبر فريقه أو قسمه)</td></tr>
+        <tr><td><b>البصمة</b></td><td>وقت دخول أو خروج واحد</td></tr>
+        <tr><td><b>المطلوب</b></td><td>الدقائق التي تطلبها الوردية</td></tr>
+        <tr><td><b>العمل الإضافي</b></td><td>الدقائق الزائدة، مقرّبة إلى 15</td></tr>
+        <tr><td><b>المعامل</b></td><td>الرقم الذي يُضرب في أجر الساعة عن العمل الإضافي</td></tr>
+        <tr><td><b>وقت زائد غير مدفوع</b></td><td>دقائق زائدة تُحسب ولا تُدفع، ودائماً مع سبب</td></tr>
+        <tr><td><b>وردية لمرة واحدة</b></td><td>وردية لشخص واحد في تاريخ واحد، خارج النمط</td></tr>
+        <tr><td><b>إعادة الحساب</b></td><td>حساب يوم محفوظ من جديد من مدخلاته</td></tr>
+        <tr><td><b>تاريخ الوردية</b></td><td>التاريخ الذي تبدأ فيه الوردية؛ وردية الليل تتبع تاريخ بدايتها</td></tr>
+        <tr><td><b>التبديل</b></td><td>نقل يوم عطلة: يوم عطلتك (تبديل ذاتي) أو مع زميل (تبديل بين موظفين)</td></tr>
+        <tr><td><b>سجل التعديلات</b></td><td>قائمة كل تغيير في قيم اليوم، مع مصدره</td></tr>
+        <tr><td><b>رصيد الإجازات</b></td><td>الأيام السنوية + المرحَّل − المأخوذ = المتبقي</td></tr>
+      </table></div>
+    </div>
+  </div>
+  <footer>
+    <span lang="en">Written 2026-11-02 for the plan <code>plans/2026-11-01-pattern-pay-holidays-missions.md</code>. No personal data: every person and number above is made up. Works offline.</span>
+    <span lang="ar" dir="rtl">كُتب في 2026-11-02 للخطة <code>plans/2026-11-01-pattern-pay-holidays-missions.md</code>. لا بيانات شخصية: كل شخص ورقم أعلاه وهمي. يعمل دون إنترنت.</span>
+  </footer>
+</section>
+
+</main>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll('.switch button');
+    function apply(mode) {
+      root.setAttribute('data-lang', mode);
+      root.setAttribute('lang', mode === 'ar' ? 'ar' : 'en');
+      root.setAttribute('dir', mode === 'ar' ? 'rtl' : 'ltr');
+      buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === mode)); });
+      try { localStorage.setItem('daily-guide-lang', mode); } catch (e) { /* storage blocked: ignore */ }
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { apply(b.getAttribute('data-set')); });
+    });
+    var saved = null;
+    try { saved = localStorage.getItem('daily-guide-lang'); } catch (e) { saved = null; }
+    apply(saved === 'en' || saved === 'ar' || saved === 'both' ? saved : 'both');
+  })();
+</script>
+</body>
+</html>

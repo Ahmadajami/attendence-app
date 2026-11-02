@@ -29,7 +29,7 @@
 	method="GET"
 	bind:this={form}
 	data-sveltekit-noscroll
-	data-sveltekit-keepfocus
+	data-sveltekit-reset="false"
 	data-sveltekit-replacestate
 >
 	<input type="hidden" name="view" value={view} />

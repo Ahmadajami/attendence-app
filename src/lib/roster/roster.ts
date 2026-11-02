@@ -1,4 +1,10 @@
-import type { AbsenceType, PatternType } from '#lib/schemas/enums.js';
+import type {
+	AbsenceType,
+	DayKind,
+	PatternType,
+	RosterSource,
+	SwapRole
+} from '#lib/schemas/enums.js';
 import { addDays, mostUsedShift, patternSlot, startOfDamascusDay, weekdayOf } from './cycle.js';
 import { shiftWindow, type RosterShift } from './shift.js';
 
@@ -41,6 +47,18 @@ export type RosterOverrideEntry = {
 };
 export type RosterAbsence = { startsOn: string; endsOn: string; type: AbsenceType };
 
+/**
+ * An active (not cancelled) holiday of a pattern (pay plan PR2, PR3, PR8): shift dates `startsOn` to
+ * `endsOn` inclusive.
+ */
+export type RosterHoliday = {
+	id: string;
+	patternId: string;
+	startsOn: string;
+	endsOn: string;
+	otEligible: boolean;
+};
+
 /** Everything that decides one person's roster. Cancelled overrides and absences are left out. */
 export type RosterInput = {
 	memberships: readonly RosterMembership[];
@@ -56,12 +74,14 @@ export type RosterInput = {
 	schedules: readonly RosterSchedule[];
 	overrides: readonly RosterOverrideEntry[];
 	absences: readonly RosterAbsence[];
+	/** Active holidays of the patterns that may plan the range (empty when not loaded). */
+	holidays?: readonly RosterHoliday[];
 	/** Every shift a pattern or override may point at, by id (inactive ones too). */
 	shifts: ReadonlyMap<string, RosterShift>;
 };
 
 /** Which rule decided the day, highest precedence first. */
-export type RosterSource = 'absence' | 'override' | 'personal' | 'team' | 'department' | 'none';
+export type { RosterSource };
 
 /**
  * How the person's own rules changed the pattern's day (weekly, B5): `own_off` = a listed own off
@@ -89,7 +109,14 @@ export type RosterDay = {
 	/** A shift override on a planned off day that isn't a swap: all of it is overtime. */
 	extra: boolean;
 	swapGroupId: string | null;
+	/** What an approved swap made of the day: work (`swap_on`) or off (`swap_off`), R12. */
+	swapRole: SwapRole | null;
 	absenceType: AbsenceType | null;
+	/**
+	 * A holiday of the planning pattern on this date (PR8): the day is off (required 0) unless an
+	 * override gives a shift, which is then holiday work. Also set under an absence.
+	 */
+	holiday: { id: string; otEligible: boolean } | null;
 };
 
 /**
@@ -167,9 +194,23 @@ function plannedShift(
 	};
 }
 
+/** The active holiday of `patternId` covering `date`. */
+function holidayOn(
+	holidays: readonly RosterHoliday[] | undefined,
+	patternId: string | null,
+	date: string
+): RosterDay['holiday'] {
+	if (patternId === null || !holidays) return null;
+	const found = holidays.find(
+		(h) => h.patternId === patternId && h.startsOn <= date && date <= h.endsOn
+	);
+	return found ? { id: found.id, otEligible: found.otEligible } : null;
+}
+
 /**
- * One person's roster for one date: absence → override → personal → team → department (nearest
- * first) → off; own off days and crew start adjust an inherited assignment's day.
+ * One person's roster for one date: absence → override → holiday of the planning pattern → personal
+ * → team → department (nearest first) → off; own off days and crew start adjust an inherited
+ * assignment's day.
  */
 export function rosterDay(input: RosterInput, date: string): RosterDay {
 	const teamId = teamOnDate(input.memberships, date);
@@ -184,6 +225,7 @@ export function rosterDay(input: RosterInput, date: string): RosterDay {
 		adjustment
 	};
 
+	const holiday = holidayOn(input.holidays, plan.patternId, date);
 	const absence = input.absences.find((a) => a.startsOn <= date && date <= a.endsOn);
 	if (absence) {
 		return {
@@ -197,12 +239,15 @@ export function rosterDay(input: RosterInput, date: string): RosterDay {
 			...plan,
 			extra: false,
 			swapGroupId: null,
-			absenceType: absence.type
+			swapRole: null,
+			absenceType: absence.type,
+			holiday
 		};
 	}
 
 	const override = input.overrides.find((o) => o.shiftDate === date);
-	const shiftId = override ? override.shiftId : plannedShiftId;
+	// A holiday makes the planned day off; only an override (one-off shift or swap) works it.
+	const shiftId = override ? override.shiftId : holiday ? null : plannedShiftId;
 	const shift = shiftId === null ? null : (input.shifts.get(shiftId) ?? null);
 	const window = shift ? shiftWindow(date, shift) : null;
 	return {
@@ -220,8 +265,28 @@ export function rosterDay(input: RosterInput, date: string): RosterDay {
 			plannedShiftId === null &&
 			override.swapGroupId === null,
 		swapGroupId: override?.swapGroupId ?? null,
-		absenceType: null
+		swapRole:
+			override?.swapGroupId == null ? null : override.shiftId === null ? 'swap_off' : 'swap_on',
+		absenceType: null,
+		holiday
 	};
+}
+
+/**
+ * How a day is paid (pay plan §4): a full-day absence first; on a holiday, worked or not; a day a
+ * swap moved onto work counts as off-day work when the swap is "pay as overtime" (PR28); an extra
+ * shift or work on a planned off day is off-day work.
+ */
+export function payDayKind(
+	day: Pick<RosterDay, 'source' | 'shiftId' | 'extra' | 'swapRole' | 'holiday'>,
+	worked: boolean,
+	payAsOt = false
+): DayKind {
+	if (day.source === 'absence') return 'absence';
+	if (day.holiday) return day.shiftId !== null || worked ? 'holiday_work' : 'holiday_off';
+	if (day.shiftId === null) return worked ? 'off_work' : 'off';
+	if (day.extra || (day.swapRole === 'swap_on' && payAsOt)) return 'off_work';
+	return 'work';
 }
 
 /** `days` consecutive roster days from `from`. */

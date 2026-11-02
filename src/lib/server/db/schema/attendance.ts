@@ -13,7 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { ABSENCE_TYPES, ATTENDANCE_EVENT_TYPES, PUNCH_SOURCES } from '#lib/schemas/enums.js';
 import { user } from './auth.js';
-import { shift } from './roster.js';
+import { pattern, shift } from './roster.js';
 import { staff, team } from './workforce.js';
 
 export const attendanceEventType = pgEnum('attendance_event_type', ATTENDANCE_EVENT_TYPES);
@@ -89,6 +89,10 @@ export const absence = pgTable(
 		endsOn: date('ends_on', { mode: 'string' }).notNull(),
 		type: absenceType('type').notNull(),
 		reason: text('reason'),
+		/** Rows created together (a pattern mission's members, pay plan PR9); cancelled together. */
+		groupId: uuid('group_id'),
+		/** The pattern a mission was recorded from (information; the day follows the person). */
+		patternId: uuid('pattern_id').references(() => pattern.id, { onDelete: 'restrict' }),
 		recordedBy: uuid('recorded_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledBy: uuid('cancelled_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
@@ -101,6 +105,7 @@ export const absence = pgTable(
 	(t) => [
 		index('absence_staff_idx').on(t.staffId, t.startsOn),
 		index('absence_dates_idx').on(t.startsOn, t.endsOn),
+		index('absence_group_idx').on(t.groupId),
 		check('absence_date_order', sql`${t.endsOn} >= ${t.startsOn}`)
 	]
 );
@@ -116,7 +121,8 @@ export const attendanceEventRelations = relations(attendanceEvent, ({ one }) => 
 }));
 
 export const absenceRelations = relations(absence, ({ one }) => ({
-	staff: one(staff, { fields: [absence.staffId], references: [staff.id] })
+	staff: one(staff, { fields: [absence.staffId], references: [staff.id] }),
+	pattern: one(pattern, { fields: [absence.patternId], references: [pattern.id] })
 }));
 
 export type AttendanceEvent = typeof attendanceEvent.$inferSelect;

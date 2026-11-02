@@ -3,7 +3,9 @@
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { normalizeClock } from '#lib/attendance/entry.js';
+	import { Button } from '#lib/components/ui/button/index.js';
 	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
@@ -19,15 +21,17 @@
 		eventId: string;
 		/** Called after the correction is saved. */
 		onSaved: () => void;
+		/** Called on Cancel: the panel closes the form; typed values are dropped. */
+		onCancel: () => void;
 	};
 
-	let { eventId, onSaved }: Props = $props();
+	let { eventId, onSaved, onCancel }: Props = $props();
 
 	const schema = zod4Client(correctionSchema);
 	const form = superForm(
 		untrack(() =>
 			defaults<CorrectionInput, AttendanceMessage>(
-				{ eventId, time: '', remove: false, reason: '' },
+				{ eventId, time: '', voidEvent: false, reason: '' },
 				schema,
 				{ id: `correct-${eventId}` }
 			)
@@ -52,19 +56,19 @@
 					dir="ltr"
 					inputmode="numeric"
 					placeholder={m.attendance_time_placeholder()}
-					disabled={$formData.remove}
+					disabled={$formData.voidEvent}
 				/>
 			{/snippet}
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<Form.Field {form} name="remove" class="flex flex-row items-center gap-2 self-center">
+	<Form.Field {form} name="voidEvent" class="flex flex-row items-center gap-2 self-center">
 		<Form.Control>
 			{#snippet children({ props })}
 				<Checkbox
 					{...props}
-					bind:checked={$formData.remove}
+					bind:checked={$formData.voidEvent}
 					onCheckedChange={(checked) => {
 						if (checked) $formData.time = '';
 					}}
@@ -90,4 +94,8 @@
 		{/if}
 		{m.attendance_save_correction()}
 	</Form.Button>
+	<Button type="button" variant="ghost" size="sm" class="self-end" onclick={onCancel}>
+		<XIcon data-icon="inline-start" />
+		{m.attendance_cancel()}
+	</Button>
 </form>

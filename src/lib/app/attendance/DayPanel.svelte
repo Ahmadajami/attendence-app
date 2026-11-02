@@ -121,7 +121,11 @@
 						</p>
 					{/if}
 					{#if correcting === event.id}
-						<CorrectionForm eventId={event.id} onSaved={() => (correcting = null)} />
+						<CorrectionForm
+							eventId={event.id}
+							onSaved={() => (correcting = null)}
+							onCancel={() => (correcting = null)}
+						/>
 					{/if}
 				</li>
 			{/each}
@@ -136,6 +140,7 @@
 				plannedShiftId={day.shiftId}
 				shifts={activeShifts}
 				onSaved={() => (adding = false)}
+				onCancel={() => (adding = false)}
 			/>
 		{:else}
 			<Button

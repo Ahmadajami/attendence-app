@@ -1,4 +1,4 @@
-import type { AttendanceEventType } from '#lib/schemas/enums.js';
+import type { AttendanceEventType, DayStatus, PunchSource } from '#lib/schemas/enums.js';
 import {
 	approvalState,
 	computeOvertime,
@@ -26,6 +26,8 @@ export type AttendanceEntry = {
 	correctsEventId: string | null;
 	shiftId: string;
 	isVoid: boolean;
+	/** Typed (`manual`), a punch reading (`import`) or the Odoo seed (`seed`); absent in old callers. */
+	source?: PunchSource;
 };
 
 /** The shift an event is counted for. `scheduled` is false on a day the person wasn't rostered. */
@@ -121,16 +123,8 @@ export function effectiveEvents<
 		.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
 }
 
-export type ShiftStatus =
-	| 'expected'
-	| 'present'
-	| 'late'
-	| 'on_break'
-	| 'done'
-	| 'missing'
-	| 'absent'
-	| 'off'
-	| 'unscheduled';
+/** Stored as `day_result.status` (`DAY_STATUSES`). */
+export type ShiftStatus = DayStatus;
 
 export type ShiftSummary = {
 	status: ShiftStatus;
@@ -146,6 +140,11 @@ export type ShiftSummary = {
 	short: boolean;
 	overtime: Overtime | null;
 	approval: ApprovalState;
+	/** Where the counted check-in / check-out came from (pay plan PR24); `null` when unknown. */
+	checkInSource: PunchSource | null;
+	checkOutSource: PunchSource | null;
+	/** A counted event is a correction of an earlier one. */
+	corrected: boolean;
 };
 
 /**
@@ -161,23 +160,31 @@ export function shiftSummary(
 	const effective = effectiveEvents(events);
 	const scheduled = day.shift !== null && day.start !== null;
 	const shiftId = day.shiftId ?? effective[0]?.shiftId ?? null;
-	const required = day.shift ? requiredOf(day.shift) : 0;
+	// A holiday requires nothing (R13); work on it is all overtime (PR3).
+	const holiday = day.holiday !== null;
+	const required = day.shift && !holiday ? requiredOf(day.shift) : 0;
 	const grace = day.shift ? graceOf(day.shift) : 0;
 
 	let worked = 0;
 	let openSince: Date | null = null;
 	let checkIn: Date | null = null;
 	let checkOut: Date | null = null;
+	let checkInSource: PunchSource | null = null;
+	let checkOutSource: PunchSource | null = null;
 	let onBreak = false;
 	for (const e of effective) {
 		if (e.type === 'check_in' && openSince === null) {
 			openSince = e.occurredAt;
-			checkIn ??= e.occurredAt;
+			if (checkIn === null) {
+				checkIn = e.occurredAt;
+				checkInSource = e.source ?? null;
+			}
 			onBreak = false;
 		} else if (e.type === 'check_out' && openSince !== null) {
 			worked += Math.floor((e.occurredAt.getTime() - openSince.getTime()) / MINUTE);
 			openSince = null;
 			checkOut = e.occurredAt;
+			checkOutSource = e.source ?? null;
 			onBreak = false;
 		} else if (e.type === 'break_start' && openSince !== null) {
 			onBreak = true;
@@ -194,8 +201,10 @@ export function shiftSummary(
 			: 0;
 
 	let status: ShiftStatus;
-	if (checkIn === null) {
-		if (!scheduled) status = day.source === 'absence' ? 'absent' : 'off';
+	// A full-day state wins over punches (R7, PR19): they stay stored but count for nothing.
+	if (day.source === 'absence') status = 'absent';
+	else if (checkIn === null) {
+		if (!scheduled) status = 'off';
 		else if (day.start && now.getTime() > day.start.getTime() + grace * MINUTE) status = 'missing';
 		else status = 'expected';
 	} else if (!scheduled) status = 'unscheduled';
@@ -203,7 +212,7 @@ export function shiftSummary(
 	else if (onBreak) status = 'on_break';
 	else status = lateMinutes > grace ? 'late' : 'present';
 
-	const allOvertime = day.extra || !scheduled;
+	const allOvertime = day.extra || !scheduled || holiday;
 	const overtime =
 		workedMinutes !== null && shiftId !== null
 			? computeOvertime(workedMinutes, required, allOvertime)
@@ -216,8 +225,12 @@ export function shiftSummary(
 		checkOut: closed ? checkOut : null,
 		lateMinutes,
 		workedMinutes,
-		short: scheduled && !day.extra && workedMinutes !== null && workedMinutes < required,
+		short:
+			scheduled && !day.extra && !holiday && workedMinutes !== null && workedMinutes < required,
 		overtime,
-		approval: approvalState(overtime?.minutes ?? 0, approval)
+		approval: approvalState(overtime?.minutes ?? 0, approval),
+		checkInSource,
+		checkOutSource: closed ? checkOutSource : null,
+		corrected: effective.some((e) => e.correctsEventId !== null)
 	};
 }

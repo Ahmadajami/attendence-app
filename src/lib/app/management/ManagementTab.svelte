@@ -94,7 +94,7 @@
 		bind:this={dateForm}
 		class="flex flex-wrap items-end gap-2"
 		data-sveltekit-noscroll
-		data-sveltekit-keepfocus
+		data-sveltekit-reset="false"
 		data-sveltekit-replacestate
 	>
 		<input type="hidden" name="tab" value="management" />
@@ -182,6 +182,7 @@
 							<div class="flex flex-col">
 								<span class="flex flex-wrap items-center gap-2">
 									{#if step.person}
+										<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- localizedHref() resolves; only `?tab=` / `&on=` are added -->
 										<a href={profileHref(step.staffId)} class="font-medium hover:underline">
 											{personName(step.person)}
 										</a>

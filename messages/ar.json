@@ -548,6 +548,7 @@
 	"attendance_reason_optional": "السبب (اختياري)",
 	"attendance_add_person": "إضافة شخص",
 	"attendance_save": "حفظ",
+	"attendance_cancel": "إلغاء",
 	"attendance_saved": "حُفظ: {events} بصمات، {absences} غيابات.",
 	"attendance_correct_link": "تصحيح…",
 	"attendance_time_invalid": "أدخل الوقت بصيغة HH:mm.",
@@ -955,5 +956,6 @@
 	"profile_header_separator": "‹",
 	"profile_edit": "تعديل",
 	"profile_name_en": "الاسم بالإنجليزية",
-	"profile_name_ar": "الاسم بالعربية"
+	"profile_name_ar": "الاسم بالعربية",
+	"daily_error_recompute_range": "اختر تاريخاً من آخر 400 يوم، حتى اليوم."
 }

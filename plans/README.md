@@ -5,7 +5,7 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 ```markdown
 # <Title>
 
-**Status:** in progress | done | superseded
+**Status:** to do | in progress | done | superseded
 **Date:** YYYY-MM-DD
 **Goal:** one or two sentences
 ```
@@ -33,3 +33,4 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | 2026-11-01 | [Employee creation rebuilt: one page, required fields marked](2026-11-01-employee-create.md) | in progress (manual check confirmed 2026-11-01; open: 2.6 clean-up) |
 | 2026-11-01 | [Two-level management: department managers above team supervisors](2026-11-01-two-level-management.md) | in progress (approved 2026-11-01; built and confirmed by the user; open: `attendance_app` migration 1.2, Playwright 5.2; "view as" dropped) |
 | 2026-11-01 | [Management tree for each employee: who manages whom; status filter on /employees](2026-11-01-employee-management-tree.md) (after the two-level plan's Phases 1–2) | in progress (approved 2026-11-01; built and confirmed by the user; open: Playwright 4.2) |
+| 2026-11-01 | [Daily attendance: pattern pay rules, holidays, missions, swaps, leave balance, edit log](2026-11-01-pattern-pay-holidays-missions.md) | in progress (approved 2026-11-02, extended with swaps, leave and the edit log; Phases 1–3 built except the `attendance_app` migration and the backfill button) |

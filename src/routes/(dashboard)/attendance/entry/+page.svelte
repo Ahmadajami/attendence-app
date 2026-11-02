@@ -53,7 +53,7 @@
 		bind:this={filter}
 		method="GET"
 		class="flex flex-wrap items-end gap-3"
-		data-sveltekit-keepfocus
+		data-sveltekit-reset="false"
 	>
 		<div class="flex flex-col gap-2">
 			<Label for="entry-date">{m.attendance_field_date()}</Label>

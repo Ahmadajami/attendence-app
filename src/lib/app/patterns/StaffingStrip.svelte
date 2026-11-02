@@ -28,7 +28,7 @@
 		<caption class="sr-only">{m.staffing_caption()}</caption>
 		<thead>
 			<tr>
-				<th scope="col" class="sticky start-0 bg-card pe-2 text-start font-medium">
+				<th scope="col" class="sticky inset-s-0 bg-card pe-2 text-start font-medium">
 					<span class="sr-only">{m.staffing_shift()}</span>
 				</th>
 				{#each days as day (day.date)}
@@ -49,7 +49,7 @@
 		<tbody>
 			{#each rows as shift (shift.id)}
 				<tr>
-					<th scope="row" class="sticky start-0 bg-card pe-2 text-start font-normal">
+					<th scope="row" class="sticky inset-s-0 bg-card pe-2 text-start font-normal">
 						<ShiftChip {shift} />
 					</th>
 					{#each days as day (day.date)}
@@ -58,7 +58,7 @@
 				</tr>
 			{/each}
 			<tr class="text-muted-foreground">
-				<th scope="row" class="sticky start-0 bg-card pe-2 text-start font-normal">
+				<th scope="row" class="sticky inset-s-0 bg-card pe-2 text-start font-normal">
 					{m.staffing_off()}
 				</th>
 				{#each days as day (day.date)}
@@ -67,7 +67,7 @@
 			</tr>
 			{#if anyAbsent}
 				<tr class="text-muted-foreground">
-					<th scope="row" class="sticky start-0 bg-card pe-2 text-start font-normal">
+					<th scope="row" class="sticky inset-s-0 bg-card pe-2 text-start font-normal">
 						{m.staffing_absent()}
 					</th>
 					{#each days as day (day.date)}

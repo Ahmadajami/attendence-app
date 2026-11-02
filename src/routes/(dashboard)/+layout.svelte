@@ -2,6 +2,7 @@
 	import * as Sidebar from '#lib/components/ui/sidebar/index.js';
 	import AppSidebar from '#lib/app/layout/AppSidebar.svelte';
 	import SiteHeader from '#lib/app/layout/SiteHeader.svelte';
+	import FlowerWatermark from '#lib/app/decor/FlowerWatermark.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -13,7 +14,8 @@
 	<AppSidebar variant="inset" user={data.user} />
 	<Sidebar.Inset>
 		<SiteHeader user={data.user} />
-		<main class="@container/main flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+		<main class="@container/main relative isolate flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+			<FlowerWatermark class="size-72" />
 			{@render children()}
 		</main>
 	</Sidebar.Inset>

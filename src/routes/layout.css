@@ -25,7 +25,7 @@
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.232 0.057 2.3);
 
-	/* Brand */
+	/* Brand - Deep Luxury Burgundy */
 	--primary: oklch(0.302 0.094 10.2);
 	--primary-foreground: oklch(0.95 0.009 0.1);
 
@@ -43,6 +43,9 @@
 	--border: oklch(0.912 0.011 3.5);
 	--input: oklch(0.912 0.011 3.5);
 	--ring: oklch(0.529 0.119 6.5);
+
+	/* Flower Watermark Accent Colors */
+	--flower-color: oklch(0.302 0.094 10.2 / 0.08);
 
 	/* Charts */
 	--chart-1: oklch(0.302 0.094 10.2);
@@ -67,9 +70,8 @@
 	--sidebar-border: oklch(0.912 0.011 3.5);
 	--sidebar-ring: oklch(0.529 0.119 6.5);
 
-	/* Non-blocking notices (entry sheet warnings). */
+	/* Non-blocking notices & shifts */
 	--warning: oklch(0.555 0.163 48.998);
-	/* Shift palette (SHIFT_COLOURS order): mid-dark tones that carry shift-foreground text. */
 	--shift-1: oklch(0.555 0.163 48.998);
 	--shift-2: oklch(0.457 0.24 277.023);
 	--shift-3: oklch(0.5 0.134 242.749);
@@ -116,6 +118,9 @@
 	--input: oklch(1 0 0 / 15%);
 	--ring: oklch(0.65 0.1 6);
 
+	/* Flower Watermark Accent Colors for Dark Mode */
+	--flower-color: oklch(0.95 0.009 0.1 / 0.05);
+
 	/* Charts */
 	--chart-1: oklch(0.791 0.051 2.4);
 	--chart-2: oklch(0.65 0.13 8);
@@ -136,9 +141,8 @@
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.65 0.1 6);
 
-	/* Non-blocking notices (entry sheet warnings). */
+	/* Non-blocking notices & shifts */
 	--warning: oklch(0.555 0.163 48.998);
-	/* Shift palette (SHIFT_COLOURS order): mid-dark tones that carry shift-foreground text. */
 	--shift-1: oklch(0.555 0.163 48.998);
 	--shift-2: oklch(0.457 0.24 277.023);
 	--shift-3: oklch(0.5 0.134 242.749);
@@ -158,7 +162,6 @@
 	--font-sans: ui-sans-serif, system-ui, sans-serif;
 	--font-mono: 'JetBrains Mono Variable', monospace;
 
-	/* This app's tokens (CLAUDE.md §3): bg-warning, bg-shift-1 … bg-shift-8, text-shift-foreground. */
 	--color-warning: var(--warning);
 	--color-shift-1: var(--shift-1);
 	--color-shift-2: var(--shift-2);
@@ -221,7 +224,7 @@
 }
 
 /* ============================================
-   BASE STYLES
+   BASE STYLES & FLOWER WATERMARK UTILITIES
 ============================================ */
 
 @layer base {
@@ -230,7 +233,7 @@
 	}
 
 	body {
-		@apply bg-background text-foreground;
+		@apply relative min-h-screen overflow-x-hidden bg-background text-foreground;
 	}
 
 	html {
@@ -238,7 +241,18 @@
 	}
 }
 
-/* The theme toggle animates with a view transition (animated-theme-toggler). */
+/* Position flower in bottom-right corner of cards/page */
+.bg-flower-br {
+	position: absolute;
+	bottom: -30px;
+	right: -30px;
+	pointer-events: none;
+	z-index: 0;
+	color: var(--flower-color);
+	transition: opacity 0.3s ease;
+}
+
+/* View transition setup */
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	animation: none;

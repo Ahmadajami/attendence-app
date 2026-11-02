@@ -1,6 +1,7 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"app_name": "Attendance App",
+	"app_name": "HR System",
+	"app_logo_label": "Syravia, HR System",
 	"nav_home": "Home",
 	"menu_open": "Open menu",
 	"menu_close": "Close menu",

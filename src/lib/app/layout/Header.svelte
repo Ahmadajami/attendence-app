@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
-	import AirplaneTiltIcon from 'phosphor-svelte/lib/AirplaneTiltIcon';
 	import ListIcon from 'phosphor-svelte/lib/ListIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -11,6 +10,7 @@
 	import { deLocalizeHref } from '#lib/paraglide/runtime.js';
 	import { cn } from '#lib/utils.js';
 	import type { SessionUser } from '#lib/server/auth/session.js';
+	import AppLogo from './AppLogo.svelte';
 	import LocaleSwitcher from './LocaleSwitcher.svelte';
 	import UserMenu from './UserMenu.svelte';
 
@@ -49,8 +49,7 @@
 >
 	<div class="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
 		<a href={homeHref} class="flex shrink-0 items-center gap-2 text-sm font-semibold">
-			<AirplaneTiltIcon class="size-5 rtl:-scale-x-100" weight="duotone" />
-			<span>{m.app_name()}</span>
+			<AppLogo />
 		</a>
 
 		<nav aria-label={m.app_name()} class="hidden items-center gap-1 md:flex">

@@ -1,6 +1,7 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"app_name": "تطبيق الحضور",
+	"app_name": "نظام الموارد البشرية",
+	"app_logo_label": "Syravia، نظام الموارد البشرية",
 	"nav_home": "الرئيسية",
 	"menu_open": "فتح القائمة",
 	"menu_close": "إغلاق القائمة",

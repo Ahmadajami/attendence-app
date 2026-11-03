@@ -1,12 +1,13 @@
-# E2E test data: the Operation team, October and November 2026
+# E2E test data: the Operation team, September to November 2026
 
-**Status:** to do (proposed 2026-11-03; waiting for the user's approval and answers to Q-OP1–Q-OP5)
+**Status:** in progress (approved 2026-11-03, all questions answered; seeded and verified; waiting for the user's recompute 2.3 and manual check 3.x)
 **Date:** 2026-11-03
 **Goal:** Fill the **manual-test DB `attendance_app_e2e`** with a made-up copy of the production
-Operation team: the same shifts and the same 24-day cycle, one pattern **per month** (October and
-November 2026), each member on **their own crew start** that changes between the months, and
-**realistic punches and absences from 2026-10-01** onward, so the roster, the daily page,
-the employee page and recompute can be tested on a whole month of history without touching real data.
+Operation team: the same shifts and the same 24-day cycle, one pattern **per month** (September,
+October and November 2026), each member on **their own crew start** that changes every month,
+and **realistic punches and absences for September and October**, so the roster, the daily page,
+the employee page and recompute can be tested on two months of history without touching real
+data. November has its pattern and rules but no punches: the user types those by hand.
 
 **Lane:** the main agent on `app/main` (no app code changes; one new script, one pure helper with
 a Vitest test, this plan, decisions entries). One commit. Resume point = the first unticked box.
@@ -25,125 +26,134 @@ a Vitest test, this plan, decisions entries). One commit. Resume point = the fir
 How a day is chosen (`patternSlot`, `src/lib/roster/cycle.ts:51`): slot =
 `(days since anchor + crew start) mod 24`. "Crew start: day 14" in the UI = `crew_start = 13`.
 
-What `attendance_app_e2e` has today: 6 made-up people (numbers 1000–1504), 3 departments
-(`Operations` `0398a2c8-…` with sub-department `Ramp`), 1 team (`E2E Team A`, no members),
-shifts `D`/`E`/`N`, 4 patterns, 46 punches, 159 stored days, company holidays on **2026-10-15**
-and **2026-10-19**, a company overtime rule from 2026-10-01. None of it is changed by this plan;
-everything below is **added**.
+What `attendance_app_e2e` had before: 6 made-up people (numbers 1000–1504), 3 departments, 1
+team, shifts `D`/`E`/`N`, 4 patterns, 46 punches, 159 stored days, company holidays on
+2026-10-15 and 2026-10-19, a company overtime rule from 2026-10-01. **The user chose to wipe it**
+(Q-OP4, 2026-11-03). The manual-test data behind earlier unconfirmed checks (pay plan 4.4, 4.8)
+went with it; those checks are now done on the seeded Operation team.
 
-## 1. Decisions (proposed; stop and ask before departing from one)
+## 1. Decisions (approved 2026-11-03)
 
 | # | Decision | Why |
 |---|---|---|
-| OP1 | **Made-up people only.** 6 new staff `Ops Tester 01`…`06` (Arabic `مختبر تشغيل 01`…`06`), employee numbers **2001–2006**, start date 2026-01-01, in the e2e `Operations` department and a new team **`Operation`** (`التشغيل`). Nothing is copied from production except the pattern shape, the shift times/colours and the **crew-start values** (numbers, not personal data) | CLAUDE.md §1: no real person leaves `attendance_app` |
-| OP2 | **Same shifts as production**: new shifts `D8` and `N8` in e2e with the production times, colours and names (e2e's own `D`/`N` have other times and stay untouched) | The test must behave like the real team (12 h day, overnight night shift) |
-| OP3 | **One pattern per month, same slots.** `Operation-1/Oct/2026` (copy of the November slots, anchor **2026-10-01**, assigned 2026-10-01 → 2026-11-01) and `Operation-1/Nov/2026` (anchor **2026-11-01**, from 2026-11-01, open), both assigned to the **team only** (Q-OP3, Q-OP4) | Mirrors how HR builds a new pattern each month; the cycle restarts on the 1st, like production |
-| OP4 | **Crew starts change each month** (own-rule versions): November copies production's six values; October uses the same six values **rotated by two people**, so each member differs from every teammate *and* from their own November start (table in §2, Q-OP2) | "Each one has a different off day, different in each month" |
-| OP5 | **Inputs only; the app computes the results.** The script writes shifts, team, people, memberships, patterns, assignments, own rules, punches and absences, with `audit_log` rows. It never writes `day_result`: the user runs **Recompute from 2026-10-01** on `/attendance/days`, so the real engine produces every stored day | A seed that wrote results itself could hide engine bugs instead of testing them |
-| OP6 | **No future punches** (Q-OP1): punches stop at the last shift that has **ended** when the script runs (today: up to shift date 2026-11-02). November 3–30 shows as the planned roster. The script takes `--to <date>` and **can be rerun later** to top up the days that have passed since, up to 2026-11-30 | The app refuses a punch in the future (`validatePair` → `future`), and recompute stops at today (PR18) |
-| OP7 | **Deterministic and guarded.** Fixed random seed (same data every run); refuses to run unless the DB name ends in `_e2e`; structure is created once (found again by employee numbers 2001–2006 and the pattern names); punches are added only for dates after the last seeded one; one `pg_dump` of `attendance_app_e2e` into `~/secure/syravia/backups/` before the first run | Safe to rerun, impossible to point at real data by mistake, and one restore undoes everything |
-| OP8 | **A realistic mix**, at fixed counts per person per month (Q-OP5): mostly on time (±10 min), 2 late arrivals (10–45 min), 1 early leave (15–60 min), 2 overtime stays (30–90 min), and across the team: 2 missing check-outs, 2 no-shows (no punches, no absence), 1 sick spell (2 days, Oct), 1 leave spell (4 days, Oct 26–29), 1 extra shift on an off day (with a reason), 1 person working the company holiday 2026-10-19; nobody else punches on 10-15 / 10-19 | Every state of the daily page and every pay figure gets at least one example |
+| OP1 | **Made-up people only.** 6 new staff `Ops Tester 01`…`06` (Arabic `مختبر تشغيل 01`…`06`), employee numbers **2001–2006**, start date 2026-01-01, in a new department **`Operation`** and a new team **`Operation`** (both `التشغيل`), like production. Nothing is copied from production except the pattern shape, the shift times/colours and the **crew-start values** (numbers, not personal data) | CLAUDE.md §1: no real person leaves `attendance_app` |
+| OP2 | **Same shifts as production**: shifts `D8` and `N8` with the production times, colours and names | The test must behave like the real team (12 h day, overnight night shift) |
+| OP3 | **One pattern per month, same slots.** `Operation-1/Sep/2026`, `Operation-1/Oct/2026` and `Operation-1/Nov/2026`, the same 24 slots, anchored on the 1st of their month; September and October end on the 1st of the next month, November is open. Each is assigned to the **team and the department**, like production | Mirrors how HR builds a new pattern each month; the cycle restarts on the 1st, like production |
+| OP4 | **Crew starts change each month** (own-rule versions, Q-OP2 answer A): November copies production's six values; October gives each person another teammate's November value; September another again. No two teammates share a value in a month, and nobody repeats a value across the three months (table in §2) | "Each one has a different off day, different in each month" |
+| OP5 | **Inputs only; the app computes the results.** The script writes shifts, department, team, people, memberships, patterns, assignments, own rules, the company holiday, punches and absences, with `audit_log` rows. It never writes `day_result`: the user runs **Recompute from 2026-09-01** on `/attendance/days`, so the real engine produces every stored day | A seed that wrote results itself could hide engine bugs instead of testing them |
+| OP6 | **Past punches for September and October only** (Q-OP1): shift dates 2026-09-01 → 2026-10-31, never a punch after the moment the script runs. No future punches and no top-up runs; November punches are typed by the user | The user's answer (2026-11-03); the app refuses a punch in the future (`validatePair` → `future`) |
+| OP7 | **Clean, then insert; deterministic and guarded.** One `pg_dump` of `attendance_app_e2e` first. `--reset` empties every test-data table (`TRUNCATE … RESTART IDENTITY`, no `CASCADE`) and **keeps** the accounts and setup: `user`, `session`, `login_attempt`, `role`, `permission`, `role_permission`, `app_setting`, the lookup lists (`staff_function`, `job_title`, `skill`, `document_type`, `custody_item_type`) and `drizzle.__drizzle_migrations`. The edit log's append-only trigger `attendance_log_no_truncate` is switched off and back on **inside the same transaction** as the TRUNCATE. Fixed random seed (same rows every run). Refuses any DB whose name does not end in `_e2e`; without `--reset` it stops if the team already exists | The user chose a clean DB (2026-11-03); the backup undoes it; nothing can point it at real data by mistake |
+| OP8 | **A realistic mix** (Q-OP5): per person per month 2 late arrivals (10–45 min), 1 early leave (15–60 min), 2 overtime stays (30–90 min), the rest on time; across the team 2 missing check-outs, 2 no-shows (no punches, no absence), 1 sick spell (2 work days, September), 1 leave spell (2026-10-26 → 10-29), 1 extra shift on an off day (with a reason), a **company holiday on 2026-10-19** (overtime-eligible) that 1 person works and nobody else punches on | Every state of the daily page and every pay figure gets at least one example |
 
-Questions for the user (each default above is used until answered; the answers go here and into
-`docs/decisions.html`, then the decisions become `approved`):
+Questions (all answered 2026-11-03):
 
-| # | Question | Default |
+| # | Question | Answer |
 |---|---|---|
-| Q-OP1 | You asked for punches **up to 2026-11-30**, but today is 2026-11-03. Fill only the days that have passed (rerun later to top up), or write future punches now (the app would never accept those from a user)? | days that have passed only; rerun to top up (OP6) |
-| Q-OP2 | October crew starts: the rotation in §2, or other values? | rotation in §2 (OP4) |
-| Q-OP3 | October pattern: the same 24 slots as November, or a different shape (e.g. start on a day block instead of nights)? | same slots (OP3) |
-| Q-OP4 | Production also assigns the pattern to the **department**. In e2e, `Operations` has the sub-department `Ramp` with person 1500, who would then follow it too. Team only, or team and department? | team only (OP3) |
-| Q-OP5 | The mix of late / overtime / missing / sick / leave / extra shift / holiday work in OP8: keep, or all on time? | keep (OP8) |
+| Q-OP1 | Which days get seeded punches? | **September and October**; no future punches (OP6) |
+| Q-OP2 | Crew starts of the earlier months? | **A**: each person takes a teammate's value, different every month (OP4) |
+| Q-OP3 | Shape of the earlier months' patterns? | **The same 24 slots** as November (OP3) |
+| Q-OP4 | Team only, or team and department? | **Wipe the e2e DB and insert everything again**, then team and department like production (OP3, OP7) |
+| Q-OP5 | Mix of cases, or all on time? | **Keep the mix** (OP8) |
 
 ## 2. The data
 
 **People and crew starts** (crew start 0-based as stored; "day N" = what the UI shows; "—" = no
-own rule, follows the team = day 1):
+own rule, follows the team = day 1). The values live in `OPERATION_MONTHS`
+(`src/lib/dev/operation-seed.ts`):
 
-| Person | Employee no. | October 2026 (`Operation-1/Oct/2026`) | November 2026 (`Operation-1/Nov/2026`) = production |
-|---|---|---|---|
-| Ops Tester 01 | 2001 | 9 (day 10) | — (day 1) |
-| Ops Tester 02 | 2002 | 13 (day 14) | 1 (day 2) |
-| Ops Tester 03 | 2003 | 20 (day 21) | 5 (day 6) |
-| Ops Tester 04 | 2004 | — (day 1) | 9 (day 10) |
-| Ops Tester 05 | 2005 | 1 (day 2) | 13 (day 14) |
-| Ops Tester 06 | 2006 | 5 (day 6) | 20 (day 21) |
+| Person | Employee no. | September (`Operation-1/Sep/2026`) | October (`Operation-1/Oct/2026`) | November (`Operation-1/Nov/2026`) = production |
+|---|---|---|---|---|
+| Ops Tester 01 | 2001 | 20 (day 21) | 9 (day 10) | — (day 1) |
+| Ops Tester 02 | 2002 | — (day 1) | 13 (day 14) | 1 (day 2) |
+| Ops Tester 03 | 2003 | 1 (day 2) | 20 (day 21) | 5 (day 6) |
+| Ops Tester 04 | 2004 | 5 (day 6) | — (day 1) | 9 (day 10) |
+| Ops Tester 05 | 2005 | 9 (day 10) | 1 (day 2) | 13 (day 14) |
+| Ops Tester 06 | 2006 | 13 (day 14) | 5 (day 6) | 20 (day 21) |
 
-Own-rule rows: an October version (2026-10-01 → 2026-11-01) for everyone with an October value,
-a November version (2026-11-01 → open) for everyone with a November value (a "—" month has no
-row: the `staff_schedule_has_rule` check forbids an empty one). Reason on each: "E2E seed".
+Own-rule rows: one version per person per month with a value (from the 1st to the next 1st;
+November open). A "—" month has no row (the `staff_schedule_has_rule` check forbids an empty
+one). Reason on each: "E2E seed".
 
 **Punches** (`attendance_event`, `source = 'seed'`, `recorded_by` = the e2e admin, `team_id` =
 the new team, `shift_id` = the planned shift, `shift_date` = the day the shift starts):
 
-- `D8`: in around 07:50, out around 20:05 the same day.
-- `N8`: in around 19:50 on the shift date, out around 08:05 the **next** day.
-- Times in `Asia/Damascus`, minute precision, deviations from OP8, all inside the shift's window.
-- A missing check-out = a check-in only. An extra shift on an off day carries the reason
-  "E2E seed: extra shift".
-- Roughly 15–16 planned work days per person in October, 1–2 in Nov 1–2 → about 190 pairs.
+- `D8`: in 5–20 min before 08:00, out 0–10 min after 20:00 the same day (unless a case says otherwise).
+- `N8`: in before 20:00 on the shift date, out after 08:00 the **next** day.
+- Times in `Asia/Damascus`, minute precision. A missing check-out = a check-in only. The extra
+  shift carries the reason "E2E seed: extra shift".
+- Where a month change puts a day shift right after a night, the night's check-out moves to
+  5 min before the next check-in, so one person's pairs never overlap.
 
-**Absences** (`absence`): 1 `sick` (2 days, October) and 1 `leave` (2026-10-26 → 10-29), reason
-"E2E seed". **Audit** (`audit_log`, actor = the e2e admin): one row per created shift, team,
-person, pattern, assignment and own rule (as the services write them), plus one
-`seed.e2e_operation` row per run with the punch and absence counts.
+**Absences** (`absence`): 1 `sick`, 1 `leave`, reason "E2E seed". **Audit** (`audit_log`, actor =
+the e2e admin): one `seed.create` row per created department, team, shift, person, pattern,
+assignment, own rule and holiday, plus one `seed.e2e_operation` row with the counts.
 
 ## 3. Tasks
 
 ### Phase 1: generator and guard
 
-- [ ] **1.1** Back up `attendance_app_e2e` (`pg_dump -Fc` inside the container, copied to
-  `~/secure/syravia/backups/attendance_app_e2e-2026-11-03-before-op-seed.dump`, mode 600).
+- [x] **1.1** Back up `attendance_app_e2e` (`pg_dump -Fc`) to
+  `~/secure/syravia/backups/attendance_app_e2e-2026-11-03-before-op-seed.dump`, mode 600.
   *Done when:* the file exists and `pg_restore --list` reads it.
-- [ ] **1.2** Pure generator `src/lib/dev/operation-seed.ts`: given the pattern slots, anchors,
-  crew starts per month, a date range, `now` and a seed, returns the planned days and the punch /
-  absence rows (no DB, no `$app`). Uses `patternSlot` and `startOfDamascusDay` from
-  `#lib/roster/cycle.ts`.
-  *Done when:* `src/lib/dev/operation-seed.test.ts` passes: (a) every work day's shift equals
-  `patternSlot(...)` for that person and month, and November matches production's rule (crew
-  start 13 on 2026-11-01 → slot 13 = OFF, on 2026-11-04 → slot 16 = `D8`); (b) no punch on a planned
-  off day except the one extra shift; (c) no pair ends after `now`; (d) no two pairs of one person
-  overlap and none is longer than 16 h; (e) the OP8 counts hold; (f) the same seed gives the same rows.
-- [ ] **1.3** Script `scripts/seed-e2e-operation.ts` (tsx, own DB client like `scripts/lib.ts`,
-  no `$app`): refuses unless `current_database()` ends in `_e2e`; creates the structure once
-  (OP7) in one `batch`; inserts punches and absences for `(last seeded date, --to]` in one
-  `batch` with the audit rows; prints counts only. Run as
-  `pnpm exec tsx --env-file=.env.e2e scripts/seed-e2e-operation.ts --to 2026-11-02`.
-  *Done when:* `pnpm check`, eslint and prettier on the new files and `pnpm test` pass, and running it
-  against `attendance_app` (with a fake `DATABASE_URL` to a non-`_e2e` name) exits with an error
-  before writing.
+  > note: 174 KB, 42 table-data entries listed.
+- [x] **1.2** Pure generator `src/lib/dev/operation-seed.ts` (no DB, no `$app`; uses
+  `patternSlot`, `addDays`, `daysBetween`, `startOfDamascusDay` from `#lib/roster/cycle.ts`).
+  *Done when:* `src/lib/dev/operation-seed.test.ts` passes: production's rule (crew start 13 → off
+  on 2026-11-01, `D8` on 2026-11-04); each month restarts on its 1st; crew starts differ per
+  teammate and per month; every pair is on its planned shift except the one extra shift; no pair
+  in the future, over 16 h or overlapping; the OP8 counts; no punches on absences, no-shows or the
+  holiday (except its one worker); same seed → same rows.
+  > note: 12 tests pass.
+- [x] **1.3** Script `scripts/seed-e2e-operation.ts` (tsx, own DB client from `scripts/lib.ts`).
+  Run as `pnpm exec tsx --env-file=.env.e2e scripts/seed-e2e-operation.ts --reset`.
+  *Done when:* `pnpm check`, eslint and prettier on the new files and `pnpm test` pass, and it
+  refuses a non-`_e2e` database before writing.
+  > note: check 0 errors (1 old warning in generated `ui/`), eslint clean, 36 files / 371 tests
+  > pass. Pointed at `attendance_app_test`: "Refusing to seed", exit 1.
+  > note: the first `--reset` failed on the edit log's append-only trigger (TRUNCATE is atomic,
+  > nothing was emptied: still 6 staff, 46 punches); the script now switches that trigger off and
+  > on inside the TRUNCATE's transaction (OP7).
 
 ### Phase 2: seed and verify
 
-- [ ] **2.1** Run the script on `attendance_app_e2e`. *Done when:* it prints the counts and a
-  second run adds nothing.
-- [ ] **2.2** Read-only checks (SQL): 6 people in team `Operation`; 2 patterns, 2 assignments; own
-  rules as in §2; every punch's `shift_id` equals the slot computed in SQL from the anchor and the
-  crew start; no punch after now; existing e2e rows unchanged (same counts as §0).
-  *Done when:* every check passes; counts go in a `> note:`.
-- [ ] **2.3** *(user)* On `/attendance/days`, **Recompute from 2026-10-01**. Then the agent counts
-  `day_result` for the 6 people from 2026-10-01 to today (at most 6 × 34 = 204) and checks that none
+- [x] **2.1** Run the script with `--reset` on `attendance_app_e2e`. *Done when:* it prints the
+  counts, a second run without `--reset` refuses, and the kept tables have the same row counts.
+  > note: emptied 29 tables, kept 12. Seeded 6 people, 3 patterns, 6 assignments, 15 own rules,
+  > 1 holiday, 176 pairs = 350 events (112 on time, 24 late, 12 early leave, 24 overtime,
+  > 2 missing check-out, 1 extra shift, 1 holiday work), 2 absences, 2 no-shows. Kept tables
+  > before = after (1 user, 5 roles, 10 permissions, 20 role permissions, 4 functions, 2 job
+  > titles, 1 skill, 1 document type, 21 migrations). Second run: "already there", exit 1.
+- [x] **2.2** Read-only checks (SQL). *Done when:* every check passes.
+  > note: 1 department, 1 team, 6 staff, 6 memberships, 2 shifts, 3 patterns, 6 assignments,
+  > 15 own rules (match §2), 1 holiday, 0 overrides, 0 pay rules, 0 day_result. Shift computed in
+  > SQL from anchor + crew start: 0 of 350 events differ (2 events = the extra shift, on an off
+  > day as intended). 0 events after now, 0 outside 2026-09-01…10-31. Pairs per person per month
+  > 13–16. Guard trigger `attendance_log_no_truncate` enabled again.
+- [ ] **2.3** *(user)* On `/attendance/days`, **Recompute from 2026-09-01**. Then the agent counts
+  `day_result` for the 6 people from 2026-09-01 to today (at most 6 × 64 = 384) and checks that none
   is flagged `needs_recompute`.
-  *Done when:* every planned work day has a row and the states include late, overtime, missing check-out, absent,
-  sick, leave, holiday, off-day work.
+  *Done when:* every planned work day has a row and the states include late, overtime, missing
+  check-out, absent, sick, leave, holiday, off-day work.
 
 ### Phase 3: manual check (the user, on `http://127.0.0.1:5174`)
 
-- [ ] **3.1** `/patterns`: `Operation-1/Oct/2026` and `Operation-1/Nov/2026`, 24 slots each, the
-  same N8/D8/OFF blocks.
-- [ ] **3.2** `/teams/<Operation>`: the October preview puts each member on their October crew
-  start, November on their November one; member rules read "Crew start: day N" as in §2.
-- [ ] **3.3** `/employees/<2005>`: Own rules shows day 2 for October and day 14 for November; the
-  day panel shows the punches.
-- [ ] **3.4** `/attendance/days` for 2026-10-01 → 2026-11-02, team Operation: late, overtime, missing
-  check-out, absent, sick, leave, the holiday on 10-15 / 10-19 and the extra shift all appear with
-  sensible figures; night shifts count on the start date.
-- [ ] **3.5** The same pages under `/ar/...` read right to left.
-- [ ] **3.6** Later (Q-OP1 default): rerun the script with `--to <yesterday>` and recompute; the new days
-  appear.
+- [ ] **3.1** `/patterns`: `Operation-1/Sep/2026`, `Operation-1/Oct/2026`, `Operation-1/Nov/2026`,
+  24 slots each, the same N8/D8/OFF blocks.
+- [ ] **3.2** `/teams/<Operation>`: the September, October and November previews put each member
+  on that month's crew start; member rules read "Crew start: day N" as in §2.
+- [ ] **3.3** `/employees/<2005>`: Own rules shows day 10 (September), day 2 (October), day 14
+  (November); the day panel shows the punches.
+- [ ] **3.4** `/attendance/days` for 2026-09-01 → 2026-10-31, team Operation: late, overtime,
+  early leave, missing check-out, absent, sick (2003, 2026-09-26/27), leave (2006, 2026-10-26…29),
+  the holiday on 2026-10-19 (one person worked it) and the extra shift all appear with sensible
+  figures; night shifts count on the start date.
+- [ ] **3.5** November: typing punches for 2026-11-01…03 on the entry sheet works against the
+  November roster; a punch later than now is refused.
+- [ ] **3.6** The same pages under `/ar/...` read right to left.
 
 ## 4. Undo
 
-Restore the 1.1 backup (asks the user first, CLAUDE.md §1):
+Restore the 1.1 backup (ask the user first, CLAUDE.md §1):
 `docker exec -i attendance-app-db pg_restore -U attendance_app -d attendance_app_e2e --clean --if-exists < <backup>`.
-Nothing else is touched; `attendance_app` (real data) and `attendance_app_test` are never written.
+Or reseed from scratch: run the script again with `--reset`. `attendance_app` (real data) and
+`attendance_app_test` are never written.

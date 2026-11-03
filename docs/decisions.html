@@ -1545,56 +1545,56 @@
     },
     // ---------------- Test data (plans/2026-11-03-e2e-operation-seed.md) ----------------
     {
-      id: 'OP1', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      id: 'OP1', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
       title: { en: "Made-up people mirror the production Operation team", ar: "أشخاص وهميون يحاكون فريق التشغيل في الإنتاج" },
       decision: { en: "Six made-up staff (numbers 2001–2006) in a new e2e team; only the pattern shape, shift times and crew-start numbers come from production.", ar: "ستة موظفين وهميين (الأرقام 2001–2006) في فريق جديد في قاعدة e2e؛ ولا يُؤخذ من الإنتاج إلا شكل النمط وأوقات الورديات وأرقام بداية الطاقم." },
       why: { en: "No real person leaves the production DB (CLAUDE.md §1).", ar: "لا يخرج أي شخص حقيقي من قاعدة الإنتاج (§1 في CLAUDE.md)." },
       alts: [ { en: "Copy the real team into e2e: personal data in a test DB, forbidden.", ar: "نسخ الفريق الحقيقي إلى e2e: بيانات شخصية في قاعدة اختبار، ممنوع." } ]
     },
     {
-      id: 'OP2', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      id: 'OP2', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
       title: { en: "Same shifts as production (D8, N8)", ar: "الورديات نفسها كما في الإنتاج (D8 وN8)" },
       decision: { en: "New e2e shifts D8 08:00–20:00 and N8 20:00–08:00 with the production settings; e2e's own D/N stay untouched.", ar: "ورديتان جديدتان في e2e: D8 من 08:00 إلى 20:00 وN8 من 20:00 إلى 08:00 بإعدادات الإنتاج؛ وتبقى D/N الخاصة بـ e2e كما هي." },
       why: { en: "The test must behave like the real team: 12-hour days and an overnight shift.", ar: "يجب أن يتصرف الاختبار مثل الفريق الحقيقي: أيام 12 ساعة ووردية ليلية تمتد لليوم التالي." },
       alts: [ { en: "Reuse e2e's D/N (07:00/19:00): different times, so the figures would not match the real team.", ar: "إعادة استخدام D/N في e2e (07:00/19:00): أوقات مختلفة، فلا تطابق الأرقام الفريق الحقيقي." } ]
     },
     {
-      id: 'OP3', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
-      title: { en: "One pattern per month, same slots, team only", ar: "نمط لكل شهر، بالخانات نفسها، للفريق فقط" },
-      decision: { en: "Operation-1/Oct/2026 (anchor 2026-10-01, until 2026-11-01) and Operation-1/Nov/2026 (anchor 2026-11-01, open), the same 24 slots, assigned to the team only.", ar: "Operation-1/Oct/2026 (مرساة 2026-10-01 حتى 2026-11-01) وOperation-1/Nov/2026 (مرساة 2026-11-01، مفتوح)، بالخانات الـ24 نفسها، مسندان للفريق فقط." },
-      why: { en: "HR builds a new pattern each month; in e2e a department assignment would also move person 1500 in the Ramp sub-department.", ar: "تبني الموارد البشرية نمطاً جديداً كل شهر؛ وفي e2e سيحرّك إسناد القسم الشخص 1500 في القسم الفرعي Ramp أيضاً." },
-      alts: [ { en: "One long pattern for both months: does not test a month-to-month change.", ar: "نمط طويل واحد للشهرين: لا يختبر التغيير من شهر لآخر." }, { en: "Team and department like production: changes an unrelated e2e person (Q-OP4).", ar: "الفريق والقسم كما في الإنتاج: يغيّر شخصاً لا علاقة له في e2e (Q-OP4)." } ]
+      id: 'OP3', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "One pattern per month, same slots, team and department", ar: "نمط لكل شهر، بالخانات نفسها، للفريق والقسم" },
+      decision: { en: "Operation-1/Sep/2026, Operation-1/Oct/2026 and Operation-1/Nov/2026, the same 24 slots, anchored on the 1st of their month (Sep and Oct end on the next 1st, Nov is open), each assigned to the team and the department like production.", ar: "Operation-1/Sep/2026 وOperation-1/Oct/2026 وOperation-1/Nov/2026، بالخانات الـ24 نفسها، مرساة كل منها أول شهره (سبتمبر وأكتوبر ينتهيان في أول الشهر التالي، ونوفمبر مفتوح)، وكل منها مسند للفريق والقسم كما في الإنتاج." },
+      why: { en: "HR builds a new pattern each month; the user chose the same slots and a wiped e2e DB (2026-11-03), so a department assignment affects nobody else.", ar: "تبني الموارد البشرية نمطاً جديداً كل شهر؛ واختار المستخدم الخانات نفسها ومسح قاعدة e2e (2026-11-03)، فلا يؤثر إسناد القسم على أحد آخر." },
+      alts: [ { en: "One long pattern for both months: does not test a month-to-month change.", ar: "نمط طويل واحد للشهرين: لا يختبر التغيير من شهر لآخر." }, { en: "Team only: was the default while old e2e data stayed (person 1500 in Ramp); dropped once the user chose a wipe.", ar: "للفريق فقط: كان الافتراضي ما دامت بيانات e2e القديمة باقية (الشخص 1500 في Ramp)؛ وأُلغي بعد أن اختار المستخدم المسح." } ]
     },
     {
-      id: 'OP4', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §2',
+      id: 'OP4', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §2',
       title: { en: "Crew starts change each month", ar: "بداية الطاقم تتغير كل شهر" },
-      decision: { en: "November copies production's six crew starts (none, 1, 5, 9, 13, 20); October rotates the same values by two people, as own-rule versions per month.", ar: "نوفمبر ينسخ بدايات الطاقم الست من الإنتاج (بلا، 1، 5، 9، 13، 20)؛ وأكتوبر يدوّر القيم نفسها بشخصين، كنسخ من القواعد الخاصة لكل شهر." },
-      why: { en: "Each member differs from every teammate and from their own other month, as the user described.", ar: "كل عضو يختلف عن زملائه وعن شهره الآخر، كما وصف المستخدم." },
-      alts: [ { en: "Same crew starts in both months: the month change would test nothing.", ar: "بدايات الطاقم نفسها في الشهرين: لن يختبر تغيير الشهر شيئاً." } ]
+      decision: { en: "November copies production's six crew starts (none, 1, 5, 9, 13, 20); October and September give each person another teammate's value, as own-rule versions per month (the user chose option A, 2026-11-03).", ar: "نوفمبر ينسخ بدايات الطاقم الست من الإنتاج (بلا، 1، 5، 9، 13، 20)؛ وأكتوبر وسبتمبر يعطيان كل شخص قيمة زميل آخر، كنسخ من القواعد الخاصة لكل شهر (اختار المستخدم الخيار A في 2026-11-03)." },
+      why: { en: "Each member differs from every teammate and never repeats a value across the three months, as the user described.", ar: "كل عضو يختلف عن زملائه ولا يكرر قيمة عبر الأشهر الثلاثة، كما وصف المستخدم." },
+      alts: [ { en: "Same crew starts every month (option B): the month change would test little.", ar: "بدايات الطاقم نفسها كل شهر (الخيار B): لن يختبر تغيير الشهر إلا القليل." }, { en: "The user's own values (option C): not chosen.", ar: "قيم يحددها المستخدم (الخيار C): لم يُختر." } ]
     },
     {
-      id: 'OP5', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      id: 'OP5', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
       title: { en: "Seed inputs only; the app computes the results", ar: "زرع المدخلات فقط؛ والتطبيق يحسب النتائج" },
-      decision: { en: "The script writes shifts, team, people, patterns, assignments, own rules, punches, absences and audit rows, never day_result; the user runs Recompute from 2026-10-01.", ar: "يكتب السكربت الورديات والفريق والأشخاص والأنماط والإسنادات والقواعد الخاصة والبصمات والغيابات وسجلات التدقيق، ولا يكتب day_result أبداً؛ ويشغّل المستخدم إعادة الحساب من 2026-10-01." },
+      decision: { en: "The script writes shifts, team, people, patterns, assignments, own rules, punches, absences and audit rows, never day_result; the user runs Recompute from 2026-09-01.", ar: "يكتب السكربت الورديات والفريق والأشخاص والأنماط والإسنادات والقواعد الخاصة والبصمات والغيابات وسجلات التدقيق، ولا يكتب day_result أبداً؛ ويشغّل المستخدم إعادة الحساب من 2026-09-01." },
       why: { en: "Results written by the seed could hide engine bugs instead of testing them; the services need SvelteKit and cannot run from a script.", ar: "النتائج التي يكتبها الزرع قد تخفي أخطاء المحرك بدل اختبارها؛ والخدمات تحتاج SvelteKit ولا تعمل من سكربت." },
       alts: [ { en: "Type everything through the entry sheet: about 190 pairs by hand.", ar: "إدخال كل شيء عبر ورقة الإدخال: نحو 190 زوجاً يدوياً." }, { en: "Write day_result directly: bypasses the engine under test.", ar: "كتابة day_result مباشرة: يتجاوز المحرك الذي نختبره." } ]
     },
     {
-      id: 'OP6', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
-      title: { en: "No future punches; rerun to top up", ar: "لا بصمات في المستقبل؛ وإعادة التشغيل للإكمال" },
-      decision: { en: "Punches stop at the last shift that has ended; the script takes --to and can be rerun later until 2026-11-30.", ar: "تتوقف البصمات عند آخر وردية انتهت؛ ويقبل السكربت ‎--to‎ ويمكن إعادة تشغيله لاحقاً حتى 2026-11-30." },
-      why: { en: "The app refuses future punches and recompute stops at today (PR18).", ar: "يرفض التطبيق البصمات المستقبلية وتتوقف إعادة الحساب عند اليوم (PR18)." },
-      alts: [ { en: "Write punches to 2026-11-30 now: data the app could never hold (Q-OP1).", ar: "كتابة البصمات حتى 2026-11-30 الآن: بيانات لا يمكن أن يحملها التطبيق (Q-OP1)." } ]
+      id: 'OP6', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "Past punches for September and October only", ar: "بصمات ماضية لسبتمبر وأكتوبر فقط" },
+      decision: { en: "Punches on shift dates 2026-09-01 to 2026-10-31, never after the moment the script runs; no future punches, no top-up runs; the user types November punches by hand.", ar: "بصمات بتواريخ الوردية من 2026-09-01 إلى 2026-10-31، ولا شيء بعد لحظة تشغيل السكربت؛ لا بصمات مستقبلية ولا تشغيل للإكمال؛ ويُدخل المستخدم بصمات نوفمبر يدوياً." },
+      why: { en: "The user's answer (2026-11-03); the app refuses a punch in the future.", ar: "جواب المستخدم (2026-11-03)؛ والتطبيق يرفض البصمة في المستقبل." },
+      alts: [ { en: "Punches up to 2026-11-30: future data the app could never hold.", ar: "بصمات حتى 2026-11-30: بيانات مستقبلية لا يمكن أن يحملها التطبيق." }, { en: "October and November 1–2 with top-up runs: the user chose September and October.", ar: "أكتوبر و1–2 نوفمبر مع تشغيل للإكمال: اختار المستخدم سبتمبر وأكتوبر." } ]
     },
     {
-      id: 'OP7', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
-      title: { en: "Deterministic, guarded, backed up", ar: "حتمي ومحمي ومع نسخة احتياطية" },
-      decision: { en: "Fixed random seed; refuses any DB whose name does not end in _e2e; structure created once; a pg_dump before the first run.", ar: "بذرة عشوائية ثابتة؛ ويرفض أي قاعدة لا ينتهي اسمها بـ _e2e؛ وتُنشأ البنية مرة واحدة؛ ونسخة pg_dump قبل أول تشغيل." },
-      why: { en: "Safe to rerun, cannot touch real data by mistake, one restore undoes it.", ar: "آمن لإعادة التشغيل، ولا يمكنه لمس البيانات الحقيقية خطأً، واستعادة واحدة تلغيه." },
-      alts: [ { en: "Delete seeded rows to undo: append-only tables and never-hard-delete rule.", ar: "حذف الصفوف المزروعة للإلغاء: جداول للإضافة فقط وقاعدة عدم الحذف النهائي." } ]
+      id: 'OP7', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "Wipe e2e, then insert; deterministic, guarded, backed up", ar: "مسح e2e ثم الإدراج؛ حتمي ومحمي ومع نسخة احتياطية" },
+      decision: { en: "A pg_dump first; --reset empties every test-data table, keeping accounts, roles, settings, lookup lists and the migration history (the edit log's append-only TRUNCATE trigger is switched off and on inside the same transaction); then the seed inserts everything. Fixed random seed; refuses any DB whose name does not end in _e2e.", ar: "نسخة pg_dump أولاً؛ ويفرغ ‎--reset‎ كل جداول بيانات الاختبار مع إبقاء الحسابات والأدوار والإعدادات والقوائم المرجعية وسجل الترحيلات (ويُعطَّل مشغّل منع TRUNCATE في سجل التعديلات ثم يُعاد تفعيله داخل المعاملة نفسها)؛ ثم يدرج الزرع كل شيء. بذرة عشوائية ثابتة؛ ويرفض أي قاعدة لا ينتهي اسمها بـ _e2e." },
+      why: { en: "The user chose a clean e2e DB (2026-11-03); the backup undoes it; real data cannot be hit by mistake.", ar: "اختار المستخدم قاعدة e2e نظيفة (2026-11-03)؛ والنسخة الاحتياطية تلغي ذلك؛ ولا يمكن إصابة البيانات الحقيقية خطأً." },
+      alts: [ { en: "Add next to the old e2e data: the user preferred a clean DB.", ar: "الإضافة بجانب بيانات e2e القديمة: فضّل المستخدم قاعدة نظيفة." }, { en: "Drop and re-create the DB: also loses the admin account and needs all migrations again.", ar: "حذف القاعدة وإعادة إنشائها: يفقد حساب المدير أيضاً ويحتاج كل الترحيلات من جديد." } ]
     },
     {
-      id: 'OP8', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      id: 'OP8', group: 'testdata', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
       title: { en: "A realistic mix of days", ar: "مزيج واقعي من الأيام" },
       decision: { en: "Mostly on time, plus fixed counts of late, early leave, overtime, missing check-out, no-show, sick, leave, an extra shift and holiday work.", ar: "في الغالب في الوقت، مع أعداد ثابتة من التأخير والخروج المبكر والعمل الإضافي ونسيان الخروج والغياب والمرض والإجازة ووردية إضافية والعمل في عطلة." },
       why: { en: "Every state of the daily page and every pay figure gets at least one example.", ar: "كل حالة في الصفحة اليومية وكل رقم أجر يحصل على مثال واحد على الأقل." },
@@ -1658,11 +1658,11 @@
     ["Q-AV3", "Does a privilege renewal usually keep the same number?", "prefilled with the previous number, editable (AV4)", "هل يحتفظ تجديد الامتياز عادةً بالرقم نفسه؟", "يُملأ بالرقم السابق ويمكن تعديله (AV4)"],
     ["Q-AV5", "Must every active employee have a privilege, or only some (by job title or work area)?", "everyone may have one; /privileges lists people with none, no requirement rule", "هل يجب أن يكون لكل موظف نشط امتياز، أم لبعضهم فقط (حسب المسمى أو مجال العمل)؟", "يمكن للجميع أن يحملوه؛ وتسرد /privileges من ليس لديه، دون قاعدة إلزام"],
     ["Q-AV7", "Can a privilege be granted on the new-employee page, or only later on the profile?", "only on the profile (AV8)", "هل يمكن منح الامتياز في صفحة الموظف الجديد، أم لاحقاً في الملف فقط؟", "في الملف فقط (AV8)"],
-    ["Q-OP1", "E2E seed: punches only for days that have passed (rerun later), or up to 2026-11-30 now?", "days that have passed; rerun to top up (OP6)", "زرع e2e: بصمات للأيام التي مضت فقط (مع إعادة التشغيل لاحقاً)، أم حتى 2026-11-30 الآن؟", "الأيام التي مضت؛ وإعادة التشغيل للإكمال (OP6)"],
-    ["Q-OP2", "E2E seed: October crew starts?", "production's values rotated by two people (OP4)", "زرع e2e: بدايات الطاقم في أكتوبر؟", "قيم الإنتاج مدوّرة بشخصين (OP4)"],
-    ["Q-OP3", "E2E seed: October pattern shape?", "same 24 slots as November (OP3)", "زرع e2e: شكل نمط أكتوبر؟", "الخانات الـ24 نفسها كنوفمبر (OP3)"],
-    ["Q-OP4", "E2E seed: assign to the team only, or team and department?", "team only (OP3)", "زرع e2e: الإسناد للفريق فقط أم للفريق والقسم؟", "للفريق فقط (OP3)"],
-    ["Q-OP5", "E2E seed: keep the mix of late / overtime / absences?", "keep (OP8)", "زرع e2e: هل نبقي مزيج التأخير والعمل الإضافي والغياب؟", "نبقيه (OP8)"]
+    ["Q-OP1", "E2E seed: which days get past punches?", "answered 2026-11-03: September and October, no future punches (OP6)", "زرع e2e: أي الأيام تحصل على بصمات ماضية؟", "أُجيب 2026-11-03: سبتمبر وأكتوبر، دون بصمات مستقبلية (OP6)"],
+    ["Q-OP2", "E2E seed: crew starts of the earlier months?", "answered 2026-11-03: A, a teammate's value, different every month (OP4)", "زرع e2e: بدايات الطاقم في الأشهر السابقة؟", "أُجيب 2026-11-03: A، قيمة زميل، مختلفة كل شهر (OP4)"],
+    ["Q-OP3", "E2E seed: October pattern shape?", "answered 2026-11-03: same 24 slots as November (OP3)", "زرع e2e: شكل نمط أكتوبر؟", "الخانات الـ24 نفسها كنوفمبر (OP3)"],
+    ["Q-OP4", "E2E seed: assign to the team only, or team and department?", "answered 2026-11-03: wipe e2e, then team and department (OP3, OP7)", "زرع e2e: الإسناد للفريق فقط أم للفريق والقسم؟", "أُجيب 2026-11-03: مسح e2e ثم الفريق والقسم (OP3، OP7)"],
+    ["Q-OP5", "E2E seed: keep the mix of late / overtime / absences?", "answered 2026-11-03: keep (OP8)", "زرع e2e: هل نبقي مزيج التأخير والعمل الإضافي والغياب؟", "نبقيه (OP8)"]
   ];
 
   function el(tag, attrs, children) {

@@ -120,6 +120,7 @@ PR27–PR29 and PR31–PR34 are defaults until the user says otherwise. All are 
 | PR36 | **Company holidays** (`pattern_holiday` rows with no pattern) apply to every day a pattern plans; per pattern, each one can be **skipped** or get its **own overtime-eligible switch** (`pattern_holiday_exception`) | The user chose per-holiday overrides |
 | PR37 | On a date with both, the **pattern's own holiday wins**; company holidays don't overlap each other | The nearer rule wins, as for pay (PR4) |
 | PR38 | The screen is a **Pay & holidays** section on `/admin/settings`; writes need `roster.manage` | The user's choice |
+| PR39 | A **new pattern opens on its Overtime & pay tab** after the builder saves it, with a hint to set its overtime and holidays there; the builder gets no pay step | The user chose B over a builder step (2026-11-03) |
 
 ## 2. What exists today (facts from the code)
 
@@ -500,6 +501,16 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > pattern's own holidays, the company holidays with **Applies / Skipped / Own overtime
       > switch** and a **Change** sheet (`HolidayExceptionSheet`), and missions. 24 new strings, 5
       > reworded (en + ar). Autofixer clean.
+
+- [ ] 4.9 After creating a pattern (PR39): the builder's `afterCreate` goes to
+      `/patterns/[id]?tab=pay` when there is no `returnTarget` (the assign-sheet flow still goes
+      back to its team / person / department page), and a second toast (`toast.info`) says
+      "Set this pattern's overtime and holidays on its tabs" (new key
+      `patterns_created_pay_hint`, en + ar). The pay tab shows the same hint once, under its
+      title, while the pattern has no pay rule and no holidays of its own.
+      **Done when** the user confirms on `5174`: build and save a new pattern without assigning
+      it → the page opens on **Overtime & pay** with the hint; built from a team's assign sheet
+      → back on the team page as before; `/ar/` the same
 
 ### Phase 5 · Daily attendance page, day editor, history
 - [ ] 5.1 `day-state` service: set / clear a state for one person over a

@@ -1,6 +1,6 @@
 # E2E test data: the Operation team, September to November 2026
 
-**Status:** in progress (approved 2026-11-03, all questions answered; seeded and verified; waiting for the user's recompute 2.3 and manual check 3.x)
+**Status:** in progress (approved 2026-11-03, all questions answered; seeded, recomputed and verified 2.3; waiting for the manual check 3.x)
 **Date:** 2026-11-03
 **Goal:** Fill the **manual-test DB `attendance_app_e2e`** with a made-up copy of the production
 Operation team: the same shifts and the same 24-day cycle, one pattern **per month** (September,
@@ -133,11 +133,24 @@ assignment, own rule and holiday, plus one `seed.e2e_operation` row with the cou
   > 404 log rows (backup `attendance_app_e2e-2026-11-03-before-op-reseed.dump`). After: 6 staff,
   > 350 events, 15 rules, 6 assignments, 0 day_result, 0 log rows, 0 future events, 1 user kept,
   > trigger enabled.
-- [ ] **2.3** *(user)* On `/attendance/days`, **Recompute from 2026-09-01**. Then the agent counts
+- [x] **2.3** *(user)* On `/attendance/days`, **Recompute from 2026-09-01**. Then the agent counts
   `day_result` for the 6 people from 2026-09-01 to today (at most 6 × 64 = 384) and checks that none
   is flagged `needs_recompute`.
   *Done when:* every planned work day has a row and the states include late, overtime, missing
   check-out, absent, sick, leave, holiday, off-day work.
+  > note: checked 2026-11-03 after the reseed and the user's recompute: 384 rows (64 per person,
+  > 09-01…11-03), 0 `needs_recompute`, 0 corrected. Stored shift = planned shift on every row except
+  > the 7 intended ones (1 extra shift, 4 absence days, 2 holiday days off). Cases: late 24/24 late > 0;
+  > early_leave 12/12 short; overtime 24/24 OT > 0; sick 2 + leave 4 → absence/absent; no-shows 2 →
+  > missing; extra shift → off_work, 720 OT; holiday worker → holiday_work, 750 OT (743 worked,
+  > rounded to the quarter hour); 5 others holiday_off. Missing check-out: 1 fixed by the user
+  > (09-29, 1 manual event), 1 still open (10-20). November (no punches): 7 missing, 2 expected
+  > (tonight's N8).
+  > note: findings for the user: (a) the open check-out of 10-20 shows status `present` (tone "ok"),
+  > because the engine has no "check-out missing" state for a past day (`shiftSummary`,
+  > `src/lib/roster/attendance.ts`); (b) 107 of 112 on-time pairs carry 15–30 min OT, because the
+  > seed checks in 5–10 min early and out a few minutes late, and the time past 12 h rounds to the
+  > nearest 15 min (`roundOvertime`). Both waiting for the user's decision.
 
 ### Phase 3: manual check (the user, on `http://127.0.0.1:5174`)
 

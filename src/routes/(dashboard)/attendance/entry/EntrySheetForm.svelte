@@ -5,7 +5,11 @@
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
+	import DayBadges from '#lib/app/attendance/DayBadges.svelte';
+	import OvertimeCell from '#lib/app/attendance/OvertimeCell.svelte';
+	import PunchTime from '#lib/app/attendance/PunchTime.svelte';
 	import ShiftChip from '#lib/app/roster/ShiftChip.svelte';
+	import type { DayFigures } from '#lib/attendance/day-result.js';
 	import {
 		calendarDate,
 		clockOf,
@@ -26,6 +30,7 @@
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import type { RosterDay } from '#lib/roster/roster.js';
 	import {
 		ENTRY_ABSENCES,
@@ -62,6 +67,8 @@
 		others: Pair[];
 		/** Added with "+ add person": not planned on this shift. */
 		added: boolean;
+		/** The stored daily record (pay plan 5.3); `null` until the day is computed. */
+		figures: DayFigures | null;
 	};
 
 	let view = $state<ViewRow[]>(untrack(() => sheet.rows.map((row) => ({ ...row, added: false }))));
@@ -140,7 +147,7 @@
 	function addPerson() {
 		const picked = available.find((o) => o.person.staffId === addStaffId);
 		if (!picked || !addShiftId) return;
-		view = [...view, { ...picked, events: [], added: true }];
+		view = [...view, { ...picked, events: [], added: true, figures: null }];
 		available = available.filter((o) => o !== picked);
 		$formData.rows = [
 			...$formData.rows,
@@ -203,6 +210,34 @@
 	</Form.Field>
 {/snippet}
 
+{#snippet record(figures: DayFigures)}
+	<div class="flex flex-col items-start gap-1">
+		<span class="flex flex-wrap items-center gap-1">
+			<PunchTime
+				at={figures.checkIn}
+				source={figures.checkInSource}
+				shiftDate={figures.shiftDate}
+			/>
+			→
+			<PunchTime
+				at={figures.checkOut}
+				source={figures.checkOutSource}
+				shiftDate={figures.shiftDate}
+			/>
+		</span>
+		{#if figures.workedMinutes !== null}
+			<span>
+				{m.attendance_worked({ time: formatHoursMinutes(figures.workedMinutes) })}
+			</span>
+		{/if}
+		<span class="flex flex-wrap items-center gap-1">
+			{m.daily_col_overtime()}:
+			<OvertimeCell {figures} />
+		</span>
+		<DayBadges {figures} />
+	</div>
+{/snippet}
+
 <form method="POST" action="?/save" class="flex flex-col gap-4" use:enhance>
 	<Table.Root>
 		<Table.Header>
@@ -213,6 +248,7 @@
 				<Table.Head>{m.attendance_col_out()}</Table.Head>
 				<Table.Head>{m.attendance_col_absence()}</Table.Head>
 				<Table.Head>{m.attendance_col_notes()}</Table.Head>
+				<Table.Head>{m.daily_col_record()}</Table.Head>
 			</Table.Row>
 		</Table.Header>
 		<Table.Body>
@@ -235,7 +271,9 @@
 					<Table.Cell class="whitespace-nowrap">
 						<div class="flex flex-col gap-1">
 							{#if v.day.source === 'absence'}
-								<Badge variant="outline">{m.roster_preview_absent()}</Badge>
+								<Badge variant="outline">
+									{v.day.absenceType ? absenceLabel(v.day.absenceType) : m.roster_preview_absent()}
+								</Badge>
 							{/if}
 							{#if v.added || !planned}
 								<Form.Field {form} name={`rows[${index}].shiftId`}>
@@ -363,10 +401,18 @@
 							{/if}
 						</div>
 					</Table.Cell>
+					<Table.Cell class="text-xs">
+						<!-- What is stored for the day (pay plan 5.3): saved punches with their source. -->
+						{#if v.figures}
+							{@render record(v.figures)}
+						{:else}
+							<span class="text-muted-foreground">—</span>
+						{/if}
+					</Table.Cell>
 				</Table.Row>
 			{:else}
 				<Table.Row>
-					<Table.Cell colspan={6} class="h-20 text-center text-muted-foreground">
+					<Table.Cell colspan={7} class="h-20 text-center text-muted-foreground">
 						{sheet.scope ? m.attendance_nobody_planned() : m.attendance_pick_scope()}
 					</Table.Cell>
 				</Table.Row>

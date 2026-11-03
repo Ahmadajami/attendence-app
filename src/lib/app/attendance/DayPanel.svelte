@@ -1,20 +1,31 @@
 <script lang="ts">
+	import type { Infer, SuperValidated } from 'sveltekit-superforms';
+	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
+	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import ShiftChip from '#lib/app/roster/ShiftChip.svelte';
 	import { formatCalendarDate } from '#lib/app/roster/labels.js';
+	import type { DayFigures } from '#lib/attendance/day-result.js';
 	import { calendarDate, clockOf, pairsOf, toPairs, workedMinutes } from '#lib/attendance/entry.js';
+	import { absenceLabel } from '#lib/attendance/labels.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import type { RosterDay } from '#lib/roster/roster.js';
 	import type { RosterShift } from '#lib/roster/shift.js';
+	import type { AttendanceMessage } from '#lib/schemas/attendance.schema.js';
+	import type { dayStateClearSchema, dayStateFormSchema } from '#lib/schemas/day-state.schema.js';
 	import type { AttendanceEventType } from '#lib/schemas/enums.js';
 	import type { EventRow } from '#lib/server/services/attendance/attendance.crud.js';
 	import { lookupName } from '#lib/utils/locale.js';
 	import AddPairForm from './AddPairForm.svelte';
 	import CorrectionForm from './CorrectionForm.svelte';
+	import DayFiguresSummary from './DayFiguresSummary.svelte';
+	import DayHistorySheet from './DayHistorySheet.svelte';
+	import { PUNCH_SOURCE_LABEL } from './day-labels.js';
+	import DayStateSheet from './DayStateSheet.svelte';
 
 	type Props = {
 		staffId: string;
@@ -25,9 +36,22 @@
 		shifts: RosterShift[];
 		/** May add and correct punches (`attendance.record`). */
 		canRecord: boolean;
+		/** The person's name, for the sheets. */
+		name: string;
+		/** The stored daily record (pay plan 5.3); `null` for a future or not yet computed day. */
+		figures: DayFigures | null;
+		/** The day editor's forms (pay plan 5.2); `null` without `attendance.record`. */
+		dayStateForms: {
+			set: SuperValidated<Infer<typeof dayStateFormSchema>, AttendanceMessage>;
+			clear: SuperValidated<Infer<typeof dayStateClearSchema>, AttendanceMessage>;
+		} | null;
 	};
 
-	let { staffId, day, events, shifts, canRecord }: Props = $props();
+	let { staffId, day, events, shifts, canRecord, name, figures, dayStateForms }: Props = $props();
+
+	let editOpen = $state(false);
+	let historyOpen = $state(false);
+	const target = $derived({ staffId, name, date: day.date, state: day.absenceType });
 
 	const byId = $derived(new Map(shifts.map((s) => [s.id, s])));
 	const activeShifts = $derived(shifts.filter((s) => s.active));
@@ -60,7 +84,9 @@
 	<div class="flex flex-wrap items-center gap-2">
 		<h3 class="font-medium"><bdi>{formatCalendarDate(day.date)}</bdi></h3>
 		{#if day.source === 'absence'}
-			<Badge variant="outline">{m.roster_preview_absent()}</Badge>
+			<Badge variant="outline">
+				{day.absenceType ? absenceLabel(day.absenceType) : m.roster_preview_absent()}
+			</Badge>
 		{:else if day.shift}
 			<ShiftChip shift={day.shift} />
 			<span class="text-sm text-muted-foreground">
@@ -76,6 +102,26 @@
 			</span>
 		{/if}
 	</div>
+
+	<div class="flex flex-wrap gap-2">
+		{#if dayStateForms}
+			<Button type="button" variant="outline" size="sm" onclick={() => (editOpen = true)}>
+				<CalendarXIcon data-icon="inline-start" />
+				{m.daily_edit_day()}
+			</Button>
+		{/if}
+		<Button type="button" variant="outline" size="sm" onclick={() => (historyOpen = true)}>
+			<ClockCounterClockwiseIcon data-icon="inline-start" />
+			{m.daily_history()}
+		</Button>
+	</div>
+
+	{#if figures}
+		<div class="flex flex-col gap-2 rounded-md bg-muted/50 p-3">
+			<h4 class="text-sm font-medium">{m.daily_stored_title()}</h4>
+			<DayFiguresSummary {figures} />
+		</div>
+	{/if}
 
 	{#if listed.length === 0}
 		<p class="text-sm text-muted-foreground">{m.attendance_no_punches()}</p>
@@ -97,9 +143,7 @@
 						{#if event.correctsEventId}
 							<Badge variant="outline">{m.attendance_correction()}</Badge>
 						{/if}
-						{#if event.source !== 'manual'}
-							<Badge variant="outline">{m.attendance_source_seed()}</Badge>
-						{/if}
+						<Badge variant="outline">{PUNCH_SOURCE_LABEL[event.source]()}</Badge>
 						{#if canRecord && !correction}
 							<Button
 								type="button"
@@ -156,3 +200,8 @@
 		{/if}
 	{/if}
 </div>
+
+{#if dayStateForms}
+	<DayStateSheet forms={dayStateForms} {target} bind:open={editOpen} />
+{/if}
+<DayHistorySheet {target} {shifts} bind:open={historyOpen} />

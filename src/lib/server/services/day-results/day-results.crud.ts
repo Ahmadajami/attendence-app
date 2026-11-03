@@ -19,7 +19,8 @@ function chunks<T>(items: readonly T[], size = WRITE_CHUNK): T[][] {
 
 type DayResultRow = typeof dayResult.$inferSelect;
 
-function toValues(row: DayResultRow): DayResultValues {
+/** A stored row as the pure code sees it. */
+export function toValues(row: DayResultRow): DayResultValues {
 	return {
 		staffId: row.staffId,
 		shiftDate: row.shiftDate,

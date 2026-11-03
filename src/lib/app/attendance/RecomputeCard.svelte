@@ -26,18 +26,16 @@
 		untrack(() => data),
 		{
 			validators: zod4Client(recomputeFromSchema),
-			// The recompute changes no punch, so the entry sheet above must not reload and lose its
-			// unsaved rows.
-			invalidateAll: false,
-			// Keep the date, so the same range can be run again (a second run writes nothing).
-			resetForm: false,
+			// Several forms share the daily page: the load data wins after the run, which also
+			// reloads the rows it rewrote.
+			invalidateAll: 'pessimistic',
 			...statusToasts()
 		}
 	);
 	const { form: formData, enhance, delayed } = form;
 </script>
 
-<!-- "Recompute from a date" (pay plan 3.3): here until the daily attendance page (5.2). -->
+<!-- "Recompute from a date" (pay plan 3.3), at the bottom of the daily attendance page (5.2). -->
 <Card.Root>
 	<Card.Header>
 		<Card.Title>{m.daily_recompute_title()}</Card.Title>

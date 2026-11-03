@@ -38,6 +38,11 @@
 		return TABS.includes(value as Tab) ? (value as Tab) : 'days';
 	});
 
+	/** A pay rule or a holiday of its own; without either, the pay tab hints at both (PR39). */
+	const hasOwnPay = $derived(
+		data.pay.versions.length > 0 || data.pay.holidays.some((h) => h.cancelledAt === null)
+	);
+
 	function setTab(next: string) {
 		const url = new URL(page.url.href);
 		url.searchParams.set('tab', next);
@@ -130,6 +135,7 @@
 					title={m.pattern_pay_title()}
 					description={m.pattern_pay_description()}
 					empty={m.pattern_pay_versions_none()}
+					hint={hasOwnPay ? null : m.patterns_created_pay_hint()}
 					forms={data.payForms && { rule: data.payForms.rule, reset: data.payForms.reset }}
 					today={data.today}
 				/>

@@ -1,5 +1,5 @@
 import { m } from '#lib/paraglide/messages.js';
-import type { EntryAbsence } from '#lib/schemas/attendance.schema.js';
+import type { AbsenceType } from '#lib/schemas/enums.js';
 import type { PairIssue } from './entry.js';
 
 /** One sentence per check, the same in the entry sheet and in the service's refusals. */
@@ -20,8 +20,11 @@ export function pairIssueMessage(issue: PairIssue | 'reason_required'): string {
 	}
 }
 
-export function absenceLabel(type: EntryAbsence): string {
+/** A full-day state's name: the entry sheet's buttons, the day editor and every state badge. */
+export function absenceLabel(type: AbsenceType): string {
 	if (type === 'no_show') return m.attendance_absence_no_show();
 	if (type === 'leave') return m.attendance_absence_leave();
+	if (type === 'mission') return m.attendance_absence_mission();
+	if (type === 'other') return m.attendance_absence_other();
 	return m.attendance_absence_sick();
 }

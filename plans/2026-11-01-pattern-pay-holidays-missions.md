@@ -1,6 +1,6 @@
 # Daily attendance: pattern pay rules, holidays, missions, swaps, leave balance and edit log
 
-**Status:** in progress (approved 2026-11-02; extended the same day with swaps, leave balance and the edit log; Phases 1–3 built, the backfill button on `/attendance/entry` for now; Phase 4: 4.0–4.4 built, 4.4 waiting for the user's check; all three databases at 21 migrations)
+**Status:** in progress (approved 2026-11-02; extended the same day with swaps, leave balance and the edit log; Phases 1–3 built, the backfill button on `/attendance/entry` for now; Phase 4: 4.0–4.9 built, 4.4 / 4.8 / 4.9 waiting for the user's check; Phase 5 built 2026-11-03, 5.2 / 5.3 waiting for the user's check; all three databases at 21 migrations)
 **Date:** 2026-11-01 (rewritten and extended 2026-11-02)
 **Goal:** Once punches are in, the app keeps one **daily attendance record per
 person per day**. It works the record out from the person's pattern (shift,
@@ -121,6 +121,16 @@ PR27–PR29 and PR31–PR34 are defaults until the user says otherwise. All are 
 | PR37 | On a date with both, the **pattern's own holiday wins**; company holidays don't overlap each other | The nearer rule wins, as for pay (PR4) |
 | PR38 | The screen is a **Pay & holidays** section on `/admin/settings`; writes need `roster.manage` | The user's choice |
 | PR39 | A **new pattern opens on its Overtime & pay tab** after the builder saves it, with a hint to set its overtime and holidays there; the builder gets no pay step | The user chose B over a builder step (2026-11-03) |
+
+### Day editor and daily page (PR40–PR41, defaults added 2026-11-03 with Phase 5)
+
+| # | Decision | Why |
+|---|---|---|
+| PR40 | The day editor **never edits a state in place**: setting a state on dates that already have one is refused with those dates listed (clear first); **Clear** cancels every state touching the range and records the parts outside it again as new states (same type and reason); a **pattern mission** is cleared only on its pattern's tab. The set reason stays on the absence row only; the clear reason goes in the audit row | States are cancelled, never edited or deleted; no silent replace of a sick period; mission members stay together; set reasons may hold health details |
+| PR41 | `/attendance/days` shows a **from – to range** (`?from=&to=`, default the **last 7 days** ending today, `to` capped at today, at most **31 days**; an inverted or too long range is clamped with a notice) with **one row per person per day**, newest date first, then by person, and a Date column; it starts on **Everyone** (active people and anyone with punches), narrows to a department (with sub-departments) or a team; the **Source** filter is Typed / Punch reading / Odoo seed / Corrected (either time); In / Out stay the counted times with their source badge; **Corrected** is a day flag shown once as a badge; **Recompute these days** runs as the system for the range and scope with one audit row of counts; History loads from a JSON endpoint when the sheet opens | The range, default and row layout are the user's choice (2026-11-03); one list after punches arrive; the store keeps one corrected flag per day (a per-time flag would need a migration); History on demand keeps the page small |
+| PR42 | `/attendance/days` gets a **Person** search box (`?q=`, at most 80 characters): rows whose person's employee number or name (English or Arabic) contains it, case-insensitive, inside the scope; submits on change like the other GET filters; the missing-records count and **Recompute these days** follow the search; the audit row says only whether there was a search, never its text | The user chose "filter to one person" (2026-11-03) to read one employee's days for a range; a text search needs no new component for ~300 people; the search may be a name, so it stays out of the audit (CLAUDE.md §1) |
+| PR43 | **Replaced by PR44.** When the asked range must change (over 31 days, From after To, a date after today), the date the user **just changed stays** and the other moves (From = 10-01 with To = 11-03 → 10-01 → 10-31); the page sends `?edge=from\|to`, none (typed URL) keeps To; the date boxes always show the range actually used. Changes PR41's clamping | The user lost Oct 1–3: picking From first moved it to Oct 4 and the next pick sent the moved From, so Recompute these days skipped them; fix approved 2026-11-03 |
+| PR44 | `/attendance/days` uses **exactly the From and To picked**: no 31-day limit, no moving a date, no cap at today, no "adjusted" notice; only a missing date gets the default (last 7 days ending today). Future dates or From after To show no rows; the missing count covers dates up to today. **Recompute these days** skips future dates and is refused only above 400 dates (`MAX_BACKFILL_DAYS`). Replaces PR41's range limits and PR43 | The user's choice (2026-11-03): the rules moved picked dates and hid days; the limit stays only on the recompute, a system-wide write |
 
 ## 2. What exists today (facts from the code)
 
@@ -511,19 +521,79 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       **Done when** the user confirms on `5174`: build and save a new pattern without assigning
       it → the page opens on **Overtime & pay** with the hint; built from a team's assign sheet
       → back on the team page as before; `/ar/` the same
+      > note: 2026-11-03 built, waiting for the user's check. `afterCreate` goes to
+      > `/patterns/[id]?tab=pay` when there is no `returnTarget` and then shows `toast.info` with
+      > `patterns_created_pay_hint` (en + ar); `PayRuleCard` has an optional `hint` shown under the
+      > description, which the pattern page passes while the pattern has no pay-rule version and no
+      > active holiday of its own. Autofixer clean on the 3 touched files.
 
 ### Phase 5 · Daily attendance page, day editor, history
-- [ ] 5.1 `day-state` service: set / clear a state for one person over a
+- [x] 5.1 `day-state` service: set / clear a state for one person over a
       date range (absence rows, overlap refused, reason; health reasons
       never logged), flagged in its batch, then `recomputeAfter` (source
       `day_edit`)
+      > note: 2026-11-03. `services/day-state/day-state.bl.ts` (`setDayState`, `clearDayState`,
+      > `attendance.record`, active person only, past dates allowed) + `day-state.crud.ts`
+      > (`listActiveStates`). Set: refused with the dates listed when any date already has a
+      > state, else one absence row; `23P01` becomes a translated conflict. Clear: pure
+      > `planClear` (`src/lib/attendance/day-state.ts`, 5 tests) cancels every overlapping row and
+      > re-records its parts outside the range (PR40); pattern missions refused there. Each write:
+      > one `batch` (rows, audit row, flags capped at today), then `recomputeAfter` with
+      > `day_edit` and the absence id. The set audit row has dates and state only, no reason. Shared
+      > forms + actions `#lib/server/day-state-forms.ts`. Not run against a database: the user's
+      > checks come with 5.2.
 - [ ] 5.2 `/attendance/days` (GET filters incl. source, table from
       `day_result`, source badges, `catchUpFlagged` on load, Recompute for the
       shown date and scope, "Recompute from a date" for `recomputeFrom`) +
       `DayStateSheet` +
       `DayHistorySheet`; the same sheets on the employee day panel
+      > note: 2026-11-03 built, waiting for the user's check on `5174`. Service
+      > `services/daily/daily.bl.ts` (`getDailyAttendance`, `recomputeDailyScope`,
+      > `getDayHistory`, `listStoredFigures`, `parseScope`) + `daily.crud.ts`. Page: GET filters
+      > date (≤ today) / scope (Everyone, department, team) / status / source (PR41), count of people
+      > in scope with no stored row, table with shift, status, badges, in / out with source badges,
+      > worked, late, overtime ×rate or "not paid" (reason in a tooltip); row actions **Edit day**
+      > and **History**; **Recompute this day** (plain action `?/recomputeDay`, toast with counts);
+      > the **Recompute from a date** card moved here from `/attendance/entry` (action `?/recompute`).
+      > `catchUpFlagged` runs on load. `DayStateSheet` (Set a state / Clear the state, two form
+      > components `DayStateSetForm`, `DayStateClearForm`) and `DayHistorySheet` (newest first,
+      > field filter, source badge, who, link to the cause; JSON endpoint
+      > `/attendance/days/history`). The employee day panel has the same two sheets. Sidebar link
+      > **Daily attendance** (`staff.write`). Autofixer clean on every touched file.
+      > note: 2026-11-03 changed at the user's request (PR41): the single date filter became a
+      > **from – to** range (default the last 7 days, `to` capped at today, at most 31 days; an
+      > inverted or too long range is clamped and the page says so), one row per person per day
+      > (newest date first, then person) with a **Date** column (date + weekday); In / Out unchanged.
+      > The count and "no stored record" now cover the range (person-days); **Recompute these days**
+      > (action `?/recomputeDays`, audit `day_result.recompute_days`, refused past 31 days) replaces
+      > Recompute this day. Edit day / History use the row's date. Still waiting for the user's check.
+      > note: 2026-11-03 the user found an employee's punch dates missing from the page: it lists only
+      > stored `day_result` rows, and 16 of 18 punch dates of one test employee (`_e2e`) had none
+      > (never recomputed). Fix there: **Recompute these days**. Added at the user's request (PR42):
+      > a **Person** search (`?q=`, `listStaffIdsMatching` with an escaped `ILIKE`, pure helpers
+      > `#lib/attendance/person-search.ts`, 5 tests) that also narrows the missing count and
+      > Recompute these days (`recomputeDaysSchema.q`; audit `search: true|false`, no text).
+      > Strings `daily_filter_person`, `daily_search_placeholder` (en + ar). Waiting for the user's check.
+      > note: 2026-11-03 range fix (PR43): Oct 1 of the same test employee had 2 punches and no stored
+      > row; the only Recompute these days ran 10-04 → 10-31 (From had been moved by the old clamp).
+      > Pure `dailyRange` (`#lib/attendance/daily-range.ts`, 9 tests) replaces `shownRange`; the page
+      > sends `edge` for the date just changed and binds both boxes to the loaded range. Waiting for
+      > the user's check.
+      > note: 2026-11-03 PR43 replaced by PR44 at the user's request: no range rules at all.
+      > `dailyRange` now only fills a missing date; `pastDays` counts the storable dates for the
+      > missing count and the recompute (refused above `MAX_BACKFILL_DAYS`). `edge`, `MAX_DAILY_DAYS`
+      > and `daily_range_adjusted` removed; `daily_error_range` reworded (en + ar). 7 tests.
+      > Waiting for the user's check.
 - [ ] 5.3 Entry sheet and employee page read the stored figures; source
       badges on in / out; ×rate / "not paid" cell; `mission` label
+      > note: 2026-11-03 built, waiting for the user's check. The entry sheet has a **Stored record**
+      > column (in → out with source badges, worked, overtime ×rate / not paid, badges) read from
+      > `day_result` with the sheet; the employee day panel shows the stored record of the day and a
+      > source badge on every punch (Typed / Punch reading / Odoo seed). `absenceLabel` covers all
+      > five states (new `attendance_absence_mission`, `attendance_absence_other`), so a mission or
+      > "other" day shows its own label on the entry sheet and the day panel instead of "Absent".
+      > Shared components `PunchTime`, `OvertimeCell`, `DayBadges`, `DayFiguresSummary`, labels in
+      > `#lib/app/attendance/day-labels.ts`. 110 new strings (en + ar).
 
 ### Phase 6 · Swaps
 - [ ] 6.1 `#lib/schemas/swap.schema.ts` (+ Vitest) and `swaps.bl/crud`:

@@ -10,6 +10,7 @@ import {
 	type AttendanceMessage
 } from '#lib/schemas/attendance.schema.js';
 import { setStaffActiveSchema } from '#lib/schemas/staff.schema.js';
+import { dayStateActions, dayStateForms } from '#lib/server/day-state-forms.js';
 import { failForm, failNotice } from '#lib/server/errors.js';
 import {
 	assignAction,
@@ -37,6 +38,7 @@ import {
 	listPersonEvents
 } from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
+import { listStoredFigures } from '#lib/server/services/daily/daily.bl.js';
 import { managementTreeFor } from '#lib/server/services/management/management.bl.js';
 import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
 import { getPersonRoster, getPersonSchedule } from '#lib/server/services/roster/roster.bl.js';
@@ -76,8 +78,12 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	/** `?on=`: the Management tab's date (tree plan M15); only this param reruns the load for it. */
 	const on = url.searchParams.get('on');
 	const managementDate = on && z.iso.date().safeParse(on).success ? on : roster.today;
+	// The stored days of the preview (pay plan 5.3): up to today, future days are not stored.
+	const storedTo = last < roster.today ? last : roster.today;
 	const [
 		events,
+		storedDays,
+		dayForms,
 		schedule,
 		patterns,
 		forms,
@@ -91,6 +97,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		canRecord
 			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
 			: Promise.resolve([]),
+		listStoredFigures(actor, roster.person.staffId, roster.preview.from, storedTo),
+		canRecord ? dayStateForms(roster.today) : Promise.resolve(null),
 		getPersonSchedule(actor, id),
 		listPatterns(actor),
 		patternForms(roster.today, { kind: 'staff', id }),
@@ -105,6 +113,10 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		...roster,
 		canRecord,
 		events,
+		/** The stored daily records of the preview, by date (pay plan 5.3). */
+		storedDays,
+		/** The day editor's forms (pay plan 5.2); `null` without `attendance.record`. */
+		dayStateForms: dayForms,
 		selectedDay: day && day >= roster.preview.from && day <= last ? day : null,
 		/** A personal version in force today or scheduled: the person doesn't follow their team. */
 		hasPersonalPattern: roster.versions.some(
@@ -137,6 +149,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 };
 
 export const actions: Actions = {
+	...dayStateActions(actorFrom),
+
 	saveStaff: async ({ request, locals, params }) =>
 		updateStaffAction(request, actorFrom(locals), staffId(params.id)),
 

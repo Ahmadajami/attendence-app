@@ -83,13 +83,16 @@
 		shiftForm
 	}: Props = $props();
 
-	/** Where to go after creating: back to the asking page, else the new pattern. */
+	/**
+	 * Where to go after creating: back to the asking page, else the new pattern's "Overtime & pay"
+	 * tab (pay plan PR39).
+	 */
 	function afterCreate(id: string) {
 		if (returnTarget?.kind === 'team') return localizedHref('/teams/[id]', { id: returnTarget.id });
 		if (returnTarget?.kind === 'staff')
 			return localizedHref('/employees/[id]', { id: returnTarget.id });
 		if (returnTarget?.kind === 'department') return localizedHref('/departments');
-		return localizedHref('/patterns/[id]', { id });
+		return `${localizedHref('/patterns/[id]', { id })}?tab=pay`;
 	}
 
 	const form = superForm(
@@ -103,7 +106,11 @@
 			onUpdated: ({ form }) => {
 				if (form.message?.kind === 'success') {
 					toast.success(form.message.text);
-					if (!pattern) void goto(afterCreate(form.data.patternId));
+					if (!pattern) {
+						if (!returnTarget) toast.info(m.patterns_created_pay_hint());
+						// eslint-disable-next-line svelte/no-navigation-without-resolve -- localizedHref() + `?tab=`
+						void goto(afterCreate(form.data.patternId));
+					}
 				} else if (form.message?.kind === 'error') {
 					toast.error(form.message.text);
 				}

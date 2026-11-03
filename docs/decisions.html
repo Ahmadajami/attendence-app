@@ -172,7 +172,8 @@
     editor: { en: 'Pattern editor', ar: 'محرر الأنماط' },
     builder: { en: 'Attendance builder', ar: 'منشئ الحضور' },
     profile: { en: 'Employee profile', ar: 'ملف الموظف' },
-    management: { en: 'Two-level management', ar: 'الإدارة على مستويين' }
+    management: { en: 'Two-level management', ar: 'الإدارة على مستويين' },
+    testdata: { en: 'Test data', ar: 'بيانات الاختبار' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -1438,6 +1439,41 @@
       alts: [ { en: "An optional Overtime & holidays step in the builder saved in one batch: not chosen by the user — more work for the same result.", ar: "خطوة اختيارية للإضافي والعطل في المُنشئ تُحفظ دفعة واحدة: لم يخترها المستخدم — عمل أكثر للنتيجة نفسها." } ]
     },
     {
+      id: 'PR40', group: 'payroll', status: 'default', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.1',
+      title: { en: "The day editor never edits a state in place", ar: "محرر اليوم لا يعدّل حالة في مكانها أبداً" },
+      decision: { en: "Setting a state on dates that already have one is refused, listing those dates (clear first). Clearing a range cancels every state that touches it; the parts of a cancelled state outside the range are recorded again as new states (same type and reason). A pattern mission is cleared only on its pattern's Holidays & missions tab. The set reason stays on the state row only (not in the audit row or the history); the clear reason goes in the audit row.", ar: "تعيين حالة على تواريخ لها حالة مسبقاً مرفوض، مع سرد تلك التواريخ (أزلها أولاً). وإزالة مدة تلغي كل حالة تمسّها؛ وتُسجَّل أجزاء الحالة الملغاة خارج المدة من جديد كحالات جديدة (النوع والسبب نفسهما). ولا تُزال مهمة النمط إلا من تبويب العطل والمهمات في النمط. ويبقى سبب التعيين في صف الحالة فقط (لا في صف التدقيق ولا في السجل)؛ ويُحفظ سبب الإزالة في صف التدقيق." },
+      why: { en: "States are cancelled, never edited or deleted, so the old dates stay visible; a silent replace could hide a sick period. A pattern mission's members stay together. Set reasons may hold health details.", ar: "الحالات تُلغى ولا تُعدَّل ولا تُحذف، فتبقى التواريخ القديمة ظاهرة؛ والاستبدال الصامت قد يُخفي فترة مرض. ويبقى أعضاء مهمة النمط معاً. وقد تحمل أسباب التعيين تفاصيل صحية." },
+      alts: [ { en: "Replace an overlapping state automatically: not chosen — it changes another record without saying so.", ar: "استبدال الحالة المتداخلة تلقائياً: لم يُختر — يغيّر سجلاً آخر دون إعلام." }, { en: "Shorten the existing row's dates in place: not chosen — rows are never edited (CLAUDE.md never hard-delete, history kept).", ar: "تقصير تواريخ الصف الموجود في مكانه: لم يُختر — الصفوف لا تُعدَّل (يُحفظ التاريخ)." } ]
+    },
+    {
+      id: 'PR41', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Daily page: a from–to range, one row per person per day", ar: "الصفحة اليومية: مدة من–إلى، وصف لكل شخص لكل يوم" },
+      decision: { en: "/attendance/days shows a from–to range (default the last 7 days ending today, To capped at today, at most 31 days; an inverted or too long range is clamped and the page says so) with one row per person per day, newest date first, then by person, and a Date column. It starts on Everyone (every active person and anyone with punches) and can narrow to a department (with sub-departments) or a team. The Source filter has Typed, Punch reading, Odoo seed and Corrected and matches either time. In and Out stay the counted times with their source badge; Corrected is a flag of the whole day, shown once as a badge. Recompute these days runs as the system for the range and scope, with one audit row of counts. History is read from a JSON endpoint when the sheet opens.", ar: "تعرض /attendance/days مدة من–إلى (افتراضياً آخر 7 أيام حتى اليوم، و«إلى» لا يتجاوز اليوم، و31 يوماً على الأكثر؛ والمدة المعكوسة أو الأطول تُضبط وتذكر الصفحة ذلك) بصف لكل شخص لكل يوم، الأحدث تاريخاً أولاً ثم حسب الشخص، مع عمود للتاريخ. تبدأ بنطاق «الجميع» (كل شخص نشط وكل من لديه بصمات) ويمكن تضييقها إلى قسم (مع أقسامه الفرعية) أو فريق. ومرشح المصدر فيه: مُدخل يدوياً، قراءة بصمة، من Odoo، مُصحّح، ويطابق أياً من الوقتين. ويبقى الدخول والخروج الوقتين المحتسبين مع شارة المصدر؛ و«مُصحّح» علامة لليوم كله تظهر مرة واحدة كشارة. وإعادة حساب هذه الأيام تعمل باسم النظام للمدة والنطاق مع صف تدقيق واحد بالأعداد. ويُقرأ السجل من نقطة JSON عند فتح الورقة." },
+      why: { en: "The range, the 7-day default, the 31-day limit and one row per person per day are the user's choice (2026-11-03). The store keeps one corrected flag per day, not per time; loading History on demand keeps the page small.", ar: "المدة والافتراضي 7 أيام والحد 31 يوماً وصف لكل شخص لكل يوم هي اختيار المستخدم (2026-11-03). والمخزن يحفظ علامة تصحيح واحدة لكل يوم لا لكل وقت؛ وتحميل السجل عند الطلب يبقي الصفحة صغيرة." },
+      alts: [ { en: "One date at a time: replaced at the user's request — reviewing a week meant seven page loads.", ar: "تاريخ واحد في كل مرة: استُبدل بطلب المستخدم — مراجعة أسبوع كانت تعني سبع مرات تحميل." }, { en: "Refuse a bad range with an error: not chosen — clamping keeps the page usable and says what changed.", ar: "رفض المدة غير الصالحة برسالة خطأ: لم يُختر — الضبط يبقي الصفحة قابلة للاستخدام ويذكر ما تغيّر." }, { en: "Require a scope as the entry sheet does: not chosen — the daily review covers everyone.", ar: "اشتراط نطاق كما في ورقة الإدخال: لم يُختر — المراجعة اليومية تشمل الجميع." }, { en: "A Corrected flag per time: not chosen — needs a new column (migration) for little gain.", ar: "علامة تصحيح لكل وقت: لم يُختر — تحتاج عموداً جديداً (ترحيلاً) لفائدة قليلة." } ]
+    },
+    {
+      id: 'PR42', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Daily page: search for one person", ar: "الصفحة اليومية: البحث عن شخص واحد" },
+      decision: { en: "/attendance/days gets a Person search box (?q=, at most 80 characters): it keeps the rows whose person's employee number or name (English or Arabic) contains the text, case-insensitive, inside the chosen scope. It submits on change like the other GET filters, so it lives in the URL. The count of days with no stored record and Recompute these days follow the search too, so recomputing one person's range is quick. The audit row of Recompute these days says only whether there was a search, never its text.", ar: "تحصل /attendance/days على مربع بحث «الموظف» (‎?q=‎، 80 حرفاً على الأكثر): يُبقي الصفوف التي يحتوي الرقم الوظيفي لصاحبها أو اسمه (بالإنجليزية أو العربية) على النص، دون تمييز حالة الأحرف، داخل النطاق المختار. ويُرسل عند التغيير مثل بقية مرشحات GET، فيبقى في الرابط. ويتبع البحثَ أيضاً عددُ الأيام بلا سجل محفوظ وزرُّ «إعادة حساب هذه الأيام»، فتصبح إعادة حساب مدة شخص واحد سريعة. وصف التدقيق لإعادة الحساب يذكر فقط هل كان هناك بحث، ولا يذكر نصه أبداً." },
+      why: { en: "The user chose a filter to one person (2026-11-03) to read one employee's daily records for a range, as the schedule tab shows them. A text search needs no new component and handles about 300 people; the search text may be a name, so it stays out of the audit log (CLAUDE.md §1).", ar: "اختار المستخدم مرشحاً لشخص واحد (2026-11-03) لقراءة السجلات اليومية لموظف واحد خلال مدة، كما يعرضها تبويب الجدول. والبحث النصي لا يحتاج مكوّناً جديداً ويكفي لنحو 300 شخص؛ وقد يكون نص البحث اسماً، فيبقى خارج سجل التدقيق (CLAUDE.md §1)." },
+      alts: [ { en: "A dropdown of every person: not chosen — about 300 names in one list is slow to use.", ar: "قائمة منسدلة بكل الأشخاص: لم يُختر — نحو 300 اسم في قائمة واحدة بطيء الاستخدام." }, { en: "A searchable combobox (shadcn Command + Popover): not chosen for now — it needs new components added by the user; the search box can become one later.", ar: "قائمة قابلة للبحث (Command + Popover من shadcn): لم يُختر حالياً — يحتاج مكوّنات جديدة يضيفها المستخدم؛ ويمكن أن يصبح مربع البحث كذلك لاحقاً." }, { en: "Compute missing days when the page opens, or list them as \"not computed\" rows: offered, not chosen by the user.", ar: "حساب الأيام الناقصة عند فتح الصفحة، أو عرضها كصفوف «غير محسوبة»: عُرض ولم يختره المستخدم." } ]
+    },
+    {
+      id: 'PR43', group: 'payroll', status: 'replaced', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Daily page: a fitted range keeps the date just picked (replaced by PR44)", ar: "الصفحة اليومية: المدة المضبوطة تُبقي التاريخ المختار للتو (استُبدل بـ PR44)" },
+      decision: { en: "When the asked range must change (over 31 days, From after To, or a date after today), the date the user just changed stays and the other one moves: From = 2026-10-01 with To = 2026-11-03 gives 2026-10-01 → 2026-10-31. The page sends which date changed (?edge=from|to); without it (a typed URL) To stays, as before. The date boxes always show the range actually used, even when it equals the one shown before. Changes PR41's clamping rule; the 31-day limit and the notice stay.", ar: "عندما يجب تغيير المدة المطلوبة (أكثر من 31 يوماً، أو «من» بعد «إلى»، أو تاريخ بعد اليوم)، يبقى التاريخ الذي غيّره المستخدم للتو ويتحرك الآخر: «من» = 2026-10-01 مع «إلى» = 2026-11-03 تعطي 2026-10-01 → 2026-10-31. وترسل الصفحة أي تاريخ تغيّر (‎?edge=from|to‎)؛ وبدونه (رابط مكتوب) يبقى «إلى» كما كان. وتعرض مربعات التاريخ دائماً المدة المستخدمة فعلاً، حتى لو كانت مطابقة للمعروضة قبلها. يغيّر قاعدة الضبط في PR41؛ ويبقى حد 31 يوماً والتنبيه." },
+      why: { en: "The user lost Oct 1–3 (2026-11-03): picking From = Oct 1 while To was Nov 3 moved From to Oct 4, then picking To sent the moved From, and Recompute these days ran without those days. The user approved this fix the same day.", ar: "فقد المستخدم 1–3 تشرين الأول (2026-11-03): اختيار «من» = 1 تشرين الأول و«إلى» = 3 تشرين الثاني نقل «من» إلى 4 تشرين الأول، ثم اختيار «إلى» أرسل «من» المنقول، فعملت «إعادة حساب هذه الأيام» بدون تلك الأيام. ووافق المستخدم على هذا الإصلاح في اليوم نفسه." },
+      alts: [ { en: "Always keep To and move From (PR41 as built): replaced — it silently drops the start the user just chose.", ar: "إبقاء «إلى» دائماً وتحريك «من» (PR41 كما بُني): استُبدل — يُسقط بصمت البداية التي اختارها المستخدم للتو." }, { en: "Refuse the range with an error: not chosen — the user then has to fix both dates by hand.", ar: "رفض المدة برسالة خطأ: لم يُختر — على المستخدم عندها إصلاح التاريخين يدوياً." }, { en: "An Apply button instead of applying on each change: not chosen — the other GET filters apply on change.", ar: "زر «تطبيق» بدل التطبيق عند كل تغيير: لم يُختر — بقية مرشحات GET تُطبَّق عند التغيير." } ]
+    },
+    {
+      id: 'PR44', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Daily page: From and To exactly as picked, no range rules", ar: "الصفحة اليومية: «من» و«إلى» كما اختيرا تماماً، بلا قواعد للمدة" },
+      decision: { en: "/attendance/days uses exactly the From and To the user picks: no 31-day limit, no moving a date, no cap at today and no \"dates were adjusted\" notice. Only a missing date gets a default (the last 7 days ending today). Future dates and From after To simply show no rows; the missing-records count covers only dates up to today. Recompute these days skips future dates and is refused only when more than 400 dates remain (the same limit as Recompute from a date). Replaces PR41's range limits and PR43.", ar: "تستخدم /attendance/days «من» و«إلى» كما يختارهما المستخدم تماماً: لا حد 31 يوماً، ولا تحريك لتاريخ، ولا سقف عند اليوم، ولا تنبيه «عُدّلت التواريخ». فقط التاريخ الناقص يأخذ قيمة افتراضية (آخر 7 أيام حتى اليوم). والتواريخ المستقبلية أو «من» بعد «إلى» لا تُظهر صفوفاً ببساطة؛ وعدد الأيام بلا سجل يشمل التواريخ حتى اليوم فقط. و«إعادة حساب هذه الأيام» تتخطى التواريخ المستقبلية ولا تُرفض إلا إذا بقي أكثر من 400 تاريخ (الحد نفسه لـ«إعادة الحساب من تاريخ»). يستبدل حدود المدة في PR41 وPR43." },
+      why: { en: "The user's choice (2026-11-03): the rules moved dates they had picked and hid days (Oct 1–3); a plain range is easier to understand. The 400-day limit stays only on the recompute, a write that runs as the system.", ar: "اختيار المستخدم (2026-11-03): القواعد حرّكت تواريخ اختارها وأخفت أياماً (1–3 تشرين الأول)؛ والمدة البسيطة أسهل فهماً. ويبقى حد 400 يوم على إعادة الحساب فقط، لأنها كتابة تعمل باسم النظام." },
+      alts: [ { en: "Keep the 31-day limit and move the other date (PR43): replaced at the user's request.", ar: "إبقاء حد 31 يوماً وتحريك التاريخ الآخر (PR43): استُبدل بطلب المستخدم." }, { en: "No limit on the recompute either: not chosen — one click could recompute years for everyone.", ar: "بلا حد على إعادة الحساب أيضاً: لم يُختر — نقرة واحدة قد تعيد حساب سنوات للجميع." } ]
+    },
+    {
       id: 'AV1', group: 'profile', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
       title: { en: "One aviation privilege per employee at a time", ar: "امتياز طيران واحد لكل موظف في الوقت نفسه" },
       decision: { en: "Each employee holds at most one privilege issued by the civil aviation authority at a time, identified by its privilege number (letters, digits, dashes, slashes; at most 30) and held for a period with a start and an end date (both inclusive).", ar: "يحمل كل موظف امتيازاً واحداً على الأكثر صادراً عن سلطة الطيران المدني في الوقت نفسه، يُعرَّف برقم الامتياز (حروف وأرقام وشرطات وخطوط مائلة؛ 30 حرفاً على الأكثر) ويُحمل لفترة لها تاريخ بداية وتاريخ نهاية (شاملين)." },
@@ -1507,6 +1543,63 @@
       why: { en: "The user chose flag only (2026-11-03).", ar: "اختار المستخدم التنبيه فقط (2026-11-03)." },
       alts: [ { en: "A warning on the roster and the entry sheet: not chosen by the user.", ar: "تحذير في الجدول وورقة الإدخال: لم يختره المستخدم." }, { en: "Blocking rostering and punches: not chosen by the user.", ar: "منع الجدولة والبصمات: لم يختره المستخدم." } ]
     },
+    // ---------------- Test data (plans/2026-11-03-e2e-operation-seed.md) ----------------
+    {
+      id: 'OP1', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "Made-up people mirror the production Operation team", ar: "أشخاص وهميون يحاكون فريق التشغيل في الإنتاج" },
+      decision: { en: "Six made-up staff (numbers 2001–2006) in a new e2e team; only the pattern shape, shift times and crew-start numbers come from production.", ar: "ستة موظفين وهميين (الأرقام 2001–2006) في فريق جديد في قاعدة e2e؛ ولا يُؤخذ من الإنتاج إلا شكل النمط وأوقات الورديات وأرقام بداية الطاقم." },
+      why: { en: "No real person leaves the production DB (CLAUDE.md §1).", ar: "لا يخرج أي شخص حقيقي من قاعدة الإنتاج (§1 في CLAUDE.md)." },
+      alts: [ { en: "Copy the real team into e2e: personal data in a test DB, forbidden.", ar: "نسخ الفريق الحقيقي إلى e2e: بيانات شخصية في قاعدة اختبار، ممنوع." } ]
+    },
+    {
+      id: 'OP2', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "Same shifts as production (D8, N8)", ar: "الورديات نفسها كما في الإنتاج (D8 وN8)" },
+      decision: { en: "New e2e shifts D8 08:00–20:00 and N8 20:00–08:00 with the production settings; e2e's own D/N stay untouched.", ar: "ورديتان جديدتان في e2e: D8 من 08:00 إلى 20:00 وN8 من 20:00 إلى 08:00 بإعدادات الإنتاج؛ وتبقى D/N الخاصة بـ e2e كما هي." },
+      why: { en: "The test must behave like the real team: 12-hour days and an overnight shift.", ar: "يجب أن يتصرف الاختبار مثل الفريق الحقيقي: أيام 12 ساعة ووردية ليلية تمتد لليوم التالي." },
+      alts: [ { en: "Reuse e2e's D/N (07:00/19:00): different times, so the figures would not match the real team.", ar: "إعادة استخدام D/N في e2e (07:00/19:00): أوقات مختلفة، فلا تطابق الأرقام الفريق الحقيقي." } ]
+    },
+    {
+      id: 'OP3', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "One pattern per month, same slots, team only", ar: "نمط لكل شهر، بالخانات نفسها، للفريق فقط" },
+      decision: { en: "Operation-1/Oct/2026 (anchor 2026-10-01, until 2026-11-01) and Operation-1/Nov/2026 (anchor 2026-11-01, open), the same 24 slots, assigned to the team only.", ar: "Operation-1/Oct/2026 (مرساة 2026-10-01 حتى 2026-11-01) وOperation-1/Nov/2026 (مرساة 2026-11-01، مفتوح)، بالخانات الـ24 نفسها، مسندان للفريق فقط." },
+      why: { en: "HR builds a new pattern each month; in e2e a department assignment would also move person 1500 in the Ramp sub-department.", ar: "تبني الموارد البشرية نمطاً جديداً كل شهر؛ وفي e2e سيحرّك إسناد القسم الشخص 1500 في القسم الفرعي Ramp أيضاً." },
+      alts: [ { en: "One long pattern for both months: does not test a month-to-month change.", ar: "نمط طويل واحد للشهرين: لا يختبر التغيير من شهر لآخر." }, { en: "Team and department like production: changes an unrelated e2e person (Q-OP4).", ar: "الفريق والقسم كما في الإنتاج: يغيّر شخصاً لا علاقة له في e2e (Q-OP4)." } ]
+    },
+    {
+      id: 'OP4', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §2',
+      title: { en: "Crew starts change each month", ar: "بداية الطاقم تتغير كل شهر" },
+      decision: { en: "November copies production's six crew starts (none, 1, 5, 9, 13, 20); October rotates the same values by two people, as own-rule versions per month.", ar: "نوفمبر ينسخ بدايات الطاقم الست من الإنتاج (بلا، 1، 5، 9، 13، 20)؛ وأكتوبر يدوّر القيم نفسها بشخصين، كنسخ من القواعد الخاصة لكل شهر." },
+      why: { en: "Each member differs from every teammate and from their own other month, as the user described.", ar: "كل عضو يختلف عن زملائه وعن شهره الآخر، كما وصف المستخدم." },
+      alts: [ { en: "Same crew starts in both months: the month change would test nothing.", ar: "بدايات الطاقم نفسها في الشهرين: لن يختبر تغيير الشهر شيئاً." } ]
+    },
+    {
+      id: 'OP5', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "Seed inputs only; the app computes the results", ar: "زرع المدخلات فقط؛ والتطبيق يحسب النتائج" },
+      decision: { en: "The script writes shifts, team, people, patterns, assignments, own rules, punches, absences and audit rows, never day_result; the user runs Recompute from 2026-10-01.", ar: "يكتب السكربت الورديات والفريق والأشخاص والأنماط والإسنادات والقواعد الخاصة والبصمات والغيابات وسجلات التدقيق، ولا يكتب day_result أبداً؛ ويشغّل المستخدم إعادة الحساب من 2026-10-01." },
+      why: { en: "Results written by the seed could hide engine bugs instead of testing them; the services need SvelteKit and cannot run from a script.", ar: "النتائج التي يكتبها الزرع قد تخفي أخطاء المحرك بدل اختبارها؛ والخدمات تحتاج SvelteKit ولا تعمل من سكربت." },
+      alts: [ { en: "Type everything through the entry sheet: about 190 pairs by hand.", ar: "إدخال كل شيء عبر ورقة الإدخال: نحو 190 زوجاً يدوياً." }, { en: "Write day_result directly: bypasses the engine under test.", ar: "كتابة day_result مباشرة: يتجاوز المحرك الذي نختبره." } ]
+    },
+    {
+      id: 'OP6', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "No future punches; rerun to top up", ar: "لا بصمات في المستقبل؛ وإعادة التشغيل للإكمال" },
+      decision: { en: "Punches stop at the last shift that has ended; the script takes --to and can be rerun later until 2026-11-30.", ar: "تتوقف البصمات عند آخر وردية انتهت؛ ويقبل السكربت ‎--to‎ ويمكن إعادة تشغيله لاحقاً حتى 2026-11-30." },
+      why: { en: "The app refuses future punches and recompute stops at today (PR18).", ar: "يرفض التطبيق البصمات المستقبلية وتتوقف إعادة الحساب عند اليوم (PR18)." },
+      alts: [ { en: "Write punches to 2026-11-30 now: data the app could never hold (Q-OP1).", ar: "كتابة البصمات حتى 2026-11-30 الآن: بيانات لا يمكن أن يحملها التطبيق (Q-OP1)." } ]
+    },
+    {
+      id: 'OP7', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "Deterministic, guarded, backed up", ar: "حتمي ومحمي ومع نسخة احتياطية" },
+      decision: { en: "Fixed random seed; refuses any DB whose name does not end in _e2e; structure created once; a pg_dump before the first run.", ar: "بذرة عشوائية ثابتة؛ ويرفض أي قاعدة لا ينتهي اسمها بـ _e2e؛ وتُنشأ البنية مرة واحدة؛ ونسخة pg_dump قبل أول تشغيل." },
+      why: { en: "Safe to rerun, cannot touch real data by mistake, one restore undoes it.", ar: "آمن لإعادة التشغيل، ولا يمكنه لمس البيانات الحقيقية خطأً، واستعادة واحدة تلغيه." },
+      alts: [ { en: "Delete seeded rows to undo: append-only tables and never-hard-delete rule.", ar: "حذف الصفوف المزروعة للإلغاء: جداول للإضافة فقط وقاعدة عدم الحذف النهائي." } ]
+    },
+    {
+      id: 'OP8', group: 'testdata', status: 'proposed', date: '2026-11-03', src: 'plans/2026-11-03-e2e-operation-seed.md §1',
+      title: { en: "A realistic mix of days", ar: "مزيج واقعي من الأيام" },
+      decision: { en: "Mostly on time, plus fixed counts of late, early leave, overtime, missing check-out, no-show, sick, leave, an extra shift and holiday work.", ar: "في الغالب في الوقت، مع أعداد ثابتة من التأخير والخروج المبكر والعمل الإضافي ونسيان الخروج والغياب والمرض والإجازة ووردية إضافية والعمل في عطلة." },
+      why: { en: "Every state of the daily page and every pay figure gets at least one example.", ar: "كل حالة في الصفحة اليومية وكل رقم أجر يحصل على مثال واحد على الأقل." },
+      alts: [ { en: "All on time: leaves most rules untested (Q-OP5).", ar: "الكل في الوقت: يترك معظم القواعد دون اختبار (Q-OP5)." } ]
+    },
     {
       id: 'AV11', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
       title: { en: "No scans, no hard delete", ar: "لا مسح ضوئي ولا حذف نهائي" },
@@ -1564,7 +1657,12 @@
     ["Q-PR8", "Must an employee swap's return date be given?", "optional (PR26)", "هل يجب تحديد تاريخ الرد في التبديل بين موظفين؟", "اختياري (PR26)"],
     ["Q-AV3", "Does a privilege renewal usually keep the same number?", "prefilled with the previous number, editable (AV4)", "هل يحتفظ تجديد الامتياز عادةً بالرقم نفسه؟", "يُملأ بالرقم السابق ويمكن تعديله (AV4)"],
     ["Q-AV5", "Must every active employee have a privilege, or only some (by job title or work area)?", "everyone may have one; /privileges lists people with none, no requirement rule", "هل يجب أن يكون لكل موظف نشط امتياز، أم لبعضهم فقط (حسب المسمى أو مجال العمل)؟", "يمكن للجميع أن يحملوه؛ وتسرد /privileges من ليس لديه، دون قاعدة إلزام"],
-    ["Q-AV7", "Can a privilege be granted on the new-employee page, or only later on the profile?", "only on the profile (AV8)", "هل يمكن منح الامتياز في صفحة الموظف الجديد، أم لاحقاً في الملف فقط؟", "في الملف فقط (AV8)"]
+    ["Q-AV7", "Can a privilege be granted on the new-employee page, or only later on the profile?", "only on the profile (AV8)", "هل يمكن منح الامتياز في صفحة الموظف الجديد، أم لاحقاً في الملف فقط؟", "في الملف فقط (AV8)"],
+    ["Q-OP1", "E2E seed: punches only for days that have passed (rerun later), or up to 2026-11-30 now?", "days that have passed; rerun to top up (OP6)", "زرع e2e: بصمات للأيام التي مضت فقط (مع إعادة التشغيل لاحقاً)، أم حتى 2026-11-30 الآن؟", "الأيام التي مضت؛ وإعادة التشغيل للإكمال (OP6)"],
+    ["Q-OP2", "E2E seed: October crew starts?", "production's values rotated by two people (OP4)", "زرع e2e: بدايات الطاقم في أكتوبر؟", "قيم الإنتاج مدوّرة بشخصين (OP4)"],
+    ["Q-OP3", "E2E seed: October pattern shape?", "same 24 slots as November (OP3)", "زرع e2e: شكل نمط أكتوبر؟", "الخانات الـ24 نفسها كنوفمبر (OP3)"],
+    ["Q-OP4", "E2E seed: assign to the team only, or team and department?", "team only (OP3)", "زرع e2e: الإسناد للفريق فقط أم للفريق والقسم؟", "للفريق فقط (OP3)"],
+    ["Q-OP5", "E2E seed: keep the mix of late / overtime / absences?", "keep (OP8)", "زرع e2e: هل نبقي مزيج التأخير والعمل الإضافي والغياب؟", "نبقيه (OP8)"]
   ];
 
   function el(tag, attrs, children) {

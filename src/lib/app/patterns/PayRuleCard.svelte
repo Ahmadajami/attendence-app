@@ -2,6 +2,7 @@
 	import type { Infer, SuperValidated } from 'sveltekit-superforms';
 	import ArrowCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowCounterClockwiseIcon';
 	import CalendarPlusIcon from 'phosphor-svelte/lib/CalendarPlusIcon';
+	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
 	import { formatCalendarDate } from '#lib/app/roster/labels.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -37,6 +38,8 @@
 		description: string;
 		/** Shown when the owner has no version yet. */
 		empty: string;
+		/** A hint under the title (a new pattern with nothing of its own yet, PR39). */
+		hint?: string | null;
 		/** The sheets' forms; `null` without `roster.manage`. */
 		forms: {
 			rule: SuperValidated<Infer<typeof payRuleFormSchema>, PatternPayMessage>;
@@ -45,7 +48,17 @@
 		today: string;
 	};
 
-	let { pay, inherited, inheritLabel, title, description, empty, forms, today }: Props = $props();
+	let {
+		pay,
+		inherited,
+		inheritLabel,
+		title,
+		description,
+		empty,
+		hint = null,
+		forms,
+		today
+	}: Props = $props();
 
 	let ruleOpen = $state(false);
 	let resetOpen = $state(false);
@@ -89,6 +102,12 @@
 	<Card.Header>
 		<Card.Title>{title}</Card.Title>
 		<Card.Description>{description}</Card.Description>
+		{#if hint}
+			<p class="flex items-start gap-2 rounded-md bg-muted/50 p-2 text-sm">
+				<InfoIcon class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+				{hint}
+			</p>
+		{/if}
 		{#if forms}
 			<Card.Action class="flex flex-wrap gap-2">
 				<Button variant="outline" size="sm" onclick={() => (ruleOpen = true)}>

@@ -249,6 +249,9 @@
 										events={data.events.filter((e) => e.shiftDate === panelDay.date)}
 										shifts={data.preview.shifts}
 										canRecord={data.canRecord}
+										{name}
+										figures={data.storedDays[panelDay.date] ?? null}
+										dayStateForms={data.dayStateForms}
 									/>
 								{/key}
 							</Card.Content>

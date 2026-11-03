@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monthly Off Days</title>
+<!-- Local, self-contained page (no external resources). Every person and number below is made up. -->
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --fg: #1c1d1f; --muted: #5d6066; --border: #e2e2de;
+    --accent: #0f766e; --accent-soft: #e6f2f0; --warn: #b45309; --warn-soft: #fbf0e3;
+    --bad: #be123c; --bad-soft: #fbe9ee; --ok: #047857; --ok-soft: #e5f3ec; --code: #f0f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141517; --card: #1c1d20; --fg: #e8e8e6; --muted: #a0a3a8; --border: #2e3034;
+      --accent: #2dd4bf; --accent-soft: #15302d; --warn: #f59e0b; --warn-soft: #33270f;
+      --bad: #fb7185; --bad-soft: #3a1820; --ok: #34d399; --ok-soft: #12302a; --code: #26282c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141517; --card: #1c1d20; --fg: #e8e8e6; --muted: #a0a3a8; --border: #2e3034;
+    --accent: #2dd4bf; --accent-soft: #15302d; --warn: #f59e0b; --warn-soft: #33270f;
+    --bad: #fb7185; --bad-soft: #3a1820; --ok: #34d399; --ok-soft: #12302a; --code: #26282c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+  }
+  [lang="ar"] { font-family: Tahoma, "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif; line-height: 1.9; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 64px; }
+  header.top {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    border-bottom: 1px solid var(--border); padding: 10px 0; margin-bottom: 24px;
+  }
+  header.top .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding-bottom: 0; }
+  .brand { font-weight: 700; }
+  .switch { display: flex; gap: 4px; }
+  .switch button {
+    font: inherit; font-size: 14px; padding: 4px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--card); color: var(--fg);
+  }
+  .switch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  html[data-lang="en"] [lang="ar"], html[data-lang="ar"] [lang="en"] { display: none; }
+  section.card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; margin: 0 0 20px;
+  }
+  h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  h2 { font-size: 21px; margin: 0 0 12px; display: flex; gap: 10px; align-items: baseline; }
+  h2 .n {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+    font-size: 15px; font-weight: 700;
+  }
+  h3 { font-size: 17px; margin: 18px 0 8px; }
+  p { margin: 0 0 10px; }
+  .lead { font-size: 18px; color: var(--muted); margin-bottom: 24px; }
+  .muted { color: var(--muted); }
+  .scroll { overflow-x: auto; margin: 8px 0 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 520px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 7px 10px; text-align: start; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; background: var(--code); }
+  td.num, th.num { text-align: end; font-variant-numeric: tabular-nums; }
+  tr.new td { background: var(--ok-soft); }
+  tr.fixed td { background: var(--warn-soft); }
+  tr.missing td { background: var(--bad-soft); color: var(--muted); font-style: italic; }
+  .tag {
+    display: inline-block; font-size: 12.5px; padding: 1px 8px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--code); white-space: nowrap;
+  }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .tag.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  .note {
+    border-inline-start: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 10px 14px; border-radius: 8px; margin: 12px 0;
+  }
+  .note.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 10px 0 14px; }
+  .flow .box {
+    flex: 1 1 150px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    background: var(--bg); font-size: 14.5px;
+  }
+  .flow .box b { display: block; margin-bottom: 2px; }
+  .flow .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  [dir="rtl"] .flow .arrow, [lang="ar"] .flow .arrow { transform: scaleX(-1); }
+  .toast {
+    display: inline-flex; gap: 8px; align-items: center; padding: 8px 14px; border-radius: 10px;
+    background: var(--ok-soft); color: var(--ok); font-weight: 600; margin: 6px 0 12px;
+  }
+  .toast.zero { background: var(--code); color: var(--fg); }
+  ol, ul { margin: 0 0 10px; padding-inline-start: 22px; }
+  li { margin: 3px 0; }
+  code, bdi.code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px;
+    background: var(--code); padding: 1px 6px; border-radius: 5px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  .never { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+  .never div { border: 1px dashed var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14.5px; }
+  .verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 6px 0 4px; }
+  .verdict div { border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+  .verdict .y { background: var(--ok-soft); }
+  .verdict .w { background: var(--warn-soft); }
+  .verdict .b { background: var(--bad-soft); }
+  .verdict b { display: block; margin-bottom: 2px; }
+  table.rota { min-width: 560px; font-size: 13.5px; }
+  table.rota th, table.rota td { padding: 4px 6px; text-align: center; }
+  table.rota td:first-child, table.rota th:first-child { text-align: start; white-space: nowrap; }
+  table.rota td.x.off { color: var(--muted); }
+  table.rota td.x.N { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  table.rota td.x.D { background: var(--warn-soft); color: var(--warn); font-weight: 700; }
+  table.rota td.zero { background: var(--bad-soft); color: var(--bad); font-weight: 700; }
+  details { margin: 8px 0 12px; }
+  summary { cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="brand"><span lang="ar">عطل تتغيّر كل شهر: هل يتابعها النظام؟</span><span lang="en">Off days that change every month: does the system track them?</span></span>
+    <div class="switch" role="group" aria-label="Language / اللغة">
+      <button type="button" data-set="ar">العربية</button>
+      <button type="button" data-set="en">English</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div lang="ar">
+    <h1>فريق تتغيّر عطله كل شهر: هل يحسب النظام ساعات العمل والإضافي والنقص؟ وهل ننشئ نمطاً لكل شهر؟</h1>
+    <p class="lead">الجواب لنمطك الحقيقي <bdi class="code">f89ce44b…</bdi> (قراءة فقط من قاعدة البيانات، بعد تصحيح الوردية <code>N8</code>). لا أسماء في هذه الصفحة: الموظفون «م1» إلى «م6» مرتبون حسب «بداية الطاقم»، وكل البصمات في الأمثلة <b>وهمية</b>.</p>
+  </div>
+  <div lang="en">
+    <h1>A team whose off days change every month: does the system track working time, overtime and shortage? Do we create a pattern per month?</h1>
+    <p class="lead">The answer for your real pattern <bdi class="code">f89ce44b…</bdi> (read only from the database, after the <code>N8</code> shift fix). No names on this page: employees “P1” to “P6” are ordered by crew start, and every punch in the examples is <b>made up</b>.</p>
+  </div>
+
+  <!-- 1. Short answer -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">1</span>الجواب المختصر</h2>
+      <div class="verdict">
+        <div class="y"><b>نعم، يحسبها</b>لكل موظف ولكل يوم: الوقت المطلوب، المعمول، التأخير، النقص، والإضافي بسعره. يقارن البصمات بجدول ذلك اليوم.</div>
+        <div class="y"><b>لا، لا نمط لكل شهر</b>نمطك دوري (24 يوماً)، وكل موظف له «بداية طاقم» خاصة. الدورة تستمر وحدها، فعطلة كل موظف تتغيّر من شهر لآخر <b>تلقائياً</b>.</div>
+        <div class="w"><b>ما تُدخله كل شهر: التبديلات فقط</b>تبديل الموظف مع نفسه أو مع زميل هو تعديل ليوم واحد، ولا ينتقل إلى الشهر التالي. <b>شاشة التبديلات لم تُبنَ بعد</b> (القسم 6).</div>
+        <div class="b"><b>لم يُبنَ بعد</b>مجاميع الفترة (رصيد الفترة، ملف الرواتب). الأرقام اليومية جاهزة ومحفوظة.</div>
+      </div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">1</span>The short answer</h2>
+      <div class="verdict">
+        <div class="y"><b>Yes, it tracks them</b>For each employee and each day: required time, worked, late, shortage, and overtime with its rate. It compares the punches with that day's roster.</div>
+        <div class="y"><b>No, not a pattern per month</b>Your pattern is a 24-day cycle and each employee has their own crew start. The cycle keeps running, so each employee's off days change from month to month <b>automatically</b>.</div>
+        <div class="w"><b>What you enter each month: swaps only</b>A self swap or a swap with a teammate is a one-day change and does not carry into the next month. <b>The swap screen is not built yet</b> (section 6).</div>
+        <div class="b"><b>Not built yet</b>Period totals (Period Balance, the payroll file). The daily figures are ready and stored.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Your pattern -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">2</span>نمطك كما هو في قاعدة البيانات</h2>
+      <div class="scroll"><table>
+        <tbody>
+          <tr><th>النوع</th><td>نمط <b>دوري</b> من <b>24 يوماً</b>، الخانة 0 يوم <bdi>2026-11-01</bdi></td></tr>
+          <tr><th>الخانات</th><td><bdi class="code">N8×4 · عطلة×4 · D8×4 · عطلة×4 · D8×4 · عطلة×4</bdi>: 12 يوم عمل و 12 عطلة في كل دورة</td></tr>
+          <tr><th>الورديات</th><td><code>D8</code> من <bdi>08:00</bdi> إلى <bdi>20:00</bdi> (720 دقيقة). <code>N8</code> من <bdi>20:00</bdi> إلى <bdi>08:00</bdi> في اليوم التالي (720 دقيقة، <b>صُحّحت</b> في <bdi>2026-11-03</bdi>؛ كانت 24 ساعة بالخطأ)</td></tr>
+          <tr><th>من يتبعه</th><td>فريق واحد (<bdi class="code">39805e41…</bdi>) من <bdi>2026-11-01</bdi> بلا نهاية، وقسمه (<bdi class="code">fe748490…</bdi>) احتياطاً. الفريق يغلب القسم.</td></tr>
+          <tr><th>الأشخاص</th><td><b>6</b> موظفين نشطين، لا أحد منهم له نمط شخصي</td></tr>
+          <tr><th>عطلة كل موظف</th><td><b>بداية الطاقم</b>: <bdi>0، 1، 5، 9، 13، 20</bdi>. كل رقم يزيح الموظف ذلك العدد من الخانات، فلكل واحد أيام عمل وعطل مختلفة</td></tr>
+          <tr><th>تبديلات</th><td>0 طلب تبديل، و 0 تعديل يوم حتى الآن</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">2</span>Your pattern as it is in the database</h2>
+      <div class="scroll"><table>
+        <tbody>
+          <tr><th>Type</th><td>a <b>24-day cycle</b>, slot 0 on <bdi>2026-11-01</bdi></td></tr>
+          <tr><th>Slots</th><td><bdi class="code">N8×4 · off×4 · D8×4 · off×4 · D8×4 · off×4</bdi>: 12 work days and 12 off days per cycle</td></tr>
+          <tr><th>Shifts</th><td><code>D8</code> <bdi>08:00</bdi> → <bdi>20:00</bdi> (720 min). <code>N8</code> <bdi>20:00</bdi> → <bdi>08:00</bdi> next day (720 min, <b>fixed</b> on <bdi>2026-11-03</bdi>; it was 24 h by mistake)</td></tr>
+          <tr><th>Who follows it</th><td>one team (<bdi class="code">39805e41…</bdi>) from <bdi>2026-11-01</bdi>, open-ended, and its department (<bdi class="code">fe748490…</bdi>) as a fallback. The team wins.</td></tr>
+          <tr><th>People</th><td><b>6</b> active employees, none with a personal pattern</td></tr>
+          <tr><th>Each person's off days</th><td><b>crew start</b>: <bdi>0, 1, 5, 9, 13, 20</bdi>. Each number moves the person that many slots into the cycle, so each has different work and off days</td></tr>
+          <tr><th>Swaps</th><td>0 swap requests, 0 day overrides so far</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 3. How a day is computed -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">3</span>كيف يحسب النظام كل يوم</h2>
+      <div class="flow">
+        <div class="box"><b>1. جدول اليوم</b>غياب ← تعديل يوم (تبديل) ← عطلة رسمية ← نمط شخصي ← نمط الفريق ← نمط القسم؛ ثم بداية الطاقم</div>
+        <div class="arrow">→</div>
+        <div class="box"><b>2. البصمات</b>دخول وخروج (الليلة تُحسب ليوم بدايتها)</div>
+        <div class="arrow">→</div>
+        <div class="box"><b>3. نتيجة اليوم</b>تُحفظ وتُعاد حسابها عند أي تغيير، مع سجل لكل قيمة تغيّرت</div>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>الجدول يقول</th><th>الموظف</th><th>النتيجة</th></tr></thead>
+        <tbody>
+          <tr><td>يوم عمل</td><td>عمل أكثر من المطلوب</td><td><b>إضافي</b> = الزيادة، مقرّبة لأقرب ربع ساعة، بسعر ×1.25</td></tr>
+          <tr><td>يوم عمل</td><td>تأخر أو خرج مبكراً</td><td><b>نقص</b>: دقائق التأخير، والمعمول أقل من المطلوب</td></tr>
+          <tr><td>يوم عمل</td><td>لم يحضر</td><td><b>غائب</b>، نقص بكامل الوردية</td></tr>
+          <tr><td>عطلة</td><td>بقي في البيت</td><td>عطلة، لا شيء مطلوب</td></tr>
+          <tr><td>عطلة</td><td>حضر وعمل</td><td><b>كل</b> الدقائق إضافي ×1.5، مع علامة «تبديل غير مصرّح» إن لم يوجد تبديل</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">الأسعار من القاعدة الافتراضية للشركة (1.25 / 1.5 / 1.5) ما لم يضع النمط قاعدة خاصة.</p>
+    </div>
+    <div lang="en">
+      <h2><span class="n">3</span>How the system computes each day</h2>
+      <div class="flow">
+        <div class="box"><b>1. The day's roster</b>absence → day override (swap) → holiday → personal → team → department pattern; then the crew start</div>
+        <div class="arrow">→</div>
+        <div class="box"><b>2. Punches</b>check-in and check-out (a night counts for the day it starts)</div>
+        <div class="arrow">→</div>
+        <div class="box"><b>3. Day result</b>stored, recomputed on any change, with a log line per changed value</div>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>The roster says</th><th>The employee</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Work day</td><td>works more than required</td><td><b>Overtime</b> = the extra, rounded to the nearest quarter hour, at ×1.25</td></tr>
+          <tr><td>Work day</td><td>late or leaves early</td><td><b>Shortage</b>: late minutes, worked below required</td></tr>
+          <tr><td>Work day</td><td>does not come</td><td><b>Missing</b>, short by the whole shift</td></tr>
+          <tr><td>Off day</td><td>stays home</td><td>off, nothing required</td></tr>
+          <tr><td>Off day</td><td>comes and works</td><td><b>every</b> minute is overtime at ×1.5, flagged “unauthorised swap” when there is no swap</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">Rates are the company default (1.25 / 1.5 / 1.5) unless the pattern sets its own pay rule.</p>
+    </div>
+  </section>
+
+  <!-- 4. Month two builds itself -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">4</span>كل شهر جديد يُبنى وحده</h2>
+      <p>الدورة 24 يوماً والشهر 30 أو 31، فلا علاقة بينهما. لكل تاريخ يأخذ النظام <b>(الأيام منذ الخانة 0 + بداية الطاقم) باقي القسمة على 24</b>. لذلك تتغيّر عطلة كل موظف من شهر لآخر دون أي عمل منك.</p>
+      <ul>
+        <li><b>لا تنشئ نمطاً جديداً</b> ولا <b>تُعِد إسناده</b>: يوم بداية جديد يزيح الدورة للجميع.</li>
+        <li><b>لا تغيّر بداية الطاقم</b> من أجل تبديل: هي تغيير دائم من تاريخها.</li>
+        <li>كل موظف يعمل 15 أو 16 يوماً في كل فترة (21 إلى 20).</li>
+      </ul>
+      <details open>
+        <summary>جدول الفترة الثانية (<bdi>21-12-2026</bdi> إلى <bdi>20-01-2027</bdi>) قبل أي تبديل</summary>
+        <div class="scroll"><table class="rota"><thead><tr><th>التاريخ</th><th>م1<br><span class="muted">بداية 0</span></th><th>م2<br><span class="muted">بداية 1</span></th><th>م3<br><span class="muted">بداية 5</span></th><th>م4<br><span class="muted">بداية 9</span></th><th>م5<br><span class="muted">بداية 13</span></th><th>م6<br><span class="muted">بداية 20</span></th><th class="num">N</th><th class="num">D</th></tr></thead><tbody><tr><td><bdi>12-21</bdi> اثنين</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>12-22</bdi> ثلاثاء</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-23</bdi> أربعاء</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-24</bdi> خميس</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-25</bdi> جمعة</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-26</bdi> سبت</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-27</bdi> أحد</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num zero">0</td><td class="num">3</td></tr><tr><td><bdi>12-28</bdi> اثنين</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num zero">0</td><td class="num">3</td></tr><tr><td><bdi>12-29</bdi> ثلاثاء</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num zero">0</td><td class="num">3</td></tr><tr><td><bdi>12-30</bdi> أربعاء</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-31</bdi> خميس</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-01</bdi> جمعة</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-02</bdi> سبت</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-03</bdi> أحد</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-04</bdi> اثنين</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-05</bdi> ثلاثاء</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-06</bdi> أربعاء</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-07</bdi> خميس</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-08</bdi> جمعة</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-09</bdi> سبت</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-10</bdi> أحد</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-11</bdi> اثنين</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-12</bdi> ثلاثاء</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>01-13</bdi> أربعاء</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>01-14</bdi> خميس</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>01-15</bdi> جمعة</td><td class="x N">N8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-16</bdi> سبت</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-17</bdi> أحد</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-18</bdi> اثنين</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-19</bdi> ثلاثاء</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-20</bdi> أربعاء</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x D">D8</td><td class="x off">عطلة</td><td class="x off">عطلة</td><td class="num zero">0</td><td class="num">3</td></tr></tbody></table></div>
+        <p class="muted">العمودان الأخيران: عدد الموجودين ليلاً ونهاراً. الأحمر = لا أحد في الليل.</p>
+      </details>
+    </div>
+    <div lang="en">
+      <h2><span class="n">4</span>Every new month builds itself</h2>
+      <p>The cycle is 24 days and a month is 30 or 31, so they are unrelated. For each date the system takes <b>(days since slot 0 + crew start) mod 24</b>. So each employee's off days change from month to month with no work from you.</p>
+      <ul>
+        <li><b>Do not create a new pattern</b> or <b>reassign it</b>: a new anchor shifts the cycle for everyone.</li>
+        <li><b>Do not change a crew start</b> for a swap: it is a permanent change from its date.</li>
+        <li>Every employee works 15 or 16 days in each period (21st to 20th).</li>
+      </ul>
+      <details open>
+        <summary>The second period (<bdi>2026-12-21</bdi> to <bdi>2027-01-20</bdi>) before any swap</summary>
+        <div class="scroll"><table class="rota"><thead><tr><th>Date</th><th>P1<br><span class="muted">start 0</span></th><th>P2<br><span class="muted">start 1</span></th><th>P3<br><span class="muted">start 5</span></th><th>P4<br><span class="muted">start 9</span></th><th>P5<br><span class="muted">start 13</span></th><th>P6<br><span class="muted">start 20</span></th><th class="num">N</th><th class="num">D</th></tr></thead><tbody><tr><td><bdi>12-21</bdi> Mon</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>12-22</bdi> Tue</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-23</bdi> Wed</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-24</bdi> Thu</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-25</bdi> Fri</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-26</bdi> Sat</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-27</bdi> Sun</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num zero">0</td><td class="num">3</td></tr><tr><td><bdi>12-28</bdi> Mon</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num zero">0</td><td class="num">3</td></tr><tr><td><bdi>12-29</bdi> Tue</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num zero">0</td><td class="num">3</td></tr><tr><td><bdi>12-30</bdi> Wed</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>12-31</bdi> Thu</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-01</bdi> Fri</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-02</bdi> Sat</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-03</bdi> Sun</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-04</bdi> Mon</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-05</bdi> Tue</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-06</bdi> Wed</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-07</bdi> Thu</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-08</bdi> Fri</td><td class="x off">off</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-09</bdi> Sat</td><td class="x off">off</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-10</bdi> Sun</td><td class="x off">off</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-11</bdi> Mon</td><td class="x off">off</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-12</bdi> Tue</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>01-13</bdi> Wed</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>01-14</bdi> Thu</td><td class="x N">N8</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num">2</td><td class="num">1</td></tr><tr><td><bdi>01-15</bdi> Fri</td><td class="x N">N8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-16</bdi> Sat</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-17</bdi> Sun</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-18</bdi> Mon</td><td class="x off">off</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-19</bdi> Tue</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x N">N8</td><td class="num">1</td><td class="num">2</td></tr><tr><td><bdi>01-20</bdi> Wed</td><td class="x D">D8</td><td class="x D">D8</td><td class="x off">off</td><td class="x D">D8</td><td class="x off">off</td><td class="x off">off</td><td class="num zero">0</td><td class="num">3</td></tr></tbody></table></div>
+        <p class="muted">Last two columns: people on nights and days. Red = nobody on nights.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- 5. Worked example -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">5</span>مثال بالأرقام: م1 (بداية الطاقم 0) في الفترة الثانية</h2>
+      <p>بحسب الجدول: م1 يعمل <code>N8</code> يومي <bdi>21</bdi> و <bdi>22-12</bdi>، عطلة من <bdi>23</bdi> إلى <bdi>26-12</bdi>، ثم <code>D8</code> من <bdi>27</bdi> إلى <bdi>30-12</bdi>. البصمات وهمية.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>اليوم</th><th>الجدول</th><th>البصمات</th><th class="num">المطلوب</th><th class="num">المعمول</th><th>النتيجة</th></tr></thead>
+        <tbody>
+          <tr><td><bdi>21-12</bdi></td><td><code>N8</code></td><td><bdi>20:00</bdi> ← <bdi>08:30</bdi></td><td class="num">720</td><td class="num">750</td><td><span class="tag ok">إضافي 30 د ×1.25</span></td></tr>
+          <tr><td><bdi>22-12</bdi></td><td><code>N8</code></td><td><bdi>20:00</bdi> ← <bdi>08:00</bdi></td><td class="num">720</td><td class="num">720</td><td><span class="tag ok">كامل</span></td></tr>
+          <tr><td><bdi>27-12</bdi></td><td><code>D8</code></td><td><bdi>08:20</bdi> ← <bdi>20:00</bdi></td><td class="num">720</td><td class="num">700</td><td><span class="tag warn">تأخير 20 د، نقص 20 د</span></td></tr>
+          <tr class="fixed"><td><bdi>24-12</bdi></td><td>عطلة</td><td><bdi>08:00</bdi> ← <bdi>20:00</bdi></td><td class="num">0</td><td class="num">720</td><td><span class="tag warn">عمل في عطلة</span> 720 د ×1.5، «تبديل غير مصرّح»</td></tr>
+          <tr class="fixed"><td><bdi>28-12</bdi></td><td><code>D8</code></td><td>لا شيء</td><td class="num">720</td><td class="num">0</td><td><span class="tag bad">غائب</span> نقص 720 د</td></tr>
+        </tbody>
+      </table></div>
+      <p>السطران الأخيران هما في الحقيقة <b>تبديل ذاتي</b>: م1 أخذ <bdi>28-12</bdi> عطلة وعمل <bdi>24-12</bdi> بدلاً منه. بعد إدخال التبديل (نطاق «الشهر»، لأن اليومين في أسبوعين مختلفين من كانون الأول):</p>
+      <div class="scroll"><table>
+        <thead><tr><th>اليوم</th><th>الجدول بعد التبديل</th><th class="num">المطلوب</th><th class="num">المعمول</th><th>النتيجة</th></tr></thead>
+        <tbody>
+          <tr class="new"><td><bdi>24-12</bdi></td><td><code>D8</code> (من التبديل)</td><td class="num">720</td><td class="num">720</td><td><span class="tag ok">يوم عمل عادي</span> إضافي 0 (أو ×1.5 إن اخترت «ادفع كإضافي»)</td></tr>
+          <tr class="new"><td><bdi>28-12</bdi></td><td>عطلة (من التبديل)</td><td class="num">0</td><td class="num">0</td><td><span class="tag ok">عطلة</span> لا نقص</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">5</span>Worked example: P1 (crew start 0) in the second period</h2>
+      <p>From the grid: P1 works <code>N8</code> on <bdi>21</bdi> and <bdi>22 Dec</bdi>, is off <bdi>23</bdi> to <bdi>26 Dec</bdi>, then <code>D8</code> <bdi>27</bdi> to <bdi>30 Dec</bdi>. Punches are made up.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Day</th><th>Roster</th><th>Punches</th><th class="num">Required</th><th class="num">Worked</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td><bdi>21 Dec</bdi></td><td><code>N8</code></td><td><bdi>20:00</bdi> → <bdi>08:30</bdi></td><td class="num">720</td><td class="num">750</td><td><span class="tag ok">overtime 30 min ×1.25</span></td></tr>
+          <tr><td><bdi>22 Dec</bdi></td><td><code>N8</code></td><td><bdi>20:00</bdi> → <bdi>08:00</bdi></td><td class="num">720</td><td class="num">720</td><td><span class="tag ok">complete</span></td></tr>
+          <tr><td><bdi>27 Dec</bdi></td><td><code>D8</code></td><td><bdi>08:20</bdi> → <bdi>20:00</bdi></td><td class="num">720</td><td class="num">700</td><td><span class="tag warn">late 20 min, short 20 min</span></td></tr>
+          <tr class="fixed"><td><bdi>24 Dec</bdi></td><td>off</td><td><bdi>08:00</bdi> → <bdi>20:00</bdi></td><td class="num">0</td><td class="num">720</td><td><span class="tag warn">off-day work</span> 720 min ×1.5, “unauthorised swap”</td></tr>
+          <tr class="fixed"><td><bdi>28 Dec</bdi></td><td><code>D8</code></td><td>none</td><td class="num">720</td><td class="num">0</td><td><span class="tag bad">missing</span> 720 min short</td></tr>
+        </tbody>
+      </table></div>
+      <p>The last two rows are really a <b>self swap</b>: P1 took <bdi>28 Dec</bdi> off and worked <bdi>24 Dec</bdi> instead. Once the swap is entered (scope “month”, since the two days are in different weeks of December):</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Day</th><th>Roster after the swap</th><th class="num">Required</th><th class="num">Worked</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr class="new"><td><bdi>24 Dec</bdi></td><td><code>D8</code> (from the swap)</td><td class="num">720</td><td class="num">720</td><td><span class="tag ok">normal work day</span> overtime 0 (or ×1.5 with “pay as overtime”)</td></tr>
+          <tr class="new"><td><bdi>28 Dec</bdi></td><td>off (from the swap)</td><td class="num">0</td><td class="num">0</td><td><span class="tag ok">off</span> no shortage</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 6. Swaps -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">6</span>التبديلات: ما يدعمه النظام وما ينقص اليوم</h2>
+      <div class="grid2">
+        <div class="note"><b>تبديل ذاتي</b><br>يوم عمل <b>W</b> يصبح عطلة، ويوم عطلة <b>O</b> يصبح عملاً بوردية W.</div>
+        <div class="note"><b>تبديل مع زميل</b><br>يوم <b>D</b>: A يعمل و B في عطلة ← A عطلة و B يعمل وردية A. <b>يوم إرجاع</b> D2 اختياري يعكس ذلك.</div>
+      </div>
+      <ul>
+        <li>اليومان في <b>الأسبوع نفسه (أحد إلى سبت)</b> أو <b>الشهر الميلادي نفسه</b>. «الشهر» هنا ميلادي وليس فترة الرواتب: تبديل بين <bdi>30-12</bdi> و <bdi>02-01</bdi> يحتاج نطاق «الأسبوع».</li>
+        <li>يُرفض إن كان في أحد اليومين غياب أو عطلة رسمية أو تعديل آخر، أو كان W ليس يوم عمل، أو O ليس عطلة.</li>
+        <li>التبديل ينقل العطلة ولا يغيّر الأجر، إلا إن اخترت <b>«ادفع كإضافي»</b> لذلك التبديل.</li>
+      </ul>
+      <div class="note warn"><b>ينقص اليوم:</b> القواعد مكتوبة ومختبَرة، وجدول الطلبات موجود، والحساب يقرأ التبديلات الموافَق عليها. لكن <b>شاشة إنشاء التبديل والموافقة عليه</b> (<code>/changes</code>، المرحلة 6 من خطة الأجور) لم تُبنَ. حتى ذلك الحين يظهر كل تبديل كما في السطرين الملوّنين في القسم 5.</div>
+      <h3>ماذا تفعل حتى تُبنى الشاشة</h3>
+      <ol>
+        <li>أدخل البصمات كالمعتاد. لا تغيّر النمط ولا بداية الطاقم لتغطية التبديلات.</li>
+        <li>سجّل كل تبديل (التاريخان، النوع، رقم الموظف) في ملف داخل <code>~/secure/syravia/</code>، وليس في المستودع.</li>
+        <li>عندما تُبنى الشاشة، أدخلها <b>بتواريخها الماضية</b> مع السبب (مسموح، القرار PR11). الأيام تُعاد حسابها وحدها، وسجل التعديلات يحفظ أن السبب تبديل.</li>
+        <li>لا تُصدِر الرواتب لفترة فيها تبديلات قبل إدخالها.</li>
+      </ol>
+    </div>
+    <div lang="en">
+      <h2><span class="n">6</span>Swaps: what the system supports and what is missing today</h2>
+      <div class="grid2">
+        <div class="note"><b>Self swap</b><br>Work day <b>W</b> becomes off; off day <b>O</b> becomes work with W's shift.</div>
+        <div class="note"><b>Employee swap</b><br>On day <b>D</b>, A works and B is off → A off, B works A's shift. An optional <b>return day</b> D2 reverses it.</div>
+      </div>
+      <ul>
+        <li>Both days in the <b>same week (Sun–Sat)</b> or the <b>same calendar month</b>. “Month” is the calendar month, not the payroll period: a swap between <bdi>30 Dec</bdi> and <bdi>2 Jan</bdi> needs scope “week”.</li>
+        <li>Refused when either day has an absence, a holiday or another override, or W is not a work day, or O is not an off day.</li>
+        <li>A swap moves the off day and does not change pay, unless you tick <b>“pay as overtime”</b> on that swap.</li>
+      </ul>
+      <div class="note warn"><b>Missing today:</b> the rules are written and tested, the request table exists, and the calculation reads approved swaps. But the <b>screen to create and approve a swap</b> (<code>/changes</code>, Phase 6 of the pay plan) is not built. Until then every swap shows like the two coloured rows in section 5.</div>
+      <h3>What to do until the screen exists</h3>
+      <ol>
+        <li>Enter punches as usual. Do not change the pattern or a crew start to cover swaps.</li>
+        <li>Note every swap (both dates, kind, employee numbers) in a file inside <code>~/secure/syravia/</code>, not in the repo.</li>
+        <li>When the screen is built, enter them <b>with their past dates</b> and a reason (allowed, decision PR11). The days recompute by themselves and the edit log records the swap as the cause.</li>
+        <li>Do not export payroll for a period with swaps before they are entered.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 7. When to change what -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">7</span>متى تغيّر ماذا؟</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>الحالة</th><th>ماذا تفعل</th></tr></thead>
+        <tbody>
+          <tr><td>شهر جديد</td><td><b>لا شيء</b>، الدورة مستمرة</td></tr>
+          <tr><td>تبادل يوم أو يومين</td><td><b>تبديل</b> (القسم 6)</td></tr>
+          <tr><td>موظف ينتقل <b>دائماً</b> إلى مكان آخر في الدورة</td><td>غيّر <b>بداية الطاقم</b> من صفحة الموظف، من يوم <bdi>21</bdi> (اليوم أو بعده)</td></tr>
+          <tr><td>موظف ينتقل إلى فريق آخر</td><td>انقله بتاريخ؛ يتبع نمط الفريق الجديد من ذلك التاريخ</td></tr>
+          <tr><td>الفريق كله يغيّر شكل الدورة (مثلاً 3 ليالٍ بدل 4)</td><td>«تغيير من تاريخ» على النمط، من يوم <bdi>21</bdi></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><b>توصيتي:</b> بما أن الفريق يبدّل كل شهر، اجعل المرحلة 6 (شاشة التبديلات) قبل إغلاق الفترة الأولى. هي صغيرة لأن القواعد والجداول جاهزة.</div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">7</span>When to change what</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Situation</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td>A new month</td><td><b>Nothing</b>, the cycle keeps running</td></tr>
+          <tr><td>Trading a day or two</td><td>a <b>swap</b> (section 6)</td></tr>
+          <tr><td>An employee moves <b>permanently</b> to another place in the cycle</td><td>change the <b>crew start</b> on the employee page, from the <bdi>21st</bdi> (today or later)</td></tr>
+          <tr><td>An employee moves to another team</td><td>move them with a date; they follow the new team's pattern from then</td></tr>
+          <tr><td>The whole team changes the cycle's shape (e.g. 3 nights instead of 4)</td><td>“Change from a date” on the pattern, from the <bdi>21st</bdi></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><b>My recommendation:</b> since this team swaps every month, build Phase 6 (the swap screen) before the first period closes. It is small, because the rules and tables are ready.</div>
+    </div>
+  </section>
+
+  <!-- 8. Notes -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">8</span>ملاحظات</h2>
+      <ol>
+        <li><b><code>N8</code> صُحّحت</b> في <bdi>2026-11-03</bdi> إلى <bdi>20:00</bdi> ← <bdi>08:00</bdi> مع سطر في سجل التدقيق. لم تكن عليها بصمات أو نتائج أيام، فلم يتغيّر رقم سابق.</li>
+        <li><b>وردية مكرّرة:</b> الوردية <code>N</code> (غير مستعملة) لها الأوقات نفسها الآن. يمكنك تعطيلها من صفحة الورديات حتى لا تُختار بالخطأ.</li>
+        <li><b>ليالٍ بلا أحد:</b> مع بدايات الطاقم الحالية، 7 أيام من 61 في الفترتين بلا أحد على <code>N8</code>. إن كانت الليلة يجب أن تُغطّى دائماً، فتوزيع منتظم مثل <bdi>0، 4، 8، 12، 16، 20</bdi> يحل ذلك. القرار لك.</li>
+        <li><b>المجاميع:</b> رصيد الفترة (إجمالي النقص) وملف الرواتب هما المهمتان S5.1 و S5.2 ولم يُبنيا بعد.</li>
+      </ol>
+    </div>
+    <div lang="en">
+      <h2><span class="n">8</span>Notes</h2>
+      <ol>
+        <li><b><code>N8</code> is fixed</b> since <bdi>2026-11-03</bdi>: <bdi>20:00</bdi> → <bdi>08:00</bdi>, with an audit row. No punches or day results used it, so no earlier figure changed.</li>
+        <li><b>Duplicate shift:</b> the unused shift <code>N</code> now has the same times. You can deactivate it on the Shifts page so nobody picks it by mistake.</li>
+        <li><b>Nights with nobody:</b> with the current crew starts, 7 of the 61 days in the two periods have nobody on <code>N8</code>. If nights must always be covered, an even spread such as <bdi>0, 4, 8, 12, 16, 20</bdi> fixes it. Your call.</li>
+        <li><b>Totals:</b> the Period Balance (total shortage) and the payroll file are tasks S5.1 and S5.2, not built yet.</li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll('.switch button');
+    function apply(mode) {
+      root.setAttribute('data-lang', mode);
+      root.setAttribute('lang', mode);
+      root.setAttribute('dir', mode === 'ar' ? 'rtl' : 'ltr');
+      buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === mode)); });
+      try { localStorage.setItem('monthly-off-days-lang', mode); } catch (e) { /* storage blocked: ignore */ }
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { apply(b.getAttribute('data-set')); });
+    });
+    var saved = null;
+    try { saved = localStorage.getItem('monthly-off-days-lang'); } catch (e) { saved = null; }
+    apply(saved === 'en' ? 'en' : 'ar');
+  })();
+</script>
+</body>
+</html>

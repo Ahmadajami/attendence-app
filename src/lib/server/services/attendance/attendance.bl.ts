@@ -10,6 +10,7 @@ import {
 	type Pair,
 	type PairIssue
 } from '#lib/attendance/entry.js';
+import { dayFiguresOf, type DayFigures } from '#lib/attendance/day-result.js';
 import { pairIssueMessage } from '#lib/attendance/labels.js';
 import { addDays, startOfDamascusDay } from '#lib/roster/cycle.js';
 import { rosterInputOf } from '#lib/roster/input.js';
@@ -33,6 +34,7 @@ import {
 	recomputeAfter,
 	type RecomputeCause
 } from '../day-results/day-results.bl.js';
+import { listStoredDays } from '../day-results/day-results.crud.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
 import { listTeamMembersBetween } from '../roster/roster.crud.js';
 import { loadRosterData } from '../roster/roster.bl.js';
@@ -59,6 +61,8 @@ export type EntrySheetRow = {
 	events: EventRow[];
 	/** Their other effective pairs around the date, for the overlap check in the browser. */
 	others: Pair[];
+	/** The stored daily record (pay plan task 5.3); `null` until the day is computed. */
+	figures: DayFigures | null;
 };
 
 export type EntrySheet = {
@@ -91,13 +95,21 @@ const ISSUE_FIELD: Record<PairIssue | 'reason_required', keyof EntryRow> = {
 	reason_required: 'reason'
 };
 
-async function scopePeople(scope: EntryScope, shiftDate: string): Promise<EntryPersonRow[]> {
+/**
+ * The people of a scope on shift dates `[shiftDate, lastDate]`: active department staff, or the
+ * active members of the team at any time in those dates.
+ */
+export async function scopePeople(
+	scope: EntryScope,
+	shiftDate: string,
+	lastDate: string = shiftDate
+): Promise<EntryPersonRow[]> {
 	if (!scope) return [];
 	if ('teamId' in scope) {
 		const members = await listTeamMembersBetween(
 			scope.teamId,
 			startOfDamascusDay(shiftDate),
-			startOfDamascusDay(addDays(shiftDate, 1))
+			startOfDamascusDay(addDays(lastDate, 1))
 		);
 		const unique = members.filter(
 			(row, i, all) => all.findIndex((r) => r.staffId === row.staffId) === i
@@ -136,6 +148,20 @@ async function loadContext(people: readonly EntryPersonRow[], shiftDate: string)
 	return { roster, shifts, dayOf, eventsOf, eventPairs, pairsOfPerson };
 }
 
+export type ScopeOptions = Pick<EntrySheet, 'departments' | 'teams'>;
+
+/** The active departments (as a tree, with depth) and teams a scope picker offers. */
+export async function scopeOptions(): Promise<ScopeOptions> {
+	const [departments, teams] = await Promise.all([listDepartmentRows(), listTeamRows()]);
+	return {
+		departments: flattenTree(
+			departments.filter((d) => d.active),
+			(a, b) => a.nameEn.localeCompare(b.nameEn)
+		).map(({ id, nameEn, nameAr, depth }) => ({ id, nameEn, nameAr, depth })),
+		teams: teams.filter((t) => t.active).map(({ id, nameEn, nameAr }) => ({ id, nameEn, nameAr }))
+	};
+}
+
 /** The entry sheet of one shift date for a department or a team. */
 export async function getEntrySheet(
 	actor: Actor,
@@ -144,12 +170,16 @@ export async function getEntrySheet(
 ): Promise<EntrySheet> {
 	requireActorPermission(actor, 'attendance.record');
 	const shiftDate = damascusDayRange(date).day;
-	const [departments, teams, people] = await Promise.all([
-		listDepartmentRows(),
-		listTeamRows(),
-		scopePeople(scope, shiftDate)
+	const [options, people] = await Promise.all([scopeOptions(), scopePeople(scope, shiftDate)]);
+	const [ctx, stored] = await Promise.all([
+		loadContext(people, shiftDate),
+		listStoredDays(
+			people.map((p) => p.staffId),
+			shiftDate,
+			shiftDate
+		)
 	]);
-	const ctx = await loadContext(people, shiftDate);
+	const figuresOf = new Map(stored.map((s) => [s.values.staffId, dayFiguresOf(s.values)]));
 
 	const rows: EntrySheetRow[] = [];
 	const others: EntrySheet['others'] = [];
@@ -158,7 +188,13 @@ export async function getEntrySheet(
 		const events = ctx.eventsOf(person.staffId).filter((e) => e.shiftDate === shiftDate);
 		const around = ctx.pairsOfPerson(person.staffId, false);
 		if (day.shift || day.source === 'absence' || events.length > 0)
-			rows.push({ person, day, events, others: around });
+			rows.push({
+				person,
+				day,
+				events,
+				others: around,
+				figures: figuresOf.get(person.staffId) ?? null
+			});
 		else others.push({ person, day, others: around });
 	}
 
@@ -166,11 +202,7 @@ export async function getEntrySheet(
 		shiftDate,
 		today: todayInDamascus(),
 		scope,
-		departments: flattenTree(
-			departments.filter((d) => d.active),
-			(a, b) => a.nameEn.localeCompare(b.nameEn)
-		).map(({ id, nameEn, nameAr, depth }) => ({ id, nameEn, nameAr, depth })),
-		teams: teams.filter((t) => t.active).map(({ id, nameEn, nameAr }) => ({ id, nameEn, nameAr })),
+		...options,
 		shifts: ctx.roster.shifts,
 		rows,
 		others

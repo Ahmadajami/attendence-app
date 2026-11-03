@@ -4,7 +4,6 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
 import { entrySheetSchema, type AttendanceMessage } from '#lib/schemas/attendance.schema.js';
-import { recomputeFromSchema } from '#lib/schemas/day-results.schema.js';
 import { failForm } from '#lib/server/errors.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import {
@@ -14,10 +13,6 @@ import {
 	type EntryScope
 } from '#lib/server/services/attendance/attendance.bl.js';
 import type { Actor } from '#lib/server/services/common.js';
-import {
-	MAX_BACKFILL_DAYS,
-	recomputeFrom
-} from '#lib/server/services/day-results/day-results.bl.js';
 import type { Actions, PageServerLoad } from './$types';
 
 function actorFrom(locals: App.Locals): Actor {
@@ -36,18 +31,8 @@ function scopeFrom(url: URL): EntryScope {
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const actor = actorFrom(locals);
 	const sheet = await getEntrySheet(actor, url.searchParams.get('date'), scopeFrom(url));
-	// "Recompute from a date" (pay plan 3.3) lives here until the daily page (5.2) takes it over.
-	const canRecompute = actor.permissions.has('roster.manage');
 	return {
 		sheet,
-		canRecompute,
-		maxRecomputeDays: MAX_BACKFILL_DAYS,
-		recomputeForm: canRecompute
-			? await superValidate({ from: sheet.shiftDate }, zod4(recomputeFromSchema), {
-					id: 'recompute',
-					errors: false
-				})
-			: null,
 		form: await superValidate(
 			{
 				shiftDate: sheet.shiftDate,
@@ -89,25 +74,6 @@ export const actions: Actions = {
 					status: 400
 				});
 			}
-			return failForm(form, cause);
-		}
-	},
-
-	recompute: async ({ request, locals }) => {
-		const actor = actorFrom(locals);
-		const form = await superValidate<Infer<typeof recomputeFromSchema>, AttendanceMessage>(
-			request,
-			zod4(recomputeFromSchema),
-			{ id: 'recompute' }
-		);
-		if (!form.valid) return fail(400, { form });
-		try {
-			const result = await recomputeFrom(actor, form.data.from);
-			return message(form, {
-				kind: 'success',
-				text: m.daily_recompute_done(result)
-			} satisfies AttendanceMessage);
-		} catch (cause) {
 			return failForm(form, cause);
 		}
 	}

@@ -57,6 +57,15 @@ export type DayResultValues = {
 	explanation: Record<string, unknown>;
 };
 
+/** What the screens show of a stored day: every value but the explanation (pay plan PR20, PR24). */
+export type DayFigures = Omit<DayResultValues, 'explanation'>;
+
+export function dayFiguresOf(values: DayResultValues): DayFigures {
+	const { explanation: _explanation, ...figures } = values;
+	void _explanation;
+	return figures;
+}
+
 export type DayResultInput = {
 	staffId: string;
 	day: RosterDay;

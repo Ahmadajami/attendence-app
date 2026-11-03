@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import RecomputeCard from '#lib/app/attendance/RecomputeCard.svelte';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
@@ -103,4 +104,12 @@
 			{/key}
 		</Card.Content>
 	</Card.Root>
+
+	{#if data.recomputeForm}
+		<RecomputeCard
+			data={data.recomputeForm}
+			today={data.sheet.today}
+			maxDays={data.maxRecomputeDays}
+		/>
+	{/if}
 </section>

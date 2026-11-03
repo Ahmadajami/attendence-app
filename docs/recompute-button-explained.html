@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recompute Button Explained</title>
+<!-- Local, self-contained page (no external resources). Every person and number below is made up. -->
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --fg: #1c1d1f; --muted: #5d6066; --border: #e2e2de;
+    --accent: #0f766e; --accent-soft: #e6f2f0; --warn: #b45309; --warn-soft: #fbf0e3;
+    --bad: #be123c; --bad-soft: #fbe9ee; --ok: #047857; --ok-soft: #e5f3ec; --code: #f0f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141517; --card: #1c1d20; --fg: #e8e8e6; --muted: #a0a3a8; --border: #2e3034;
+      --accent: #2dd4bf; --accent-soft: #15302d; --warn: #f59e0b; --warn-soft: #33270f;
+      --bad: #fb7185; --bad-soft: #3a1820; --ok: #34d399; --ok-soft: #12302a; --code: #26282c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141517; --card: #1c1d20; --fg: #e8e8e6; --muted: #a0a3a8; --border: #2e3034;
+    --accent: #2dd4bf; --accent-soft: #15302d; --warn: #f59e0b; --warn-soft: #33270f;
+    --bad: #fb7185; --bad-soft: #3a1820; --ok: #34d399; --ok-soft: #12302a; --code: #26282c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+  }
+  [lang="ar"] { font-family: Tahoma, "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif; line-height: 1.9; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 64px; }
+  header.top {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    border-bottom: 1px solid var(--border); padding: 10px 0; margin-bottom: 24px;
+  }
+  header.top .wrap { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding-bottom: 0; }
+  .brand { font-weight: 700; }
+  .switch { display: flex; gap: 4px; }
+  .switch button {
+    font: inherit; font-size: 14px; padding: 4px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--card); color: var(--fg);
+  }
+  .switch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  html[data-lang="en"] [lang="ar"], html[data-lang="ar"] [lang="en"] { display: none; }
+  section.card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; margin: 0 0 20px;
+  }
+  h1 { font-size: 28px; line-height: 1.3; margin: 0 0 8px; }
+  h2 { font-size: 21px; margin: 0 0 12px; display: flex; gap: 10px; align-items: baseline; }
+  h2 .n {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+    font-size: 15px; font-weight: 700;
+  }
+  h3 { font-size: 17px; margin: 18px 0 8px; }
+  p { margin: 0 0 10px; }
+  .lead { font-size: 18px; color: var(--muted); margin-bottom: 24px; }
+  .muted { color: var(--muted); }
+  .scroll { overflow-x: auto; margin: 8px 0 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 520px; }
+  th, td { border-bottom: 1px solid var(--border); padding: 7px 10px; text-align: start; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; background: var(--code); }
+  td.num, th.num { text-align: end; font-variant-numeric: tabular-nums; }
+  tr.new td { background: var(--ok-soft); }
+  tr.fixed td { background: var(--warn-soft); }
+  tr.missing td { background: var(--bad-soft); color: var(--muted); font-style: italic; }
+  .tag {
+    display: inline-block; font-size: 12.5px; padding: 1px 8px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--code); white-space: nowrap;
+  }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .tag.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  .note {
+    border-inline-start: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 10px 14px; border-radius: 8px; margin: 12px 0;
+  }
+  .note.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin: 10px 0 14px; }
+  .flow .box {
+    flex: 1 1 150px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    background: var(--bg); font-size: 14.5px;
+  }
+  .flow .box b { display: block; margin-bottom: 2px; }
+  .flow .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  [dir="rtl"] .flow .arrow, [lang="ar"] .flow .arrow { transform: scaleX(-1); }
+  .toast {
+    display: inline-flex; gap: 8px; align-items: center; padding: 8px 14px; border-radius: 10px;
+    background: var(--ok-soft); color: var(--ok); font-weight: 600; margin: 6px 0 12px;
+  }
+  .toast.zero { background: var(--code); color: var(--fg); }
+  ol, ul { margin: 0 0 10px; padding-inline-start: 22px; }
+  li { margin: 3px 0; }
+  code, bdi.code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px;
+    background: var(--code); padding: 1px 6px; border-radius: 5px;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  .never { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+  .never div { border: 1px dashed var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14.5px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="brand"><span lang="ar">زر «إعادة الحساب من تاريخ»</span><span lang="en">The “Recompute from a date” button</span></span>
+    <div class="switch" role="group" aria-label="Language / اللغة">
+      <button type="button" data-set="ar">العربية</button>
+      <button type="button" data-set="en">English</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Intro -->
+  <div lang="ar">
+    <h1>ماذا يفعل زر «إعادة الحساب»؟</h1>
+    <p class="lead">باختصار: يملأ أو يصحّح <b>السجلات اليومية المحفوظة</b> من التاريخ الذي تختاره حتى اليوم. لا يغيّر البصمات ولا الجداول أبداً. كل الأشخاص والأرقام في هذه الصفحة <b>وهمية</b>.</p>
+  </div>
+  <div lang="en">
+    <h1>What does the “Recompute” button do?</h1>
+    <p class="lead">In short: it fills in or fixes the <b>stored daily records</b> from the date you pick up to today. It never changes punches or rosters. Every person and number on this page is <b>made up</b>.</p>
+  </div>
+
+  <!-- 1. The daily record -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">1</span>ما هو «السجل اليومي»؟</h2>
+      <p>الموظف <b>«أ»</b> (شخص وهمي) يعمل الوردية <b>D</b> من <bdi>07:00</bdi> إلى <bdi>19:00</bdi> (12 ساعة = 720 دقيقة). نمطه: يعمل من الأحد إلى الخميس، والجمعة والسبت عطلة.</p>
+      <p><b>البصمات</b> هي ما يُدخل: وقت الدخول ووقت الخروج.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>التاريخ</th><th>دخول</th><th>خروج</th></tr></thead>
+        <tbody>
+          <tr><td>الأحد <bdi>25-10-2026</bdi></td><td><bdi>07:00</bdi></td><td><bdi>19:00</bdi></td></tr>
+          <tr><td>الاثنين <bdi>26-10-2026</bdi></td><td><bdi>07:20</bdi></td><td><bdi>19:00</bdi></td></tr>
+          <tr><td>الثلاثاء <bdi>27-10-2026</bdi></td><td><bdi>07:00</bdi></td><td><bdi>20:30</bdi></td></tr>
+        </tbody>
+      </table></div>
+      <p>من هذه البصمات ومن النمط يحسب التطبيق <b>سجلاً يومياً</b> لكل يوم ويحفظه:</p>
+      <div class="scroll"><table>
+        <thead><tr><th>التاريخ</th><th>نوع اليوم</th><th>الحالة</th><th class="num">مطلوب</th><th class="num">معمول</th><th class="num">تأخير</th><th class="num">إضافي</th><th>النسبة</th></tr></thead>
+        <tbody>
+          <tr><td><bdi>25-10</bdi></td><td>يوم عمل</td><td><span class="tag ok">حاضر</span></td><td class="num">720</td><td class="num">720</td><td class="num">0</td><td class="num">0</td><td>—</td></tr>
+          <tr><td><bdi>26-10</bdi></td><td>يوم عمل</td><td><span class="tag warn">متأخر</span></td><td class="num">720</td><td class="num">700</td><td class="num">20</td><td class="num">0</td><td>—</td></tr>
+          <tr><td><bdi>27-10</bdi></td><td>يوم عمل</td><td><span class="tag ok">حاضر</span></td><td class="num">720</td><td class="num">810</td><td class="num">0</td><td class="num">90</td><td><bdi>×1.25</bdi></td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">الدقائق في الجدول. هذا السجل هو ما ستعرضه صفحة «الحضور اليومي» لاحقاً، وما سيُبنى عليه الراتب.</p>
+    </div>
+    <div lang="en">
+      <h2><span class="n">1</span>What is a “daily record”?</h2>
+      <p>Employee <b>“A”</b> (made up) works shift <b>D</b> from <bdi>07:00</bdi> to <bdi>19:00</bdi> (12 hours = 720 minutes). Their pattern: Sunday to Thursday work, Friday and Saturday off.</p>
+      <p><b>Punches</b> are what gets entered: the check-in and check-out times.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Date</th><th>In</th><th>Out</th></tr></thead>
+        <tbody>
+          <tr><td>Sun <bdi>2026-10-25</bdi></td><td>07:00</td><td>19:00</td></tr>
+          <tr><td>Mon <bdi>2026-10-26</bdi></td><td>07:20</td><td>19:00</td></tr>
+          <tr><td>Tue <bdi>2026-10-27</bdi></td><td>07:00</td><td>20:30</td></tr>
+        </tbody>
+      </table></div>
+      <p>From the punches and the pattern, the app works out one <b>daily record</b> per day and stores it:</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Date</th><th>Kind</th><th>Status</th><th class="num">Required</th><th class="num">Worked</th><th class="num">Late</th><th class="num">Overtime</th><th>Rate</th></tr></thead>
+        <tbody>
+          <tr><td>10-25</td><td>work day</td><td><span class="tag ok">present</span></td><td class="num">720</td><td class="num">720</td><td class="num">0</td><td class="num">0</td><td>—</td></tr>
+          <tr><td>10-26</td><td>work day</td><td><span class="tag warn">late</span></td><td class="num">720</td><td class="num">700</td><td class="num">20</td><td class="num">0</td><td>—</td></tr>
+          <tr><td>10-27</td><td>work day</td><td><span class="tag ok">present</span></td><td class="num">720</td><td class="num">810</td><td class="num">0</td><td class="num">90</td><td>×1.25</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">Minutes. This record is what the “Daily attendance” page will show later, and what payroll will be built on.</p>
+    </div>
+  </section>
+
+  <!-- 2. Normally automatic -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">2</span>في العادة يتحدّث السجل وحده، دون الزر</h2>
+      <p>كل عملية حفظ تحدّث الأيام التي تخصها فوراً، وتكتب في <b>سجل التعديلات</b> ما تغيّر (القديم ← الجديد) ومن أين جاء.</p>
+      <div class="flow">
+        <div class="box"><b>تحفظ شيئاً</b>بصمة، تصحيح، نمط، عطلة، مهمة</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>يعيد التطبيق الحساب</b>للأشخاص والأيام المتأثرة فقط</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>يتحدّث السجل اليومي</b>ويُكتب سطر لكل قيمة تغيّرت</div>
+      </div>
+      <h3>مثال: تصحيح وقت الخروج يوم <bdi>27-10</bdi> من <bdi>20:30</bdi> إلى <bdi>19:30</bdi></h3>
+      <div class="scroll"><table>
+        <thead><tr><th>الحقل</th><th>القديم</th><th>الجديد</th><th>المصدر</th></tr></thead>
+        <tbody>
+          <tr><td>الخروج</td><td><bdi>20:30</bdi></td><td><bdi>19:30</bdi></td><td><span class="tag">تصحيح</span></td></tr>
+          <tr><td>معمول</td><td>810</td><td>750</td><td><span class="tag">تصحيح</span></td></tr>
+          <tr><td>إضافي</td><td>90</td><td>30</td><td><span class="tag">تصحيح</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">لذلك <b>لا تحتاج الزر في العمل اليومي</b>. إذا ضغطته بعد أي حفظ عادي فسيقول «0 يوماً كُتب»، لأن كل شيء صحيح مسبقاً.</div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">2</span>Normally the record updates by itself, with no button</h2>
+      <p>Every save updates its own days straight away and writes to the <b>edit log</b> what changed (old → new) and where it came from.</p>
+      <div class="flow">
+        <div class="box"><b>You save something</b>a punch, a correction, a pattern, a holiday, a mission</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>The app recomputes</b>only the people and days it touches</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>The daily record updates</b>with one log line per changed value</div>
+      </div>
+      <h3>Example: correct the check-out on <bdi>10-27</bdi> from 20:30 to 19:30</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>Field</th><th>Old</th><th>New</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>check-out</td><td>20:30</td><td>19:30</td><td><span class="tag">Correction</span></td></tr>
+          <tr><td>worked</td><td>810</td><td>750</td><td><span class="tag">Correction</span></td></tr>
+          <tr><td>overtime</td><td>90</td><td>30</td><td><span class="tag">Correction</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">So <b>you don't need the button in daily work</b>. Press it after any normal save and it says “0 days written”: everything is already right.</div>
+    </div>
+  </section>
+
+  <!-- 3. When the button is needed -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">3</span>متى تحتاج الزر؟</h2>
+      <p>عندما يوجد يوم <b>لم يتحدّث</b> سجله تلقائياً. أكثرها شيوعاً:</p>
+      <h3>أ) بصمات أُدخلت قبل وجود هذه الميزة: لا سجل لها</h3>
+      <p>الموظف «ب» (وهمي) له بصمات يومي <bdi>28-10</bdi> و<bdi>29-10</bdi> أُدخلت قديماً، لكن ليس لهما سجل يومي:</p>
+      <div class="scroll"><table>
+        <thead><tr><th>التاريخ</th><th>البصمات</th><th>السجل اليومي قبل الضغط</th><th>بعد الضغط</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td><bdi>28-10</bdi></td><td><bdi>07:00 → 19:00</bdi></td><td>لا يوجد</td><td>—</td></tr>
+          <tr class="new"><td><bdi>28-10</bdi></td><td><bdi>07:00 → 19:00</bdi></td><td>—</td><td>حاضر، معمول 720 <span class="tag ok">جديد</span></td></tr>
+          <tr class="missing"><td><bdi>29-10</bdi></td><td><bdi>07:05 → (لا خروج)</bdi></td><td>لا يوجد</td><td>—</td></tr>
+          <tr class="new"><td><bdi>29-10</bdi></td><td><bdi>07:05 → (لا خروج)</bdi></td><td>—</td><td>بلا وقت معمول (الخروج ناقص) <span class="tag ok">جديد</span></td></tr>
+        </tbody>
+      </table></div>
+      <p>كل سجل جديد يُكتب له سطر واحد في سجل التعديلات: <span class="tag">أُنشئ</span> بالمصدر <span class="tag">النظام</span>.</p>
+
+      <h3>ب) تحديث فشل لسبب ما: اليوم بقي «يحتاج إعادة حساب»</h3>
+      <p>إذا حُفظ تصحيح لكن فشل التحديث بعده (انقطاع اتصال مثلاً)، يبقى السجل القديم مع علامة «يحتاج إعادة حساب»:</p>
+      <div class="scroll"><table>
+        <thead><tr><th>التاريخ</th><th class="num">معمول قبل الضغط</th><th class="num">معمول بعد الضغط</th><th>ما حدث</th></tr></thead>
+        <tbody>
+          <tr class="fixed"><td><bdi>30-10</bdi></td><td class="num">720 <span class="tag bad">قديم</span></td><td class="num">735</td><td>صُحّح، وكُتب سطر «معمول: 720 ← 735»</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>ج) نقل موظف بين فرق أو أقسام</h3>
+      <p>النقل يسري من لحظة حفظه، ولا يعيد حساب الأيام الماضية تلقائياً. إن أردت أن تعكس الأيام المحفوظة الوضع الجديد فاضغط الزر من التاريخ المناسب.</p>
+    </div>
+    <div lang="en">
+      <h2><span class="n">3</span>When do you need the button?</h2>
+      <p>When a day's record was <b>not</b> updated automatically. The usual cases:</p>
+      <h3>a) Punches typed before this feature existed: no record yet</h3>
+      <p>Employee “B” (made up) has old punches on <bdi>10-28</bdi> and <bdi>10-29</bdi>, but no daily record for them:</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Date</th><th>Punches</th><th>Record before</th><th>After pressing</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>10-28</td><td>07:00 → 19:00</td><td>none</td><td>—</td></tr>
+          <tr class="new"><td>10-28</td><td>07:00 → 19:00</td><td>—</td><td>present, worked 720 <span class="tag ok">new</span></td></tr>
+          <tr class="missing"><td>10-29</td><td>07:05 → (no out)</td><td>none</td><td>—</td></tr>
+          <tr class="new"><td>10-29</td><td>07:05 → (no out)</td><td>—</td><td>no worked time (check-out missing) <span class="tag ok">new</span></td></tr>
+        </tbody>
+      </table></div>
+      <p>Each new record gets one edit-log line: <span class="tag">created</span>, source <span class="tag">system</span>.</p>
+
+      <h3>b) An update failed: the day stayed “needs recompute”</h3>
+      <p>If a correction is saved but the update after it fails (a dropped connection, say), the old record stays, flagged “needs recompute”:</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Date</th><th class="num">Worked before</th><th class="num">Worked after</th><th>What happened</th></tr></thead>
+        <tbody>
+          <tr class="fixed"><td>10-30</td><td class="num">720 <span class="tag bad">stale</span></td><td class="num">735</td><td>fixed, with a log line “worked: 720 → 735”</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>c) Someone moved to another team or department</h3>
+      <p>A move takes effect from the moment it is saved and does not recompute past days by itself. If the stored days should follow the new situation, press the button from the right date.</p>
+    </div>
+  </section>
+
+  <!-- 4. What pressing does -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">4</span>ماذا يحدث بالضبط عند الضغط؟</h2>
+      <ol>
+        <li><b>من؟</b> كل الموظفين النشطين، وكل من له بصمات في المدة.</li>
+        <li><b>أي أيام؟</b> من التاريخ الذي تختاره حتى <b>اليوم</b> (400 يوم على الأكثر). الأيام القادمة لا تُحفظ.</li>
+        <li><b>لكل شخص ولكل يوم</b> يحسب السجل من جديد من: النمط، الغيابات، العطل، التبديلات، البصمات.</li>
+        <li><b>يقارن</b> بالسجل المحفوظ:
+          <ul>
+            <li>مطابق ← لا يكتب شيئاً، ويُعدّ «دون تغيير».</li>
+            <li>غير موجود ← يكتبه، مع سطر «أُنشئ».</li>
+            <li>مختلف ← يصححه، مع سطر لكل قيمة تغيّرت (القديم ← الجديد).</li>
+          </ul>
+        </li>
+        <li><b>يكتب سطراً واحداً في سجل التدقيق</b> بالمدة والأعداد، ويُظهر رسالة.</li>
+      </ol>
+      <h3>مثال: 5 موظفين وهميين، الضغط من <bdi>25-10</bdi> واليوم <bdi>02-11</bdi></h3>
+      <p>من <bdi>25-10</bdi> إلى <bdi>31-10</bdi> لا سجلات (7 أيام × 5 = 35)، ويوما <bdi>01-11</bdi> و<bdi>02-11</bdi> صحيحان (2 × 5 = 10):</p>
+      <div class="toast">✓ أُعيد الحساب: 35 يوماً كُتب، 10 دون تغيير، 35 سطراً في السجل.</div>
+      <p>ثم الضغط مرة ثانية بالتاريخ نفسه:</p>
+      <div class="toast zero">✓ أُعيد الحساب: 0 يوماً كُتب، 45 دون تغيير، 0 سطراً في السجل.</div>
+      <p class="muted">الضغطة الثانية لا تكتب شيئاً: هذا هو المتوقع، وهو دليل أن كل السجلات صحيحة.</p>
+      <h3>ما لا يفعله الزر أبداً</h3>
+      <div class="never">
+        <div>لا يغيّر البصمات</div>
+        <div>لا يغيّر الأنماط أو الجداول</div>
+        <div>لا يغيّر الغيابات أو العطل</div>
+        <div>لا يحفظ أياماً قادمة</div>
+        <div>لا يطبّق نمطاً على تواريخ ماضية</div>
+      </div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">4</span>What exactly happens when you press it?</h2>
+      <ol>
+        <li><b>Who:</b> everyone active, plus anyone with punches in the range.</li>
+        <li><b>Which days:</b> from the date you pick up to <b>today</b> (at most 400 days). Future days are never stored.</li>
+        <li><b>For each person and day</b> it works the record out again from the pattern, absences, holidays, swaps and punches.</li>
+        <li><b>It compares</b> with the stored record:
+          <ul>
+            <li>the same → nothing written; counts as “unchanged”</li>
+            <li>missing → written, with a “created” line</li>
+            <li>different → fixed, with one line per changed value (old → new)</li>
+          </ul>
+        </li>
+        <li><b>It writes one audit row</b> with the range and the counts, and shows a toast.</li>
+      </ol>
+      <h3>Example: 5 made-up people, pressed from <bdi>10-25</bdi>, today is <bdi>11-02</bdi></h3>
+      <p>10-25 to 10-31 have no records (7 days × 5 = 35); 11-01 and 11-02 are already right (2 × 5 = 10):</p>
+      <div class="toast">✓ Recomputed: 35 days written, 10 unchanged, 35 log lines.</div>
+      <p>Then pressing again with the same date:</p>
+      <div class="toast zero">✓ Recomputed: 0 days written, 45 unchanged, 0 log lines.</div>
+      <p class="muted">The second press writes nothing. That is expected: it proves every record is right.</p>
+      <h3>What the button never does</h3>
+      <div class="never">
+        <div>never changes punches</div>
+        <div>never changes patterns or rosters</div>
+        <div>never changes absences or holidays</div>
+        <div>never stores future days</div>
+        <div>never applies a pattern to past dates</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. The user's own test -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">5</span>لماذا «لم يحدث شيء» في تجربتك؟</h2>
+      <p>أنشأتَ نمطاً (الجمعة والسبت عطلة) وجعلت الموظف يتبعه، ثم ضغطت الزر. هذا ما جرى بالترتيب:</p>
+      <div class="flow">
+        <div class="box"><b>1. حفظ النمط من <bdi>02-11</bdi> (اليوم)</b>النمط يبدأ اليوم، لا قبله</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>2. التحديث التلقائي فوراً</b>سجل اليوم تغيّر وحده (المصدر: تغيير الجدول)</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>3. ضغطتَ الزر من <bdi>02-11</bdi></b>كل شيء صحيح مسبقاً ← 0 مكتوب</div>
+      </div>
+      <p>ما تغيّر في سجل اليوم عند حفظ النمط (أرقام وهمية بنفس الشكل):</p>
+      <div class="scroll"><table>
+        <thead><tr><th>الحقل</th><th>القديم</th><th>الجديد</th><th>المصدر</th></tr></thead>
+        <tbody>
+          <tr><td>نوع اليوم</td><td>عمل في يوم عطلة</td><td>يوم عمل</td><td><span class="tag">تغيير الجدول</span></td></tr>
+          <tr><td>مطلوب</td><td>0</td><td>720</td><td><span class="tag">تغيير الجدول</span></td></tr>
+          <tr><td>الحالة</td><td>خارج الجدول</td><td>متأخر</td><td><span class="tag">تغيير الجدول</span></td></tr>
+          <tr><td>تأخير</td><td>0</td><td>105</td><td><span class="tag">تغيير الجدول</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn">والأيام الماضية (<bdi>25-10</bdi> إلى <bdi>30-10</bdi>) <b>لا تتأثر بالنمط</b> لأنه يبدأ اليوم. لذلك تبقى «عمل في يوم عطلة» وكل وقتها إضافي ×1.5 حتى بعد الضغط. هذا مقصود: التطبيق لا يغيّر الأيام الماضية بتغيير نمط.</div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">5</span>Why “nothing happened” in your test</h2>
+      <p>You created a pattern (Friday and Saturday off), made the employee follow it, then pressed the button. In order:</p>
+      <div class="flow">
+        <div class="box"><b>1. Pattern saved from <bdi>11-02</bdi> (today)</b>a pattern starts today, not before</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>2. Automatic update at once</b>today's record changed by itself (source: roster change)</div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div class="box"><b>3. You pressed from <bdi>11-02</bdi></b>already right → 0 written</div>
+      </div>
+      <p>What changed in today's record when the pattern was saved (made-up numbers, same shape):</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Field</th><th>Old</th><th>New</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>kind</td><td>off-day work</td><td>work day</td><td><span class="tag">Roster change</span></td></tr>
+          <tr><td>required</td><td>0</td><td>720</td><td><span class="tag">Roster change</span></td></tr>
+          <tr><td>status</td><td>unscheduled</td><td>late</td><td><span class="tag">Roster change</span></td></tr>
+          <tr><td>late</td><td>0</td><td>105</td><td><span class="tag">Roster change</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note warn">Past days (<bdi>10-25</bdi> to <bdi>10-30</bdi>) are <b>not affected by the pattern</b>, because it starts today. They stay “off-day work”, all overtime ×1.5, even after pressing. That is on purpose: a pattern change never rewrites past days.</div>
+    </div>
+  </section>
+
+  <!-- 6. Try it -->
+  <section class="card">
+    <div lang="ar">
+      <h2><span class="n">6</span>جرّبه بنفسك على تطبيق الاختبار (5174)</h2>
+      <ol>
+        <li>افتح <code>http://127.0.0.1:5174/attendance/entry</code> وانزل إلى بطاقة <b>«إعادة الحساب من تاريخ»</b> في الأسفل.</li>
+        <li>اختر تاريخاً <b>قبل</b> البصمات القديمة (مثلاً <bdi>25-10-2026</bdi>) واضغط <b>«إعادة الحساب»</b>. يجب أن ترى عدداً أكبر من 0 في «يوماً كُتب».</li>
+        <li>اضغط مرة ثانية بالتاريخ نفسه: يجب أن ترى <b>0 يوماً كُتب</b>.</li>
+        <li>اختر تاريخاً في المستقبل: تظهر رسالة حمراء «اختر تاريخاً من آخر 400 يوم، حتى اليوم».</li>
+      </ol>
+      <div class="note">لا توجد بعد صفحة تعرض السجلات اليومية. ستأتي صفحة <b>«الحضور اليومي»</b> (<code>/attendance/days</code>، المهمة 5.2) بجدول لكل يوم وزر «السجل» لكل يوم، وسينتقل هذا الزر إليها. عندها ترى النتيجة مباشرة.</div>
+    </div>
+    <div lang="en">
+      <h2><span class="n">6</span>Try it yourself on the test app (5174)</h2>
+      <ol>
+        <li>Open <code>http://127.0.0.1:5174/attendance/entry</code> and scroll to the <b>“Recompute from a date”</b> card at the bottom.</li>
+        <li>Pick a date <b>before</b> the old punches (e.g. <bdi>2026-10-25</bdi>) and press <b>Recompute</b>. “Days written” should be above 0.</li>
+        <li>Press again with the same date: you should see <b>0 days written</b>.</li>
+        <li>Pick a date in the future: a red toast says “Pick a date from the last 400 days, up to today.”</li>
+      </ol>
+      <div class="note">No page shows the daily records yet. The <b>“Daily attendance”</b> page (<code>/attendance/days</code>, task 5.2) will list every day with a History button per day, and this button moves there. Then you see the result directly.</div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var buttons = document.querySelectorAll('.switch button');
+    function apply(mode) {
+      root.setAttribute('data-lang', mode);
+      root.setAttribute('lang', mode);
+      root.setAttribute('dir', mode === 'ar' ? 'rtl' : 'ltr');
+      buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-set') === mode)); });
+      try { localStorage.setItem('recompute-explained-lang', mode); } catch (e) { /* storage blocked: ignore */ }
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { apply(b.getAttribute('data-set')); });
+    });
+    var saved = null;
+    try { saved = localStorage.getItem('recompute-explained-lang'); } catch (e) { saved = null; }
+    apply(saved === 'en' ? 'en' : 'ar');
+  })();
+</script>
+</body>
+</html>

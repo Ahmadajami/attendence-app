@@ -1,6 +1,6 @@
 # Daily attendance: pattern pay rules, holidays, missions, swaps, leave balance and edit log
 
-**Status:** in progress (approved 2026-11-02; extended the same day with swaps, leave balance and the edit log; Phases 1–2 built, Phase 3 built except the backfill button (5.2); `attendance_app` migrations 0015–0018 waiting for the user's OK)
+**Status:** in progress (approved 2026-11-02; extended the same day with swaps, leave balance and the edit log; Phases 1–3 built, the backfill button on `/attendance/entry` for now; Phase 4: 4.0–4.4 built, 4.4 waiting for the user's check; all three databases at 21 migrations)
 **Date:** 2026-11-01 (rewritten and extended 2026-11-02)
 **Goal:** Once punches are in, the app keeps one **daily attendance record per
 person per day**. It works the record out from the person's pattern (shift,
@@ -112,6 +112,15 @@ PR27–PR29 and PR31–PR34 are defaults until the user says otherwise. All are 
 | PR33 | Going over the balance is a **warning, not a refusal** (day editor, entry sheet): "this leaves −2 days" | HR may approve exceptions |
 | PR34 | A `/leave` page (per department or team, one row per person: yearly, carried, taken, booked, left; **Set yearly days** for a selection, with a reason) and a **Leave** card on the employee page (the year's numbers and the list of leave periods). Writes need `staff.write`; every change is audited | Balances are set in bulk once a year and looked up per person |
 
+### Company defaults (PR35–PR38, added 2026-11-02)
+
+| # | Decision | Why |
+|---|---|---|
+| PR35 | A **company overtime setting** (on/off and the three rates), versioned from today or later, stored as `pattern_pay_rule` rows with no pattern. Each value: pattern → company → built-in default (replaces PR7) | The user asked for one global default a pattern can override; versions keep past pay |
+| PR36 | **Company holidays** (`pattern_holiday` rows with no pattern) apply to every day a pattern plans; per pattern, each one can be **skipped** or get its **own overtime-eligible switch** (`pattern_holiday_exception`) | The user chose per-holiday overrides |
+| PR37 | On a date with both, the **pattern's own holiday wins**; company holidays don't overlap each other | The nearer rule wins, as for pay (PR4) |
+| PR38 | The screen is a **Pay & holidays** section on `/admin/settings`; writes need `roster.manage` | The user's choice |
+
 ## 2. What exists today (facts from the code)
 
 - `pattern`, `pattern_assignment`, `staff_schedule`, `roster_override`
@@ -140,6 +149,12 @@ PR27–PR29 and PR31–PR34 are defaults until the user says otherwise. All are 
 | `attendance_log` (new) | `id`, `staff_id`, `shift_date`, `field` (enum: `created`, `kind`, `status`, `state`, `shift`, `check_in`, `check_out`, `required`, `worked`, `late`, `overtime`, `ot_rate`, `paid_ot`, `unpaid_extra`, `swap`), `old_value jsonb`, `new_value jsonb`, `source` (enum, PR23), `cause_type` (`event \| absence \| swap \| holiday \| pay_rule \| assignment \| schedule \| override \| none`), `cause_id uuid`, `actor_id` (NULL = system), `at`. Index (`staff_id`, `shift_date`, `at`). **Append-only** (a trigger refuses UPDATE and DELETE) |
 | `swap_request` (new) | `id`, `kind` (`self_swap \| emp_swap`), `staff_id` (A), `other_staff_id` (B, emp only), `first_date` (self: the work day W; emp: D), `second_date` (self: the off day O, required; emp: the return date D2, optional), `scope` (`week \| month`), `pay_as_ot`, `reason`, `state` (`pending \| approved \| rejected \| cancelled`), `requested_by`, `decided_by`, `decided_at`, `decision_note`, `cancelled_by`, `cancelled_at`, timestamps. Checks: other staff iff emp, ≠ A; second date iff self (or optional for emp); dates differ; decision fields match the state |
 | `leave_entitlement` (new) | `staff_id`, `year smallint`, `days numeric(5,2)` (0–365), `carried_days numeric(5,2)` (−365–365, default 0), `reason`, `created_by`, timestamps; unique (`staff_id`, `year`). Changes audited |
+
+Company defaults (PR35–PR37): `pattern_pay_rule.pattern_id` and `pattern_holiday.pattern_id`
+become nullable (NULL = the company's); new `pattern_holiday_exception` (`pattern_id`,
+`holiday_id` → a company holiday, `applies`, `ot_eligible` NULL = as the company's, `reason`,
+`created_by`, `updated_by`, timestamps; unique (`pattern_id`, `holiday_id`)). Migrations `0019`
+(generated) and `0020` (custom: company rows don't overlap each other).
 
 Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
 `0018_swaps_leave_log_constraints` (custom: append-only trigger on
@@ -243,12 +258,17 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > service enforces it (Phase 4). Probe on `_test` (one rolled-back transaction): all four
       > refused, plus "no value set"; a cancelled holiday frees its dates; 14 days accepted;
       > 0 rows left behind.
-- [ ] 1.3 Apply to `attendance_app_test` and `attendance_app_e2e`;
+- [x] 1.3 Apply to `attendance_app_test` and `attendance_app_e2e`;
       `attendance_app` only after the row count and the user's OK
       > note: 2026-11-02 applied on `_test` (it also took the pending 0011–0014; now 17) and
       > `_e2e` (17); `drizzle-kit generate` says "No schema changes". `attendance_app`: 15
       > applied (up to 0014), counts before 0015–0016: absence 0, pattern 2,
       > department_manager 1. **Waiting for the user's OK.**
+      > note: 2026-11-02 applied on `attendance_app` with the user's OK: 15 → 21 migrations
+      > (`0015`–`0020`). Row counts of all 34 existing tables unchanged (staff 8, pattern 2,
+      > pattern_assignment 3, absence 0, attendance_event 0, audit_log 84, …); 7 new tables, all
+      > empty; the 4 `EXCLUDE`s and the 2 `attendance_log` triggers present; `drizzle-kit generate`:
+      > no schema changes.
 - [x] 1.4 Schema for the extension: `attendance_log`, `swap_request`,
       `leave_entitlement`, the new `day_result` columns, their enums.
       `pnpm db:generate` → `0017`; read the SQL.
@@ -274,12 +294,17 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > a swap with oneself, approved without a decision time, cancelled without a reason,
       > 400 yearly days; a valid self swap went pending → approved → cancelled; −2 carried
       > accepted; 0 rows left behind.
-- [ ] 1.6 Apply `0017`–`0018` to `_test` and `_e2e`; `attendance_app` with
+- [x] 1.6 Apply `0017`–`0018` to `_test` and `_e2e`; `attendance_app` with
       `0015`–`0018` after the row count and the user's OK
       > note: 2026-11-02 applied on `_test` and `_e2e` (19 each); `drizzle-kit generate` says
       > "No schema changes". `attendance_app`: 15 applied (up to 0014); counts before
       > 0015–0018: absence 0, attendance_event 0, pattern 2, staff 8. **Waiting for the user's
       > OK.**
+      > note: 2026-11-02 applied on `attendance_app` with the user's OK: 15 → 21 migrations
+      > (`0015`–`0020`). Row counts of all 34 existing tables unchanged (staff 8, pattern 2,
+      > pattern_assignment 3, absence 0, attendance_event 0, audit_log 84, …); 7 new tables, all
+      > empty; the 4 `EXCLUDE`s and the 2 `attendance_log` triggers present; `drizzle-kit generate`:
+      > no schema changes.
 
 ### Phase 2 · Pure logic (Vitest)
 - [x] 2.1 `pay-rule.ts`. **Done when** T1–T4 pass
@@ -350,7 +375,7 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > not hooked: a move takes effect from the moment it is saved (today's team is read at
       > 00:00), and stored past days keep their figures until something recomputes them. grep:
       > 14 calls in 3 services; `pnpm check` 0 errors.
-- [ ] 3.3 Backfill: `pnpm attendance:recompute --from <date>` (source
+- [x] 3.3 Backfill: `pnpm attendance:recompute --from <date>` (source
       `system`, one "created" line per day). **Done when** it runs on
       `_e2e` and prints counts only
       > note: deviation: a service function `recomputeFrom(actor, from)` (`roster.manage`, at
@@ -359,6 +384,13 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > `$app/env/private`), while the recompute reuses the app's loaders on the app's client.
       > The daily page gets a "Recompute from a date" button for it in 5.2; ticked when the user
       > has run it on `_e2e` and seen the counts.
+      > note: 2026-11-02 the button came early (user's request): a **Recompute from a date** card
+      > at the bottom of `/attendance/entry` (`RecomputeCard.svelte`, action `?/recompute`, schema
+      > `day-results.schema.ts`), shown with `roster.manage`; the toast gives the counts. It moves
+      > to `/attendance/days` in 5.2. It keeps the entry sheet's unsaved rows (`invalidateAll:
+      > false`) and its date (`resetForm: false`).
+      > note: 2026-11-02 the user ran it on `_e2e` (from a date before the old punches, then again
+      > with 0 written) and confirmed it works.
 
 ### Phase 4 · Pattern pay, holidays, missions (services and sheets)
 - [x] 4.0 Fix from testing (do first): on the employee page day panel, **Add punches** opens
@@ -373,18 +405,101 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > forms, `DayPanel` wires it; new key `attendance_cancel` (en + ar). An Escape shortcut was
       > dropped: a key handler on `<form>` fails the a11y check (non-interactive element), and the
       > button is what was asked. 2026-11-02 the user confirmed it on `5174`.
-- [ ] 4.1 `#lib/schemas/pattern-pay.schema.ts` + `day-state.schema.ts`
+- [x] 4.1 `#lib/schemas/pattern-pay.schema.ts` + `day-state.schema.ts`
       (+ Vitest: rate range, empty = inherit, to ≥ from, ≤ 14 days, ≥ 1 member)
-- [ ] 4.2 `pattern-pay.bl/crud`: pay rule set / reset, holiday add /
+      > note: 2026-11-02. `pattern-pay.schema.ts`: pay rule (overtime `inherit | on | off`, three
+      > rates 1.00–5.00 with two decimals, `null` = inherit, at least one value), reset, holiday
+      > (≤ 14 days, both names), holiday cancel, mission (≥ 1 member, JSON), mission cancel (whole
+      > or one member); shared `checkDateRange`. `day-state.schema.ts` (for 5.1): set a state
+      > (Q-PR4 list) or clear, at most 366 days per edit (a default, so one edit stays one
+      > request). Missions have no length cap beyond the order check. 19 tests; `pnpm test`
+      > 326/326.
+- [x] 4.2 `pattern-pay.bl/crud`: pay rule set / reset, holiday add /
       cancel, mission add / cancel (group or member); each write in one
       `batch` with its audit row and `markNeedsRecompute`, then
       `recomputeAfter` (sources `pay_rule`, `holiday`, `mission`); refusals as
       translated `AppError`s
-- [ ] 4.3 Copy and "change from a date" carry pay rule and upcoming
+      > note: 2026-11-02. `pattern-pay.bl.ts`: `setPayRule` / `resetPayRule` (today or later;
+      > the version in force ends at the date, later ones are removed, via `planVersionChange`),
+      > `addHoliday` / `cancelHoliday` (past dates allowed), `addMission` / `cancelMission`
+      > (inactive members, members not following the pattern on every date, and members already
+      > away are refused with their names; one `mission` absence per member sharing `group_id`).
+      > Each write: one `batch` with its audit row and the flags on the stored days it reaches
+      > (capped at today), then `recomputeAfter` with the cause (pay rule id, holiday id, each
+      > member's absence id). Followers = `patternCandidates` (new, in `assignments.bl`: assigned
+      > people, team members, department staff) filtered by `rosterDay().patternId`. Overlaps
+      > (`23P01`) become translated conflicts. `pnpm check` 0 errors. Not run against a database
+      > (no screens yet): the user's checks come with 4.4.
+- [x] 4.3 Copy and "change from a date" carry pay rule and upcoming
       holidays (PR14)
+      > note: 2026-11-02. Pure `src/lib/payroll/carry.ts` (`carryPaySettings`: versions in force on
+      > or after the date and active holidays not over yet, each moved to start on the date at the
+      > earliest) + 4 tests. `carryStatements` in `patterns.bl` adds the copies and one audit row
+      > (`pattern.carry_pay`, ids only) to the same batch as `copyPattern` (from today) and
+      > `editFromDate` (from its date). The old pattern keeps its own rows.
 - [ ] 4.4 Tabs on `/patterns/[id]`, `PayRuleCard`, `PayRuleFormSheet`,
       `HolidayList` / `HolidayFormSheet`, `MissionList` / `MissionFormSheet`,
       cancel sheets, preview and staffing-strip holiday marks, library badge
+      > note: 2026-11-02 built, waiting for the user's check on `5174`. `?tab=days|pay|dates` on
+      > `/patterns/[id]` (the builder stays on Days). `PatternPayTab` (the rule in force today with
+      > each value's source, the version list, **Change from a date** / **Reset to defaults**),
+      > `PayRuleFormSheet`, `PayRuleResetSheet`; `PatternDatesTab` (holiday table with state and
+      > Cancel; missions with members, cancel whole or one member), `HolidayFormSheet`,
+      > `HolidayCancelSheet`, `MissionFormSheet` (search and tick from the people the pattern
+      > reaches between 31 days ago and 92 days ahead; the service checks every date),
+      > `MissionCancelSheet`. Read `getPatternPay`. Six actions on the page. Holiday letter H / ر in
+      > the roster preview (legend updated), a Holiday row in the staffing strip (`staffing()`
+      > counts it apart from off, + 1 test), and **Own pay rule** / **N upcoming holidays** badges in
+      > the library. 87 strings (en + ar). Svelte autofixer clean on the 12 touched files.
+
+- [x] 4.5 Company defaults schema (PR35–PR37): nullable `pattern_id` on `pattern_pay_rule` and
+      `pattern_holiday`, `pattern_holiday_exception`; `0019` generated, `0020` custom (company
+      rows don't overlap). Applied to `_test` and `_e2e`; `attendance_app` with the rest after the
+      user's OK. **Done when** a rolled-back probe refuses two overlapping company versions and two
+      overlapping company holidays, and accepts a company holiday on a pattern holiday's date
+      > note: 2026-11-02. `0019_company_pay_holidays` (generated: the exception table, two `DROP NOT
+      > NULL`, FKs, unique and holiday index; nothing else) and `0020_company_pay_holidays_constraints`
+      > (two partial `EXCLUDE`s on the company rows). Applied on `_test` and `_e2e` (21 each).
+      > Probe on `_test` in one rolled-back transaction: overlapping company versions refused,
+      > overlapping company holidays refused, a second exception for the same pattern and holiday
+      > refused; a pattern version over the company one and a pattern holiday on a company
+      > holiday's date accepted; 0 rows left. `attendance_app`: applied 2026-11-02 with the user's
+      > OK (21 migrations, existing counts unchanged; see 1.6).
+- [x] 4.6 Pure rules: pay values resolve pattern → company → built-in with the source of each
+      (`resolvePayChain`); `rosterDay` takes company holidays and the pattern's exceptions (own
+      holiday first, then a company holiday unless skipped, with the exception's overtime switch).
+      **Done when** Vitest covers: no settings → built-in; company value only; pattern over company;
+      company holiday applies; skipped; overtime switch changed; own holiday wins; no pattern → none
+      > note: 2026-11-02. `resolvePayRule(patternVersions, date, companyVersions)` (sources
+      > `pattern | company | default`; `versionOn` shared) + 3 tests, T1/T2 now say `default`;
+      > `rosterDay` reads `holidays` (company ones have `patternId: null`) and
+      > `holidayExceptions`: T25–T30. Each stored day's `explanation.paySources` changes its words
+      > (`company` → `default` where nothing is set), so the next recompute rewrites those rows
+      > without log lines (no logged value changes).
+- [x] 4.7 Services: company pay rule set / reset, company holiday add / cancel, a pattern's
+      exception set (applies, overtime, reason); the recompute and the loaders read the company
+      rows; each write flags and recomputes what it reaches (company: everyone with stored days in
+      the range; exception: the pattern's followers). **Done when** `pnpm check` and `pnpm test` pass
+      > note: 2026-11-02. The pattern forms take `patternId` '' for the company (one code path:
+      > `ownerOf`, `reachedBy`, audit target `company`). New `setHolidayException` (company
+      > holidays only, one row per pattern and holiday, upserted and audited), `getCompanyPay`
+      > (`settings.manage`); `getPatternPay` adds `companyRule` and the company holidays with this
+      > pattern's exceptions. `loadRosterData` loads company holidays and the exceptions; the
+      > recompute reads the company versions. Shared server module `#lib/server/pattern-pay-forms.ts`
+      > (forms + actions for both pages). `pnpm check` 0 errors, `pnpm test` 342/342.
+- [ ] 4.8 Screens: **Pay & holidays** on `/admin/settings` (the pay card and the holiday card of the
+      pattern tabs, for the company); on a pattern, the pay tab shows "Company setting" vs
+      "Built-in" and the sheet's hints show the company values; the Holidays tab lists the company
+      holidays with **Applies / Skipped / Overtime changed** and a **Change** sheet.
+      **Done when** the user confirms on `5174`: a company rate shows on a pattern without its own;
+      a pattern's own rate wins; a company holiday shows H in the preview; skipping it for one
+      pattern removes the H for its followers only; `/ar/admin/settings` right to left
+      > note: 2026-11-02 built, waiting for the user's check. `PayRuleCard` (was `PatternPayTab`)
+      > and `HolidayCard` shared by `/admin/settings` and the pattern tabs; the pay sheet's hints
+      > and "inherit" choice show what an empty value falls back to; the Holidays tab has the
+      > pattern's own holidays, the company holidays with **Applies / Skipped / Own overtime
+      > switch** and a **Change** sheet (`HolidayExceptionSheet`), and missions. 24 new strings, 5
+      > reworded (en + ar). Autofixer clean.
 
 ### Phase 5 · Daily attendance page, day editor, history
 - [ ] 5.1 `day-state` service: set / clear a state for one person over a

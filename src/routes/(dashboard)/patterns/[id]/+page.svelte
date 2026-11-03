@@ -1,12 +1,20 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import BuildingsIcon from 'phosphor-svelte/lib/BuildingsIcon';
+	import CalendarStarIcon from 'phosphor-svelte/lib/CalendarStarIcon';
+	import CurrencyCircleDollarIcon from 'phosphor-svelte/lib/CurrencyCircleDollarIcon';
+	import GridFourIcon from 'phosphor-svelte/lib/GridFourIcon';
 	import UserIcon from 'phosphor-svelte/lib/UserIcon';
 	import UsersFourIcon from 'phosphor-svelte/lib/UsersFourIcon';
 	import PatternBuilder from '#lib/app/patterns/PatternBuilder.svelte';
+	import PatternDatesTab from '#lib/app/patterns/PatternDatesTab.svelte';
+	import PayRuleCard from '#lib/app/patterns/PayRuleCard.svelte';
 	import { formatCalendarDate } from '#lib/app/roster/labels.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as UnderlineTabs from '#lib/components/ui/underline-tabs/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { lookupName, personName } from '#lib/utils/locale.js';
@@ -21,6 +29,21 @@
 			: kind === 'team'
 				? localizedHref('/teams/[id]', { id })
 				: localizedHref('/departments');
+
+	/** The open tab lives in `?tab=` (pay plan PR12). The load ignores it: switching never refetches. */
+	const TABS = ['days', 'pay', 'dates'] as const;
+	type Tab = (typeof TABS)[number];
+	const tab = $derived.by((): Tab => {
+		const value = page.url.searchParams.get('tab');
+		return TABS.includes(value as Tab) ? (value as Tab) : 'days';
+	});
+
+	function setTab(next: string) {
+		const url = new URL(page.url.href);
+		url.searchParams.set('tab', next);
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- same page, only `?tab=` changes
+		void goto(url, { replace: true, reset: false });
+	}
 </script>
 
 <svelte:head>
@@ -66,19 +89,55 @@
 		</div>
 	</div>
 
-	<!-- The page is reused when "change from a date" moves to the copy: remount the builder. -->
-	{#key data.pattern.id}
-		<PatternBuilder
-			form={data.form}
-			shifts={data.shifts}
-			targets={data.targets}
-			departments={data.departments}
-			today={data.today}
-			canManage={data.canManage}
-			pattern={data.pattern}
-			returnTarget={null}
-			editForm={data.editForm}
-			shiftForm={data.shiftForm}
-		/>
-	{/key}
+	<UnderlineTabs.Root bind:value={() => tab, setTab}>
+		<UnderlineTabs.List class="max-w-full overflow-x-auto">
+			<UnderlineTabs.Trigger value="days">
+				<GridFourIcon />
+				{m.pattern_tab_days()}
+			</UnderlineTabs.Trigger>
+			<UnderlineTabs.Trigger value="pay">
+				<CurrencyCircleDollarIcon />
+				{m.pattern_tab_pay()}
+			</UnderlineTabs.Trigger>
+			<UnderlineTabs.Trigger value="dates">
+				<CalendarStarIcon />
+				{m.pattern_tab_dates()}
+			</UnderlineTabs.Trigger>
+		</UnderlineTabs.List>
+
+		<!-- The page is reused when "change from a date" moves to the copy: remount the tabs. -->
+		{#key data.pattern.id}
+			<UnderlineTabs.Content value="days" class="flex flex-col gap-4">
+				<PatternBuilder
+					form={data.form}
+					shifts={data.shifts}
+					targets={data.targets}
+					departments={data.departments}
+					today={data.today}
+					canManage={data.canManage}
+					pattern={data.pattern}
+					returnTarget={null}
+					editForm={data.editForm}
+					shiftForm={data.shiftForm}
+				/>
+			</UnderlineTabs.Content>
+
+			<UnderlineTabs.Content value="pay" class="flex flex-col gap-4">
+				<PayRuleCard
+					pay={data.pay}
+					inherited={data.pay.companyRule.rule}
+					inheritLabel={m.pattern_pay_source_company()}
+					title={m.pattern_pay_title()}
+					description={m.pattern_pay_description()}
+					empty={m.pattern_pay_versions_none()}
+					forms={data.payForms && { rule: data.payForms.rule, reset: data.payForms.reset }}
+					today={data.today}
+				/>
+			</UnderlineTabs.Content>
+
+			<UnderlineTabs.Content value="dates" class="flex flex-col gap-4">
+				<PatternDatesTab pay={data.pay} forms={data.payForms} today={data.today} />
+			</UnderlineTabs.Content>
+		{/key}
+	</UnderlineTabs.Root>
 </section>

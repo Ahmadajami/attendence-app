@@ -16,10 +16,10 @@ const version = (
 });
 
 describe('resolvePayRule', () => {
-	it('T1: no pay rule on the pattern → company defaults', () => {
+	it('T1: no pay rule on the pattern or the company → built-in defaults', () => {
 		const { rule, sources } = resolvePayRule([], '2026-11-02');
 		expect(rule).toEqual({ otEnabled: true, workDayRate: 1.25, offDayRate: 1.5, holidayRate: 1.5 });
-		expect(Object.values(sources)).toEqual(['company', 'company', 'company', 'company']);
+		expect(Object.values(sources)).toEqual(['default', 'default', 'default', 'default']);
 	});
 
 	it('T2: the pattern sets only the off-day rate', () => {
@@ -29,10 +29,10 @@ describe('resolvePayRule', () => {
 		);
 		expect(rule).toEqual({ ...OVERTIME_DEFAULTS, offDayRate: 2 });
 		expect(sources).toEqual({
-			otEnabled: 'company',
-			workDayRate: 'company',
+			otEnabled: 'default',
+			workDayRate: 'default',
 			offDayRate: 'pattern',
-			holidayRate: 'company'
+			holidayRate: 'default'
 		});
 	});
 
@@ -53,6 +53,40 @@ describe('resolvePayRule', () => {
 		);
 		expect(rule.otEnabled).toBe(false);
 		expect(sources.otEnabled).toBe('pattern');
+	});
+});
+
+describe('resolvePayRule with the company setting (PR35)', () => {
+	const company = [version({ otEnabled: false, workDayRate: 1.75 }, '2026-01-01')];
+
+	it('takes the company values where the pattern sets nothing', () => {
+		const { rule, sources } = resolvePayRule([], '2026-11-02', company);
+		expect(rule).toEqual({ ...OVERTIME_DEFAULTS, otEnabled: false, workDayRate: 1.75 });
+		expect(sources).toEqual({
+			otEnabled: 'company',
+			workDayRate: 'company',
+			offDayRate: 'default',
+			holidayRate: 'default'
+		});
+	});
+
+	it('lets the pattern win over the company, field by field', () => {
+		const pattern = [version({ workDayRate: 2, otEnabled: true }, '2026-06-01')];
+		const { rule, sources } = resolvePayRule(pattern, '2026-11-02', company);
+		expect(rule).toEqual({ ...OVERTIME_DEFAULTS, otEnabled: true, workDayRate: 2 });
+		expect(sources.otEnabled).toBe('pattern');
+		expect(sources.workDayRate).toBe('pattern');
+		expect(sources.offDayRate).toBe('default');
+	});
+
+	it('follows the company version in force on the date', () => {
+		const versions = [
+			version({ holidayRate: 2 }, '2026-01-01', '2026-11-10'),
+			version({ holidayRate: 3 }, '2026-11-10')
+		];
+		expect(resolvePayRule([], '2026-11-09', versions).rule.holidayRate).toBe(2);
+		expect(resolvePayRule([], '2026-11-10', versions).rule.holidayRate).toBe(3);
+		expect(resolvePayRule([], '2025-12-31', versions).sources.holidayRate).toBe('default');
 	});
 });
 

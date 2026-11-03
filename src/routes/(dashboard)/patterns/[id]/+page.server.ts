@@ -10,6 +10,13 @@ import {
 	builderOptions,
 	shiftForm
 } from '#lib/server/pattern-builder.js';
+import {
+	patternOnlyActions,
+	patternOnlyForms,
+	payRuleActions,
+	payRuleForms
+} from '#lib/server/pattern-pay-forms.js';
+import { getPatternPay } from '#lib/server/services/pattern-pay/pattern-pay.bl.js';
 import { getPattern } from '#lib/server/services/patterns/patterns.bl.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import type { Actions, PageServerLoad } from './$types';
@@ -19,11 +26,13 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!z.uuid().safeParse(params.id).success)
 		error(404, m.patterns_error_not_found(), { code: 'not_found' });
 	const today = todayInDamascus();
-	const [pattern, options, shift] = await Promise.all([
+	const [pattern, options, shift, pay] = await Promise.all([
 		getPattern(actor, params.id),
 		builderOptions(actor),
-		shiftForm()
+		shiftForm(),
+		getPatternPay(actor, params.id)
 	]);
+	const canManage = actor.permissions.has('roster.manage');
 	const fields = {
 		patternId: pattern.id,
 		nameEn: pattern.nameEn,
@@ -35,8 +44,16 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	return {
 		...options,
 		today,
-		canManage: actor.permissions.has('roster.manage'),
+		canManage,
 		pattern,
+		pay,
+		// The "Overtime & pay" and "Holidays & missions" sheets (pay plan PR12, PR36).
+		payForms: canManage
+			? {
+					...(await payRuleForms(pattern.id, today, pay.versions)),
+					...(await patternOnlyForms(pattern.id, today))
+				}
+			: null,
 		returnTarget: null,
 		form: await superValidate(
 			{
@@ -66,4 +83,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	};
 };
 
-export const actions: Actions = builderActions;
+export const actions: Actions = {
+	...builderActions,
+	...payRuleActions(actorFrom),
+	...patternOnlyActions(actorFrom)
+};

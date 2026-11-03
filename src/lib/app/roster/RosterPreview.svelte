@@ -31,12 +31,14 @@
 		if (otherTeam(day)) return 'text-muted-foreground/40';
 		if (day.source === 'absence') return 'bg-destructive/10 text-destructive';
 		if (day.shift) return shiftColourClass(day.shift.colour);
+		if (day.holiday) return 'bg-muted text-foreground';
 		return 'text-muted-foreground';
 	}
 
 	function cellText(day: RosterDay): string {
 		if (otherTeam(day)) return '·';
 		if (day.source === 'absence') return m.roster_letter_absent();
+		if (!day.shift && day.holiday) return m.roster_letter_holiday();
 		return day.shift?.code ?? m.roster_letter_off();
 	}
 
@@ -44,6 +46,8 @@
 		if (otherTeam(day)) return m.roster_preview_other_team();
 		if (day.source === 'absence') return m.roster_preview_absent();
 		const kind = slotLabel(day.shift);
+		if (day.holiday)
+			return day.shift ? m.roster_preview_holiday_work({ kind }) : m.roster_preview_holiday();
 		if (day.extra) return m.roster_preview_extra({ kind });
 		if (day.source === 'override') return m.roster_preview_override({ kind });
 		return kind;

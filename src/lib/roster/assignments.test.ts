@@ -370,9 +370,30 @@ describe('staffing', () => {
 		});
 		const days = rosterRange(input, '2026-11-01', 3);
 		expect(staffing([...days].reverse())).toEqual([
-			{ date: '2026-11-01', shifts: { D: 1 }, off: 0, absent: 0 },
-			{ date: '2026-11-02', shifts: {}, off: 1, absent: 0 },
-			{ date: '2026-11-03', shifts: {}, off: 0, absent: 1 }
+			{ date: '2026-11-01', shifts: { D: 1 }, off: 0, holiday: 0, absent: 0 },
+			{ date: '2026-11-02', shifts: {}, off: 1, holiday: 0, absent: 0 },
+			{ date: '2026-11-03', shifts: {}, off: 0, holiday: 0, absent: 1 }
+		]);
+	});
+
+	it("counts a pattern's holiday apart from days off", () => {
+		const cycle = assignment({ teamId: 'team-h' }, 'cycle', 'D D', '2026-11-01');
+		const input = person({
+			memberships: [member('team-h')],
+			teamAssignments: [cycle],
+			holidays: [
+				{
+					id: 'h1',
+					patternId: cycle.patternId,
+					startsOn: '2026-11-02',
+					endsOn: '2026-11-02',
+					otEligible: false
+				}
+			]
+		});
+		expect(staffing(rosterRange(input, '2026-11-01', 2))).toEqual([
+			{ date: '2026-11-01', shifts: { D: 1 }, off: 0, holiday: 0, absent: 0 },
+			{ date: '2026-11-02', shifts: {}, off: 0, holiday: 1, absent: 0 }
 		]);
 	});
 });

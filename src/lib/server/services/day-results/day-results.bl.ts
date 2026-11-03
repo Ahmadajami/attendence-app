@@ -18,7 +18,10 @@ import { todayInDamascus } from '#lib/server/time.js';
 import { m } from '#lib/paraglide/messages.js';
 import { requireActorPermission, type Actor } from '../common.js';
 import { listEntryPeople, listEventsBetween } from '../attendance/attendance.crud.js';
-import { listPayRuleVersions } from '../pattern-pay/pattern-pay.crud.js';
+import {
+	listCompanyPayRuleVersions,
+	listPayRuleVersions
+} from '../pattern-pay/pattern-pay.crud.js';
 import { loadRosterData } from '../roster/roster.bl.js';
 import { listApprovedSwaps } from '../swaps/swaps.crud.js';
 import {
@@ -99,13 +102,14 @@ async function recomputeGroup(
 	const swapIds = [
 		...new Set(roster.overrides.flatMap((o) => (o.swapGroupId ? [o.swapGroupId] : [])))
 	];
-	const [versions, swaps] = await Promise.all([
+	const [versions, companyVersions, swaps] = await Promise.all([
 		listPayRuleVersions(patternIds),
+		listCompanyPayRuleVersions(),
 		listApprovedSwaps(swapIds)
 	]);
 	const versionsOf = new Map<string, PayRuleVersion[]>();
 	for (const v of versions)
-		versionsOf.set(v.patternId, [...(versionsOf.get(v.patternId) ?? []), v]);
+		if (v.patternId) versionsOf.set(v.patternId, [...(versionsOf.get(v.patternId) ?? []), v]);
 	const swapOf = new Map(swaps.map((s) => [s.id, s]));
 	const eventsOf = new Map<string, typeof events>();
 	for (const e of events) {
@@ -125,7 +129,11 @@ async function recomputeGroup(
 					staffId,
 					day,
 					events: eventsOf.get(dayKey(staffId, date)) ?? [],
-					pay: resolvePayRule(day.patternId ? (versionsOf.get(day.patternId) ?? []) : [], date),
+					pay: resolvePayRule(
+						day.patternId ? (versionsOf.get(day.patternId) ?? []) : [],
+						date,
+						companyVersions
+					),
 					swap: day.swapGroupId ? (swapOf.get(day.swapGroupId) ?? null) : null,
 					now
 				})

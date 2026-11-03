@@ -48,15 +48,26 @@ export type RosterOverrideEntry = {
 export type RosterAbsence = { startsOn: string; endsOn: string; type: AbsenceType };
 
 /**
- * An active (not cancelled) holiday of a pattern (pay plan PR2, PR3, PR8): shift dates `startsOn` to
- * `endsOn` inclusive.
+ * An active (not cancelled) holiday of a pattern (pay plan PR2, PR3, PR8), or of the company
+ * (`patternId` `null`, PR36): shift dates `startsOn` to `endsOn` inclusive.
  */
 export type RosterHoliday = {
 	id: string;
-	patternId: string;
+	patternId: string | null;
 	startsOn: string;
 	endsOn: string;
 	otEligible: boolean;
+};
+
+/**
+ * How a pattern treats a company holiday (PR36): skipped (`applies` false), or with its own
+ * overtime-eligible switch (`otEligible`, `null`: as the company's).
+ */
+export type RosterHolidayException = {
+	patternId: string;
+	holidayId: string;
+	applies: boolean;
+	otEligible: boolean | null;
 };
 
 /** Everything that decides one person's roster. Cancelled overrides and absences are left out. */
@@ -74,8 +85,10 @@ export type RosterInput = {
 	schedules: readonly RosterSchedule[];
 	overrides: readonly RosterOverrideEntry[];
 	absences: readonly RosterAbsence[];
-	/** Active holidays of the patterns that may plan the range (empty when not loaded). */
+	/** Active holidays of the patterns that may plan the range, and the company's (empty when not loaded). */
 	holidays?: readonly RosterHoliday[];
+	/** Those patterns' exceptions to company holidays. */
+	holidayExceptions?: readonly RosterHolidayException[];
 	/** Every shift a pattern or override may point at, by id (inactive ones too). */
 	shifts: ReadonlyMap<string, RosterShift>;
 };
@@ -194,17 +207,27 @@ function plannedShift(
 	};
 }
 
-/** The active holiday of `patternId` covering `date`. */
+/**
+ * The holiday on `date` of the day's planning pattern: its own holiday first (PR37), else a company
+ * holiday unless the pattern skips it, with the pattern's overtime switch when it has one (PR36). A
+ * day no pattern plans has none.
+ */
 function holidayOn(
-	holidays: readonly RosterHoliday[] | undefined,
+	input: Pick<RosterInput, 'holidays' | 'holidayExceptions'>,
 	patternId: string | null,
 	date: string
 ): RosterDay['holiday'] {
-	if (patternId === null || !holidays) return null;
-	const found = holidays.find(
-		(h) => h.patternId === patternId && h.startsOn <= date && date <= h.endsOn
+	if (patternId === null || !input.holidays) return null;
+	const covers = (h: RosterHoliday) => h.startsOn <= date && date <= h.endsOn;
+	const own = input.holidays.find((h) => h.patternId === patternId && covers(h));
+	if (own) return { id: own.id, otEligible: own.otEligible };
+	const company = input.holidays.find((h) => h.patternId === null && covers(h));
+	if (!company) return null;
+	const exception = input.holidayExceptions?.find(
+		(e) => e.patternId === patternId && e.holidayId === company.id
 	);
-	return found ? { id: found.id, otEligible: found.otEligible } : null;
+	if (exception && !exception.applies) return null;
+	return { id: company.id, otEligible: exception?.otEligible ?? company.otEligible };
 }
 
 /**
@@ -225,7 +248,7 @@ export function rosterDay(input: RosterInput, date: string): RosterDay {
 		adjustment
 	};
 
-	const holiday = holidayOn(input.holidays, plan.patternId, date);
+	const holiday = holidayOn(input, plan.patternId, date);
 	const absence = input.absences.find((a) => a.startsOn <= date && date <= a.endsOn);
 	if (absence) {
 		return {

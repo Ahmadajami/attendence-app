@@ -1208,9 +1208,9 @@
       alts: [ { en: "One rate for everything: not chosen — off-day and holiday work are paid higher today.", ar: "معامل واحد لكل شيء: لم يُختر — عمل أيام العطل يُدفع أعلى اليوم." }, { en: "Add the night rate now: not chosen — Q3 default is off; it belongs to the night rule.", ar: "إضافة المعامل الليلي الآن: لم يُختر — افتراضي Q3 معطّل؛ ومكانه قاعدة الليل." } ]
     },
     {
-      id: 'PR7', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      id: 'PR7', group: 'payroll', status: 'replaced', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
       title: { en: "Company default as a code constant until S2.3", ar: "الافتراضي العام ثابت في الكود حتى S2.3" },
-      decision: { en: "Overtime on, 1.25 / 1.50 / 1.50 (Q1: holiday 1.5), in src/lib/payroll/pay-rule.ts, until the settings screen of S2.3 replaces it.", ar: "العمل الإضافي مفعّل، 1.25 / 1.50 / 1.50 (Q1: العطلة 1.5)، في src/lib/payroll/pay-rule.ts، حتى تحل محله شاشة الإعدادات في S2.3." },
+      decision: { en: "Overtime on, 1.25 / 1.50 / 1.50 (Q1: holiday 1.5), in src/lib/payroll/pay-rule.ts, until the settings screen of S2.3 replaces it. Replaced by PR35 (2026-11-02): the constant stays as the built-in default under the company setting.", ar: "العمل الإضافي مفعّل، 1.25 / 1.50 / 1.50 (Q1: العطلة 1.5)، في src/lib/payroll/pay-rule.ts، حتى تحل محله شاشة الإعدادات في S2.3. استُبدل بالقرار PR35 (2026-11-02): يبقى الثابت افتراضياً مدمجاً تحت الإعداد العام." },
       why: { en: "No settings screen yet; old values keep the golden numbers.", ar: "لا توجد شاشة إعدادات بعد؛ والقيم القديمة تحافظ على الأرقام المرجعية." },
       alts: [ { en: "An app_setting key and form now: not chosen — that is S2.3 scope.", ar: "مفتاح app_setting ونموذج الآن: لم يُختر — هذا من نطاق S2.3." } ]
     },
@@ -1401,7 +1401,111 @@
       title: { en: "A /leave page and a Leave card", ar: "صفحة /leave وبطاقة إجازات" },
       decision: { en: "/leave: per department or team, one row per person (yearly, carried, taken, booked, left), Set yearly days for a selection with a reason. The employee page gets a Leave card. Writes need staff.write and are audited.", ar: "/leave: لكل قسم أو فريق، صف لكل شخص (السنوي، المرحَّل، المأخوذ، المحجوز، المتبقي)، و«تحديد الأيام السنوية» لمجموعة مختارة مع سبب. وتحصل صفحة الموظف على بطاقة إجازات. الكتابة تحتاج staff.write وتُدقَّق." },
       why: { en: "Balances are set in bulk once a year and looked up per person.", ar: "تُحدَّد الأرصدة دفعة واحدة سنوياً ويُطّلع عليها لكل شخص." },
-      alts: [ { en: "Only on the employee page: not chosen — setting 300 people one by one is slow.", ar: "في صفحة الموظف فقط: لم يُختر — تحديد 300 شخص واحداً واحداً بطيء." } ]
+      alts: [ { en: "Only on the employee page: not chosen — setting 300 people one by one is slow.", ar: "في صفحة الموظف فقط: لم يُختر — تحديد 300 شخص واحداً واحداً بطيء." } ]    },
+    {
+      id: 'PR35', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A company overtime setting, versioned by date (replaces PR7)", ar: "إعداد عام للعمل الإضافي، بإصدارات حسب التاريخ (يحل محل PR7)" },
+      decision: { en: "HR sets the company's overtime on/off and the three rates in /admin/settings. Stored as pattern_pay_rule rows with no pattern, versioned from today or later like a pattern's rule. Each value resolves pattern → company setting → built-in default (on, 1.25 / 1.50 / 1.50); the screens show which level each value came from.", ar: "تحدد الموارد البشرية تفعيل الإضافي والمعاملات الثلاثة للشركة في /admin/settings. تُحفظ كصفوف pattern_pay_rule بلا نمط، بإصدارات من اليوم أو بعده مثل قاعدة النمط. كل قيمة تُحسم: النمط ← الإعداد العام ← الافتراضي المدمج (مفعّل، 1.25 / 1.50 / 1.50)؛ وتُظهر الشاشات مصدر كل قيمة." },
+      why: { en: "The user asked for one global default that a pattern can still override (2026-11-02); versions keep past pay unchanged.", ar: "طلب المستخدم افتراضياً عاماً واحداً يمكن للنمط تجاوزه (2026-11-02)؛ والإصدارات تُبقي الأجور السابقة كما هي." },
+      alts: [ { en: "An app_setting key edited in place: not chosen — a change would rewrite past pay.", ar: "مفتاح app_setting يُعدَّل في مكانه: لم يُختر — التغيير سيعيد كتابة الأجور السابقة." }, { en: "A separate company_pay_rule table: not chosen — the same columns, checks and history twice.", ar: "جدول company_pay_rule منفصل: لم يُختر — الأعمدة والفحوص والسجل نفسها مرتين." } ]
+    },
+    {
+      id: 'PR36', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Company holidays, overridden per holiday by a pattern", ar: "عطل عامة، يتجاوزها النمط لكل عطلة" },
+      decision: { en: "HR adds company holidays in /admin/settings (pattern_holiday rows with no pattern). They apply to every day a pattern plans. On a pattern's Holidays tab each company holiday can be skipped for that pattern (its people work it as a normal day) or get its own overtime-eligible switch (pattern_holiday_exception, one row per pattern and holiday). Patterns still add their own holidays.", ar: "تضيف الموارد البشرية العطل العامة في /admin/settings (صفوف pattern_holiday بلا نمط). وتنطبق على كل يوم يخطّطه نمط. وفي تبويب العطل لكل نمط يمكن تخطي أي عطلة عامة لهذا النمط (يعمل أفراده كيوم عادي) أو إعطاؤها مفتاح «تستحق الإضافي» خاصاً (pattern_holiday_exception، صف لكل نمط وعطلة). ويبقى بإمكان الأنماط إضافة عطلها الخاصة." },
+      why: { en: "The user chose per-holiday overrides (2026-11-02): national days apply to everyone, but operations crews may have to work some of them.", ar: "اختار المستخدم التجاوز لكل عطلة (2026-11-02): الأعياد الوطنية للجميع، لكن طواقم التشغيل قد تعمل في بعضها." },
+      alts: [ { en: "One 'follow company holidays' switch per pattern: not chosen by the user — all or nothing.", ar: "مفتاح واحد «اتبع العطل العامة» لكل نمط: لم يختره المستخدم — كل شيء أو لا شيء." }, { en: "Company holidays always apply, patterns only add: not chosen by the user — no exceptions for crews that must work.", ar: "العطل العامة تنطبق دائماً والأنماط تضيف فقط: لم يختره المستخدم — لا استثناءات للطواقم التي يجب أن تعمل." } ]
+    },
+    {
+      id: 'PR37', group: 'payroll', status: 'default', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "A pattern's own holiday wins over a company holiday", ar: "عطلة النمط الخاصة تتقدّم على العطلة العامة" },
+      decision: { en: "On a date with both, the pattern's own holiday (its name and overtime switch) applies. A company holiday reaches only days a pattern plans; a person with no pattern is off anyway. Company holidays may overlap pattern holidays, but not each other.", ar: "في تاريخ فيه الاثنتان، تنطبق عطلة النمط الخاصة (اسمها ومفتاح الإضافي). والعطلة العامة تصل فقط إلى الأيام التي يخطّطها نمط؛ ومن ليس له نمط يكون في راحة أصلاً. ويجوز تداخل العطل العامة مع عطل الأنماط، لا مع بعضها." },
+      why: { en: "The nearer rule wins, as for pay values (PR4).", ar: "القاعدة الأقرب تتقدّم، كما في قيم الأجر (PR4)." },
+      alts: [ { en: "Refuse a pattern holiday on a company holiday date: not chosen — a pattern may need a different overtime switch for that day.", ar: "رفض عطلة نمط في تاريخ عطلة عامة: لم يُختر — قد يحتاج النمط مفتاح إضافي مختلفاً لذلك اليوم." } ]
+    },
+    {
+      id: 'PR38', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
+      title: { en: "Company pay and holidays live in /admin/settings", ar: "الأجر والعطل العامة في /admin/settings" },
+      decision: { en: "A Pay & holidays section on /admin/settings (the page needs settings.manage) with the same cards as a pattern's tabs. Writes need roster.manage, as pattern writes (PR13).", ar: "قسم «الأجر والعطل» في /admin/settings (الصفحة تحتاج settings.manage) بالبطاقات نفسها التي في تبويبات النمط. والكتابة تحتاج roster.manage، مثل كتابة الأنماط (PR13)." },
+      why: { en: "The user's choice (2026-11-02).", ar: "اختيار المستخدم (2026-11-02)." },
+      alts: [ { en: "A separate Pay & holidays page in the sidebar: not chosen by the user — one more page.", ar: "صفحة «الأجر والعطل» منفصلة في الشريط الجانبي: لم يخترها المستخدم — صفحة إضافية." } ]
+    },
+    {
+      id: 'AV1', group: 'profile', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "One aviation privilege per employee at a time", ar: "امتياز طيران واحد لكل موظف في الوقت نفسه" },
+      decision: { en: "Each employee holds at most one privilege issued by the civil aviation authority at a time, identified by its privilege number (letters, digits, dashes, slashes; at most 30) and held for a period with a start and an end date (both inclusive).", ar: "يحمل كل موظف امتيازاً واحداً على الأكثر صادراً عن سلطة الطيران المدني في الوقت نفسه، يُعرَّف برقم الامتياز (حروف وأرقام وشرطات وخطوط مائلة؛ 30 حرفاً على الأكثر) ويُحمل لفترة لها تاريخ بداية وتاريخ نهاية (شاملين)." },
+      why: { en: "The user's description and answer (2026-11-03): one privilege with its id and dates.", ar: "وصف المستخدم وجوابه (2026-11-03): امتياز واحد برقمه وتواريخه." },
+      alts: [ { en: "Several kinds per person (airside pass, ramp driving…): not chosen by the user — one kind is enough now; a kinds list can come later.", ar: "عدة أنواع لكل شخص (تصريح ساحة، قيادة على المدرج…): لم يختره المستخدم — نوع واحد يكفي الآن؛ ويمكن إضافة قائمة أنواع لاحقاً." } ]
+    },
+    {
+      id: 'AV2', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "History as periods; a renewal is a new row", ar: "السجل فترات؛ والتجديد صف جديد" },
+      decision: { en: "Table staff_privilege, one row per period. Granting creates the first row; renewing creates a new row that points at the one it renews (renews_id), with its own number, dates and reason. A period's dates are not edited afterwards, except through Correct (AV6).", ar: "جدول staff_privilege، صف لكل فترة. المنح ينشئ الصف الأول؛ والتجديد ينشئ صفاً جديداً يشير إلى الصف الذي يجدده (renews_id) برقمه وتواريخه وسببه. ولا تُعدَّل تواريخ الفترة لاحقاً إلا عبر «تصحيح» (AV6)." },
+      why: { en: "A renewal must not hide the previous period.", ar: "يجب ألا يُخفي التجديد الفترة السابقة." },
+      alts: [ { en: "One row edited in place on each renewal: not chosen — the earlier periods would only survive in the audit log.", ar: "صف واحد يُعدَّل عند كل تجديد: لم يُختر — الفترات السابقة ستبقى في سجل التدقيق فقط." } ]
+    },
+    {
+      id: 'AV3', group: 'profile', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "Withdrawal on a date, with a free-text reason", ar: "السحب في تاريخ، مع سبب نصي حر" },
+      decision: { en: "Withdrawing sets withdrawn_on (the first day without the privilege, inside the period, past dates allowed), a required free-text reason and who did it. It is not undone in place: giving the privilege back is a renewal with its own reason.", ar: "السحب يحدد withdrawn_on (أول يوم بلا امتياز، داخل الفترة، ويُسمح بتاريخ سابق) وسبباً نصياً حراً مطلوباً ومن قام به. ولا يُلغى في مكانه: إعادة الامتياز تكون تجديداً بسبب خاص." },
+      why: { en: "The user chose free text (2026-11-03); the trail reads: taken on a date for a reason, given back on a date for a reason.", ar: "اختار المستخدم النص الحر (2026-11-03)؛ والسجل يقرأ: سُحب في تاريخ لسبب، وأُعيد في تاريخ لسبب." },
+      alts: [ { en: "A fixed list of reasons with a note: not chosen by the user.", ar: "قائمة أسباب ثابتة مع ملاحظة: لم يخترها المستخدم." }, { en: "Undoing a withdrawal in place: not chosen — it would erase what happened.", ar: "إلغاء السحب في مكانه: لم يُختر — سيمحو ما حدث." } ]
+    },
+    {
+      id: 'AV4', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "Renewal starts after the previous period; periods never overlap", ar: "التجديد يبدأ بعد الفترة السابقة؛ والفترات لا تتداخل" },
+      decision: { en: "A renewal starts the day after the previous period ends (or after its withdrawal), or today if it has already ended; the number is prefilled with the previous one and may change. A database EXCLUDE keeps one person's periods from overlapping.", ar: "يبدأ التجديد في اليوم التالي لنهاية الفترة السابقة (أو بعد سحبها)، أو اليوم إن كانت قد انتهت؛ ويُملأ الرقم مسبقاً بالرقم السابق ويمكن تغييره. ويمنع EXCLUDE في قاعدة البيانات تداخل فترات الشخص الواحد." },
+      why: { en: "\"The privilege on a date\" always has one answer.", ar: "يكون لسؤال «الامتياز في تاريخ ما» جواب واحد دائماً." },
+      alts: [ { en: "Overlapping periods allowed for early renewals: not chosen — two answers for the same date.", ar: "السماح بتداخل الفترات للتجديد المبكر: لم يُختر — جوابان للتاريخ نفسه." } ]
+    },
+    {
+      id: 'AV5', group: 'profile', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "Status on a date; expiring 30 days before the end", ar: "الحالة في تاريخ؛ «قارب الانتهاء» قبل 30 يوماً من النهاية" },
+      decision: { en: "A pure function gives none, upcoming, valid, expiring (valid with at most 30 days left), expired or withdrawn, with the days left; the profile, the list and later checks use it.", ar: "دالة نقية تعطي: لا يوجد، قادم، ساري، قارب الانتهاء (ساري ومتبقٍ 30 يوماً أو أقل)، منتهٍ، مسحوب، مع الأيام المتبقية؛ ويستخدمها الملف الشخصي والقائمة والفحوص اللاحقة." },
+      why: { en: "The user chose 30 days (2026-11-03).", ar: "اختار المستخدم 30 يوماً (2026-11-03)." },
+      alts: [ { en: "60 or 90 days: not chosen by the user.", ar: "60 أو 90 يوماً: لم يخترها المستخدم." } ]
+    },
+    {
+      id: 'AV6', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "Correct a typo with a reason", ar: "تصحيح خطأ كتابي مع سبب" },
+      decision: { en: "The number or dates of the period in force (or the last one) can be corrected with a reason; the audit row keeps before and after. Not for renewals or withdrawals.", ar: "يمكن تصحيح رقم الفترة السارية (أو الأخيرة) أو تواريخها مع سبب؛ ويحتفظ سجل التدقيق بالقيم قبل وبعد. وليس للتجديد أو السحب." },
+      why: { en: "Typing mistakes happen; renewing to fix a typo would fake a history.", ar: "الأخطاء الكتابية تحدث؛ والتجديد لإصلاحها يزيّف السجل." },
+      alts: [ { en: "No corrections at all: not chosen — a wrong number would stay forever.", ar: "لا تصحيح إطلاقاً: لم يُختر — سيبقى الرقم الخاطئ للأبد." } ]
+    },
+    {
+      id: 'AV7', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "A privilege number belongs to one person", ar: "رقم الامتياز يخص شخصاً واحداً" },
+      decision: { en: "The same number may appear on several periods of one employee (renewals), never on two employees (EXCLUDE on the number with a different staff_id).", ar: "يمكن أن يظهر الرقم نفسه في عدة فترات للموظف نفسه (تجديدات)، ولا يظهر أبداً لموظفين اثنين (EXCLUDE على الرقم مع staff_id مختلف)." },
+      why: { en: "Catches typing someone else's number.", ar: "يكشف كتابة رقم شخص آخر." },
+      alts: [ { en: "A plain unique number: not chosen — renewals often keep the same number.", ar: "رقم فريد عادي: لم يُختر — التجديدات كثيراً ما تحتفظ بالرقم نفسه." } ]
+    },
+    {
+      id: 'AV8', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "A Privilege tab on the employee page and a /privileges list", ar: "تبويب «الامتياز» في صفحة الموظف وقائمة /privileges" },
+      decision: { en: "The employee page gets a Privilege tab (current period, status, days left, history; Grant, Renew, Withdraw, Correct) and the status on Overview; /privileges lists everyone with filters (status, department or team, search, expiring within N days) and counts per status.", ar: "تحصل صفحة الموظف على تبويب «الامتياز» (الفترة السارية، الحالة، الأيام المتبقية، السجل؛ منح، تجديد، سحب، تصحيح) والحالة في «نظرة عامة»؛ وتسرد /privileges الجميع مع مرشحات (الحالة، القسم أو الفريق، البحث، ينتهي خلال N يوماً) وأعداد لكل حالة." },
+      why: { en: "HR checks one person on the profile and everyone on one page.", ar: "تتحقق الموارد البشرية من شخص واحد في ملفه ومن الجميع في صفحة واحدة." },
+      alts: [ { en: "Only inside the Documents tab: not chosen — no overview across people.", ar: "داخل تبويب المستندات فقط: لم يُختر — لا نظرة عامة على الجميع." } ]
+    },
+    {
+      id: 'AV9', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "Access with staff.write; every write audited", ar: "الوصول بـ staff.write؛ وكل كتابة مُدقَّقة" },
+      decision: { en: "Viewing and editing need staff.write, like documents; every write is audited; nothing goes to Odoo, exports or emails.", ar: "العرض والتعديل يحتاجان staff.write، مثل المستندات؛ وكل كتابة مُدقَّقة؛ ولا يُرسل شيء إلى Odoo أو التصدير أو البريد." },
+      why: { en: "Same rules as the other profile data; one local user until login (S8).", ar: "القواعد نفسها لبقية بيانات الملف؛ ومستخدم محلي واحد حتى تسجيل الدخول (S8)." },
+      alts: []
+    },
+    {
+      id: 'AV10', group: 'profile', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "Flag only: no effect on rosters, punches or pay", ar: "تنبيه فقط: لا أثر على الجداول أو البصمات أو الأجر" },
+      decision: { en: "A person without a valid privilege is shown with a badge on the profile and on /privileges; rosters, punches and pay are not affected.", ar: "يظهر من ليس لديه امتياز ساري بشارة في الملف وفي /privileges؛ ولا تتأثر الجداول والبصمات والأجر." },
+      why: { en: "The user chose flag only (2026-11-03).", ar: "اختار المستخدم التنبيه فقط (2026-11-03)." },
+      alts: [ { en: "A warning on the roster and the entry sheet: not chosen by the user.", ar: "تحذير في الجدول وورقة الإدخال: لم يختره المستخدم." }, { en: "Blocking rostering and punches: not chosen by the user.", ar: "منع الجدولة والبصمات: لم يختره المستخدم." } ]
+    },
+    {
+      id: 'AV11', group: 'profile', status: 'default', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
+      title: { en: "No scans, no hard delete", ar: "لا مسح ضوئي ولا حذف نهائي" },
+      decision: { en: "The app records the number and dates, not a copy of the card; periods are never deleted.", ar: "يسجل التطبيق الرقم والتواريخ، لا نسخة من البطاقة؛ ولا تُحذف الفترات أبداً." },
+      why: { en: "Scans are the most sensitive data (profile H5); the trail stays readable (template §6.6).", ar: "المسوح أكثر البيانات حساسية (H5 في الملف)؛ ويبقى السجل مقروءاً (§6.6 في القالب)." },
+      alts: []
     }
   ];
 
@@ -1450,7 +1554,10 @@
     ["Q-PR5", "Leave year: calendar year, or from each person's start date?", "calendar year (PR31)", "سنة الإجازات: السنة التقويمية أم من تاريخ بدء كل شخص؟", "السنة التقويمية (PR31)"],
     ["Q-PR6", "Is there a cap on carried leave days?", "no cap; HR edits the suggestion (PR32)", "هل يوجد سقف لأيام الإجازة المرحَّلة؟", "لا سقف؛ والموارد البشرية تعدّل الاقتراح (PR32)"],
     ["Q-PR7", "Do yearly leave days depend on seniority or job?", "no: HR sets them per person (PR30)", "هل تعتمد أيام الإجازة السنوية على الأقدمية أو الوظيفة؟", "لا: تحددها الموارد البشرية لكل شخص (PR30)"],
-    ["Q-PR8", "Must an employee swap's return date be given?", "optional (PR26)", "هل يجب تحديد تاريخ الرد في التبديل بين موظفين؟", "اختياري (PR26)"]
+    ["Q-PR8", "Must an employee swap's return date be given?", "optional (PR26)", "هل يجب تحديد تاريخ الرد في التبديل بين موظفين؟", "اختياري (PR26)"],
+    ["Q-AV3", "Does a privilege renewal usually keep the same number?", "prefilled with the previous number, editable (AV4)", "هل يحتفظ تجديد الامتياز عادةً بالرقم نفسه؟", "يُملأ بالرقم السابق ويمكن تعديله (AV4)"],
+    ["Q-AV5", "Must every active employee have a privilege, or only some (by job title or work area)?", "everyone may have one; /privileges lists people with none, no requirement rule", "هل يجب أن يكون لكل موظف نشط امتياز، أم لبعضهم فقط (حسب المسمى أو مجال العمل)؟", "يمكن للجميع أن يحملوه؛ وتسرد /privileges من ليس لديه، دون قاعدة إلزام"],
+    ["Q-AV7", "Can a privilege be granted on the new-employee page, or only later on the profile?", "only on the profile (AV8)", "هل يمكن منح الامتياز في صفحة الموظف الجديد، أم لاحقاً في الملف فقط؟", "في الملف فقط (AV8)"]
   ];
 
   function el(tag, attrs, children) {

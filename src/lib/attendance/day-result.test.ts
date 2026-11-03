@@ -51,8 +51,14 @@ const holiday = (
 	startsOn: string,
 	otEligible: boolean,
 	endsOn = startsOn,
-	patternId = PATTERN
-): RosterHoliday => ({ id: `h-${startsOn}`, patternId, startsOn, endsOn, otEligible });
+	patternId: string | null = PATTERN
+): RosterHoliday => ({
+	id: `h-${patternId ?? 'company'}-${startsOn}`,
+	patternId,
+	startsOn,
+	endsOn,
+	otEligible
+});
 
 const override = (
 	shiftDate: string,
@@ -138,7 +144,7 @@ describe('holidays (PR2, PR3, PR8)', () => {
 		const r = result(input, '2026-11-03', pair('2026-11-03', '07:00', '17:00'));
 		expect(r).toMatchObject({
 			kind: 'holiday_work',
-			holidayId: 'h-2026-11-03',
+			holidayId: 'h-p-week-2026-11-03',
 			requiredMinutes: 0,
 			workedMinutes: 600,
 			overtimeMinutes: 600,
@@ -175,7 +181,11 @@ describe('holidays (PR2, PR3, PR8)', () => {
 
 	it('T8: holiday on a pattern off day → stays off, holiday kept', () => {
 		const r = result(withHoliday(holiday('2026-11-08', true)), '2026-11-08');
-		expect(r).toMatchObject({ kind: 'holiday_off', shiftId: null, holidayId: 'h-2026-11-08' });
+		expect(r).toMatchObject({
+			kind: 'holiday_off',
+			shiftId: null,
+			holidayId: 'h-p-week-2026-11-08'
+		});
 	});
 
 	it('T9: a mission on a holiday → the absence wins', () => {
@@ -186,7 +196,7 @@ describe('holidays (PR2, PR3, PR8)', () => {
 			kind: 'absence',
 			absenceType: 'mission',
 			status: 'absent',
-			holidayId: 'h-2026-11-03'
+			holidayId: 'h-p-week-2026-11-03'
 		});
 	});
 
@@ -198,7 +208,7 @@ describe('holidays (PR2, PR3, PR8)', () => {
 		};
 		expect(rosterDay(nights, '2026-11-05')).toMatchObject({ shiftId: 'N', holiday: null });
 		expect(rosterDay(nights, '2026-11-06')).toMatchObject({ shiftId: null });
-		expect(rosterDay(nights, '2026-11-06').holiday?.id).toBe('h-2026-11-06');
+		expect(rosterDay(nights, '2026-11-06').holiday?.id).toBe('h-p-week-2026-11-06');
 	});
 
 	it("T11: a personal pattern plans the day → the team pattern's holiday does not apply", () => {
@@ -221,6 +231,70 @@ describe('holidays (PR2, PR3, PR8)', () => {
 		expect(rosterDay(range, '2026-11-02').holiday).toBeNull();
 		expect(rosterDay(range, '2026-11-04').holiday).not.toBeNull();
 		expect(rosterDay(range, '2026-11-05').holiday).toBeNull();
+	});
+});
+
+describe('company holidays (PR36, PR37)', () => {
+	const company = holiday('2026-11-03', false, '2026-11-03', null);
+	const withCompany = (more: Partial<RosterInput> = {}): RosterInput => ({
+		...base,
+		holidays: [company],
+		...more
+	});
+
+	it('T25: a company holiday applies to the planning pattern', () => {
+		expect(rosterDay(withCompany(), '2026-11-03')).toMatchObject({
+			shiftId: null,
+			holiday: { id: 'h-company-2026-11-03', otEligible: false }
+		});
+		expect(result(withCompany(), '2026-11-03')).toMatchObject({ kind: 'holiday_off' });
+	});
+
+	it('T26: a pattern that skips it works the day as planned', () => {
+		const input = withCompany({
+			holidayExceptions: [
+				{ patternId: PATTERN, holidayId: company.id, applies: false, otEligible: null }
+			]
+		});
+		expect(rosterDay(input, '2026-11-03')).toMatchObject({ shiftId: 'D', holiday: null });
+	});
+
+	it("T27: the pattern's own overtime switch wins over the company's", () => {
+		const input = withCompany({
+			overrides: [override('2026-11-03', 'D')],
+			holidayExceptions: [
+				{ patternId: PATTERN, holidayId: company.id, applies: true, otEligible: true }
+			]
+		});
+		expect(rosterDay(input, '2026-11-03').holiday).toEqual({
+			id: 'h-company-2026-11-03',
+			otEligible: true
+		});
+		expect(result(input, '2026-11-03', pair('2026-11-03', '07:00', '17:00'))).toMatchObject({
+			kind: 'holiday_work',
+			otRate: 1.5,
+			paidOtMinutes: 600
+		});
+	});
+
+	it("T28: another pattern's exception changes nothing here", () => {
+		const input = withCompany({
+			holidayExceptions: [
+				{ patternId: 'p-other', holidayId: company.id, applies: false, otEligible: null }
+			]
+		});
+		expect(rosterDay(input, '2026-11-03').holiday?.id).toBe('h-company-2026-11-03');
+	});
+
+	it("T29: on the same date the pattern's own holiday wins", () => {
+		const own = holiday('2026-11-03', true);
+		const input = withCompany({ holidays: [company, own] });
+		expect(rosterDay(input, '2026-11-03').holiday).toEqual({ id: own.id, otEligible: true });
+	});
+
+	it('T30: a day no pattern plans gets no company holiday', () => {
+		const input = withCompany({ memberships: [], teamAssignments: [] });
+		expect(rosterDay(input, '2026-11-03')).toMatchObject({ patternId: null, holiday: null });
 	});
 });
 

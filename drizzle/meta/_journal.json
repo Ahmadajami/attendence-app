@@ -134,6 +134,20 @@
       "when": 1793619588614,
       "tag": "0018_swaps_leave_log_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793628019587,
+      "tag": "0019_company_pay_holidays",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793628029185,
+      "tag": "0020_company_pay_holidays_constraints",
+      "breakpoints": true
     }
   ]
 }

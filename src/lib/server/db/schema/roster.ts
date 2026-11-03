@@ -213,17 +213,18 @@ export const staffSchedule = pgTable(
 
 /**
  * A pattern's overtime rule from a date (pay plan PR4–PR6): overtime on/off and the three rates.
- * `NULL` in a field: inherit (department rule, S2.3, then the company default `OVERTIME_DEFAULTS`).
+ * `pattern_id` NULL: the company's own rule (PR35), which every pattern inherits from. `NULL` in a
+ * field: inherit (pattern → department rule, S2.3 → company → the built-in `OVERTIME_DEFAULTS`).
  * Versioned like assignments, never edited: a change closes the open version (`effective_to`) and
- * opens the next. A custom migration adds an `EXCLUDE` so one pattern's versions never overlap.
+ * opens the next. Custom migrations add `EXCLUDE`s so one pattern's versions, and the company's,
+ * never overlap.
  */
 export const patternPayRule = pgTable(
 	'pattern_pay_rule',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
-		patternId: uuid('pattern_id')
-			.notNull()
-			.references(() => pattern.id, { onDelete: 'restrict' }),
+		/** `NULL`: the company's rule (PR35). */
+		patternId: uuid('pattern_id').references(() => pattern.id, { onDelete: 'restrict' }),
 		otEnabled: boolean('ot_enabled'),
 		/** Minutes past the required time on a rostered work day. */
 		workDayRate: numeric('work_day_rate', { precision: 4, scale: 2, mode: 'number' }),
@@ -263,16 +264,17 @@ export const patternPayRule = pgTable(
 /**
  * A holiday on a pattern (pay plan PR2, PR3, PR8): every follower on these shift dates (inclusive,
  * at most 14) has the day off with required 0; work on it is paid at the holiday rate when
- * `ot_eligible`. Cancelled, never deleted. A custom migration adds an `EXCLUDE` so one pattern's
- * active holidays never overlap.
+ * `ot_eligible`. `pattern_id` NULL: a company holiday (PR36), on every day a pattern plans unless the
+ * pattern skips it (`pattern_holiday_exception`); a pattern's own holiday wins on the same date
+ * (PR37). Cancelled, never deleted. Custom migrations add `EXCLUDE`s so one pattern's active
+ * holidays, and the company's, never overlap.
  */
 export const patternHoliday = pgTable(
 	'pattern_holiday',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
-		patternId: uuid('pattern_id')
-			.notNull()
-			.references(() => pattern.id, { onDelete: 'restrict' }),
+		/** `NULL`: a company holiday (PR36). */
+		patternId: uuid('pattern_id').references(() => pattern.id, { onDelete: 'restrict' }),
 		startsOn: date('starts_on', { mode: 'string' }).notNull(),
 		endsOn: date('ends_on', { mode: 'string' }).notNull(),
 		nameEn: text('name_en').notNull(),
@@ -299,6 +301,40 @@ export const patternHoliday = pgTable(
 			sql`length(trim(${t.nameEn})) > 0 AND length(trim(${t.nameAr})) > 0`
 		),
 		check('pattern_holiday_reason_present', sql`length(trim(${t.reason})) > 0`)
+	]
+);
+
+/**
+ * How one pattern treats one company holiday (pay plan PR36): skipped (`applies` false: its people
+ * work the day as planned) or with its own overtime-eligible switch (`ot_eligible`, `NULL`: as the
+ * company's). One row per pattern and holiday, changed in place and audited; no row = applies as
+ * the company set it. The service checks that `holiday_id` is a company holiday.
+ */
+export const patternHolidayException = pgTable(
+	'pattern_holiday_exception',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		patternId: uuid('pattern_id')
+			.notNull()
+			.references(() => pattern.id, { onDelete: 'restrict' }),
+		holidayId: uuid('holiday_id')
+			.notNull()
+			.references(() => patternHoliday.id, { onDelete: 'restrict' }),
+		applies: boolean('applies').notNull().default(true),
+		otEligible: boolean('ot_eligible'),
+		reason: text('reason').notNull(),
+		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		updatedBy: uuid('updated_by').references(() => user.id, { onDelete: 'set null' }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
+	},
+	(t) => [
+		uniqueIndex('pattern_holiday_exception_unique').on(t.patternId, t.holidayId),
+		index('pattern_holiday_exception_holiday_idx').on(t.holidayId),
+		check('pattern_holiday_exception_reason_present', sql`length(trim(${t.reason})) > 0`)
 	]
 );
 
@@ -445,8 +481,17 @@ export const patternPayRuleRelations = relations(patternPayRule, ({ one }) => ({
 	pattern: one(pattern, { fields: [patternPayRule.patternId], references: [pattern.id] })
 }));
 
-export const patternHolidayRelations = relations(patternHoliday, ({ one }) => ({
-	pattern: one(pattern, { fields: [patternHoliday.patternId], references: [pattern.id] })
+export const patternHolidayRelations = relations(patternHoliday, ({ one, many }) => ({
+	pattern: one(pattern, { fields: [patternHoliday.patternId], references: [pattern.id] }),
+	exceptions: many(patternHolidayException)
+}));
+
+export const patternHolidayExceptionRelations = relations(patternHolidayException, ({ one }) => ({
+	pattern: one(pattern, { fields: [patternHolidayException.patternId], references: [pattern.id] }),
+	holiday: one(patternHoliday, {
+		fields: [patternHolidayException.holidayId],
+		references: [patternHoliday.id]
+	})
 }));
 
 export const patternAssignmentRelations = relations(patternAssignment, ({ one }) => ({
@@ -502,5 +547,6 @@ export type PatternPayRule = typeof patternPayRule.$inferSelect;
 export type NewPatternPayRule = typeof patternPayRule.$inferInsert;
 export type PatternHoliday = typeof patternHoliday.$inferSelect;
 export type NewPatternHoliday = typeof patternHoliday.$inferInsert;
+export type PatternHolidayException = typeof patternHolidayException.$inferSelect;
 export type SwapRequest = typeof swapRequest.$inferSelect;
 export type NewSwapRequest = typeof swapRequest.$inferInsert;

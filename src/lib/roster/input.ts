@@ -2,6 +2,7 @@ import type {
 	RosterAbsence,
 	RosterAssignment,
 	RosterHoliday,
+	RosterHolidayException,
 	RosterInput,
 	RosterMembership,
 	RosterOverrideEntry,
@@ -24,8 +25,10 @@ export type RosterData = {
 	schedules: readonly (RosterSchedule & { staffId: string })[];
 	overrides: readonly (RosterOverrideEntry & { staffId: string })[];
 	absences: readonly (RosterAbsence & { staffId: string })[];
-	/** Active holidays of the patterns above (pay plan PR8); every person sees their pattern's. */
+	/** Active holidays of the patterns above and the company's (pay plan PR8, PR36). */
 	holidays?: readonly RosterHoliday[];
+	/** Those patterns' exceptions to company holidays (PR36). */
+	holidayExceptions?: readonly RosterHolidayException[];
 };
 
 /** One person's `RosterInput` from the shared rows. */
@@ -40,6 +43,7 @@ export function rosterInputOf(data: RosterData, staffId: string): RosterInput {
 		overrides: data.overrides.filter((o) => o.staffId === staffId),
 		absences: data.absences.filter((a) => a.staffId === staffId),
 		holidays: data.holidays ?? [],
+		holidayExceptions: data.holidayExceptions ?? [],
 		shifts: new Map(data.shifts.map((s) => [s.id, s]))
 	};
 }

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { m } from '#lib/paraglide/messages.js';
+import { carryPaySettings } from '#lib/payroll/carry.js';
 import { mostUsedShift } from '#lib/roster/cycle.js';
 import type { AssignTargetKind, PatternInput } from '#lib/schemas/pattern.schema.js';
 import type { PatternType } from '#lib/schemas/enums.js';
@@ -8,6 +9,14 @@ import { batch } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
+import {
+	insertHoliday,
+	insertPayRule,
+	listActiveHolidays,
+	listHolidaysOfPattern,
+	listPayRulesOfPattern,
+	listPayRuleVersions
+} from '../pattern-pay/pattern-pay.crud.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
 import { withSlots } from '../slots.js';
 import {
@@ -40,7 +49,14 @@ export type PatternListItem = PatternRow & {
 	used: boolean;
 	/** Departments of the followers (a team's or a person's department), for the filter. */
 	departmentIds: string[];
+	/** A pay rule of its own in force today or planned (pay plan PR4), for the library badge. */
+	hasPayRule: boolean;
+	/** Active holidays not over yet. */
+	upcomingHolidays: number;
 };
+
+/** The latest date `listActiveHolidays` may need to reach: "not over yet". */
+const FAR_FUTURE = '9999-12-31';
 
 function duplicateName(error: unknown): ConflictError | undefined {
 	if (pgErrorCode(error) !== '23505') return undefined;
@@ -83,6 +99,14 @@ export async function listPatterns(actor: Actor): Promise<PatternListItem[]> {
 	requireActorPermission(actor, 'staff.write');
 	const today = todayInDamascus();
 	const [patterns, targets] = await Promise.all([listPatternRows(), listAssignmentTargets()]);
+	const ids = patterns.map((p) => p.id);
+	const [versions, holidays] = await Promise.all([
+		listPayRuleVersions(ids),
+		listActiveHolidays(ids, today, FAR_FUTURE)
+	]);
+	const withPayRule = new Set(
+		versions.filter((v) => v.effectiveTo === null || v.effectiveTo > today).map((v) => v.patternId)
+	);
 	return patterns.map((raw) => {
 		const row = withSlots(raw);
 		const own = targets.filter((t) => t.patternId === row.id);
@@ -100,6 +124,8 @@ export async function listPatterns(actor: Actor): Promise<PatternListItem[]> {
 			...row,
 			followers,
 			used: own.length > 0,
+			hasPayRule: withPayRule.has(row.id),
+			upcomingHolidays: holidays.filter((h) => h.patternId === row.id).length,
 			departmentIds: [
 				...new Set(own.flatMap((t) => (t.departmentId === null ? [] : [t.departmentId])))
 			]
@@ -206,7 +232,73 @@ export async function updatePatternDetails(
 	return requirePattern(id);
 }
 
-/** A copy named "Copy of …" (both languages); unused, so its days stay editable. */
+/**
+ * The statements that give a copy its source's pay settings from `from` (pay plan PR14): the
+ * pay-rule versions in force on or after it and the active holidays not yet over, each starting on
+ * `from` at the earliest, with one audit row of ids and counts. Empty when there is nothing to carry.
+ */
+export async function carryStatements(
+	actor: Actor,
+	sourceId: string,
+	copyId: string,
+	from: string
+): Promise<BatchQuery[]> {
+	const [versions, holidays] = await Promise.all([
+		listPayRulesOfPattern(sourceId),
+		listHolidaysOfPattern(sourceId)
+	]);
+	const carried = carryPaySettings(versions, holidays, from);
+	if (carried.versions.length === 0 && carried.holidays.length === 0) return [];
+	const createdBy = actor.user.id;
+	const newVersions = carried.versions.map((v) => ({
+		id: randomUUID(),
+		patternId: copyId,
+		otEnabled: v.otEnabled,
+		workDayRate: v.workDayRate,
+		offDayRate: v.offDayRate,
+		holidayRate: v.holidayRate,
+		effectiveFrom: v.effectiveFrom,
+		effectiveTo: v.effectiveTo,
+		reason: v.reason,
+		createdBy
+	}));
+	const newHolidays = carried.holidays.map((h) => ({
+		id: randomUUID(),
+		patternId: copyId,
+		startsOn: h.startsOn,
+		endsOn: h.endsOn,
+		nameEn: h.nameEn,
+		nameAr: h.nameAr,
+		otEligible: h.otEligible,
+		reason: h.reason,
+		createdBy
+	}));
+	return [
+		...newVersions.map((v) => insertPayRule(v)),
+		...newHolidays.map((h) => insertHoliday(h)),
+		auditInsert({
+			actor: actor.user,
+			action: 'pattern.carry_pay',
+			entityType: 'pattern',
+			entityId: copyId,
+			before: {
+				sourceId,
+				payRuleIds: carried.versions.map((v) => v.id),
+				holidayIds: carried.holidays.map((h) => h.id)
+			},
+			after: {
+				from,
+				payRuleIds: newVersions.map((v) => v.id),
+				holidayIds: newHolidays.map((h) => h.id)
+			}
+		})
+	];
+}
+
+/**
+ * A copy named "Copy of …" (both languages); unused, so its days stay editable. It keeps the pay
+ * rule and the upcoming holidays from today (PR14).
+ */
 export async function copyPattern(actor: Actor, id: string): Promise<PatternRow> {
 	requireActorPermission(actor, 'roster.manage');
 	const source = await requirePattern(id);
@@ -224,7 +316,7 @@ export async function copyPattern(actor: Actor, id: string): Promise<PatternRow>
 					defaultWorkShiftId: source.defaultWorkShiftId ?? ''
 				},
 				'pattern.copy'
-			)
+			).concat(await carryStatements(actor, source.id, copyId, todayInDamascus()))
 		);
 	} catch (error) {
 		throw duplicateName(error) ?? error;

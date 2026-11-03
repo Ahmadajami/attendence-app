@@ -16,8 +16,8 @@ export type PayRule = {
 export type PayRuleField = keyof PayRule;
 
 /**
- * The company default until S2.3 adds the settings screen (PR7): the old Odoo values (Q1: holiday
- * 1.5, the old behaviour).
+ * The built-in default under the company setting (PR7, PR35): the old Odoo values (Q1: holiday 1.5,
+ * the old behaviour). Used for every value neither the pattern nor the company sets.
  */
 export const OVERTIME_DEFAULTS: Readonly<PayRule> = Object.freeze({
 	otEnabled: true,
@@ -33,8 +33,11 @@ export type PayRuleVersion = { [K in PayRuleField]: PayRule[K] | null } & {
 	effectiveTo: string | null;
 };
 
-/** Where a field's value came from; `department` joins between the two with S2.3. */
-export type PayRuleSource = 'pattern' | 'company';
+/**
+ * Where a field's value came from (PR35): the pattern's rule, the company setting, or the built-in
+ * default; `department` joins between pattern and company with S2.3.
+ */
+export type PayRuleSource = 'pattern' | 'company' | 'default';
 
 export type ResolvedPayRule = {
 	rule: PayRule;
@@ -43,24 +46,39 @@ export type ResolvedPayRule = {
 
 const FIELDS = ['otEnabled', 'workDayRate', 'offDayRate', 'holidayRate'] as const;
 
-/** The rule on `date`: each field from the pattern's version in force, else the fallback. */
-export function resolvePayRule(
-	versions: readonly PayRuleVersion[],
-	date: string,
-	fallback: Readonly<PayRule> = OVERTIME_DEFAULTS
-): ResolvedPayRule {
-	const version = versions.find(
+/** The version in force on `date` (`effectiveTo` exclusive), if any. */
+export function versionOn<V extends { effectiveFrom: string; effectiveTo: string | null }>(
+	versions: readonly V[],
+	date: string
+): V | undefined {
+	return versions.find(
 		(v) => v.effectiveFrom <= date && (v.effectiveTo === null || date < v.effectiveTo)
 	);
-	const rule = { ...fallback };
+}
+
+/**
+ * The rule on `date`: each field from the pattern's version in force, else the company's version in
+ * force (PR35), else the built-in default, with where each came from.
+ */
+export function resolvePayRule(
+	patternVersions: readonly PayRuleVersion[],
+	date: string,
+	companyVersions: readonly PayRuleVersion[] = []
+): ResolvedPayRule {
+	const levels = [
+		[versionOn(patternVersions, date), 'pattern'],
+		[versionOn(companyVersions, date), 'company']
+	] as const;
+	const rule = { ...OVERTIME_DEFAULTS };
 	const sources = {} as Record<PayRuleField, PayRuleSource>;
 	for (const field of FIELDS) {
-		const value = version?.[field] ?? null;
-		if (value === null) {
-			sources[field] = 'company';
-		} else {
+		sources[field] = 'default';
+		for (const [version, source] of levels) {
+			const value = version?.[field] ?? null;
+			if (value === null) continue;
 			(rule as Record<PayRuleField, PayRule[PayRuleField]>)[field] = value;
-			sources[field] = 'pattern';
+			sources[field] = source;
+			break;
 		}
 	}
 	return { rule, sources };

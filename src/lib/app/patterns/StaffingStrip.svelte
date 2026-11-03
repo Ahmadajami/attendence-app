@@ -20,6 +20,7 @@
 	/** Rows: the shifts anyone works in the range, in the shifts' order. */
 	const rows = $derived(shifts.filter((s) => days.some((d) => (d.shifts[s.id] ?? 0) > 0)));
 	const anyAbsent = $derived(days.some((d) => d.absent > 0));
+	const anyHoliday = $derived(days.some((d) => d.holiday > 0));
 </script>
 
 <!-- Counts only, no minimum (builder plan B15). -->
@@ -65,6 +66,23 @@
 					<td class="h-7 text-center tabular-nums">{day.off}</td>
 				{/each}
 			</tr>
+			{#if anyHoliday}
+				<tr class="text-muted-foreground">
+					<th scope="row" class="sticky inset-s-0 bg-card pe-2 text-start font-normal">
+						{m.staffing_holiday()}
+					</th>
+					{#each days as day (day.date)}
+						<td
+							class={cn(
+								'h-7 text-center tabular-nums',
+								day.holiday > 0 && 'bg-muted font-semibold text-foreground'
+							)}
+						>
+							{day.holiday}
+						</td>
+					{/each}
+				</tr>
+			{/if}
 			{#if anyAbsent}
 				<tr class="text-muted-foreground">
 					<th scope="row" class="sticky inset-s-0 bg-card pe-2 text-start font-normal">

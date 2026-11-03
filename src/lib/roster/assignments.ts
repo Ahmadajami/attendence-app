@@ -169,19 +169,22 @@ export type Staffing = {
 	date: string;
 	shifts: Record<string, number>;
 	off: number;
+	/** Off because of a holiday of their pattern (pay plan PR8), counted apart from `off`. */
+	holiday: number;
 	absent: number;
 };
 
-/** Per date, how many of these roster days are on each shift, off or absent (the team strip). */
+/** Per date, how many of these roster days are on each shift, off, on holiday or absent (the strip). */
 export function staffing(rosterDays: readonly RosterDay[]): Staffing[] {
 	const byDate = new Map<string, Staffing>();
 	for (const day of rosterDays) {
 		let entry = byDate.get(day.date);
 		if (!entry) {
-			entry = { date: day.date, shifts: {}, off: 0, absent: 0 };
+			entry = { date: day.date, shifts: {}, off: 0, holiday: 0, absent: 0 };
 			byDate.set(day.date, entry);
 		}
 		if (day.source === 'absence') entry.absent++;
+		else if (day.shiftId === null && day.holiday) entry.holiday++;
 		else if (day.shiftId === null) entry.off++;
 		else entry.shifts[day.shiftId] = (entry.shifts[day.shiftId] ?? 0) + 1;
 	}

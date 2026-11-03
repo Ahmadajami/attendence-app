@@ -12,7 +12,12 @@ import { ancestorChain } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
 import { withSlots } from '../slots.js';
-import { listActiveHolidays, type HolidayRow } from '../pattern-pay/pattern-pay.crud.js';
+import {
+	listActiveHolidays,
+	listHolidayExceptions,
+	type HolidayExceptionRow,
+	type HolidayRow
+} from '../pattern-pay/pattern-pay.crud.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
 import type { ShiftRow } from '../shifts/shifts.crud.js';
 import { findTeam, type TeamRow } from '../teams/teams.crud.js';
@@ -61,8 +66,10 @@ export type RosterPreviewData = {
 	schedules: ScheduleRow[];
 	overrides: OverrideRow[];
 	absences: AbsenceRow[];
-	/** Active holidays of the assigned patterns in the range (pay plan PR8). */
+	/** Active holidays of the assigned patterns and of the company in the range (PR8, PR36). */
 	holidays: HolidayRow[];
+	/** Those patterns' exceptions to company holidays (PR36). */
+	holidayExceptions: HolidayExceptionRow[];
 };
 
 export type TeamRoster = {
@@ -123,7 +130,10 @@ export async function loadRosterData(
 			[...personalAssignments, ...teamAssignments, ...departmentAssignments].map((a) => a.patternId)
 		)
 	];
-	const holidays = await listActiveHolidays(patternIds, from, last);
+	const [holidays, holidayExceptions] = await Promise.all([
+		listActiveHolidays(patternIds, from, last),
+		listHolidayExceptions(patternIds)
+	]);
 	return {
 		from,
 		days,
@@ -136,7 +146,8 @@ export async function loadRosterData(
 		schedules,
 		overrides,
 		absences,
-		holidays
+		holidays,
+		holidayExceptions
 	};
 }
 

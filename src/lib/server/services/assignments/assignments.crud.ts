@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, isNull, or } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, isNull, lte, or } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import { pattern, patternAssignment } from '#lib/server/db/schema/index.js';
 import type { AssignTargetKind } from '#lib/schemas/pattern.schema.js';
@@ -56,6 +56,26 @@ export async function listAssignmentsOfPatternFrom(
 			and(
 				eq(patternAssignment.patternId, patternId),
 				or(isNull(patternAssignment.effectiveTo), gt(patternAssignment.effectiveTo, date))
+			)
+		)
+		.orderBy(asc(patternAssignment.effectiveFrom));
+}
+
+/** A pattern's assignments in force on some date of `[from, to]`. */
+export async function listAssignmentsOfPatternBetween(
+	patternId: string,
+	from: string,
+	to: string
+): Promise<AssignmentRow[]> {
+	return db
+		.select(assignmentColumns)
+		.from(patternAssignment)
+		.innerJoin(pattern, eq(pattern.id, patternAssignment.patternId))
+		.where(
+			and(
+				eq(patternAssignment.patternId, patternId),
+				lte(patternAssignment.effectiveFrom, to),
+				or(isNull(patternAssignment.effectiveTo), gt(patternAssignment.effectiveTo, from))
 			)
 		)
 		.orderBy(asc(patternAssignment.effectiveFrom));

@@ -7,7 +7,7 @@ import {
 	type AssignmentTarget,
 	type ImpactPerson
 } from '#lib/roster/assignments.js';
-import { addDays, startOfDamascusDay } from '#lib/roster/cycle.js';
+import { addDays, daysBetween, startOfDamascusDay } from '#lib/roster/cycle.js';
 import { rosterInputOf } from '#lib/roster/input.js';
 import type { RosterAssignment } from '#lib/roster/roster.js';
 import type { PatternType } from '#lib/schemas/enums.js';
@@ -28,6 +28,7 @@ import { listActiveStaffInDepartments, listEventsBetween } from '../attendance/a
 import { causeBy, markNeedsRecompute, recomputeAfter } from '../day-results/day-results.bl.js';
 import { findDepartment, listDepartmentRows } from '../departments/departments.crud.js';
 import {
+	carryStatements,
 	createPatternStatements,
 	defaultWorkShift,
 	requireActiveShifts,
@@ -42,6 +43,7 @@ import {
 	deleteAssignments,
 	insertAssignment,
 	listAssignmentsOf,
+	listAssignmentsOfPatternBetween,
 	listAssignmentsOfPatternFrom,
 	type AssignmentRow
 } from './assignments.crud.js';
@@ -146,6 +148,34 @@ async function peopleOf(
 		staffId: r.staffId,
 		departmentId: r.departmentId
 	}));
+}
+
+/**
+ * Everyone a pattern's assignments may reach on shift dates `[from, to]`: the assigned people, team
+ * members and department staff (pay plan PR2, PR8). Candidates only: whether the pattern plans a
+ * person's day also depends on the levels above (`rosterDay().patternId` decides).
+ */
+export async function patternCandidates(
+	patternId: string,
+	from: string,
+	to: string
+): Promise<RosterPerson[]> {
+	const assignments = await listAssignmentsOfPatternBetween(patternId, from, to);
+	const days = daysBetween(from, to) + 1;
+	const people = await Promise.all(
+		assignments.map((a) =>
+			peopleOf(
+				a.staffId
+					? { kind: 'staff', id: a.staffId }
+					: a.teamId
+						? { kind: 'team', id: a.teamId }
+						: { kind: 'department', id: a.departmentId ?? '' },
+				from,
+				days
+			)
+		)
+	);
+	return [...new Map(people.flat().map((p) => [p.staffId, p])).values()];
 }
 
 /**
@@ -357,7 +387,8 @@ export async function endAssignment(actor: Actor, input: EndAssignmentInput): Pr
 /**
  * Change a used pattern from a date (B3): save a copy with the new days, and move every assignment
  * of the old pattern in force on or after `effectiveFrom` to the copy from then (scheduled ones keep
- * their own dates). Days before stay as they were. One batch.
+ * their own dates). Days before stay as they were. The copy keeps the pay rule and upcoming holidays
+ * from that date (pay plan PR14). One batch.
  */
 export async function editFromDate(actor: Actor, input: EditFromDateInput): Promise<string> {
 	requireActorPermission(actor, 'roster.manage');
@@ -384,6 +415,8 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 		from
 	);
 	const copyId = randomUUID();
+	// The copy keeps the pay rule and upcoming holidays from `from` (pay plan PR14).
+	const carry = await carryStatements(actor, old.id, copyId, from);
 	const scheduled = moving.filter((a) => a.effectiveFrom >= from);
 	const current = moving.filter((a) => a.effectiveFrom < from);
 	const moved = moving.map((a) => ({
@@ -413,6 +446,7 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 				},
 				'pattern.edit_from_date'
 			),
+			...carry,
 			...(scheduled.length > 0 ? [deleteAssignments(scheduled.map((a) => a.id))] : []),
 			...current.map((a) => closeAssignment(a.id, from)),
 			...moved.map((values) => insertAssignment(values)),

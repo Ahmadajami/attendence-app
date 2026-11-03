@@ -58,6 +58,14 @@
 			{#if !pattern.active}
 				<Badge variant="outline">{m.patterns_inactive()}</Badge>
 			{/if}
+			{#if pattern.hasPayRule}
+				<Badge variant="outline">{m.pattern_badge_pay()}</Badge>
+			{/if}
+			{#if pattern.upcomingHolidays > 0}
+				<Badge variant="outline">
+					{m.pattern_badge_holidays({ count: pattern.upcomingHolidays })}
+				</Badge>
+			{/if}
 		</Card.Description>
 		<Card.Action>
 			<DropdownMenu.Root>

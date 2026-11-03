@@ -129,6 +129,10 @@ assignment, own rule and holiday, plus one `seed.e2e_operation` row with the cou
   > SQL from anchor + crew start: 0 of 350 events differ (2 events = the extra shift, on an off
   > day as intended). 0 events after now, 0 outside 2026-09-01…10-31. Pairs per person per month
   > 13–16. Guard trigger `attendance_log_no_truncate` enabled again.
+  > note: reseeded 2026-11-03 at the user's request (`--reset`). Before: 352 events, 384 day_result,
+  > 404 log rows (backup `attendance_app_e2e-2026-11-03-before-op-reseed.dump`). After: 6 staff,
+  > 350 events, 15 rules, 6 assignments, 0 day_result, 0 log rows, 0 future events, 1 user kept,
+  > trigger enabled.
 - [ ] **2.3** *(user)* On `/attendance/days`, **Recompute from 2026-09-01**. Then the agent counts
   `day_result` for the 6 people from 2026-09-01 to today (at most 6 × 64 = 384) and checks that none
   is flagged `needs_recompute`.

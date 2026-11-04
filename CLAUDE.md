@@ -241,7 +241,9 @@ Use both on every task to keep context small.
   - §1 applies: build the graph from this repo only. Never point graphify at
     `~/secure/syravia/` or the old Odoo module (real names), and never use
     its Gemini backend (no cloud).
-- **RTK** (`rtk`, Rust Token Killer). A Claude Code hook rewrites shell
+- **RTK** (`rtk`, Rust Token Killer). It filters and compresses command
+  output before it reaches the LLM context: a single Rust binary, 100+
+  supported commands, <10 ms overhead. A Claude Code hook rewrites shell
   commands (`git status` → `rtk git status`) and trims their output. Use
   `rtk proxy <cmd>` when the full raw output matters (an exact test failure,
   a diff to read line by line); `rtk gain` shows the savings. Don't bypass

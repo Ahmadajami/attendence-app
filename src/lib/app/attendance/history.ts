@@ -18,7 +18,7 @@ export async function fetchDayHistory(staffId: string, date: string): Promise<Da
 	return (await response.json()) as DayHistoryLine[];
 }
 
-/** Where a log line's cause can be looked at, if anywhere (the swap page comes with Phase 6). */
+/** Where a log line's cause can be looked at, if anywhere (a swap: its detail on `/changes`, SW8). */
 export function causeHref(line: DayHistoryLine, staffId: string, date: string): string | null {
 	const day = `${localizedHref('/employees/[id]', { id: staffId })}?tab=schedule&from=${date}&day=${date}`;
 	switch (line.causeType) {
@@ -33,6 +33,8 @@ export function causeHref(line: DayHistoryLine, staffId: string, date: string): 
 			return line.causePatternId === null
 				? localizedHref('/admin/settings')
 				: `${localizedHref('/patterns/[id]', { id: line.causePatternId })}?tab=dates`;
+		case 'swap':
+			return line.causeId ? `${localizedHref('/changes')}?swap=${line.causeId}` : null;
 		case 'pay_rule':
 			if (line.causePatternId === undefined) return null;
 			return line.causePatternId === null

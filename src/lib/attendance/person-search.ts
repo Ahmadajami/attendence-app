@@ -1,6 +1,14 @@
 // The daily page's person search (pay plan PR42): a name (English or Arabic) or employee number,
 // matched as "contains", case-insensitive.
 
+/** A person as the person combobox lists them (PR45). */
+export type PersonOption = {
+	staffId: string;
+	employeeNo: string;
+	fullName: string;
+	fullNameAr: string | null;
+};
+
 /** The longest search the page accepts. */
 export const MAX_PERSON_SEARCH = 80;
 

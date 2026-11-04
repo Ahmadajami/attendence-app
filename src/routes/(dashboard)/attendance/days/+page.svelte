@@ -3,24 +3,24 @@
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
-	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
-	import DayBadges from '#lib/app/attendance/DayBadges.svelte';
+	import DayColourGuide from '#lib/app/attendance/DayColourGuide.svelte';
 	import DayHistorySheet from '#lib/app/attendance/DayHistorySheet.svelte';
 	import { DAILY_SOURCE_LABEL, DAY_STATUS_LABEL } from '#lib/app/attendance/day-labels.js';
 	import DayStateSheet from '#lib/app/attendance/DayStateSheet.svelte';
+	import DayStatusTags from '#lib/app/attendance/DayStatusTags.svelte';
+	import { dayTagDot } from '#lib/app/attendance/day-tag-tones.js';
+	import DayTagPopover from '#lib/app/attendance/DayTagPopover.svelte';
 	import OvertimeCell from '#lib/app/attendance/OvertimeCell.svelte';
+	import PersonCombobox from '#lib/app/attendance/PersonCombobox.svelte';
 	import PunchTime from '#lib/app/attendance/PunchTime.svelte';
 	import RecomputeCard from '#lib/app/attendance/RecomputeCard.svelte';
 	import { formatCalendarDate, formatPreviewDay } from '#lib/app/roster/labels.js';
 	import ShiftChip from '#lib/app/roster/ShiftChip.svelte';
-	import { MAX_PERSON_SEARCH } from '#lib/attendance/person-search.js';
-	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import * as InputGroup from '#lib/components/ui/input-group/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
@@ -28,7 +28,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import { DAILY_SOURCES } from '#lib/schemas/day-results.schema.js';
-	import { DAY_STATUSES, type AbsenceType } from '#lib/schemas/enums.js';
+	import { DAY_STATUSES, type AbsenceType, type DayStatus } from '#lib/schemas/enums.js';
 	import { lookupName, personName } from '#lib/utils/locale.js';
 	import { toastNotice } from '#lib/utils/notice-toasts.js';
 	import type { PageProps } from './$types';
@@ -58,6 +58,9 @@
 		value === ALL
 			? m.daily_status_all()
 			: DAY_STATUS_LABEL[value as keyof typeof DAY_STATUS_LABEL]();
+	/** The Status filter's colour dot (DT10); `absent` covers every state, so it has none. */
+	const statusDot = (value: DayStatus) =>
+		value === 'absent' ? null : dayTagDot(`status.${value}`);
 	const sourceLabel = (value: string) =>
 		value === ALL
 			? m.daily_source_all()
@@ -68,6 +71,8 @@
 	let scope = $derived(scopeValue);
 	let status = $derived<string>(page.status ?? ALL);
 	let source = $derived<string>(page.source ?? ALL);
+	let staff = $derived(page.staffId ?? '');
+	let q = $derived(page.q ?? '');
 	/** The shown range: exactly the picked dates, no limit (PR44); reset from each load. */
 	let fromValue = $derived(page.from);
 	let toValue = $derived(page.to);
@@ -167,21 +172,15 @@
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label for="daily-search">{m.daily_filter_person()}</Label>
-			<!-- Submits on change (Enter or leaving the box), like the other filters. -->
-			<InputGroup.Root class="w-56">
-				<InputGroup.Addon>
-					<MagnifyingGlassIcon />
-				</InputGroup.Addon>
-				<InputGroup.Input
-					id="daily-search"
-					type="search"
-					name="q"
-					value={page.q ?? ''}
-					maxlength={MAX_PERSON_SEARCH}
-					placeholder={m.daily_search_placeholder()}
-					onchange={apply}
-				/>
-			</InputGroup.Root>
+			<!-- Submits on a pick or a clear, like the other filters. -->
+			<PersonCombobox
+				id="daily-search"
+				class="w-64"
+				bind:staff
+				bind:q
+				person={page.person}
+				onchange={apply}
+			/>
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label for="daily-status">{m.daily_col_status()}</Label>
@@ -190,7 +189,14 @@
 				<Select.Content>
 					<Select.Item value={ALL} label={statusLabel(ALL)} />
 					{#each DAY_STATUSES as option (option)}
-						<Select.Item value={option} label={statusLabel(option)} />
+						{const dot = $derived(statusDot(option))}
+						<Select.Item value={option} label={statusLabel(option)}>
+							<span
+								class={['size-2 shrink-0 self-center rounded-full', dot ?? 'invisible']}
+								aria-hidden="true"
+							></span>
+							{statusLabel(option)}
+						</Select.Item>
 					{/each}
 				</Select.Content>
 			</Select.Root>
@@ -216,13 +222,15 @@
 			<Card.Description>
 				{page.missing > 0 ? m.daily_missing({ count: page.missing }) : m.daily_rows_description()}
 			</Card.Description>
-			{#if data.canRecord}
-				<Card.Action>
+			<Card.Action class="flex flex-wrap items-center gap-2">
+				<DayColourGuide />
+				{#if data.canRecord}
 					<form method="POST" action="?/recomputeDays" use:enhance={recomputeSubmit}>
 						<input type="hidden" name="from" value={page.from} />
 						<input type="hidden" name="to" value={page.to} />
 						<input type="hidden" name="scope" value={scopeValue === ALL ? '' : scopeValue} />
 						<input type="hidden" name="q" value={page.q ?? ''} />
+						<input type="hidden" name="staff" value={page.staffId ?? ''} />
 						<Button type="submit" variant="outline" size="sm" disabled={recomputing}>
 							{#if recomputing}
 								<SpinnerGapIcon data-icon="inline-start" class="animate-spin" />
@@ -232,131 +240,128 @@
 							{m.daily_recompute_days()}
 						</Button>
 					</form>
-				</Card.Action>
-			{/if}
+				{/if}
+			</Card.Action>
 		</Card.Header>
 		<Card.Content class="px-0">
-			<Table.Root>
-				<Table.Header>
-					<Table.Row>
-						<Table.Head>{m.attendance_field_date()}</Table.Head>
-						<Table.Head>{m.attendance_col_person()}</Table.Head>
-						<Table.Head>{m.attendance_col_shift()}</Table.Head>
-						<Table.Head>{m.daily_col_status()}</Table.Head>
-						<Table.Head>{m.attendance_col_in()}</Table.Head>
-						<Table.Head>{m.attendance_col_out()}</Table.Head>
-						<Table.Head>{m.daily_col_worked()}</Table.Head>
-						<Table.Head>{m.daily_col_late()}</Table.Head>
-						<Table.Head>{m.daily_col_overtime()}</Table.Head>
-						<Table.Head><span class="sr-only">{m.daily_col_actions()}</span></Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					{#each page.rows as row (`${row.person.staffId}:${row.figures.shiftDate}`)}
-						{const f = $derived(row.figures)}
-						{const name = $derived(personName(row.person))}
-						{const shift = $derived(f.shiftId ? (shiftsById.get(f.shiftId) ?? null) : null)}
-						<Table.Row class="align-top">
-							<Table.Cell class="whitespace-nowrap">
-								<bdi>{formatCalendarDate(f.shiftDate)}</bdi>
-								<div class="text-xs text-muted-foreground">
-									{formatPreviewDay(f.shiftDate).weekday}
-								</div>
-							</Table.Cell>
-							<Table.Cell>
-								<!-- Opens the day panel of this date on the employee page. -->
-								<Button
-									variant="link"
-									class="h-auto p-0 font-medium"
-									href={`${localizedHref('/employees/[id]', { id: row.person.staffId })}?tab=schedule&from=${f.shiftDate}&day=${f.shiftDate}`}
-								>
-									{name}
-								</Button>
-								<div>
-									<bdi class="font-mono text-xs text-muted-foreground" dir="ltr">
-										{row.person.employeeNo}
+			<!-- One explanation popover for every tag of the table (DT5). -->
+			<DayTagPopover>
+				<Table.Root>
+					<Table.Header>
+						<Table.Row>
+							<Table.Head>{m.attendance_field_date()}</Table.Head>
+							<Table.Head>{m.attendance_col_person()}</Table.Head>
+							<Table.Head>{m.attendance_col_shift()}</Table.Head>
+							<Table.Head>{m.daily_col_status()}</Table.Head>
+							<Table.Head>{m.attendance_col_in()}</Table.Head>
+							<Table.Head>{m.attendance_col_out()}</Table.Head>
+							<Table.Head>{m.daily_col_worked()}</Table.Head>
+							<Table.Head>{m.daily_col_late()}</Table.Head>
+							<Table.Head>{m.daily_col_overtime()}</Table.Head>
+							<Table.Head><span class="sr-only">{m.daily_col_actions()}</span></Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body>
+						{#each page.rows as row (`${row.person.staffId}:${row.figures.shiftDate}`)}
+							{const f = $derived(row.figures)}
+							{const name = $derived(personName(row.person))}
+							{const shift = $derived(f.shiftId ? (shiftsById.get(f.shiftId) ?? null) : null)}
+							<Table.Row class="align-top">
+								<Table.Cell class="whitespace-nowrap">
+									<bdi>{formatCalendarDate(f.shiftDate)}</bdi>
+									<div class="text-xs text-muted-foreground">
+										{formatPreviewDay(f.shiftDate).weekday}
+									</div>
+								</Table.Cell>
+								<Table.Cell>
+									<!-- Opens the day panel of this date on the employee page. -->
+									<Button
+										variant="link"
+										class="h-auto p-0 font-medium"
+										href={`${localizedHref('/employees/[id]', { id: row.person.staffId })}?tab=schedule&from=${f.shiftDate}&day=${f.shiftDate}`}
+									>
+										{name}
+									</Button>
+									<div>
+										<bdi class="font-mono text-xs text-muted-foreground" dir="ltr">
+											{row.person.employeeNo}
+										</bdi>
+									</div>
+								</Table.Cell>
+								<Table.Cell>
+									<ShiftChip {shift} />
+								</Table.Cell>
+								<Table.Cell>
+									<DayStatusTags figures={f} {shift} flagged={row.needsRecompute} />
+								</Table.Cell>
+								<Table.Cell class="whitespace-nowrap">
+									<PunchTime at={f.checkIn} source={f.checkInSource} shiftDate={f.shiftDate} />
+								</Table.Cell>
+								<Table.Cell class="whitespace-nowrap">
+									<PunchTime at={f.checkOut} source={f.checkOutSource} shiftDate={f.shiftDate} />
+								</Table.Cell>
+								<Table.Cell>
+									<bdi class="font-mono" dir="ltr">
+										{f.workedMinutes === null ? '—' : formatHoursMinutes(f.workedMinutes)}
 									</bdi>
-								</div>
-							</Table.Cell>
-							<Table.Cell>
-								<ShiftChip {shift} />
-							</Table.Cell>
-							<Table.Cell>
-								<div class="flex flex-col items-start gap-1">
-									<span>{DAY_STATUS_LABEL[f.status]()}</span>
-									<DayBadges figures={f} />
-									{#if row.needsRecompute}
-										<Badge variant="outline">{m.daily_badge_flagged()}</Badge>
-									{/if}
-								</div>
-							</Table.Cell>
-							<Table.Cell class="whitespace-nowrap">
-								<PunchTime at={f.checkIn} source={f.checkInSource} shiftDate={f.shiftDate} />
-							</Table.Cell>
-							<Table.Cell class="whitespace-nowrap">
-								<PunchTime at={f.checkOut} source={f.checkOutSource} shiftDate={f.shiftDate} />
-							</Table.Cell>
-							<Table.Cell>
-								<bdi class="font-mono" dir="ltr">
-									{f.workedMinutes === null ? '—' : formatHoursMinutes(f.workedMinutes)}
-								</bdi>
-							</Table.Cell>
-							<Table.Cell>
-								<bdi class="font-mono" dir="ltr">
-									{f.lateMinutes > 0 ? formatHoursMinutes(f.lateMinutes) : '—'}
-								</bdi>
-							</Table.Cell>
-							<Table.Cell>
-								<OvertimeCell figures={f} />
-							</Table.Cell>
-							<Table.Cell>
-								<div class="flex justify-end gap-1">
-									{#if data.dayStateForms}
+								</Table.Cell>
+								<Table.Cell>
+									<bdi class="font-mono" dir="ltr">
+										{f.lateMinutes > 0 ? formatHoursMinutes(f.lateMinutes) : '—'}
+									</bdi>
+								</Table.Cell>
+								<Table.Cell>
+									<OvertimeCell figures={f} />
+								</Table.Cell>
+								<Table.Cell>
+									<div class="flex justify-end gap-1">
+										{#if data.dayStateForms}
+											<Button
+												variant="ghost"
+												size="sm"
+												onclick={() => {
+													editing = {
+														staffId: row.person.staffId,
+														name,
+														date: f.shiftDate,
+														state: f.absenceType
+													};
+													editOpen = true;
+												}}
+											>
+												<PencilSimpleIcon data-icon="inline-start" />
+												{m.daily_edit_day()}
+											</Button>
+										{/if}
 										<Button
 											variant="ghost"
 											size="sm"
 											onclick={() => {
-												editing = {
+												history = {
 													staffId: row.person.staffId,
 													name,
 													date: f.shiftDate,
 													state: f.absenceType
 												};
-												editOpen = true;
+												historyOpen = true;
 											}}
 										>
-											<PencilSimpleIcon data-icon="inline-start" />
-											{m.daily_edit_day()}
+											<ClockCounterClockwiseIcon data-icon="inline-start" />
+											{m.daily_history()}
 										</Button>
-									{/if}
-									<Button
-										variant="ghost"
-										size="sm"
-										onclick={() => {
-											history = {
-												staffId: row.person.staffId,
-												name,
-												date: f.shiftDate,
-												state: f.absenceType
-											};
-											historyOpen = true;
-										}}
-									>
-										<ClockCounterClockwiseIcon data-icon="inline-start" />
-										{m.daily_history()}
-									</Button>
-								</div>
-							</Table.Cell>
-						</Table.Row>
-					{:else}
-						<Table.Row>
-							<Table.Cell colspan={10} class="h-20 text-center text-muted-foreground">
-								{page.total > 0 ? m.daily_none_match() : m.daily_none_stored()}
-							</Table.Cell>
-						</Table.Row>
-					{/each}
-				</Table.Body>
-			</Table.Root>
+									</div>
+								</Table.Cell>
+							</Table.Row>
+						{:else}
+							<Table.Row>
+								<Table.Cell colspan={10} class="h-20 text-center text-muted-foreground">
+									{page.total > 0 ? m.daily_none_match() : m.daily_none_stored()}
+								</Table.Cell>
+							</Table.Row>
+						{/each}
+					</Table.Body>
+				</Table.Root>
+			</DayTagPopover>
 		</Card.Content>
 	</Card.Root>
 

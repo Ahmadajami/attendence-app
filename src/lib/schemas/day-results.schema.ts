@@ -28,6 +28,8 @@ export const recomputeDaysSchema = z.object({
 	/** The page's `scope` parameter: `department:<id>`, `team:<id>` or '' (everyone). */
 	scope: z.string().max(80).default(''),
 	/** The page's `q` parameter (PR42): the person search, '' for none. */
-	q: z.string().max(MAX_PERSON_SEARCH).default('')
+	q: z.string().max(MAX_PERSON_SEARCH).default(''),
+	/** The page's `staff` parameter (PR45): one picked person's id, '' for none. */
+	staff: z.union([z.uuid(), z.literal('')]).default('')
 });
 export type RecomputeDaysInput = z.infer<typeof recomputeDaysSchema>;

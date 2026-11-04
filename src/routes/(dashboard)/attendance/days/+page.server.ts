@@ -18,6 +18,7 @@ import type { Actor } from '#lib/server/services/common.js';
 import {
 	getDailyAttendance,
 	parseScope,
+	parseStaffId,
 	recomputeDailyScope
 } from '#lib/server/services/daily/daily.bl.js';
 import {
@@ -48,7 +49,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		scope: parseScope(url.searchParams.get('scope')),
 		status: oneOf<DayStatus>(DAY_STATUSES, url.searchParams.get('status')),
 		source: oneOf<DailySource>(DAILY_SOURCES, url.searchParams.get('source')),
-		q: personSearch(url.searchParams.get('q'))
+		q: personSearch(url.searchParams.get('q')),
+		staffId: parseStaffId(url.searchParams.get('staff'))
 	});
 	const canRecord = actor.permissions.has('attendance.record');
 	const canBackfill = actor.permissions.has('roster.manage');
@@ -69,7 +71,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 export const actions: Actions = {
 	...dayStateActions(actorFrom),
 
-	/** Plain action (`{ notice }`): Recompute for the shown range, scope and person search. */
+	/** Plain action (`{ notice }`): Recompute for the shown range, scope and person filter. */
 	recomputeDays: async ({ request, locals }) => {
 		const actor = actorFrom(locals);
 		const parsed = recomputeDaysSchema.safeParse(Object.fromEntries(await request.formData()));
@@ -80,7 +82,7 @@ export const actions: Actions = {
 				parsed.data.from,
 				parsed.data.to,
 				parseScope(parsed.data.scope),
-				personSearch(parsed.data.q)
+				{ q: personSearch(parsed.data.q), staffId: parseStaffId(parsed.data.staff) }
 			);
 			return { notice: m.daily_recompute_days_done(result) };
 		} catch (cause) {

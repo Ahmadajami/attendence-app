@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
 import { dayFiguresOf, type DayFigures } from '#lib/attendance/day-result.js';
 import { dailyRange, pastDays } from '#lib/attendance/daily-range.js';
+import { personSearch, type PersonOption } from '#lib/attendance/person-search.js';
 import type { DailySource } from '#lib/schemas/day-results.schema.js';
 import type { DayStatus, LogCause, LogField, LogSource } from '#lib/schemas/enums.js';
 import { auditInsert } from '#lib/server/audit.js';
@@ -24,10 +25,13 @@ import {
 import { listStaffToRecompute, listStoredDays } from '../day-results/day-results.crud.js';
 import { listShiftRows, type ShiftRow } from '../shifts/shifts.crud.js';
 import {
+	getPerson,
 	listDailyRows,
 	listDayLog,
+	listEventReasons,
 	listHolidayOwners,
 	listPayRuleOwners,
+	listPeopleMatching,
 	listStaffIdsMatching
 } from './daily.crud.js';
 
@@ -44,14 +48,28 @@ export function parseScope(value: string | null): EntryScope {
 	return null;
 }
 
-export type DailyFilter = {
+/** `?staff=<id>` (PR45): one picked person; anything else: none. */
+export function parseStaffId(value: string | null | undefined): string | null {
+	return z.uuid().safeParse(value).success ? (value as string) : null;
+}
+
+/** Who the page shows: one picked person (PR45), else a text search (PR42), else everyone. */
+export type PersonFilter = {
+	/** Employee number or name contains this; `null`: no text search. */
+	q: string | null;
+	/** Exactly this person; wins over `q`. */
+	staffId: string | null;
+};
+
+/** The most suggestions the person combobox shows at once. */
+export const MAX_PERSON_SUGGESTIONS = 20;
+
+export type DailyFilter = PersonFilter & {
 	from: string | null;
 	to: string | null;
 	scope: EntryScope;
 	status: DayStatus | null;
 	source: DailySource | null;
-	/** Person search (PR42): employee number or name contains this; `null`: everyone in scope. */
-	q: string | null;
 };
 
 export type DailyRow = {
@@ -70,6 +88,10 @@ export type DailyPage = ScopeOptions & {
 	status: DayStatus | null;
 	source: DailySource | null;
 	q: string | null;
+	/** The picked person's id (PR45), as asked; `null` when none. */
+	staffId: string | null;
+	/** The picked person (PR45), for the combobox's label; `null` when none (or unknown). */
+	person: PersonOption | null;
 	shifts: ShiftRow[];
 	/** One stored row per person and date, newest date first, matching status and source. */
 	rows: DailyRow[];
@@ -95,9 +117,20 @@ async function peopleOf(scope: EntryScope, from: string, to: string): Promise<st
 	return (await scopePeople(scope, from, to)).map((p) => p.staffId);
 }
 
-/** The people matching a person search (PR42), or `null` when there is no search. */
-async function matchingOf(q: string | null): Promise<Set<string> | null> {
+/** The people a person filter keeps (PR42, PR45), or `null` when there is none. */
+async function matchingOf({ q, staffId }: PersonFilter): Promise<Set<string> | null> {
+	if (staffId) return new Set([staffId]);
 	return q ? new Set(await listStaffIdsMatching(q)) : null;
+}
+
+/**
+ * The person combobox's suggestions (PR45): people whose employee number or name contains `q`,
+ * at most `MAX_PERSON_SUGGESTIONS`, by name. Needs `staff.write`, like the page.
+ */
+export async function searchPeople(actor: Actor, q: string): Promise<PersonOption[]> {
+	requireActorPermission(actor, 'staff.write');
+	const search = personSearch(q);
+	return search ? listPeopleMatching(search, MAX_PERSON_SUGGESTIONS) : [];
 }
 
 /** The people of a scope who match the search; all of them without a search. */
@@ -116,11 +149,16 @@ export async function getDailyAttendance(actor: Actor, filter: DailyFilter): Pro
 		isDate(filter.to) ? filter.to : null,
 		today
 	);
-	const [options, shifts, scoped, matching] = await Promise.all([
+	// A picked person replaces the text search.
+	const search: PersonFilter = filter.staffId
+		? { q: null, staffId: filter.staffId }
+		: { q: filter.q, staffId: null };
+	const [options, shifts, scoped, matching, person] = await Promise.all([
 		scopeOptions(),
 		listShiftRows(),
 		peopleOf(filter.scope, from, to),
-		matchingOf(filter.q)
+		matchingOf(search),
+		search.staffId ? getPerson(search.staffId) : undefined
 	]);
 	const people = narrowed(scoped, matching);
 	// Everyone: every stored row (inactive people's too), or those of the people matching the search.
@@ -150,7 +188,9 @@ export async function getDailyAttendance(actor: Actor, filter: DailyFilter): Pro
 		scope: filter.scope,
 		status: filter.status,
 		source: filter.source,
-		q: filter.q,
+		q: search.q,
+		staffId: search.staffId,
+		person: person ?? null,
 		shifts,
 		rows,
 		total: stored.length,
@@ -170,7 +210,7 @@ export async function recomputeDailyScope(
 	from: string,
 	to: string,
 	scope: EntryScope,
-	q: string | null = null
+	search: PersonFilter = { q: null, staffId: null }
 ): Promise<RecomputeResult & { people: number }> {
 	requireActorPermission(actor, 'attendance.record');
 	const days = pastDays(from, to, todayInDamascus());
@@ -179,7 +219,7 @@ export async function recomputeDailyScope(
 			field: 'from'
 		});
 	if (days === 0) return { written: 0, kept: 0, logLines: 0, people: 0 };
-	const [scoped, matching] = await Promise.all([peopleOf(scope, from, to), matchingOf(q)]);
+	const [scoped, matching] = await Promise.all([peopleOf(scope, from, to), matchingOf(search)]);
 	const people = narrowed(scoped, matching);
 	const result = await recomputeDays(people, from, to, causeBy(actor, 'system'));
 	await batch([
@@ -188,8 +228,17 @@ export async function recomputeDailyScope(
 			action: 'day_result.recompute_days',
 			entityType: 'day_result',
 			entityId: from,
-			// The search text may be a name (CLAUDE.md §1): only whether there was one.
-			after: { from, to, scope, search: q !== null, people: people.length, ...result }
+			// The search text may be a name (CLAUDE.md §1): only whether there was one; a picked
+			// person is a record ID.
+			after: {
+				from,
+				to,
+				scope,
+				search: search.q !== null,
+				staffId: search.staffId,
+				people: people.length,
+				...result
+			}
 		})
 	]);
 	return { ...result, people: people.length };
@@ -210,6 +259,8 @@ export type DayHistoryLine = {
 	causePatternId?: string | null;
 	/** `null`: the system (backfill, catch-up). */
 	actor: { fullName: string; fullNameAr: string | null } | null;
+	/** The reason typed with the punch behind the line (cause `event`, PR48), if any. */
+	reason: string | null;
 };
 
 /** A person's edit log of one shift date (PR24), newest first. */
@@ -223,9 +274,10 @@ export async function getDayHistory(
 	const idsOf = (type: LogCause) => [
 		...new Set(lines.flatMap((l) => (l.causeType === type && l.causeId ? [l.causeId] : [])))
 	];
-	const [holidays, payRules] = await Promise.all([
+	const [holidays, payRules, reasons] = await Promise.all([
 		listHolidayOwners(idsOf('holiday')),
-		listPayRuleOwners(idsOf('pay_rule'))
+		listPayRuleOwners(idsOf('pay_rule')),
+		listEventReasons(idsOf('event'))
 	]);
 	const ownerOf = new Map([...holidays, ...payRules].map((r) => [r.id, r.patternId]));
 	return lines.map((l) => ({
@@ -241,7 +293,8 @@ export async function getDayHistory(
 			l.causeId && (l.causeType === 'holiday' || l.causeType === 'pay_rule')
 				? (ownerOf.get(l.causeId) ?? null)
 				: undefined,
-		actor: l.actorName ? { fullName: l.actorName, fullNameAr: l.actorNameAr } : null
+		actor: l.actorName ? { fullName: l.actorName, fullNameAr: l.actorNameAr } : null,
+		reason: l.causeType === 'event' && l.causeId ? (reasons.get(l.causeId) ?? null) : null
 	}));
 }
 

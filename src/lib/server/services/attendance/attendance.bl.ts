@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { m } from '#lib/paraglide/messages.js';
 import {
+	clockOf,
 	pairsOf,
 	resolveCheckIn,
 	resolveCheckOut,
@@ -18,6 +19,7 @@ import { rosterDay, type RosterDay } from '#lib/roster/roster.js';
 import type {
 	AddPairInput,
 	CorrectionInput,
+	DayPunchesInput,
 	EntryAbsence,
 	EntryRow,
 	EntrySheetInput
@@ -443,6 +445,184 @@ export async function correctEvent(actor: Actor, input: CorrectionInput): Promis
 		event.shiftDate,
 		causeBy(actor, 'correction', 'event', id)
 	);
+}
+
+/** A shift the day editor offers (PR46): enough to pick it and to fill its times. */
+export type DayPunchShift = Pick<
+	ShiftRow,
+	'id' | 'code' | 'nameEn' | 'nameAr' | 'startTime' | 'endTime' | 'active'
+>;
+
+/** What the day editor shows of one person's shift date (PR46). */
+export type DayPunches = {
+	/** The roster's shift that day; `null`: off. */
+	plannedShiftId: string | null;
+	/** The day has a full-day state: punches count for nothing and are not edited here. */
+	hasState: boolean;
+	/** The day's effective pairs as Damascus wall-clock `HH:mm`; at most one can be edited here. */
+	pairs: { shiftId: string; checkIn: string | null; checkOut: string | null }[];
+	/** Active shifts, plus any the day's punches or roster point at. */
+	shifts: DayPunchShift[];
+};
+
+/** The person, the roster day and the day's effective pairs, for the day editor. */
+async function loadDayPunches(staffId: string, shiftDate: string) {
+	const [person] = await listEntryPeople([staffId]);
+	if (!person) throw new NotFoundError(m.attendance_error_person());
+	const ctx = await loadContext([person], shiftDate);
+	const day = ctx.dayOf(staffId);
+	const pairs = ctx
+		.eventPairs(staffId)
+		.filter((p) => (p.checkIn ?? p.checkOut)?.shiftDate === shiftDate);
+	return { person, ctx, day, pairs };
+}
+
+/** One person's check-in / check-out on a shift date, for the day editor (PR46). */
+export async function getDayPunches(
+	actor: Actor,
+	staffId: string,
+	shiftDate: string
+): Promise<DayPunches> {
+	requireActorPermission(actor, 'attendance.record');
+	const { ctx, day, pairs } = await loadDayPunches(staffId, shiftDate);
+	const clock = (event: EventRow | null) => (event ? clockOf(event.occurredAt) : null);
+	const shown = pairs.map((p) => ({
+		shiftId: (p.checkIn ?? p.checkOut)!.shiftId,
+		checkIn: clock(p.checkIn),
+		checkOut: clock(p.checkOut)
+	}));
+	const used = new Set([day.shiftId, ...shown.map((p) => p.shiftId)]);
+	return {
+		plannedShiftId: day.shiftId,
+		hasState: day.source === 'absence',
+		pairs: shown,
+		shifts: ctx.roster.shifts
+			.filter((s) => s.active || used.has(s.id))
+			.map(({ id, code, nameEn, nameAr, startTime, endTime, active }) => ({
+				id,
+				code,
+				nameEn,
+				nameAr,
+				startTime,
+				endTime,
+				active
+			}))
+	};
+}
+
+/**
+ * The day editor's check-in / check-out (PR46–PR48). No pair yet: a new pair on the picked shift
+ * (checked like the entry sheet). One pair: a correction for each time that changed (the original
+ * stays), a void correction when the check-out is emptied, a new check-out when there was none.
+ * Refused on a day with a full-day state or with several pairs. Every event written carries the
+ * reason; one audit row with the event ids and the times before and after; the day is recomputed
+ * and logged as typed (new pair) or correction, pointing at the first event written.
+ */
+export async function setDayPunches(
+	actor: Actor,
+	input: DayPunchesInput
+): Promise<{ events: number }> {
+	requireActorPermission(actor, 'attendance.record');
+	const { staffId, shiftDate } = input;
+	const { person, ctx, day, pairs } = await loadDayPunches(staffId, shiftDate);
+	if (day.source === 'absence') throw new ConflictError('day_has_state', m.day_punches_has_state());
+	if (pairs.length > 1) throw new ConflictError('several_pairs', m.day_punches_several());
+	const existing = pairs[0] ?? null;
+	const shiftId = existing ? (existing.checkIn ?? existing.checkOut)!.shiftId : input.shiftId;
+	const shift = ctx.shifts.get(shiftId);
+	const planned = day.shiftId === shiftId;
+	if (!shift || (!existing && !planned && !shift.active))
+		throw new InvalidInputError('shift_inactive', m.roster_error_shift_inactive(), {
+			field: 'shiftId'
+		});
+	if (!existing && !person.active)
+		throw new InvalidInputError('person_inactive', m.attendance_error_person());
+
+	const pair = resolvePair(shiftDate, shift, input.checkIn, input.checkOut || null);
+	// The person's other pairs, by event id: `eventPairs` builds new objects on every call, so the
+	// pair being edited must not be compared by identity (it would overlap itself).
+	const editedIds = new Set(
+		[existing?.checkIn?.id, existing?.checkOut?.id].filter((id): id is string => !!id)
+	);
+	const others = toPairs(
+		ctx
+			.eventPairs(staffId)
+			.filter((p) => !editedIds.has(p.checkIn?.id ?? '') && !editedIds.has(p.checkOut?.id ?? ''))
+	);
+	const { errors } = validatePair(pair, {
+		shiftDate,
+		shift,
+		// An existing pair stays on its shift; a new one is checked like the entry sheet.
+		planned: existing ? true : planned,
+		others,
+		now: new Date()
+	});
+	if (errors.length > 0)
+		throw new InvalidInputError('punches_invalid', errors.map(pairIssueMessage).join(' '), {
+			field: errors.includes('span_too_long') ? 'checkOut' : 'checkIn'
+		});
+
+	const base = {
+		staffId,
+		shiftDate,
+		shiftId,
+		teamId: day.teamId,
+		recordedBy: actor.user.id,
+		source: 'manual' as const,
+		reason: input.reason
+	};
+	const events: Parameters<typeof insertEvents>[0] = [];
+	const same = (a: Date | null, b: Date | null) =>
+		(a?.getTime() ?? null) === (b?.getTime() ?? null);
+	/** A new event, or a correction of `old` when the time changed; nothing when it did not. */
+	const write = (type: 'check_in' | 'check_out', old: EventRow | null, at: Date | null) => {
+		if (old && same(old.occurredAt, at)) return;
+		if (!old && !at) return;
+		events.push({
+			...base,
+			id: randomUUID(),
+			type,
+			occurredAt: at ?? old!.occurredAt,
+			...(old
+				? { shiftId: old.shiftId, teamId: old.teamId, correctsEventId: old.id, isVoid: at === null }
+				: {})
+		});
+	};
+	write('check_in', existing?.checkIn ?? null, pair.checkIn);
+	write('check_out', existing?.checkOut ?? null, pair.checkOut);
+	if (events.length === 0)
+		throw new InvalidInputError('punches_unchanged', m.day_punches_unchanged());
+
+	const corrected = events.some((e) => e.correctsEventId);
+	const clocks = (p: { checkIn: Date | null; checkOut: Date | null }) => ({
+		checkIn: p.checkIn ? clockOf(p.checkIn) : null,
+		checkOut: p.checkOut ? clockOf(p.checkOut) : null
+	});
+	await batch([
+		...insertEvents(events),
+		...markNeedsRecompute([staffId], shiftDate, shiftDate),
+		auditInsert({
+			actor: actor.user,
+			action: 'attendance.day_punches',
+			entityType: 'attendance_day',
+			entityId: staffId,
+			// Times and ids only; the reason stays on the events.
+			before: existing
+				? clocks({
+						checkIn: existing.checkIn?.occurredAt ?? null,
+						checkOut: existing.checkOut?.occurredAt ?? null
+					})
+				: null,
+			after: { shiftDate, eventIds: events.map((e) => e.id), ...clocks(pair) }
+		})
+	]);
+	await recomputeAfter(
+		[staffId],
+		shiftDate,
+		shiftDate,
+		causeBy(actor, corrected ? 'correction' : 'typed', 'event', events[0].id)
+	);
+	return { events: events.length };
 }
 
 /** A person's events (corrections and corrected ones too) on shift dates `[from, to]`. */

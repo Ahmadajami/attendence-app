@@ -173,7 +173,9 @@
     builder: { en: 'Attendance builder', ar: 'منشئ الحضور' },
     profile: { en: 'Employee profile', ar: 'ملف الموظف' },
     management: { en: 'Two-level management', ar: 'الإدارة على مستويين' },
-    testdata: { en: 'Test data', ar: 'بيانات الاختبار' }
+    testdata: { en: 'Test data', ar: 'بيانات الاختبار' },
+    daytags: { en: 'Day tags & colours', ar: 'وسوم اليوم والألوان' },
+    swaps: { en: 'Swaps', ar: 'التبديلات' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -1474,6 +1476,34 @@
       alts: [ { en: "Keep the 31-day limit and move the other date (PR43): replaced at the user's request.", ar: "إبقاء حد 31 يوماً وتحريك التاريخ الآخر (PR43): استُبدل بطلب المستخدم." }, { en: "No limit on the recompute either: not chosen — one click could recompute years for everyone.", ar: "بلا حد على إعادة الحساب أيضاً: لم يُختر — نقرة واحدة قد تعيد حساب سنوات للجميع." } ]
     },
     {
+      id: 'PR45', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Daily page: pick a person from server suggestions", ar: "الصفحة اليومية: اختيار شخص من اقتراحات الخادم" },
+      decision: { en: "The Person box on /attendance/days becomes a combobox (shadcn Popover + Command). Typing asks the server for suggestions through a remote query (findPeople), debounced by 300 ms with runed's Debounced: at most 20 people whose employee number or name contains the text, by name, with the same permission as the page (staff.write). Picking a person filters to exactly that person (?staff=<id>, which wins over ?q=). The first item keeps PR42's text search (\"Everyone matching …\", ?q=); a Clear item removes both. Recompute these days follows the picked person too; its audit row records the person's record ID and still only whether there was a text search. This turns on SvelteKit's experimental remote functions.", ar: "يصبح مربع «الموظف» في /attendance/days قائمة قابلة للبحث (Popover + Command من shadcn). الكتابة تطلب من الخادم اقتراحات عبر استعلام بعيد (findPeople)، مؤخَّراً 300 ملّي ثانية بـ Debounced من runed: 20 شخصاً على الأكثر يحتوي رقمهم الوظيفي أو اسمهم على النص، مرتبين بالاسم، وبصلاحية الصفحة نفسها (staff.write). اختيار شخص يرشّح إلى هذا الشخص تماماً (‎?staff=<id>‎، ويتقدّم على ‎?q=‎). ويُبقي العنصر الأول البحث النصي من PR42 («كل من يطابق …»، ‎?q=‎)؛ وعنصر «مسح» يزيل الاثنين. وتتبع «إعادة حساب هذه الأيام» الشخص المختار أيضاً؛ ويسجّل صف التدقيق معرّف سجل الشخص، ويذكر فقط هل كان هناك بحث نصي. ويشغّل هذا ميزة الدوال البعيدة التجريبية في SvelteKit." },
+      why: { en: "The user's request (2026-11-03): choose an employee by name from suggestions the server sends while typing. An exact pick avoids \"contains\" also matching other numbers or names; keeping the text search keeps PR42 working. Remote functions give a typed server call with no extra endpoint; debouncing keeps one request per pause instead of one per key.", ar: "طلب المستخدم (2026-11-03): اختيار موظف بالاسم من اقتراحات يرسلها الخادم أثناء الكتابة. والاختيار الدقيق يتجنّب أن يطابق «يحتوي» أرقاماً أو أسماء أخرى أيضاً؛ وإبقاء البحث النصي يُبقي PR42 عاملاً. والدوال البعيدة تعطي استدعاءً مكتوب الأنواع للخادم بلا نقطة نهاية إضافية؛ والتأخير يجعل طلباً واحداً عند كل توقف بدل طلب لكل مفتاح." },
+      alts: [ { en: "Send every person to the page and filter in the browser: not chosen — the user asked for a server search, and the list would grow with every hire.", ar: "إرسال كل الأشخاص إلى الصفحة والتصفية في المتصفح: لم يُختر — طلب المستخدم بحثاً في الخادم، والقائمة ستكبر مع كل تعيين." }, { en: "A JSON endpoint (+server.ts) instead of a remote function: not chosen — the user asked for the remote-function pattern; it would need its own parsing and types.", ar: "نقطة نهاية JSON ‏(+server.ts) بدل دالة بعيدة: لم يُختر — طلب المستخدم نمط الدوال البعيدة؛ وستحتاج تحليلها وأنواعها الخاصة." }, { en: "Picking a person sets ?q= to their employee number: not chosen — \"contains\" would also match longer numbers.", ar: "اختيار شخص يضع رقمه الوظيفي في ‎?q=‎: لم يُختر — «يحتوي» سيطابق أرقاماً أطول أيضاً." } ]
+    },
+    {
+      id: 'PR46', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Edit day: check-in / out with a fill button", ar: "تعديل اليوم: الدخول / الخروج مع زر ملء" },
+      decision: { en: "Edit day gets a third mode, Check-in / out (first when the day has no state). It loads the day's punches when opened and shows the check-in and check-out in editable HH:mm boxes; Fill shift times writes the shift's start and end into them, still editable. With no punches the shift is picked (the planned one preselected); a recorded pair keeps its shift. A day with a full-day state or several pairs is not edited here: the sheet says why and links to the employee page for several pairs.", ar: "يحصل «تعديل اليوم» على وضع ثالث، «الدخول / الخروج» (الأول عندما لا تكون لليوم حالة). يحمّل بصمات اليوم عند الفتح ويعرض الدخول والخروج في مربعات HH:mm قابلة للتعديل؛ وزر «ملء أوقات الوردية» يكتب بداية الوردية ونهايتها فيهما، وتبقيان قابلتين للتعديل. بلا بصمات تُختار الوردية (المخططة محددة مسبقاً)؛ والزوج المسجّل يبقى على ورديته. ولا يُعدَّل هنا يوم له حالة يوم كامل أو عدة أزواج: تقول اللوحة السبب وتربط بصفحة الموظف عند تعدد الأزواج." },
+      why: { en: "The user's request (2026-11-03): set a manual check-in from the day editor, with a prefill button and a fully editable box.", ar: "طلب المستخدم (2026-11-03): تعيين دخول يدوي من محرر اليوم، مع زر ملء مسبق ومربع قابل للتعديل بالكامل." },
+      alts: [ { en: "Prefill the shift times automatically on open: not chosen — a button keeps an empty box from looking recorded.", ar: "ملء أوقات الوردية تلقائياً عند الفتح: لم يُختر — الزر يمنع أن يبدو المربع الفارغ مسجّلاً." }, { en: "Edit several pairs in the sheet: not chosen — the employee page already corrects each event.", ar: "تعديل عدة أزواج في اللوحة: لم يُختر — صفحة الموظف تصحّح كل حدث أصلاً." } ]
+    },
+    {
+      id: 'PR47', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Edit day check-in / out: add or correct, never overwrite", ar: "دخول / خروج تعديل اليوم: إضافة أو تصحيح، دون استبدال" },
+      decision: { en: "No pair: a new manual pair, checked like the entry sheet. One pair: a correction for each time that changed (the original stays), a void correction when the check-out is emptied, a new check-out when there was none. Nothing changed is refused; the check-in is required.", ar: "بلا زوج: زوج يدوي جديد، يُفحص كما في ورقة الإدخال. زوج واحد: تصحيح لكل وقت تغيّر (يبقى الأصل)، وتصحيح إلغاء عند إفراغ الخروج، وخروج جديد إن لم يكن موجوداً. ويُرفض الحفظ إن لم يتغير شيء؛ والدخول مطلوب." },
+      why: { en: "Corrections never overwrite a punch (PR22); the same rules as the entry sheet and the day panel.", ar: "التصحيحات لا تستبدل بصمة أبداً (PR22)؛ والقواعد نفسها كورقة الإدخال ولوحة اليوم." },
+      alts: [ { en: "Update the punch in place: not chosen — the original would be lost.", ar: "تحديث البصمة في مكانها: لم يُختر — يضيع الأصل." } ]
+    },
+    {
+      id: 'PR48', group: 'payroll', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1, task 5.2',
+      title: { en: "Edit day check-in / out: reason required, shown in History", ar: "دخول / خروج تعديل اليوم: السبب مطلوب ويظهر في السجل" },
+      decision: { en: "A reason is required for every check-in / out saved from Edit day and is stored on each event written. One audit row attendance.day_punches records the event ids and the times before and after (no reason text). The day is recomputed and logged as Typed or Correction, pointing at the first event; History shows the reason of the punch behind a line.", ar: "السبب مطلوب لكل دخول / خروج يُحفظ من «تعديل اليوم» ويُخزَّن على كل حدث يُكتب. ويسجّل صف تدقيق واحد attendance.day_punches معرّفات الأحداث والأوقات قبل وبعد (دون نص السبب). ويُعاد حساب اليوم ويُسجَّل كـ«مُدخل يدوياً» أو «تصحيح» مشيراً إلى الحدث الأول؛ ويعرض «السجل» سبب البصمة وراء كل سطر." },
+      why: { en: "The user asked for proper logs. Punch reasons are not health details; absence reasons still never reach the log or History.", ar: "طلب المستخدم سجلات وافية. أسباب البصمات ليست تفاصيل صحية؛ وأسباب الغياب لا تصل أبداً إلى السجل." },
+      alts: [ { en: "Reason optional on the planned shift, as on the entry sheet: not chosen — an edit from the day editor is deliberate and should say why.", ar: "سبب اختياري على الوردية المخططة كما في ورقة الإدخال: لم يُختر — التعديل من محرر اليوم مقصود ويجب أن يذكر السبب." }, { en: "Reason text in the audit row: not chosen — the audit keeps ids and figures only.", ar: "نص السبب في صف التدقيق: لم يُختر — التدقيق يحفظ المعرّفات والأرقام فقط." } ]
+    },
+    {
       id: 'AV1', group: 'profile', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-aviation-privilege.md §1',
       title: { en: "One aviation privilege per employee at a time", ar: "امتياز طيران واحد لكل موظف في الوقت نفسه" },
       decision: { en: "Each employee holds at most one privilege issued by the civil aviation authority at a time, identified by its privilege number (letters, digits, dashes, slashes; at most 30) and held for a period with a start and an end date (both inclusive).", ar: "يحمل كل موظف امتيازاً واحداً على الأكثر صادراً عن سلطة الطيران المدني في الوقت نفسه، يُعرَّف برقم الامتياز (حروف وأرقام وشرطات وخطوط مائلة؛ 30 حرفاً على الأكثر) ويُحمل لفترة لها تاريخ بداية وتاريخ نهاية (شاملين)." },
@@ -1606,6 +1636,174 @@
       decision: { en: "The app records the number and dates, not a copy of the card; periods are never deleted.", ar: "يسجل التطبيق الرقم والتواريخ، لا نسخة من البطاقة؛ ولا تُحذف الفترات أبداً." },
       why: { en: "Scans are the most sensitive data (profile H5); the trail stays readable (template §6.6).", ar: "المسوح أكثر البيانات حساسية (H5 في الملف)؛ ويبقى السجل مقروءاً (§6.6 في القالب)." },
       alts: []
+    },
+    {
+      id: 'DT1', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "One tag catalogue in pure code", ar: "كتالوج واحد للوسوم في كود نقي" },
+      decision: { en: "#lib/attendance/day-tags.ts defines every tag id; dayTags(figures, shift) returns a stored day's tags in a fixed order. Labels, explanations and tones are looked up by tag id.", ar: "يعرّف ‎#lib/attendance/day-tags.ts‎ كل معرّف وسم؛ وتعيد dayTags(figures, shift) وسوم اليوم المحفوظ بترتيب ثابت. وتُستخرج التسميات والشروح والدرجات اللونية حسب معرّف الوسم." },
+      why: { en: "The table, the popovers and the colour guide can never disagree; testable without a browser.", ar: "لا يمكن أن يختلف الجدول والنوافذ المنبثقة ودليل الألوان؛ ويمكن اختباره بلا متصفح." },
+      alts: [ { en: "Colours and texts written in each component: not chosen — they drift apart.", ar: "كتابة الألوان والنصوص في كل مكوّن: لم يُختر — تتباعد مع الوقت." } ]
+    },
+    {
+      id: 'DT2', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Tones per tag, tinted style", ar: "درجة لونية لكل وسم، بنمط مُشبَع خفيف" },
+      decision: { en: "Each tag has one tone mapped to one theme token, drawn tinted (border /30, background /10, text in the tone), never solid.", ar: "لكل وسم درجة لونية واحدة مرتبطة برمز سمة واحد، ويُرسم بنمط خفيف (حد ‎/30‎ وخلفية ‎/10‎ ونص بالدرجة)، وليس مصمتاً أبداً." },
+      why: { en: "Shift chips already use solid fills in the same hues; tinted tags can't be mistaken for shifts.", ar: "شرائح الورديات تستخدم تعبئة مصمتة بالألوان نفسها؛ فلا يُخلط بين الوسوم الخفيفة والورديات." },
+      alts: [ { en: "Solid badges: not chosen — they look like shift chips.", ar: "شارات مصمتة: لم يُختر — تشبه شرائح الورديات." } ]
+    },
+    {
+      id: 'DT3', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "New theme tokens for day tones", ar: "رموز سمة جديدة لدرجات الأيام" },
+      decision: { en: "Add success, info, problem, state-leave, state-sick, state-mission and holiday in :root and .dark; warning gets a lighter dark-mode value and a slightly darker light one. Every tone's text reaches 4.5:1 on its tint in both modes. Problem is a separate red because the shared destructive token (also used by buttons) reaches only 4:1 on a tint in light mode.", ar: "إضافة success وinfo وproblem وstate-leave وstate-sick وstate-mission وholiday في ‎:root‎ و‎.dark‎؛ ويأخذ warning قيمة أفتح في الوضع الداكن وأغمق قليلاً في الفاتح. ويبلغ نص كل درجة 4.5:1 على خلفيتها في الوضعين. وproblem أحمر منفصل لأن رمز destructive المشترك (تستخدمه الأزرار أيضاً) لا يبلغ إلا 4:1 على الخلفية في الوضع الفاتح." },
+      why: { en: "The UI rules allow new tokens only in both modes; amber at L 0.555 is too dark on a dark background.", ar: "قواعد الواجهة تسمح برموز جديدة في الوضعين فقط؛ والكهرماني عند L 0.555 داكن جداً على خلفية داكنة." },
+      alts: [ { en: "Reuse chart-1…5 and shift-1…8: not chosen — their meanings are charts and shifts.", ar: "إعادة استخدام chart-1…5 وshift-1…8: لم يُختر — معانيها للرسوم والورديات." }, { en: "Raw Tailwind palette colours: not allowed by the UI rules.", ar: "ألوان Tailwind الخام: غير مسموحة في قواعد الواجهة." } ]
+    },
+    {
+      id: 'DT4', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Colour is never the only cue", ar: "اللون ليس الإشارة الوحيدة أبداً" },
+      decision: { en: "Every tag keeps its text label (and minutes where there are some); the guide and popovers say the same in words.", ar: "يحتفظ كل وسم بتسميته النصية (وبالدقائق حيث توجد)؛ ويقول الدليل والنوافذ المنبثقة الشيء نفسه بالكلمات." },
+      why: { en: "Colour-blind users, printouts, both languages.", ar: "لمن لديهم عمى ألوان، وللطباعة، وللغتين." },
+      alts: [ { en: "Colour dots without labels: not chosen — unreadable without colour.", ar: "نقاط ملونة بلا تسميات: لم يُختر — غير مقروءة بدون لون." } ]
+    },
+    {
+      id: 'DT5', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "A tag is a button; one shared popover per table", ar: "الوسم زر؛ ونافذة منبثقة واحدة مشتركة لكل جدول" },
+      decision: { en: "Tags render as buttons with data-day-tag; one DayTagPopover per table (bits-ui Popover with customAnchor = the clicked tag) shows the explanation on click, tap or Enter.", ar: "تُعرض الوسوم كأزرار بـ data-day-tag؛ ونافذة DayTagPopover واحدة لكل جدول (Popover من bits-ui مع customAnchor = الوسم المنقور) تعرض الشرح عند النقر أو اللمس أو Enter." },
+      why: { en: "Works on touch and keyboard; about 5,000 tags on a wide range would make one popover each slow.", ar: "يعمل باللمس ولوحة المفاتيح؛ ونحو 5000 وسم في مدة واسعة تجعل نافذة لكل وسم بطيئة." },
+      alts: [ { en: "A tooltip on hover: not chosen — hover-only, no touch.", ar: "تلميح عند التمرير: لم يُختر — بالتمرير فقط، بلا لمس." }, { en: "One Popover per tag: not chosen — thousands of instances.", ar: "نافذة لكل وسم: لم يُختر — آلاف النسخ." } ]
+    },
+    {
+      id: 'DT6', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "What a tag popover says", ar: "ماذا تقول نافذة الوسم" },
+      decision: { en: "Name (in its colour), what it means, how it counts for time and pay, and for problems what to do. Texts as day_tag_<id>_help and _action in en and ar.", ar: "الاسم (بلونه)، وماذا يعني، وكيف يُحتسب للوقت والأجر، وللمشكلات ماذا يُفعل. النصوص في day_tag_<id>_help و_action بالإنجليزية والعربية." },
+      why: { en: "The user asked for an explanation of each tag.", ar: "طلب المستخدم شرحاً لكل وسم." },
+      alts: [  ]
+    },
+    {
+      id: 'DT7', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Status column shows the day state instead of 'Absent'", ar: "عمود الحالة يعرض حالة اليوم بدل «غائب»" },
+      decision: { en: "When the status is absent, the Status column shows the state's tag (Leave, Sick, Absent, Mission, Other) instead of 'Absent' plus a second tag.", ar: "عندما تكون الحالة absent، يعرض عمود الحالة وسم الحالة (إجازة، مرضي، غائب، مهمة، أخرى) بدل «غائب» مع وسم ثانٍ." },
+      why: { en: "Removes the double 'Absent' and a duplicate tag per row.", ar: "يزيل «غائب» المكرر ووسماً مكرراً في كل صف." },
+      alts: [ { en: "Keep both: not chosen — a leave day reads 'Absent' and 'Leave'.", ar: "إبقاء الاثنين: لم يُختر — يوم الإجازة يُقرأ «غائب» و«إجازة»." } ]
+    },
+    {
+      id: 'DT8', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Late mark on finished days", ar: "علامة تأخير على الأيام المنتهية" },
+      decision: { en: "When the status is Done or On break and the check-in was later than the shift's grace, a 'Late h:mm' mark is shown beside the status. The status rule does not change.", ar: "عندما تكون الحالة «منتهٍ» أو «في استراحة» وكان الدخول بعد سماح الوردية، تُعرض علامة «متأخر س:د» بجانب الحالة. ولا تتغير قاعدة الحالة." },
+      why: { en: "A late finished day shows 'Done' today; the user wants late days visible by colour.", ar: "اليوم المتأخر المنتهي يظهر اليوم «منتهٍ»؛ ويريد المستخدم رؤية أيام التأخير باللون." },
+      alts: [ { en: "Change the status to Late for finished days: not chosen — it changes stored statuses (PR20).", ar: "تغيير الحالة إلى «متأخر» للأيام المنتهية: لم يُختر — يغيّر الحالات المحفوظة (PR20)." }, { en: "Any minute late: default no — the status uses the grace.", ar: "أي دقيقة تأخير: الافتراضي لا — الحالة تستخدم السماح." } ]
+    },
+    {
+      id: 'DT9', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Colour guide in a side sheet", ar: "دليل الألوان في لوحة جانبية" },
+      decision: { en: "A Colour guide button in the table card's header opens a side sheet listing every tag by group (Status, Day states, Marks, Sources, Overtime) with sample, name and one-line meaning, built from the catalogue.", ar: "زر «دليل الألوان» في رأس بطاقة الجدول يفتح لوحة جانبية تسرد كل وسم حسب المجموعة (الحالة، حالات اليوم، العلامات، المصادر، العمل الإضافي) مع نموذج واسم ومعنى في سطر، مبنية من الكتالوج." },
+      why: { en: "Room for about 20 entries; works on a phone.", ar: "تتسع لنحو 20 عنصراً؛ وتعمل على الهاتف." },
+      alts: [ { en: "An always-visible legend strip: offered as Q-DT4.", ar: "شريط دليل ظاهر دائماً: معروض في Q-DT4." } ]
+    },
+    {
+      id: 'DT10', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Same tags on every screen with a stored day", ar: "الوسوم نفسها في كل شاشة فيها يوم محفوظ" },
+      decision: { en: "The entry sheet's Stored record column, the employee day panel and the Status filter (colour dots) use the same tags; the roster preview paints absence days in their state's tone.", ar: "يستخدم عمود «السجل المحفوظ» في ورقة الإدخال ولوحة يوم الموظف ومرشح الحالة (نقاط ملونة) الوسوم نفسها؛ وتلوّن معاينة الجدول أيام الغياب بدرجة حالتها." },
+      why: { en: "One meaning, one colour, everywhere.", ar: "معنى واحد ولون واحد في كل مكان." },
+      alts: [ { en: "Daily page only: offered as Q-DT6.", ar: "الصفحة اليومية فقط: معروض في Q-DT6." } ]
+    },
+    {
+      id: 'DT11', group: 'daytags', status: 'approved', date: '2026-11-03', src: 'plans/2026-11-03-day-tags-colour-guide.md §1',
+      title: { en: "Punch sources stay neutral", ar: "مصادر البصمات تبقى محايدة" },
+      decision: { en: "Typed, Punch reading, Odoo seed and Next day are grey outline tags.", ar: "«مكتوب» و«قراءة بصمة» و«بذرة Odoo» و«اليوم التالي» وسوم رمادية محددة." },
+      why: { en: "They say where a time came from, not a problem; colour stays for what needs attention.", ar: "تقول من أين جاء الوقت، لا مشكلة؛ ويبقى اللون لما يحتاج انتباهاً." },
+      alts: [ { en: "A colour per source: not chosen — too many colours in one row.", ar: "لون لكل مصدر: لم يُختر — ألوان كثيرة في صف واحد." } ]
+    },
+    {
+      id: 'SW1', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Swaps page /changes", ar: "صفحة التبديلات /changes" },
+      decision: { en: "One page /changes, sidebar Swaps: tabs Pending, Approved, Rejected & cancelled; GET filters month and person; a New swap button.", ar: "صفحة واحدة /changes، باسم «التبديلات» في الشريط الجانبي: تبويبات «معلّقة» و«موافق عليها» و«مرفوضة وملغاة»؛ مرشحات GET للشهر والموظف؛ وزر «تبديل جديد»." },
+      why: { en: "The pay plan named /changes, leaving room for other roster changes later; filters as on the daily page.", ar: "سمّت خطة الأجر الصفحة /changes، مع مجال لتغييرات جدول أخرى لاحقاً؛ والمرشحات كالصفحة اليومية." },
+      alts: [ { en: "A tab on each employee page only: not chosen — HR needs one list of all pending requests.", ar: "تبويب في صفحة كل موظف فقط: لم يُختر — تحتاج الموارد البشرية قائمة واحدة بكل الطلبات المعلّقة." } ]
+    },
+    {
+      id: 'SW2', group: 'swaps', status: 'replaced', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "New swap sheet with a live preview (replaced by SW13: a page)", ar: "لوحة تبديل جديد مع معاينة مباشرة (استُبدل بـ SW13: صفحة)" },
+      decision: { en: "Kind, person A (and B), dates, scope, pay as overtime and a required reason. While typing, a live preview shows each person's planned day on each date and what the swap makes of it, and lists the issues in words. Blocking issues refuse the save; the server runs the same check.", ar: "النوع، والموظف A (وB)، والتواريخ، والنطاق، والدفع كإضافي، وسبب مطلوب. وأثناء الكتابة تعرض معاينة مباشرة يوم كل موظف المخطط في كل تاريخ وما يجعله التبديل منه، وتسرد المشكلات بالكلمات. والمشكلات المانعة ترفض الحفظ؛ ويُجري الخادم الفحص نفسه." },
+      why: { en: "HR sees the effect before saving; no stale or impossible request is stored.", ar: "ترى الموارد البشرية الأثر قبل الحفظ؛ ولا يُحفظ طلب قديم أو مستحيل." },
+      alts: [ { en: "Check only on save: not chosen — the user would learn of a problem only after typing everything.", ar: "الفحص عند الحفظ فقط: لم يُختر — يعرف المستخدم المشكلة بعد كتابة كل شيء." } ]
+    },
+    {
+      id: 'SW3', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Save and approve in one step", ar: "الحفظ والموافقة بخطوة واحدة" },
+      decision: { en: "A user who may approve gets a second button that creates the request and approves it at once (two audit rows). Save request leaves it pending.", ar: "يحصل من يملك صلاحية الموافقة على زر ثانٍ ينشئ الطلب ويوافق عليه مباشرة (صفّا تدقيق). و«حفظ الطلب» يتركه معلّقاً." },
+      why: { en: "One operator today; the request and approval trail stays the same for later.", ar: "مشغّل واحد اليوم؛ ويبقى أثر الطلب والموافقة كما هو للمستقبل." },
+      alts: [ { en: "Always two steps: not chosen — extra clicks for the only operator.", ar: "خطوتان دائماً: لم يُختر — نقرات إضافية للمشغّل الوحيد." } ]
+    },
+    {
+      id: 'SW4', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Approving writes the overrides in one batch", ar: "الموافقة تكتب التجاوزات دفعة واحدة" },
+      decision: { en: "Approve re-runs the swap check, then in one batch sets the request approved, inserts the overrides with swap_group_id = request id and the request's reason, flags and audits; then recomputes both people over the swap's dates with cause swap. A clash with an override saved meanwhile is refused with 'reload'.", ar: "تعيد الموافقة فحص التبديل، ثم في دفعة واحدة تجعل الطلب موافقاً عليه، وتُدرج التجاوزات بـ swap_group_id = معرّف الطلب وسببه، وتضع العلامة وتدقق؛ ثم تعيد حساب الموظفين في تواريخ التبديل بسبب swap. والتعارض مع تجاوز حُفظ في الأثناء يُرفض مع «أعد التحميل»." },
+      why: { en: "Reuses the override machinery and the edit log; a stale request cannot apply.", ar: "يعيد استخدام آلية التجاوزات وسجل التعديلات؛ ولا يُطبَّق طلب قديم." },
+      alts: [  ]
+    },
+    {
+      id: 'SW5', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Reject with a note, cancel with a reason", ar: "الرفض بملاحظة والإلغاء بسبب" },
+      decision: { en: "Reject a pending request with a required note; the roster does not change. Cancel withdraws a pending request, or cancels all overrides of an approved one together and recomputes; a reason is required. Nothing is deleted.", ar: "يُرفض الطلب المعلّق بملاحظة مطلوبة؛ ولا يتغير الجدول. والإلغاء يسحب الطلب المعلّق، أو يلغي كل تجاوزات الطلب الموافق عليه معاً ويعيد الحساب؛ والسبب مطلوب. ولا يُحذف شيء." },
+      why: { en: "PR25 and PR27; never hard-delete.", ar: "PR25 وPR27؛ لا حذف نهائي أبداً." },
+      alts: [ { en: "Reject without a note: offered as Q-SW2.", ar: "الرفض بلا ملاحظة: معروض في Q-SW2." } ]
+    },
+    {
+      id: 'SW6', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "No editing of a request", ar: "لا تعديل للطلب" },
+      decision: { en: "A request is not edited: withdraw it and create a new one.", ar: "لا يُعدَّل الطلب: يُسحب ويُنشأ طلب جديد." },
+      why: { en: "Keeps the trail simple; a request is small.", ar: "يُبقي الأثر بسيطاً؛ والطلب صغير." },
+      alts: [ { en: "Edit while pending: offered as Q-SW4.", ar: "التعديل أثناء التعليق: معروض في Q-SW4." } ]
+    },
+    {
+      id: 'SW7', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Another pending request on the same day is a warning", ar: "طلب معلّق آخر في اليوم نفسه تحذير" },
+      decision: { en: "At creation, another pending request touching the same person and date is shown as a warning, not blocking; the second approval then fails.", ar: "عند الإنشاء، يظهر طلب معلّق آخر يمس الموظف والتاريخ نفسيهما كتحذير غير مانع؛ ثم تفشل الموافقة الثانية." },
+      why: { en: "Both may be legitimate drafts; only one can apply.", ar: "قد يكون كلاهما مسودة مشروعة؛ ويُطبَّق واحد فقط." },
+      alts: [ { en: "Refuse at creation: offered as Q-SW6.", ar: "الرفض عند الإنشاء: معروض في Q-SW6." } ]
+    },
+    {
+      id: 'SW8', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Swap audit and History links", ar: "تدقيق التبديل وروابط السجل" },
+      decision: { en: "Audit swap.request, swap.approve, swap.reject and swap.cancel with ids, kind, dates, scope and state only. History lines caused by a swap link to /changes?swap=<id>, which opens its detail.", ar: "تدقيق swap.request وswap.approve وswap.reject وswap.cancel بالمعرّفات والنوع والتواريخ والنطاق والحالة فقط. وأسطر السجل التي سببها تبديل تربط بـ /changes?swap=<id> الذي يفتح تفاصيله." },
+      why: { en: "No free text in the audit (CLAUDE.md §1); the History cause link was left for this phase.", ar: "لا نص حر في التدقيق (CLAUDE.md §1)؛ ورابط السبب في السجل تُرك لهذه المرحلة." },
+      alts: [  ]
+    },
+    {
+      id: 'SW9', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Swap markers and entry points", ar: "علامات التبديل ونقاط الدخول" },
+      decision: { en: "Roster preview cells of swap days get a ⇄ mark; the Swap tag popover gets 'Open the swap'; the employee day panel gets New swap, opening /changes with the person and date filled.", ar: "تحصل خلايا أيام التبديل في معاينة الجدول على علامة ⇄؛ ونافذة وسم التبديل على «فتح التبديل»؛ ولوحة يوم الموظف على «تبديل جديد» تفتح /changes مع الموظف والتاريخ." },
+      why: { en: "One click from where a swap shows to the swap itself.", ar: "نقرة واحدة من مكان ظهور التبديل إلى التبديل نفسه." },
+      alts: [  ]
+    },
+    {
+      id: 'SW10', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "A form-agnostic person picker", ar: "منتقي موظف مستقل عن النماذج" },
+      decision: { en: "A PersonPicker with a bindable staff id and server search (findPeople) for A and B; the daily page's combobox keeps its GET-form role.", ar: "منتقي PersonPicker بمعرّف موظف قابل للربط وبحث في الخادم (findPeople) لـ A وB؛ ويبقى منتقي الصفحة اليومية لدوره في نموذج GET." },
+      why: { en: "The daily combobox posts staff / q inputs; a Superforms field needs a bindable id.", ar: "منتقي الصفحة اليومية يرسل حقلي staff / q؛ وحقل Superforms يحتاج معرّفاً قابلاً للربط." },
+      alts: [ { en: "A plain select of all people: not chosen — about 300 names.", ar: "قائمة بسيطة بكل الموظفين: لم يُختر — نحو 300 اسم." } ]
+    },
+    {
+      id: 'SW11', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §1',
+      title: { en: "Past dates allowed, holidays refused", ar: "التواريخ الماضية مسموحة والعطل مرفوضة" },
+      decision: { en: "Swaps on past dates are allowed (PR11) and their days recomputed; dates that are holidays stay refused.", ar: "التبديل في تواريخ ماضية مسموح (PR11) وتُعاد أيامه؛ وتبقى العطل الرسمية مرفوضة." },
+      why: { en: "HR records swaps after the fact; a holiday is already off for everyone.", ar: "تسجّل الموارد البشرية التبديلات بعد وقوعها؛ والعطلة يوم راحة للجميع أصلاً." },
+      alts: [ { en: "Allow holidays: offered as Q-SW7.", ar: "السماح بالعطل: معروض في Q-SW7." } ]
+    },
+    {
+      id: 'SW12', group: 'swaps', status: 'default', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §5 task 3.3',
+      title: { en: "Decide a swap from its detail sheet", ar: "البتّ في التبديل من لوحة تفاصيله" },
+      decision: { en: "Each row of /changes opens the swap's detail sheet (?swap=<id>): what it does to each day, who asked and why, and the Approve / Reject / Withdraw or Cancel forms its state allows. The table shows no action buttons.", ar: "يفتح كل صف في /changes لوحة تفاصيل التبديل (?swap=<id>): ما يفعله بكل يوم، ومن طلبه ولماذا، ونماذج الموافقة / الرفض / السحب أو الإلغاء التي تسمح بها حالته. لا يعرض الجدول أزرار إجراءات." },
+      why: { en: "The approver sees the swap's effect and its issues right before deciding; the History's cause link lands on the same sheet; one place instead of three sheets.", ar: "يرى المُوافِق أثر التبديل ومشكلاته قبل البتّ مباشرة؛ ويصل رابط السبب في السجل إلى اللوحة نفسها؛ مكان واحد بدل ثلاث لوحات." },
+      alts: [ { en: "Approve / Reject / Cancel buttons in each table row with separate sheets (plan §4): not chosen — a decision without seeing the effect, and more screens to keep in step.", ar: "أزرار موافقة / رفض / إلغاء في كل صف مع لوحات منفصلة (الخطة §4): لم يُختر — قرار دون رؤية الأثر، وشاشات أكثر تحتاج إلى المواءمة." } ]
+    },
+    {
+      id: 'SW13', group: 'swaps', status: 'approved', date: '2026-11-04', src: 'plans/2026-11-04-swaps.md §5 task 3.5',
+      title: { en: "New swap is a page with A and B's month roster", ar: "التبديل الجديد صفحة فيها جدول A وB للشهر" },
+      decision: { en: "New swap is its own page, /changes/new (the side sheet is gone): who and what; a month grid of A's and B's roster (shift codes = work, O = off; arrows change the month) where tapping a day sets the picked date (W / O, or swap / return date), both dates ringed; the live preview; then pay as overtime, reason and Save / Save and approve, which open the saved swap on /changes. The fields, the preview and the server checks of SW2 stay. The preview and the grid ask the server only when their own fields change, and keep their last answer on screen while the next one loads; the person picker keeps its suggestions until the new ones arrive.", ar: "التبديل الجديد صفحة مستقلة /changes/new (أُزيلت اللوحة الجانبية): من وماذا؛ وشبكة شهرية لجدول A وB (رموز الورديات = عمل، ع = عطلة؛ الأسهم تغيّر الشهر) والنقر على يوم يعيّن التاريخ المختار (W / O، أو تاريخ التبديل / الرد) مع تمييز التاريخين؛ ثم المعاينة المباشرة؛ ثم الدفع كعمل إضافي والسبب والحفظ / الحفظ والموافقة، فيُفتح التبديل المحفوظ في /changes. تبقى حقول SW2 ومعاينته وفحوص الخادم. لا تسأل المعاينة والشبكة الخادم إلا عند تغيّر حقولهما، وتبقيان آخر جواب ظاهراً حتى يصل التالي؛ ويُبقي منتقي الشخص اقتراحاته حتى تصل الجديدة." },
+      why: { en: "Asked by the user on 2026-11-04: picking an employee swap needs each person's off days in view; a month grid does not fit a side sheet. The sheet reloaded the preview on every keystroke and replaced the suggestion list while it loaded, so the first click on a name often missed.", ar: "طلبه المستخدم في 2026-11-04: اختيار تبديل بين موظفين يحتاج رؤية أيام عطلة كل شخص؛ والشبكة الشهرية لا تتسع في لوحة جانبية. كانت اللوحة تعيد تحميل المعاينة مع كل ضغطة مفتاح وتستبدل قائمة الاقتراحات أثناء التحميل، فكانت النقرة الأولى على الاسم تخطئ كثيراً." },
+      alts: [ { en: "Keep the sheet and add a two-week strip: not chosen — too narrow to compare a month, and the user asked for a page.", ar: "إبقاء اللوحة مع شريط أسبوعين: لم يُختر — ضيق لمقارنة شهر، وطلب المستخدم صفحة." } ]
     }
   ];
 
@@ -1662,7 +1860,21 @@
     ["Q-OP2", "E2E seed: crew starts of the earlier months?", "answered 2026-11-03: A, a teammate's value, different every month (OP4)", "زرع e2e: بدايات الطاقم في الأشهر السابقة؟", "أُجيب 2026-11-03: A، قيمة زميل، مختلفة كل شهر (OP4)"],
     ["Q-OP3", "E2E seed: October pattern shape?", "answered 2026-11-03: same 24 slots as November (OP3)", "زرع e2e: شكل نمط أكتوبر؟", "الخانات الـ24 نفسها كنوفمبر (OP3)"],
     ["Q-OP4", "E2E seed: assign to the team only, or team and department?", "answered 2026-11-03: wipe e2e, then team and department (OP3, OP7)", "زرع e2e: الإسناد للفريق فقط أم للفريق والقسم؟", "أُجيب 2026-11-03: مسح e2e ثم الفريق والقسم (OP3، OP7)"],
-    ["Q-OP5", "E2E seed: keep the mix of late / overtime / absences?", "answered 2026-11-03: keep (OP8)", "زرع e2e: هل نبقي مزيج التأخير والعمل الإضافي والغياب؟", "نبقيه (OP8)"]
+    ["Q-OP5", "E2E seed: keep the mix of late / overtime / absences?", "answered 2026-11-03: keep (OP8)", "زرع e2e: هل نبقي مزيج التأخير والعمل الإضافي والغياب؟", "نبقيه (OP8)"],
+    ["Q-DT1", "Day tags: explanation on click/tap or on hover?", "default kept 2026-11-03: click / tap (DT5)", "وسوم اليوم: الشرح عند النقر/اللمس أم عند التمرير؟", "النقر / اللمس (DT5)"],
+    ["Q-DT2", "Day tags: are the proposed colours right?", "default kept 2026-11-03: as in the plan §2", "وسوم اليوم: هل الألوان المقترحة صحيحة؟", "كما في الخطة §2"],
+    ["Q-DT3", "Late mark on finished days: beyond the grace or any minute?", "default kept 2026-11-03: yes, beyond the grace only (DT8)", "علامة التأخير على الأيام المنتهية: بعد السماح أم أي دقيقة؟", "نعم، بعد السماح فقط (DT8)"],
+    ["Q-DT4", "Colour guide: button + side sheet or an always-visible strip?", "default kept 2026-11-03: button + side sheet (DT9)", "دليل الألوان: زر + لوحة جانبية أم شريط ظاهر دائماً؟", "زر + لوحة جانبية (DT9)"],
+    ["Q-DT5", "Show only the day state instead of 'Absent' + state?", "answered 2026-11-03: yes (DT7)", "عرض حالة اليوم فقط بدل «غائب» + الحالة؟", "نعم (DT7)"],
+    ["Q-DT6", "Same tags on entry sheet, employee page, roster preview?", "default kept 2026-11-03: everywhere (DT10)", "الوسوم نفسها في ورقة الإدخال وصفحة الموظف ومعاينة الجدول؟", "في كل مكان (DT10)"],
+    ["Q-DT7", "Rename the state 'Absent' (no_show), e.g. 'No show'?", "answered 2026-11-03: keep 'Absent'", "إعادة تسمية الحالة «غائب» (no_show)، مثل «لم يحضر»؟", "إبقاء «غائب»"],
+    ["Q-SW1", "Swaps: page /changes labelled Swaps?", "default kept 2026-11-04: yes (SW1)", "التبديلات: صفحة /changes باسم «التبديلات»؟", "نعم (SW1)"],
+    ["Q-SW2", "Swaps: note required to reject?", "default kept 2026-11-04: yes (SW5)", "التبديلات: هل الملاحظة مطلوبة للرفض؟", "نعم (SW5)"],
+    ["Q-SW3", "Swaps: offer Save and approve in one step?", "default kept 2026-11-04: yes (SW3)", "التبديلات: إتاحة الحفظ والموافقة بخطوة واحدة؟", "نعم (SW3)"],
+    ["Q-SW4", "Swaps: edit a pending request, or withdraw and redo?", "default kept 2026-11-04: withdraw and redo (SW6)", "التبديلات: تعديل الطلب المعلّق أم سحبه وإعادته؟", "سحبه وإعادته (SW6)"],
+    ["Q-SW5", "Swaps: must A and B share a team or department?", "default kept 2026-11-04: no restriction", "التبديلات: هل يجب أن يكون A وB في الفريق أو القسم نفسه؟", "بلا قيد"],
+    ["Q-SW6", "Swaps: two pending requests on the same day — warn or refuse?", "default kept 2026-11-04: warn (SW7)", "التبديلات: طلبان معلّقان في اليوم نفسه — تحذير أم رفض؟", "تحذير (SW7)"],
+    ["Q-SW7", "Swaps: keep refusing swaps on holidays?", "default kept 2026-11-04: yes (SW11)", "التبديلات: الاستمرار في رفض التبديل في العطل؟", "نعم (SW11)"]
   ];
 
   function el(tag, attrs, children) {

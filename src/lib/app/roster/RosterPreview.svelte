@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { dayTagClass } from '#lib/app/attendance/day-tag-tones.js';
+	import { STATE_TAG } from '#lib/attendance/day-tags.js';
 	import type { PunchDays } from '#lib/attendance/entry.js';
+	import { absenceLabel } from '#lib/attendance/labels.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import type { RosterDay } from '#lib/roster/roster.js';
@@ -19,9 +22,21 @@
 		/** Makes each day a button (the employee page's day panel). */
 		onSelectDay?: (date: string) => void;
 		selectedDay?: string | null;
+		/** More days to ring (the New swap page's two dates). */
+		selectedDays?: readonly string[];
 	};
 
-	let { rows, today, teamId, punches, onSelectDay, selectedDay = null }: Props = $props();
+	let {
+		rows,
+		today,
+		teamId,
+		punches,
+		onSelectDay,
+		selectedDay = null,
+		selectedDays = []
+	}: Props = $props();
+
+	const selected = (date: string) => selectedDay === date || selectedDays.includes(date);
 
 	const dates = $derived(rows[0]?.days.map((d) => d.date) ?? []);
 
@@ -29,7 +44,8 @@
 
 	function cellClass(day: RosterDay): string {
 		if (otherTeam(day)) return 'text-muted-foreground/40';
-		if (day.source === 'absence') return 'bg-destructive/10 text-destructive';
+		// Each day state in its own colour, as on the daily page (DT10).
+		if (day.source === 'absence') return dayTagClass(STATE_TAG[day.absenceType ?? 'other']);
 		if (day.shift) return shiftColourClass(day.shift.colour);
 		if (day.holiday) return 'bg-muted text-foreground';
 		return 'text-muted-foreground';
@@ -44,11 +60,15 @@
 
 	function cellTitle(day: RosterDay): string {
 		if (otherTeam(day)) return m.roster_preview_other_team();
-		if (day.source === 'absence') return m.roster_preview_absent();
+		if (day.source === 'absence')
+			return day.absenceType ? absenceLabel(day.absenceType) : m.roster_preview_absent();
 		const kind = slotLabel(day.shift);
 		if (day.holiday)
 			return day.shift ? m.roster_preview_holiday_work({ kind }) : m.roster_preview_holiday();
 		if (day.extra) return m.roster_preview_extra({ kind });
+		// A day an approved swap moved (swaps plan SW9).
+		if (day.swapRole === 'swap_on') return `${m.daily_badge_swap_on()} · ${kind}`;
+		if (day.swapRole === 'swap_off') return m.daily_badge_swap_off();
 		if (day.source === 'override') return m.roster_preview_override({ kind });
 		return kind;
 	}
@@ -100,7 +120,7 @@
 									class={cn(
 										'h-7 rounded-sm px-0.5 text-center font-semibold',
 										cellClass(day),
-										selectedDay === day.date && 'ring-2 ring-ring'
+										selected(day.date) && 'ring-2 ring-ring'
 									)}
 									title={cellTitle(day)}
 								>
@@ -109,7 +129,11 @@
 											<bdi dir="ltr">{cellText(day)}</bdi
 											>{#if coloured && day.shift && isNightShift(day.shift)}<span
 													class="text-[0.6rem]">🌙</span
-												>{/if}{day.extra || day.source === 'override' ? '*' : ''}
+												>{/if}{day.swapRole
+												? '⇄'
+												: day.extra || day.source === 'override'
+													? '*'
+													: ''}
 										</span>
 										{#if punch}
 											<span
@@ -133,7 +157,7 @@
 										<button
 											type="button"
 											class="block size-full rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-											aria-pressed={selectedDay === day.date}
+											aria-pressed={selected(day.date)}
 											onclick={() => onSelectDay(day.date)}
 										>
 											{@render content()}

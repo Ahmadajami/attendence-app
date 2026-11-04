@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { calendarDate, clockOf } from '#lib/attendance/entry.js';
-	import { Badge } from '#lib/components/ui/badge/index.js';
-	import { m } from '#lib/paraglide/messages.js';
+	import { PUNCH_SOURCE_TAG } from '#lib/attendance/day-tags.js';
 	import type { PunchSource } from '#lib/schemas/enums.js';
-	import { PUNCH_SOURCE_LABEL } from './day-labels.js';
+	import DayTag from './DayTag.svelte';
 
 	// A counted check-in or check-out with where it came from (pay plan PR24): Typed, Punch reading
-	// or Odoo seed. "Corrected" is a flag of the whole day, shown once by `DayBadges`.
+	// or Odoo seed, and Next day for an overnight time, as neutral tags (DT11). "Corrected" is a flag
+	// of the whole day, shown once by `DayStatusTags`.
 
 	type Props = {
 		/** ISO instant; `null`: not punched. */
@@ -25,10 +25,10 @@
 	<span class="inline-flex flex-wrap items-center gap-1">
 		<bdi class="font-mono" dir="ltr">{clockOf(instant)}</bdi>
 		{#if calendarDate(instant) !== shiftDate}
-			<Badge variant="secondary">{m.attendance_next_day()}</Badge>
+			<DayTag tag={{ id: 'source.next_day' }} />
 		{/if}
 		{#if source}
-			<Badge variant="outline">{PUNCH_SOURCE_LABEL[source]()}</Badge>
+			<DayTag tag={{ id: PUNCH_SOURCE_TAG[source] }} />
 		{/if}
 	</span>
 {:else}

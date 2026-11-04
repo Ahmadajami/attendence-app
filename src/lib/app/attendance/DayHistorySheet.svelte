@@ -107,6 +107,9 @@
 										<bdi class="font-medium">{show(line, line.newValue)}</bdi>
 									</p>
 								{/if}
+								{#if line.reason}
+									<p class="text-xs">{m.day_history_reason({ reason: line.reason })}</p>
+								{/if}
 								<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 									<span>{line.actor ? personName(line.actor) : m.day_history_system()}</span>
 									{#if href}

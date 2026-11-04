@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte, ilike, inArray, lte, or } from 'drizzle-orm';
 import { containsPattern } from '#lib/attendance/person-search.js';
 import { db } from '#lib/server/db/index.js';
 import {
+	attendanceEvent,
 	attendanceLog,
 	dayResult,
 	patternHoliday,
@@ -59,6 +60,42 @@ export async function listStaffIdsMatching(q: string): Promise<string[]> {
 			)
 		);
 	return rows.map((r) => r.id);
+}
+
+/**
+ * The person combobox's suggestions (PR45): at most `limit` people (active or not) whose employee
+ * number or name contains `q`, by name.
+ */
+export async function listPeopleMatching(q: string, limit: number) {
+	const pattern = containsPattern(q);
+	return db
+		.select(personColumns)
+		.from(staff)
+		.where(
+			or(
+				ilike(staff.employeeNo, pattern),
+				ilike(staff.fullName, pattern),
+				ilike(staff.fullNameAr, pattern)
+			)
+		)
+		.orderBy(asc(staff.fullName), asc(staff.employeeNo))
+		.limit(limit);
+}
+
+/** One person's number and names, or `undefined`. */
+export async function getPerson(staffId: string) {
+	const [row] = await db.select(personColumns).from(staff).where(eq(staff.id, staffId));
+	return row;
+}
+
+/** The reasons typed with these events (PR48), by event id; events without one are left out. */
+export async function listEventReasons(ids: readonly string[]): Promise<Map<string, string>> {
+	if (ids.length === 0) return new Map();
+	const rows = await db
+		.select({ id: attendanceEvent.id, reason: attendanceEvent.reason })
+		.from(attendanceEvent)
+		.where(inArray(attendanceEvent.id, [...ids]));
+	return new Map(rows.flatMap((r) => (r.reason ? [[r.id, r.reason] as const] : [])));
 }
 
 /** One person's edit log of one shift date, newest first, with who made each change. */

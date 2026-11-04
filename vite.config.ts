@@ -14,6 +14,8 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter(),
+			// Remote functions (`*.remote.ts`, PR45): the person combobox's server search.
+			experimental: { remoteFunctions: true },
 			// Root-relative URLs from resolve(), so localizeHref() can prefix them on the server too.
 			paths: { relative: false }
 		}),

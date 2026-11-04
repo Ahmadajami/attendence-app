@@ -86,5 +86,25 @@ export const correctionSchema = z
 	});
 export type CorrectionInput = z.infer<typeof correctionSchema>;
 
+/**
+ * The day editor's check-in / check-out of one person and shift date (pay plan PR46–PR48). With no
+ * punches yet it adds a pair on `shiftId`; with one pair it corrects what changed (the pair keeps
+ * its shift). The reason is required and saved on every event written.
+ */
+export const dayPunchesSchema = z.object({
+	staffId: z.uuid(),
+	shiftDate: isoDate,
+	shiftId: z.uuid({ error: () => m.attendance_shift_required() }),
+	checkIn: clock,
+	checkOut: optionalClock.default(''),
+	reason: z
+		.string()
+		.trim()
+		.min(1, { error: () => m.roster_reason_required() })
+		.max(500)
+});
+export type DayPunchesSchema = typeof dayPunchesSchema;
+export type DayPunchesInput = z.infer<DayPunchesSchema>;
+
 /** Superforms status message of the attendance forms. */
 export type { StatusMessage as AttendanceMessage } from '#lib/utils/form-toasts.js';

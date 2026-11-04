@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>لماذا إعادة الحساب؟</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --fg: #1d1d1b;
+    --muted: #5f5f5a;
+    --border: #e2e1dc;
+    --accent: #2f6f62;
+    --accent-soft: #e3f0ec;
+    --warn: #8a5a00;
+    --warn-soft: #fbf1dc;
+    --bad: #a3322a;
+    --bad-soft: #f8e4e2;
+    --code-bg: #efeeea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615;
+      --card: #1f1f1d;
+      --fg: #ecebe6;
+      --muted: #a3a29b;
+      --border: #34332f;
+      --accent: #7cc4b2;
+      --accent-soft: #1d332e;
+      --warn: #e6b65c;
+      --warn-soft: #352a14;
+      --bad: #ee8a80;
+      --bad-soft: #3a1f1c;
+      --code-bg: #2a2a27;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Noto Kufi Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+    line-height: 1.8;
+    font-size: 16px;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; display: flex; flex-direction: column; gap: 28px; }
+  h1 { font-size: 1.7rem; margin: 0; line-height: 1.4; }
+  h2 { font-size: 1.2rem; margin: 0 0 10px; }
+  p { margin: 0; }
+  .lead { color: var(--muted); font-size: 1.05rem; }
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  code, bdi.code {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 0.88em;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  ul { margin: 0; padding-inline-start: 22px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* Flow diagram */
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 10px; }
+  .step { border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; text-align: center; }
+  .step .num { font-size: 0.8rem; color: var(--muted); }
+  .step strong { font-size: 1.05rem; }
+  .step small { color: var(--muted); }
+  .step.engine { background: var(--accent-soft); border-color: var(--accent); }
+  .arrow { align-self: center; color: var(--accent); font-size: 1.6rem; }
+  @media (max-width: 640px) {
+    .flow { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(-90deg); justify-self: center; }
+  }
+
+  .analogy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .analogy div { background: var(--code-bg); border-radius: 10px; padding: 12px; text-align: center; }
+  .analogy b { display: block; font-size: 1.4rem; }
+  @media (max-width: 640px) { .analogy { grid-template-columns: 1fr; } }
+
+  .callout { border-radius: 10px; padding: 14px 16px; }
+  .callout.ok { background: var(--accent-soft); }
+  .callout.warn { background: var(--warn-soft); }
+  .callout.bad { background: var(--bad-soft); }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: start; vertical-align: top; padding: 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.9rem; }
+  tr:last-child td { border-bottom: 0; }
+  .table-wrap { overflow-x: auto; }
+
+  .when { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .when { grid-template-columns: 1fr; } }
+  .when > div { border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .tag { display: inline-block; font-size: 0.8rem; padding: 2px 10px; border-radius: 999px; width: fit-content; }
+  .tag.auto { background: var(--accent-soft); color: var(--accent); }
+  .tag.manual { background: var(--warn-soft); color: var(--warn); }
+
+  footer { color: var(--muted); font-size: 0.85rem; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>لماذا أُدخل البصمات ثم أضغط «إعادة الحساب»؟</h1>
+    <p class="lead">شرح مبسّط لكيف تتحوّل البصمات إلى سجلات الحضور اليومي في تطبيق الحضور.</p>
+  </header>
+
+  <section>
+    <h2>١. الفكرة الأساسية: شيئان منفصلان</h2>
+    <div class="flow" role="img" aria-label="البصمات، ثم إعادة الحساب، ثم الحضور اليومي المحفوظ">
+      <div class="step">
+        <span class="num">الخطوة ١</span>
+        <strong>البصمات</strong>
+        <small>أوقات الدخول والخروج، الإجازات، الغياب</small>
+      </div>
+      <div class="arrow" aria-hidden="true">←</div>
+      <div class="step engine">
+        <span class="num">الخطوة ٢</span>
+        <strong>إعادة الحساب</strong>
+        <small>تطبيق القواعد: النمط، المناوبة، العطل، المهمات</small>
+      </div>
+      <div class="arrow" aria-hidden="true">←</div>
+      <div class="step">
+        <span class="num">الخطوة ٣</span>
+        <strong>الحضور اليومي</strong>
+        <small>سطر محفوظ لكل موظف عن كل يوم (<bdi class="code">day_result</bdi>)</small>
+      </div>
+    </div>
+    <p>
+      صفحة <strong>الحضور اليومي</strong> (<bdi class="code">/attendance/days</bdi>) <strong>لا تحسب شيئاً عند فتحها</strong>،
+      بل تقرأ النتائج المحفوظة فقط. أما <strong>إعادة الحساب</strong> فهي الخطوة التي تأخذ البصمات وتطبّق عليها القواعد ثم تحفظ
+      النتيجة: الحالة، ساعات العمل، التأخير، الإضافي، المدفوع.
+    </p>
+    <div class="analogy">
+      <div><b>🧺</b>البصمات = المواد الخام</div>
+      <div><b>🍳</b>إعادة الحساب = المطبخ</div>
+      <div><b>🍽️</b>الحضور اليومي = الطبق الجاهز</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>٢. لماذا تُحفظ النتيجة بدل حسابها كل مرة؟</h2>
+    <ul>
+      <li><strong>السرعة:</strong> ٣٠٠ موظف × ٣٠ يوماً تعني آلاف الأيام، وحسابها مع كل فتح للصفحة بطيء.</li>
+      <li><strong>سجل التعديلات:</strong> كل قيمة تتغيّر تُسجَّل مع مصدرها («أُدخل يدوياً»، «من البصمة»، «تصحيح»، «عطلة»…).
+        وهذا لا يمكن إلا إذا كانت هناك نتيجة قديمة محفوظة تُقارَن بالجديدة.</li>
+      <li><strong>الرواتب:</strong> تقرير الرواتب يُبنى على أرقام ثابتة ومراجَعة، لا على أرقام تتغيّر في كل لحظة.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>٣. هل أحتاج فعلاً للضغط بعد كل إدخال؟</h2>
+    <div class="callout ok">
+      <strong>عادةً لا.</strong>
+      عند حفظ <strong>ورقة الإدخال</strong> يعيد التطبيق الحساب <strong>تلقائياً</strong>، لكن فقط
+      <strong>للموظفين الذين أدخلت لهم شيئاً، وفي ذلك التاريخ فقط</strong>.
+    </div>
+    <div class="when">
+      <div>
+        <span class="tag auto">تلقائي، لا حاجة للزر</span>
+        <ul>
+          <li>حفظ ورقة الإدخال (بصمات أو غياب)</li>
+          <li>إضافة زوج دخول/خروج أو تصحيح بصمة</li>
+          <li>تعديل حالة يوم (إجازة، مرضي، مهمة…)</li>
+          <li>تغيير الجدول أو النمط أو قواعد الأجر أو العطل أو التبديلات</li>
+        </ul>
+      </div>
+      <div>
+        <span class="tag manual">يدوي، اضغط «إعادة الحساب»</span>
+        <ul>
+          <li>موظفون لم يُدخَل لهم شيء في ذلك اليوم</li>
+          <li>بيانات دخلت قاعدة البيانات مباشرة، لا من شاشات التطبيق</li>
+          <li>أول تشغيل على فترة قديمة لم تُحسب بعد</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>٤. متى تحتاج الزر ولماذا؟</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>الحالة</th><th>السبب</th><th>ماذا تفعل</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>موظفون لم تُدخل لهم أي شيء</strong> (لا بصمة ولا غياب)</td>
+            <td>لم يحدث أي تغيير يخصّهم، فلا يُنشأ لهم سطر. يظهرون في عدّاد <strong>«السجلات الناقصة»</strong>.</td>
+            <td><strong>Recompute these days</strong> للفترة المعروضة، فتُنشأ أيامهم: غائب، أو يوم عطلة، أو بلا بصمة.</td>
+          </tr>
+          <tr>
+            <td><strong>بيانات من خارج الشاشات</strong><br /><small>مثل سكربت بيانات الاختبار (فريق Operation الوهمي)</small></td>
+            <td>السكربت يكتب البصمات فقط ولا يحسب النتائج عن قصد (القرار OP5)، حتى يحسبها المحرك الحقيقي ونكشف أخطاءه.</td>
+            <td>مرة واحدة: <strong>Recompute from</strong> <bdi class="code">2026-09-01</bdi>.</td>
+          </tr>
+          <tr>
+            <td><strong>فشل الحساب التلقائي بعد الحفظ</strong> (نادر)</td>
+            <td>البصمة تبقى محفوظة، واليوم يُعلَّم «يحتاج إعادة حساب» (<bdi class="code">needs_recompute</bdi>).</td>
+            <td>لا شيء: يُصلَح تلقائياً عند فتح الصفحة التالية.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <strong>ملاحظة</strong>
+      الأيام المستقبلية لا تُحفظ أبداً، لأنه لا بصمات لها بعد. التطبيق يحفظ الأيام حتى تاريخ اليوم فقط.
+    </div>
+  </section>
+
+  <section>
+    <h2>٥. الخلاصة</h2>
+    <ul>
+      <li>أدخلت بصمات لموظف من <strong>ورقة الإدخال</strong>، ثم فتحت الحضور اليومي لنفس التاريخ؟
+        يجب أن يظهر يومه <strong>محدَّثاً دون أن تضغط شيئاً</strong>.</li>
+      <li>إعادة الحساب اليدوية هي فقط <strong>لإكمال الأيام الناقصة</strong>، أو بعد إدخال بيانات من خارج الشاشات.</li>
+    </ul>
+    <div class="callout bad">
+      <strong>إذا لم يتحدّث اليوم بعد الإدخال</strong>
+      فهذا خطأ في التطبيق، وليست طريقة العمل الصحيحة. أرسل الصفحة التي أدخلت منها، والتاريخ، ورقم السجل، <strong>دون أسماء</strong>.
+    </div>
+  </section>
+
+  <footer>تطبيق الحضور: شرح داخلي، بلا بيانات شخصية.</footer>
+</main>
+</body>
+</html>

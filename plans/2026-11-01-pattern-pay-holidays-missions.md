@@ -131,6 +131,10 @@ PR27–PR29 and PR31–PR34 are defaults until the user says otherwise. All are 
 | PR42 | `/attendance/days` gets a **Person** search box (`?q=`, at most 80 characters): rows whose person's employee number or name (English or Arabic) contains it, case-insensitive, inside the scope; submits on change like the other GET filters; the missing-records count and **Recompute these days** follow the search; the audit row says only whether there was a search, never its text | The user chose "filter to one person" (2026-11-03) to read one employee's days for a range; a text search needs no new component for ~300 people; the search may be a name, so it stays out of the audit (CLAUDE.md §1) |
 | PR43 | **Replaced by PR44.** When the asked range must change (over 31 days, From after To, a date after today), the date the user **just changed stays** and the other moves (From = 10-01 with To = 11-03 → 10-01 → 10-31); the page sends `?edge=from\|to`, none (typed URL) keeps To; the date boxes always show the range actually used. Changes PR41's clamping | The user lost Oct 1–3: picking From first moved it to Oct 4 and the next pick sent the moved From, so Recompute these days skipped them; fix approved 2026-11-03 |
 | PR44 | `/attendance/days` uses **exactly the From and To picked**: no 31-day limit, no moving a date, no cap at today, no "adjusted" notice; only a missing date gets the default (last 7 days ending today). Future dates or From after To show no rows; the missing count covers dates up to today. **Recompute these days** skips future dates and is refused only above 400 dates (`MAX_BACKFILL_DAYS`). Replaces PR41's range limits and PR43 | The user's choice (2026-11-03): the rules moved picked dates and hid days; the limit stays only on the recompute, a system-wide write |
+| PR45 | The **Person** box on `/attendance/days` becomes a **combobox** (shadcn Popover + Command): typing asks the server for suggestions (remote query `findPeople`, `#lib/remote/people.remote.ts`, debounced 300 ms with runed `Debounced`, at most 20 people by name, `staff.write`); picking a person filters to **exactly that person** (`?staff=<id>`, wins over `?q=`); the first item keeps the PR42 text search ("Everyone matching …", `?q=`); a Clear item removes both. Recompute these days follows `staff` too; its audit row gets the `staffId` (a record ID) and still only `search: true\|false` for the text. Turns on SvelteKit's **experimental remote functions** | The user's request (2026-11-03): pick an employee by name from server suggestions; an exact pick avoids "contains" matching other numbers or names; keeping the text search keeps PR42 working |
+| PR46 | **Edit day** gets a third mode, **Check-in / out** (first when the day has no state): the day's check-in and check-out in editable `HH:mm` boxes, loaded when the sheet opens (remote query `findDayPunches`, `attendance.record`); **Fill shift times** writes the shift's start and end into the boxes, which stay editable. With no punches the shift is picked (the planned one preselected); a recorded pair keeps its shift. A day with a full-day state or with several pairs is not edited here (the sheet says why; several pairs → the employee page) | The user's request (2026-11-03): set a manual check-in from the day editor with a prefill button and a fully editable box |
+| PR47 | Saving: no pair → a new pair (`source = manual`, checked like the entry sheet); one pair → a **correction** for each time that changed (the original stays), a **void correction** when the check-out is emptied, a new check-out when there was none; nothing changed → refused. The check-in is required | Corrections never overwrite a punch (pay plan PR22); the same rules as the entry sheet and the day panel |
+| PR48 | **Proper logs:** a reason is **required** for every check-in / out saved from Edit day and is stored on each event written; one audit row `attendance.day_punches` with the event ids and the times before and after (no reason text); the day is recomputed and logged as Typed (new pair) or Correction, pointing at the first event; **History** shows the reason of the punch behind a line | The user asked for proper logs; punch reasons are not health details, absence reasons still never reach the log or History |
 
 ## 2. What exists today (facts from the code)
 
@@ -584,6 +588,25 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       > missing count and the recompute (refused above `MAX_BACKFILL_DAYS`). `edge`, `MAX_DAILY_DAYS`
       > and `daily_range_adjusted` removed; `daily_error_range` reworded (en + ar). 7 tests.
       > Waiting for the user's check.
+      > note: 2026-11-03 PR45: the Person box is now `PersonCombobox` (`#lib/app/attendance/`), a
+      > Popover + Command combobox with server suggestions (remote query `findPeople` →
+      > `searchPeople` in `daily.bl` → `listPeopleMatching`, 20 at most), debounced 300 ms (runed
+      > `Debounced`). Picking posts `?staff=<id>` (exact person, `parseStaffId`), the text item posts
+      > `?q=` (PR42), Clear removes both; the page returns `staffId` and `person` for the label;
+      > `recomputeDaysSchema.staff`. `experimental.remoteFunctions` on in `vite.config.ts`. 7 strings
+      > (en + ar). `pnpm check`, eslint, 371 tests pass.
+      > note: 2026-11-03 the user tested the person search (PR42 text search + PR45 combobox) on
+      > `5174`: confirmed. The rest of 5.2 (range, Recompute these days, Edit day, History,
+      > Recompute from a date) is still waiting for the user's check.
+      > note: 2026-11-03 PR46–PR48: Edit day has a **Check-in / out** mode (`DayPunchesForm`, remote
+      > query `findDayPunches` → `getDayPunches`, action `?/setDayPunches` in `dayStateActions` on
+      > both pages → `setDayPunches` in `attendance.bl`); History lines show the punch's reason
+      > (`listEventReasons`). Schema `dayPunchesSchema` (6 tests); 16 strings (en + ar). `pnpm check`,
+      > eslint, 389 tests pass; autofixer clean. Waiting for the user's check.
+      > note: 2026-11-03 fix: saving a day that already had a pair was refused as "overlaps another
+      > pair": `setDayPunches` left the edited pair in the overlap check (compared by object, but
+      > `eventPairs` builds new objects per call). Now excluded by event id; the user confirmed it
+      > works.
 - [ ] 5.3 Entry sheet and employee page read the stored figures; source
       badges on in / out; ×rate / "not paid" cell; `mission` label
       > note: 2026-11-03 built, waiting for the user's check. The entry sheet has a **Stored record**
@@ -603,6 +626,8 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       recompute)
 - [ ] 6.2 `/changes` page with the tabs, `SwapFormSheet`, approve / reject
       / cancel sheets; swap markers in the roster preview and the daily page
+      > note: 2026-11-04 tasks 6.1 and 6.2 moved to `plans/2026-11-04-swaps.md` (decisions
+      > SW1–SW11 there; PR25–PR29 stay in force). They are ticked there, not here.
 
 ### Phase 7 · Leave balance
 - [ ] 7.1 `#lib/schemas/leave.schema.ts` (+ Vitest) and `leave.bl/crud`:

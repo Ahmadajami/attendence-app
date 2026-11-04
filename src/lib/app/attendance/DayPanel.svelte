@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Infer, SuperValidated } from 'sveltekit-superforms';
+	import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
 	import CalendarXIcon from 'phosphor-svelte/lib/CalendarXIcon';
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
@@ -11,6 +12,7 @@
 	import { absenceLabel } from '#lib/attendance/labels.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import type { RosterDay } from '#lib/roster/roster.js';
@@ -110,6 +112,17 @@
 				{m.daily_edit_day()}
 			</Button>
 		{/if}
+		{#if canRecord}
+			<!-- New swap with this person and day filled in (swaps plan SW9). -->
+			<Button
+				variant="outline"
+				size="sm"
+				href={`${localizedHref('/changes/new')}?staff=${staffId}&date=${day.date}`}
+			>
+				<ArrowsLeftRightIcon data-icon="inline-start" />
+				{m.swaps_new()}
+			</Button>
+		{/if}
 		<Button type="button" variant="outline" size="sm" onclick={() => (historyOpen = true)}>
 			<ClockCounterClockwiseIcon data-icon="inline-start" />
 			{m.daily_history()}
@@ -119,7 +132,7 @@
 	{#if figures}
 		<div class="flex flex-col gap-2 rounded-md bg-muted/50 p-3">
 			<h4 class="text-sm font-medium">{m.daily_stored_title()}</h4>
-			<DayFiguresSummary {figures} />
+			<DayFiguresSummary {figures} shift={day.shift} />
 		</div>
 	{/if}
 

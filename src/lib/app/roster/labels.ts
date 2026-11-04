@@ -55,6 +55,15 @@ export function formatCalendarDate(date: string): string {
 	}).format(startOfDamascusDay(date));
 }
 
+/** `November 2026` for `2026-11`. */
+export function formatMonth(month: string): string {
+	return new DateFormatter(getLocale(), {
+		month: 'long',
+		year: 'numeric',
+		timeZone: AIRPORT_TIME_ZONE
+	}).format(startOfDamascusDay(`${month}-01`));
+}
+
 /** `07:00` from a stored `07:00:00`. */
 export function formatWallClock(time: string): string {
 	return time.slice(0, 5);

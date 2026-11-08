@@ -175,7 +175,8 @@
     management: { en: 'Two-level management', ar: 'الإدارة على مستويين' },
     testdata: { en: 'Test data', ar: 'بيانات الاختبار' },
     daytags: { en: 'Day tags & colours', ar: 'وسوم اليوم والألوان' },
-    swaps: { en: 'Swaps', ar: 'التبديلات' }
+    swaps: { en: 'Swaps', ar: 'التبديلات' },
+    empimport: { en: 'Employee import', ar: 'استيراد الموظفين' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -1804,6 +1805,117 @@
       decision: { en: "New swap is its own page, /changes/new (the side sheet is gone): who and what; a month grid of A's and B's roster (shift codes = work, O = off; arrows change the month) where tapping a day sets the picked date (W / O, or swap / return date), both dates ringed; the live preview; then pay as overtime, reason and Save / Save and approve, which open the saved swap on /changes. The fields, the preview and the server checks of SW2 stay. The preview and the grid ask the server only when their own fields change, and keep their last answer on screen while the next one loads; the person picker keeps its suggestions until the new ones arrive.", ar: "التبديل الجديد صفحة مستقلة /changes/new (أُزيلت اللوحة الجانبية): من وماذا؛ وشبكة شهرية لجدول A وB (رموز الورديات = عمل، ع = عطلة؛ الأسهم تغيّر الشهر) والنقر على يوم يعيّن التاريخ المختار (W / O، أو تاريخ التبديل / الرد) مع تمييز التاريخين؛ ثم المعاينة المباشرة؛ ثم الدفع كعمل إضافي والسبب والحفظ / الحفظ والموافقة، فيُفتح التبديل المحفوظ في /changes. تبقى حقول SW2 ومعاينته وفحوص الخادم. لا تسأل المعاينة والشبكة الخادم إلا عند تغيّر حقولهما، وتبقيان آخر جواب ظاهراً حتى يصل التالي؛ ويُبقي منتقي الشخص اقتراحاته حتى تصل الجديدة." },
       why: { en: "Asked by the user on 2026-11-04: picking an employee swap needs each person's off days in view; a month grid does not fit a side sheet. The sheet reloaded the preview on every keystroke and replaced the suggestion list while it loaded, so the first click on a name often missed.", ar: "طلبه المستخدم في 2026-11-04: اختيار تبديل بين موظفين يحتاج رؤية أيام عطلة كل شخص؛ والشبكة الشهرية لا تتسع في لوحة جانبية. كانت اللوحة تعيد تحميل المعاينة مع كل ضغطة مفتاح وتستبدل قائمة الاقتراحات أثناء التحميل، فكانت النقرة الأولى على الاسم تخطئ كثيراً." },
       alts: [ { en: "Keep the sheet and add a two-week strip: not chosen — too narrow to compare a month, and the user asked for a page.", ar: "إبقاء اللوحة مع شريط أسبوعين: لم يُختر — ضيق لمقارنة شهر، وطلب المستخدم صفحة." } ]
+    },
+    // ---------------- Employee import ----------------
+    {
+      id: 'EI1', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "A one-off CLI script for HR's employee workbook", ar: "سكربت سطر أوامر لمرة واحدة لملف الموظفين من الموارد البشرية" },
+      decision: { en: "scripts/import-employees.ts (tsx) on top of a pure, tested helper src/lib/workforce/employee-seed.ts; the /imports page is not used.", ar: "السكربت scripts/import-employees.ts (عبر tsx) فوق مساعد نقي مختبَر src/lib/workforce/employee-seed.ts؛ ولا تُستخدم صفحة /imports." },
+      why: { en: "The import must create departments, teams and job titles, read this file's exact 22 headers and write everything in one transaction; it is a one-time seed (D25).", ar: "يجب أن ينشئ الاستيراد الأقسام والفرق والمسميات الوظيفية، ويقرأ ترويسات هذا الملف الـ22 بدقة، ويكتب كل شيء في معاملة واحدة؛ وهو تعبئة أولية لمرة واحدة (D25)." },
+      alts: [
+        { en: "Extend the /imports staff import: not chosen — it requires a function, only matches existing teams and knows 6 fields; a lot of UI for a one-time load.", ar: "توسيع استيراد الموظفين في /imports: لم يُختر — يشترط مجال العمل، ويطابق الفرق الموجودة فقط، ويعرف 6 حقول؛ واجهة كبيرة لتحميل يتم مرة واحدة." },
+        { en: "Type 310 people by hand: not chosen — slow and error-prone.", ar: "إدخال 310 أشخاص يدوياً: لم يُختر — بطيء وعرضة للأخطاء." }
+      ]
+    },
+    {
+      id: 'EI2', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Dry run by default: write everything, then roll back", ar: "تشغيل تجريبي افتراضياً: كتابة كل شيء ثم التراجع" },
+      decision: { en: "Without --commit the script does every write in one transaction and rolls it back. Guards: the DB name must equal --database, the file and report must be outside the repo, and the header row must match.", ar: "بدون ‎--commit‎ ينفذ السكربت كل الكتابات في معاملة واحدة ثم يتراجع عنها. الضوابط: اسم القاعدة يطابق ‎--database‎، والملف والتقرير خارج المستودع، وصف الترويسات مطابق." },
+      why: { en: "Constraint errors appear exactly as in a real run, and nothing can hit the wrong DB or file by mistake.", ar: "تظهر أخطاء القيود تماماً كما في التشغيل الحقيقي، ولا يمكن استهداف قاعدة أو ملف خاطئ بالخطأ." },
+      alts: [ { en: "A read-only preview without writes: not chosen — it would miss unique and check constraint failures.", ar: "معاينة للقراءة فقط بلا كتابة: لم تُختر — ستفوتها أخطاء قيود التفرد والتحقق." } ]
+    },
+    {
+      id: 'EI3', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Re-runs update by employee number, never duplicate", ar: "إعادة التشغيل تحدّث حسب الرقم الوظيفي ولا تكرر" },
+      decision: { en: "Key = employee_no; changed rows are updated, equal rows left alone; a second dry run must report 0 created, 0 updated.", ar: "المفتاح = employee_no؛ تُحدَّث الصفوف المتغيرة وتُترك المتطابقة؛ ويجب أن يعطي تشغيل تجريبي ثانٍ 0 إنشاء و0 تحديث." },
+      why: { en: "A re-run after fixing the file must be safe (same rule as main plan S1.2).", ar: "يجب أن تكون إعادة التشغيل بعد تصحيح الملف آمنة (القاعدة نفسها في البند S1.2 من الخطة الرئيسية)." },
+      alts: [ { en: "Insert only, wipe before each run: not chosen — would lose edits made in the app and break links.", ar: "إدراج فقط مع المسح قبل كل تشغيل: لم يُختر — يُفقد التعديلات في التطبيق ويكسر الروابط." } ]
+    },
+    {
+      id: 'EI4', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1 (Q-EI1)',
+      title: { en: "Employee number = HR's ID without the dash", ar: "الرقم الوظيفي = معرّف الموارد البشرية بدون الشَّرطة" },
+      decision: { en: "employee_no is 'ID (All Staff)' with the dash removed: digits only, unique for all 310 rows, equal to the Odoo badge on 244.", ar: "employee_no هو «ID (All Staff)» بعد حذف الشَّرطة: أرقام فقط، فريد للصفوف الـ310 كلها، ومطابق لشارة Odoo في 244 صفاً." },
+      why: { en: "HR's reconciled ID is the master; the digits-only check and digit-only login IDs stay as they are.", ar: "معرّف الموارد البشرية المُسوّى هو المرجع؛ ويبقى قيد الأرقام فقط ومعرّفات الدخول الرقمية كما هي." },
+      alts: [
+        { en: "The Odoo badge: not chosen — missing on 8 rows and differs from HR's ID on 58.", ar: "شارة Odoo: لم تُختر — مفقودة في 8 صفوف وتختلف عن معرّف الموارد البشرية في 58." },
+        { en: "Keep the dash: not chosen — needs a schema check change, a new number generator and login changes.", ar: "الإبقاء على الشَّرطة: لم يُختر — يتطلب تغيير قيد في المخطط ومولّد أرقام جديداً وتغييرات في الدخول." }
+      ]
+    },
+    {
+      id: 'EI5', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Keep the Odoo badge in staff.legacy_badge_no", ar: "حفظ شارة Odoo في staff.legacy_badge_no" },
+      decision: { en: "New nullable, unique, digits-only column (migration 0021), filled on 302 rows, not shown in the UI yet.", ar: "عمود جديد اختياري وفريد وأرقام فقط (الترحيل 0021)، يُملأ في 302 صف، ولا يظهر في الواجهة بعد." },
+      why: { en: "The historical punches (S1.3) and the fingerprint device (S1.6) still use the badge for people whose ID changed.", ar: "البصمات التاريخية (S1.3) وجهاز البصمة (S1.6) ما زالت تستخدم الشارة للأشخاص الذين تغيّر معرّفهم." },
+      alts: [
+        { en: "Drop the badge: not chosen — the link for 58 people would be lost.", ar: "إهمال الشارة: لم يُختر — يضيع الربط لـ58 شخصاً." },
+        { en: "Put it in odoo_id: not chosen — that column holds Odoo's record id, a different thing.", ar: "وضعها في odoo_id: لم يُختر — ذلك العمود لمعرّف سجل Odoo، وهو شيء مختلف." }
+      ]
+    },
+    {
+      id: 'EI6', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §2 (Q-EI7)',
+      title: { en: "Columns without a home are reported, not stored", ar: "الأعمدة التي لا مكان لها تُذكر في التقرير ولا تُخزَّن" },
+      decision: { en: "Location, probation, weekly hours, shift, manager, Odoo name and the reconciliation flags go to the report only.", ar: "الموقع وفترة التجربة والساعات الأسبوعية والوردية والمدير واسم Odoo وعلامات التسوية تذهب إلى التقرير فقط." },
+      why: { en: "No speculative columns; shift and weekly hours belong to patterns, managers to the management screens.", ar: "لا أعمدة افتراضية؛ الوردية والساعات الأسبوعية مكانها الأنماط، والمديرون مكانهم شاشات الإدارة." },
+      alts: [ { en: "Add columns for all of them now: not chosen — no screen or rule uses them yet.", ar: "إضافة أعمدة لها كلها الآن: لم يُختر — لا تستخدمها أي شاشة أو قاعدة بعد." } ]
+    },
+    {
+      id: 'EI7', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1 (Q-EI5, Q-EI6)',
+      title: { en: "Lookups: reuse by name, else create; aliases approved by the user", ar: "القوائم: إعادة الاستخدام بالاسم وإلا الإنشاء؛ والأسماء البديلة يعتمدها المستخدم" },
+      decision: { en: "Departments become a two-level tree from 'Parent / Child'; a team's department is its members' majority (none on a tie); a person's department comes only from their own row.", ar: "تصبح الأقسام شجرة من مستويين من «الأب / الابن»؛ وقسم الفريق هو قسم أغلبية أعضائه (لا شيء عند التعادل)؛ وقسم الشخص يؤخذ من صفه فقط." },
+      why: { en: "Existing rows (team HR) are reused, nothing is duplicated, and nothing is guessed silently.", ar: "تُعاد الصفوف الموجودة (فريق HR) دون تكرار، ولا يُخمَّن أي شيء بصمت." },
+      alts: [ { en: "Fuzzy matching of names: not chosen — would merge different crews such as 'Qatar Airways (B)'.", ar: "مطابقة تقريبية للأسماء: لم تُختر — قد تدمج أطقماً مختلفة مثل «Qatar Airways (B)»." } ]
+    },
+    {
+      id: 'EI8', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Memberships and audit rows like the app writes them", ar: "العضويات وسجلات التدقيق كما يكتبها التطبيق" },
+      decision: { en: "Each person with a team gets an open membership from the import instant; every insert or update writes an audit_log row (staff.import, department.import, team.import, job_title.import).", ar: "كل شخص له فريق يحصل على عضوية مفتوحة من لحظة الاستيراد؛ وكل إدراج أو تحديث يكتب سجلاً في audit_log ‏(staff.import وdepartment.import وteam.import وjob_title.import)." },
+      why: { en: "Every mutation is audited (CLAUDE.md §3); one person, one team at a time.", ar: "كل تعديل يُدقَّق (§3 في CLAUDE.md)؛ وشخص واحد في فريق واحد في كل وقت." },
+      alts: [ { en: "Back-date memberships to the joining date: not chosen — the team history before the import is unknown.", ar: "تأريخ العضويات بتاريخ التعيين: لم يُختر — تاريخ الفرق قبل الاستيراد غير معروف." } ]
+    },
+    {
+      id: 'EI9', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Blocking errors versus warnings", ar: "الأخطاء المانعة مقابل التحذيرات" },
+      decision: { en: "Blocking: missing or non-digit ID, duplicate ID, missing English name, unknown header. Warning (field left empty): bad email, bad or future joining date, bad or taken badge.", ar: "مانع: معرّف مفقود أو غير رقمي، معرّف مكرر، اسم إنكليزي مفقود، ترويسة غير معروفة. تحذير (يُترك الحقل فارغاً): بريد غير صالح، تاريخ تعيين غير صالح أو مستقبلي، شارة غير صالحة أو مستخدمة." },
+      why: { en: "Bad keys stop the run; minor gaps do not hold up 300 good rows.", ar: "المفاتيح الخاطئة توقف التشغيل؛ والنواقص البسيطة لا تعطل 300 صف سليم." },
+      alts: [ { en: "Skip any row with any problem: not chosen — people would silently be missing.", ar: "تخطي أي صف فيه أي مشكلة: لم يُختر — سيغيب أشخاص بصمت." } ]
+    },
+    {
+      id: 'EI10', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "No removals; roster joins are reported", ar: "لا حذف؛ والانضمام إلى الجداول يُذكر في التقرير" },
+      decision: { en: "People not in the file are untouched; the dry run lists who lands in a team or department with a pattern assignment.", ar: "الأشخاص غير الموجودين في الملف لا يُمسّون؛ ويذكر التشغيل التجريبي من يدخل فريقاً أو قسماً له نمط مُسند." },
+      why: { en: "Deactivations and roster changes are HR decisions in the app.", ar: "إيقاف الموظفين وتغييرات الجداول قرارات للموارد البشرية داخل التطبيق." },
+      alts: [ { en: "Deactivate everyone not in the file: not chosen — would hide the hand-made records without a decision.", ar: "إيقاف كل من ليس في الملف: لم يُختر — يخفي السجلات اليدوية دون قرار." } ]
+    },
+    {
+      id: 'EI11', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Real data stays in ~/secure/syravia", ar: "البيانات الحقيقية تبقى في ‎~/secure/syravia‎" },
+      decision: { en: "The workbook moves to ~/secure/syravia/imports/2026-11-08/ (600); the row-level report is written there; the console, plan and chat show counts only.", ar: "يُنقل الملف إلى ‎~/secure/syravia/imports/2026-11-08/‎ (الصلاحية 600)؛ ويُكتب التقرير التفصيلي هناك؛ وتُظهر الطرفية والخطة والمحادثة أعداداً فقط." },
+      why: { en: "CLAUDE.md §1.", ar: "§1 في CLAUDE.md." },
+      alts: [ { en: "Leave the file on the Desktop: not chosen — readable by others (mode 664) and outside the protected folder.", ar: "إبقاء الملف على سطح المكتب: لم يُختر — مقروء للآخرين (الصلاحية 664) وخارج المجلد المحمي." } ]
+    },
+    {
+      id: 'EI12', group: 'empimport', status: 'replaced', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1',
+      title: { en: "Backup, rehearse on a copy, then commit (replaced by EI13)", ar: "نسخة احتياطية، ثم تجربة على نسخة، ثم التنفيذ (استُبدل بـ EI13)" },
+      decision: { en: "pg_dump of attendance_app first; commit to attendance_app_rehearsal restored from it and check it in the browser (port 5175); then production; drop the rehearsal DB after the user's OK.", ar: "أولاً pg_dump لقاعدة attendance_app؛ ثم التنفيذ على attendance_app_rehearsal المستعادة منها وفحصها في المتصفح (المنفذ 5175)؛ ثم الإنتاج؛ وحذف قاعدة التجربة بعد موافقة المستخدم." },
+      why: { en: "The real file is tested on the real current state before production changes; the dump also undoes the run.", ar: "يُختبر الملف الحقيقي على الحالة الحقيقية قبل تغيير الإنتاج؛ والنسخة الاحتياطية تلغي التشغيل عند الحاجة." },
+      alts: [ { en: "Rehearse on attendance_app_e2e: not chosen — real people must never enter a synthetic DB.", ar: "التجربة على attendance_app_e2e: لم يُختر — يجب ألا يدخل أشخاص حقيقيون قاعدة اصطناعية." } ]
+    },
+    {
+      id: 'EI13', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1 (user, chat 2026-11-08)',
+      title: { en: "No backup, no rehearsal: dry run, then commit on the local DB", ar: "لا نسخة احتياطية ولا تجربة: تشغيل تجريبي ثم التنفيذ على القاعدة المحلية" },
+      decision: { en: "The import runs on attendance_app in the local container on the user's PC: a rolled-back dry run, then --commit. Nothing is deployed or served on a URL; the check is on the loopback dev server. A wrong run is fixed by a corrected re-run (EI3).", ar: "يعمل الاستيراد على attendance_app في الحاوية المحلية على حاسوب المستخدم: تشغيل تجريبي يُتراجع عنه، ثم ‎--commit‎. لا يُنشر شيء ولا يُتاح على أي رابط؛ والفحص على خادم التطوير المحلي. ويُصلَح التشغيل الخاطئ بإعادة تشغيل مصحَّحة (EI3)." },
+      why: { en: "The user's instruction: 'production' is only this PC and everything else in the DB is test data, so a backup protects nothing; the dry run already surfaces every constraint error.", ar: "تعليمات المستخدم: «الإنتاج» هو هذا الحاسوب فقط، وكل ما عدا ذلك في القاعدة بيانات اختبار، فلا تحمي النسخة الاحتياطية شيئاً؛ والتشغيل التجريبي يكشف كل أخطاء القيود مسبقاً." },
+      alts: [ { en: "Backup plus a restored rehearsal copy (EI12): not chosen — the user declined it; extra steps for test data.", ar: "نسخة احتياطية ونسخة تجربة مستعادة (EI12): لم يُختر — رفضه المستخدم؛ خطوات إضافية لبيانات اختبار." } ]
+    },
+    {
+      id: 'EI14', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1 (Q-EI3, Q-EI6)',
+      title: { en: "Existing test rows are left alone and not borrowed", ar: "صفوف الاختبار الموجودة لا تُمسّ ولا تُستعار" },
+      decision: { en: "No mapping of the 8 test people and no aliases onto the test departments; only the team HR is reused because team names are unique, and the report says so.", ar: "لا ربط للأشخاص الثمانية التجريبيين ولا أسماء بديلة نحو الأقسام التجريبية؛ ويُعاد استخدام فريق HR فقط لأن أسماء الفرق فريدة، ويذكر التقرير ذلك." },
+      why: { en: "Real people must not inherit test patterns, managers or records; the import touches only what the workbook describes.", ar: "يجب ألا يرث الأشخاص الحقيقيون أنماطاً أو مديرين أو سجلات تجريبية؛ ولا يمس الاستيراد إلا ما يصفه الملف." },
+      alts: [
+        { en: "Map the 2 name matches onto the test records: not chosen — they are test data (user, 2026-11-08).", ar: "ربط التطابقين بالاسم مع سجلات الاختبار: لم يُختر — هي بيانات اختبار (المستخدم، 2026-11-08)." },
+        { en: "Reuse the test departments Operation and Human Resources Management: not chosen — Operation has a pattern, so real people would join a test roster.", ar: "إعادة استخدام قسمي الاختبار Operation وHuman Resources Management: لم يُختر — لقسم Operation نمط، فسينضم أشخاص حقيقيون إلى جدول تجريبي." }
+      ]
     }
   ];
 
@@ -1874,7 +1986,16 @@
     ["Q-SW4", "Swaps: edit a pending request, or withdraw and redo?", "default kept 2026-11-04: withdraw and redo (SW6)", "التبديلات: تعديل الطلب المعلّق أم سحبه وإعادته؟", "سحبه وإعادته (SW6)"],
     ["Q-SW5", "Swaps: must A and B share a team or department?", "default kept 2026-11-04: no restriction", "التبديلات: هل يجب أن يكون A وB في الفريق أو القسم نفسه؟", "بلا قيد"],
     ["Q-SW6", "Swaps: two pending requests on the same day — warn or refuse?", "default kept 2026-11-04: warn (SW7)", "التبديلات: طلبان معلّقان في اليوم نفسه — تحذير أم رفض؟", "تحذير (SW7)"],
-    ["Q-SW7", "Swaps: keep refusing swaps on holidays?", "default kept 2026-11-04: yes (SW11)", "التبديلات: الاستمرار في رفض التبديل في العطل؟", "نعم (SW11)"]
+    ["Q-SW7", "Swaps: keep refusing swaps on holidays?", "default kept 2026-11-04: yes (SW11)", "التبديلات: الاستمرار في رفض التبديل في العطل؟", "نعم (SW11)"],
+    ["Q-EI1", "Employee import: which number becomes the employee number?", "default kept 2026-11-08: HR's ID without the dash (EI4)", "استيراد الموظفين: أي رقم يصبح الرقم الوظيفي؟", "أُبقي الافتراضي 2026-11-08: معرّف الموارد البشرية بدون الشَّرطة (EI4)"],
+    ["Q-EI2", "Employee import: the 32 'Odoo only' rows?", "default kept 2026-11-08: import as inactive", "استيراد الموظفين: الصفوف الـ32 «Odoo فقط»؟", "أُبقي الافتراضي 2026-11-08: استيرادها كغير نشطة"],
+    ["Q-EI3", "Employee import: map the 8 people already in production to their file ID?", "answered 2026-11-08: no, they are test data (EI14)", "استيراد الموظفين: ربط الأشخاص الـ8 الموجودين في الإنتاج بمعرّفهم في الملف؟", "أُجيب 2026-11-08: لا، هي بيانات اختبار (EI14)"],
+    ["Q-EI4", "Employee import: set managers and supervisors from 'Manager (Odoo)'?", "default kept 2026-11-08: no, HR sets them in the app", "استيراد الموظفين: تعيين المديرين والمشرفين من «Manager (Odoo)»؟", "أُبقي الافتراضي 2026-11-08: لا، تعيّنهم الموارد البشرية في التطبيق"],
+    ["Q-EI5", "Employee import: merge look-alike team names?", "default kept 2026-11-08: no, import as written", "استيراد الموظفين: دمج أسماء الفرق المتشابهة؟", "أُبقي الافتراضي 2026-11-08: لا، تُستورد كما هي"],
+    ["Q-EI6", "Employee import: reuse the existing Operation and Human Resources Management departments?", "changed 2026-11-08: no, they are test data (EI14)", "استيراد الموظفين: إعادة استخدام قسمي Operation وHuman Resources Management الموجودين؟", "تغيّر 2026-11-08: لا، هما بيانات اختبار (EI14)"],
+    ["Q-EI7", "Employee import: store location, probation, weekly hours, shift?", "default kept 2026-11-08: no, report only", "استيراد الموظفين: تخزين الموقع وفترة التجربة والساعات الأسبوعية والوردية؟", "أُبقي الافتراضي 2026-11-08: لا، في التقرير فقط"],
+    ["Q-EI8", "Employee import: new-hire numbers after the import?", "default kept 2026-11-08: highest + 1 for now; revisit before the first hire", "استيراد الموظفين: أرقام الموظفين الجدد بعد الاستيراد؟", "أُبقي الافتراضي 2026-11-08: الأعلى + 1 مؤقتاً؛ وتُراجع قبل أول تعيين"],
+    ["Q-EI9", "Employee import: Arabic names for new departments, teams, job titles?", "default kept 2026-11-08: agent proposes, user corrects", "استيراد الموظفين: الأسماء العربية للأقسام والفرق والمسميات الجديدة؟", "أُبقي الافتراضي 2026-11-08: يقترحها الوكيل ويصححها المستخدم"],
   ];
 
   function el(tag, attrs, children) {

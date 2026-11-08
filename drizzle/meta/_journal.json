@@ -148,6 +148,13 @@
       "when": 1793628029185,
       "tag": "0020_company_pay_holidays_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794145368854,
+      "tag": "0021_staff_legacy_badge_no",
+      "breakpoints": true
     }
   ]
 }

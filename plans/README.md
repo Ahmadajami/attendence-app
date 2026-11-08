@@ -38,3 +38,4 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 | 2026-11-03 | [E2E test data: the Operation team, September to November 2026](2026-11-03-e2e-operation-seed.md) | in progress (approved 2026-11-03; seeded, recomputed and verified; waiting for the user's manual check) |
 | 2026-11-03 | [Day tags: an explanation on every tag, and one colour guide](2026-11-03-day-tags-colour-guide.md) | in progress (approved and built 2026-11-03; waiting for the user's check) |
 | 2026-11-04 | [Swaps: self swap and employee swap, from request to roster](2026-11-04-swaps.md) (replaces the pay plan's Phase 6) | in progress (approved 2026-11-04; Phases 1–4 built, waiting for the manual check) |
+| 2026-11-08 | [Employee import from HR's reconciled workbook into the local real-data DB](2026-11-08-production-employee-import.md) (part of S1.2) | in progress (imported 2026-11-08: 310 people, re-run 0 changes; waiting for the user's manual check) |

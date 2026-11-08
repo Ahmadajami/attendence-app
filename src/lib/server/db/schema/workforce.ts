@@ -132,6 +132,11 @@ export const staff = pgTable(
 			.references(() => user.id, { onDelete: 'set null' }),
 		active: boolean('active').notNull().default(true),
 		odooId: text('odoo_id').unique(),
+		/**
+		 * The person's old Odoo badge (employee import plan EI5), kept to link historical punches and
+		 * the fingerprint device when it differs from `employee_no`. Not shown in the UI yet.
+		 */
+		legacyBadgeNo: text('legacy_badge_no').unique(),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -139,6 +144,7 @@ export const staff = pgTable(
 			.$onUpdate(() => new Date())
 	},
 	(t) => [
+		check('staff_legacy_badge_no_digits', sql`${t.legacyBadgeNo} ~ '^[0-9]+$'`),
 		index('staff_function_id_idx').on(t.functionId),
 		index('staff_team_id_idx').on(t.teamId),
 		index('staff_department_id_idx').on(t.departmentId),

@@ -2173,7 +2173,7 @@
     },
     {
       id: 'OI14', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
-      title: { en: "Template times are Damascus HH:MM, read like manual entry", ar: "أوقات القالب HH:MM بتوقيت دمشق، تُقرأ كالإدخال اليدوي" },
+      title: { en: "Template times are Damascus HH:MM, read like manual entry (its off-day part is to be replaced by OW1/OW8 when approved)", ar: "أوقات القالب HH:MM بتوقيت دمشق، تُقرأ كالإدخال اليدوي" },
       decision: { en: "The row's date is the shift date. Check in / Check out are 24-hour Damascus times turned into instants by the manual entry's resolvePair() (a check-out earlier than the check-in is the next morning). The shift is the planned one; on an off day, the active shift that fits best (attributeEvent's rule) with the unplanned reason. validatePair() checks apply (OI5).", ar: "تاريخ السطر هو تاريخ الوردية. الدخول والخروج بتوقيت دمشق بنظام 24 ساعة، وتحوّلهما resolvePair() الخاصة بالإدخال اليدوي إلى لحظات (الخروج الأبكر من الدخول = صباح اليوم التالي). والوردية هي المخططة؛ وفي يوم الراحة الوردية النشطة الأنسب (قاعدة attributeEvent) مع سبب غير مخطط. وتنطبق فحوص validatePair() (OI5)." },
       why: { en: "The same logic as typing the times into the entry sheet; a night shift sits on the row of the evening it started.", ar: "المنطق نفسه كما عند كتابة الأوقات في ورقة الإدخال؛ ووردية الليل في سطر المساء الذي بدأت فيه." },
       alts: [
@@ -2205,6 +2205,69 @@
       alts: [
         { en: "An empty template for the outside source only (OI13 as first written): not chosen — the report already has Oct 1–20.", ar: "قالب فارغ للمصدر الخارجي فقط (OI13 كما كُتب أولاً): لم يُختر — التقرير فيه 1–20 تشرين الأول." }
       ]
+    },
+    {
+      id: 'OW1', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "No shift only on a day with no planned shift", ar: "بلا وردية فقط في يوم بلا وردية مخططة" },
+      decision: { en: "A punch may have no shift only on a day off, a swap-off day or a holiday; a planned work day still needs a shift.", ar: "يمكن أن تكون البصمة بلا وردية فقط في يوم راحة أو يوم إجازة تبديل أو عطلة؛ ويوم العمل المخطط ما زال يحتاج وردية." },
+      why: { en: "Day-off work has nothing to be compared with; a planned day always has.", ar: "عمل يوم الراحة لا شيء يُقارن به؛ واليوم المخطط له دائماً ما يُقارن به." },
+      alts: [
+        { en: "No shift on any day: not chosen — late and short would be lost on planned days.", ar: "بلا وردية في أي يوم: لم يُختر — يضيع التأخير والنقص في الأيام المخططة." },
+        { en: "Keep a made-up shift on day-off work: not chosen — a label nobody chose, and it confuses HR.", ar: "إبقاء وردية مختلقة لعمل يوم الراحة: لم يُختر — اسم لم يختره أحد ويربك الموارد البشرية." }
+      ]
+    },
+    {
+      id: 'OW2', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "attendance_event.shift_id becomes nullable", ar: "attendance_event.shift_id يصبح قابلاً للفراغ" },
+      decision: { en: "A migration makes shift_id nullable; the service enforces OW1; existing rows keep their shift.", ar: "ترحيل يجعل shift_id قابلاً للفراغ؛ والخدمة تفرض OW1؛ والصفوف الموجودة تحتفظ بورديتها." },
+      why: { en: "Smallest change; the rule depends on the roster, which the database can't see.", ar: "أصغر تغيير؛ والقاعدة تعتمد على الجدول الذي لا تراه قاعدة البيانات." },
+      alts: [
+        { en: "A special 'day-off' shift row: not chosen — a fake shift again, with its own times and window.", ar: "صف وردية خاص 'يوم راحة': لم يُختر — وردية مزيفة مرة أخرى بأوقاتها ونافذتها." }
+      ]
+    },
+    {
+      id: 'OW3', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "Reading times without a shift", ar: "قراءة الأوقات بلا وردية" },
+      decision: { en: "The check-in is that time on the day's date; a check-out earlier than or equal to the check-in is the next morning; the pair stays on the date it started.", ar: "الدخول هو ذلك الوقت في تاريخ اليوم؛ والخروج الأبكر من الدخول أو المساوي له صباح اليوم التالي؛ ويبقى الزوج على تاريخ بدايته." },
+      why: { en: "The same rule the entry sheet already uses for check-outs.", ar: "القاعدة نفسها التي تستخدمها ورقة الإدخال للخروج أصلاً." },
+      alts: []
+    },
+    {
+      id: 'OW4', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "Checks without a shift", ar: "الفحوص بلا وردية" },
+      decision: { en: "Over 16 h, overlap and future stay errors; the shift-window warning is skipped; a reason is still required.", ar: "أكثر من 16 ساعة والتداخل والمستقبل تبقى أخطاء؛ ويُتخطى تحذير نافذة الوردية؛ ويبقى السبب مطلوباً." },
+      why: { en: "Same safety as today; there is no window without a shift.", ar: "الأمان نفسه كاليوم؛ ولا نافذة بلا وردية." },
+      alts: []
+    },
+    {
+      id: 'OW5', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "Day-off work without a shift calculates as today", ar: "عمل يوم الراحة بلا وردية يُحسب كاليوم" },
+      decision: { en: "Required 0, late 0, every minute is day-off work by the pay rules, the existing flag; overtime no longer needs a shift id.", ar: "المطلوب 0، التأخير 0، كل دقيقة عمل يوم راحة حسب قواعد الأجر، مع العلامة الموجودة؛ والإضافي لم يعد يحتاج معرّف وردية." },
+      why: { en: "On a day off the shift was only a label; the numbers must not change.", ar: "في يوم الراحة كانت الوردية اسماً فقط؛ ويجب ألا تتغير الأرقام." },
+      alts: []
+    },
+    {
+      id: 'OW6', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "Screens say 'Day-off work'", ar: "الشاشات تقول 'عمل يوم راحة'" },
+      decision: { en: "Entry sheet and day editor offer 'No shift (day-off work)' first on a day with no planned shift; daily page, Month tab, day History and Schedule show 'Day-off work' with times and hours, in English and Arabic.", ar: "ورقة الإدخال ومحرر اليوم يعرضان 'بلا وردية (عمل يوم راحة)' أولاً في يوم بلا وردية مخططة؛ والصفحة اليومية وتبويب الشهر وسجل اليوم والجدول تُظهر 'عمل يوم راحة' مع الأوقات والساعات، بالإنجليزية والعربية." },
+      why: { en: "The user sees what really happened.", ar: "يرى المستخدم ما حدث فعلاً." },
+      alts: []
+    },
+    {
+      id: 'OW7', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "Another shift on a planned day needs a swap first", ar: "وردية أخرى في يوم مخطط تحتاج تبديلاً أولاً" },
+      decision: { en: "Entry sheet, day editor and import refuse a pair whose times fit another shift better than the planned one, with a hint to record a swap; after the swap the pair is planned.", ar: "ورقة الإدخال ومحرر اليوم والاستيراد ترفض زوجاً تناسب أوقاته وردية أخرى أكثر من المخططة، مع تلميح لتسجيل تبديل؛ وبعد التبديل يصبح الزوج مخططاً." },
+      why: { en: "The Operations rule: days against the pattern are a swap. Never a fake 12 h late.", ar: "قاعدة العمليات: الأيام المخالفة للنمط تبديل. ولا تأخير مزيف 12 ساعة أبداً." },
+      alts: [
+        { en: "Calculate against the shift actually worked, flagged, with no swap: not chosen by default — the roster would stay wrong (Q-OW4).", ar: "الحساب مقابل الوردية المعمولة فعلاً مع علامة وبلا تبديل: لم يُختر افتراضياً — يبقى الجدول خاطئاً (Q-OW4)." }
+      ]
+    },
+    {
+      id: 'OW8', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "The import follows the same rules", ar: "الاستيراد يتبع القواعد نفسها" },
+      decision: { en: "Day-off rows are saved without a shift; rows that fit another shift on a planned day are listed as 'needs a swap' and not saved; a rerun after the swap saves them.", ar: "أسطر يوم الراحة تُحفظ بلا وردية؛ والأسطر التي تناسب وردية أخرى في يوم مخطط تُدرج 'تحتاج تبديلاً' ولا تُحفظ؛ وإعادة التشغيل بعد التبديل تحفظها." },
+      why: { en: "Typing and importing must give the same days.", ar: "الكتابة والاستيراد يجب أن يعطيا الأيام نفسها." },
+      alts: []
     },
   ];
 
@@ -2303,7 +2366,14 @@
     ["Q-OI6", "Punches on another shift than planned?", "decided from the dry run of the new data", "بصمات على وردية غير المخططة؟", "يُقرر من التشغيل التجريبي للبيانات الجديدة"],
     ["Q-OI7", "Day pairs on 2 off days: import as unplanned work?", "yes", "زوجا نهار في يومي راحة: استيراد كعمل غير مخطط؟", "نعم"],
     ["Q-OI8", "Punches on swap-off days?", "decided from the dry run of the new data", "بصمات في أيام إجازة التبديل؟", "يُقرر من التشغيل التجريبي للبيانات الجديدة"],
-    ["Q-OI9", "Record the 4 sick days?", "answered 2026-11-09: yes, in the day editor (OI12)", "تسجيل أيام المرض الأربعة؟", "أُجيب 2026-11-09: نعم، في محرر اليوم (OI12)"]
+    ["Q-OI9", "Record the 4 sick days?", "answered 2026-11-09: yes, in the day editor (OI12)", "تسجيل أيام المرض الأربعة؟", "أُجيب 2026-11-09: نعم، في محرر اليوم (OI12)"],
+    ["Q-OW1", "No shift only on days without a planned shift, or on every day?", "only days without a planned shift (OW1)", "بلا وردية فقط في الأيام بلا وردية مخططة أم في كل يوم؟", "فقط الأيام بلا وردية مخططة (OW1)"],
+    ["Q-OW2", "Screen name for it: 'Day-off work'?", "yes", "اسمه على الشاشة: 'عمل يوم راحة'؟", "نعم"],
+    ["Q-OW3", "A night of day-off work stays on the date it started?", "yes (OW3)", "ليلة عمل يوم راحة تبقى على تاريخ بدايتها؟", "نعم (OW3)"],
+    ["Q-OW4", "Another shift on a planned day: refuse until a swap, or calculate against the shift worked?", "refuse + link to the swap form (OW7)", "وردية أخرى في يوم مخطط: رفض حتى التبديل أم حساب مقابل الوردية المعمولة؟", "رفض + رابط لنموذج التبديل (OW7)"],
+    ["Q-OW5", "Work on a swap-off day: today's flag or its own flag?", "its own flag", "العمل في يوم إجازة تبديل: العلامة الحالية أم علامة خاصة؟", "علامة خاصة"],
+    ["Q-OW6", "Payroll export: own column for day-off work hours?", "yes, beside overtime", "تصدير الرواتب: عمود خاص لساعات عمل يوم الراحة؟", "نعم، بجانب الإضافي"],
+    ["Q-OW7", "Move punches already saved on a made-up shift on a day off to 'no shift'?", "no; new punches only", "نقل البصمات المحفوظة بوردية مختلقة في يوم راحة إلى 'بلا وردية'؟", "لا؛ البصمات الجديدة فقط"]
   ];
 
   function el(tag, attrs, children) {

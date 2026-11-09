@@ -1,6 +1,6 @@
 # Operations team: October 2026 punch history from Odoo
 
-**Status:** in progress (approved 2026-11-09: source `import`, 60 s, record the sick days; Phases 1–2.4 done, the dry run on `attendance_app` shown; waiting for the user's OK to commit, then Phase 3)
+**Status:** on hold (2026-11-09, user: do not import yet; first the improvements in [2026-11-09-off-day-work-and-shift-changes.md](2026-11-09-off-day-work-and-shift-changes.md) and the to-do list below. Nothing is stored on `attendance_app`: 0 events)
 **Date:** 2026-11-09
 **Goal:** bring the October 2026 check-ins and check-outs of the 6 members of
 team Operations (`31da93d7-07cf-4ee6-bf02-606158f67fa2`) into `attendance_app`
@@ -172,7 +172,7 @@ before 15 h, night pair = after)
 | Q-OI5 | Duplicates: same person, same type within 60 s = one punch (OI7)? None expected | **answered 2026-11-09:** 60 s |
 | Q-OI6–Q-OI8 | (were about the old Odoo pairs) Punches on another shift than planned, on off days, on swap-off days | decided case by case from the dry run of the new data (2.4) |
 | Q-OI9 | The 4 sick days (2 people, one 2-day range each, OI12) | **answered 2026-11-09:** record them; the user in the day editor (the absence service can't be called from a script) |
-| Q-OI10 | Dry run: b2339c1f's pair on 2026-10-02 (check-in 13:00, a swap-off day) fits shift D (09:00–18:00) better than D8 by `attributeEvent`'s distance rule. Keep D, or count it as D8? | keep D (the rule as written) |
+| ~~Q-OI10~~ | Oct 2 (b2339c1f, 13:00 check-in on a swap-off day): D or D8? | **replaced 2026-11-09:** neither; day-off work gets no shift (plan off-day-work, OW1). On a day off the shift was only a label: the numbers are the same |
 
 ## 3. Tasks
 
@@ -221,6 +221,31 @@ before 15 h, night pair = after)
 - [x] 2.4 Dry run on `attendance_app`, shown to the user
       > note: 2026-11-09 6 of 6 people matched; 58 rows with times, 128 without; 0 rejected, 0 duplicates; 58 pairs / 116 events (per person 10/6/11/11/10/10 for 1c5c2c19/412d2b7e/4e26598d/8b8d9748/b2339c1f/ec994043); shifts D8 37, N8 20, D 1; 6 unplanned with the reason (4e26598d 10-13 N8, 10-14 N8, 10-17 D8; 8b8d9748 10-16 D8; b2339c1f 10-01 D8, 10-02 D); 0 open pairs; rolled back: 0 events, 0 audit rows stored
 - [ ] 2.5 Commit on `attendance_app` after the user's OK; rerun dry = 0 new
+      > note: 2026-11-09 on hold (user): run only after the to-do list below is done
+
+### To do before the import (2026-11-09)
+
+What the dry run showed and what must be fixed first, so the October days come
+out right and the same rules hold for every later import and typed punch.
+
+- [ ] T1 Build plan `2026-11-09-off-day-work-and-shift-changes.md` (day-off work
+      without a shift; another shift on a planned day needs a swap) — *done when*
+      that plan is done
+- [ ] T2 HR: confirm what 4e26598d worked on 2026-10-13 and 10-14 (planned D8,
+      punches 20:00 → 08:00). If nights: record a self swap D8 → N8 for both days
+      on the Swaps page. Without it the app would show 12 h late on each day
+- [ ] T3 HR: confirm the Oct 1–4 swap between b2339c1f and 4e26598d. The punches
+      show b2339c1f working on both swap-off days (10-01 full day, 10-02 afternoon);
+      fix the swap if it did not happen as entered
+- [ ] T4 HR: confirm the day-off work on 4e26598d 10-17 and 8b8d9748 10-16 (planned
+      off, a full day punched): extra work, or a missing swap?
+- [ ] T5 The outside source: add punches for other dates (e.g. Oct 21–31) to
+      `operations_punches_2026-10.xlsx`, or confirm there are none (task 1.2)
+- [ ] T6 Update the import to the new rules (plan off-day-work task 3.1): day-off
+      rows without a shift, "needs a swap" rows held — then a new e2e run and a new
+      dry run on `attendance_app`, shown to the user (replaces 2.4's result)
+- [ ] T7 After the user's OK: commit (2.5), the 4 sick days in the day editor and
+      the scoped recompute (3.1), report (3.2), manual check (3.3)
 
 ### Phase 3: Recompute and verify
 

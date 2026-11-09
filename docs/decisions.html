@@ -2268,19 +2268,66 @@
     },
     {
       id: 'OW7', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
-      title: { en: "Another shift on a planned day needs a swap first", ar: "وردية أخرى في يوم مخطط تحتاج تبديلاً أولاً" },
-      decision: { en: "Entry sheet, day editor and import refuse a pair whose times fit another shift better than the planned one, with a hint to record a swap; after the swap the pair is planned.", ar: "ورقة الإدخال ومحرر اليوم والاستيراد ترفض زوجاً تناسب أوقاته وردية أخرى أكثر من المخططة، مع تلميح لتسجيل تبديل؛ وبعد التبديل يصبح الزوج مخططاً." },
-      why: { en: "The Operations rule: days against the pattern are a swap. Never a fake 12 h late.", ar: "قاعدة العمليات: الأيام المخالفة للنمط تبديل. ولا تأخير مزيف 12 ساعة أبداً." },
+      title: { en: "Another shift on a planned day needs a shift change first (revised)", ar: "وردية أخرى في يوم مخطط تحتاج تغيير وردية أولاً (معدّل)" },
+      decision: { en: "Entry sheet, day editor and import refuse a pair whose times fit another shift instead of the planned one, with a Shift change button that opens the request already filled in; after approval the pair is planned. Revised 2026-11-09: the first version pointed to a swap, but no swap kind can say 'same person, same date, another shift'.", ar: "ورقة الإدخال ومحرر اليوم والاستيراد ترفض زوجاً تناسب أوقاته وردية أخرى بدل المخططة، مع زر «تغيير وردية» يفتح الطلب معبأً؛ وبعد الموافقة يصبح الزوج مخططاً. عُدّل في 2026-11-09: النسخة الأولى أشارت إلى تبديل، ولا نوع تبديل يعبّر عن «الشخص نفسه، التاريخ نفسه، وردية أخرى»." },
+      why: { en: "The Operations rule: days against the pattern change the roster first. Never a fake 12 h late.", ar: "قاعدة العمليات: الأيام المخالفة للنمط تغيّر الجدول أولاً. ولا تأخير مزيف 12 ساعة أبداً." },
       alts: [
-        { en: "Calculate against the shift actually worked, flagged, with no swap: not chosen by default — the roster would stay wrong (Q-OW4).", ar: "الحساب مقابل الوردية المعمولة فعلاً مع علامة وبلا تبديل: لم يُختر افتراضياً — يبقى الجدول خاطئاً (Q-OW4)." }
+        { en: "Calculate against the shift actually worked, flagged, with no roster change: not chosen by default — the roster would say day while pay says night (Q-OW4).", ar: "الحساب مقابل الوردية المعمولة فعلاً مع علامة وبلا تغيير الجدول: لم يُختر افتراضياً — يقول الجدول نهاراً والأجر ليلاً (Q-OW4)." },
+        { en: "Point to a self swap or employee swap (first version): not chosen — neither can move one person from one shift to another on the same date.", ar: "الإحالة إلى تبديل ذاتي أو تبديل موظفين (النسخة الأولى): لم يُختر — لا أحد منهما ينقل شخصاً من وردية إلى أخرى في التاريخ نفسه." }
       ]
     },
     {
       id: 'OW8', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
-      title: { en: "The import follows the same rules", ar: "الاستيراد يتبع القواعد نفسها" },
-      decision: { en: "Day-off rows are saved without a shift; rows that fit another shift on a planned day are listed as 'needs a swap' and not saved; a rerun after the swap saves them.", ar: "أسطر يوم الراحة تُحفظ بلا وردية؛ والأسطر التي تناسب وردية أخرى في يوم مخطط تُدرج 'تحتاج تبديلاً' ولا تُحفظ؛ وإعادة التشغيل بعد التبديل تحفظها." },
-      why: { en: "Typing and importing must give the same days.", ar: "الكتابة والاستيراد يجب أن يعطيا الأيام نفسها." },
+      title: { en: "The import follows the same rules (revised)", ar: "الاستيراد يتبع القواعد نفسها (معدّل)" },
+      decision: { en: "Day-off rows are saved without a shift; rows that need a shift change are listed in the preview with a Create shift changes button and not saved; a rerun after approval saves them.", ar: "أسطر يوم الراحة تُحفظ بلا وردية؛ والأسطر التي تحتاج تغيير وردية تُدرج في المعاينة مع زر «إنشاء طلبات تغيير الوردية» ولا تُحفظ؛ وإعادة التشغيل بعد الموافقة تحفظها." },
+      why: { en: "Typing and importing must give the same days, without retyping anything.", ar: "الكتابة والاستيراد يجب أن يعطيا الأيام نفسها، دون إعادة كتابة شيء." },
       alts: []
+    },
+    {
+      id: 'OW9', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "A new request kind: shift change", ar: "نوع طلب جديد: تغيير وردية" },
+      decision: { en: "On /changes, a shift change: one person, one date, from the planned shift to another, with a reason; pending → approve / reject / cancel like swaps. Approval writes one one-off roster row (roster_override). Migration: one value added to swap_kind.", ar: "في /changes، تغيير وردية: شخص واحد، تاريخ واحد، من الوردية المخططة إلى أخرى، مع سبب؛ معلّق ← موافقة / رفض / إلغاء مثل التبديل. الموافقة تكتب صف جدول لمرة واحدة (roster_override). الترحيل: قيمة واحدة تُضاف إلى swap_kind." },
+      why: { en: "Reuses the swap flow and the existing one-off table; the roster then says what really happened.", ar: "يعيد استخدام مسار التبديل والجدول الموجود؛ فيقول الجدول ما حدث فعلاً." },
+      alts: [
+        { en: "A direct roster edit with no request: not chosen — no approval step and no trail like the swaps have.", ar: "تعديل مباشر للجدول بلا طلب: لم يُختر — لا خطوة موافقة ولا أثر كما في التبديل." },
+        { en: "An exchange between two people in one request: not built first — added only if HR needs it (Q-OW8).", ar: "تبادل بين شخصين في طلب واحد: لا يُبنى أولاً — يُضاف فقط إن احتاجته الموارد البشرية (Q-OW8)." }
+      ]
+    },
+    {
+      id: 'OW10', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "When a pair needs a shift change", ar: "متى يحتاج الزوج تغيير وردية" },
+      decision: { en: "Both times inside the planned shift's window: planned. Else both inside another shift's window: needs a shift change. Else the planned shift with today's outside-window warning. One rule for typing and import (the import's chooseShift).", ar: "الوقتان داخل نافذة الوردية المخططة: مخطط. وإلا فداخل نافذة وردية أخرى: يحتاج تغيير وردية. وإلا فالوردية المخططة مع تحذير «خارج النافذة» الحالي. قاعدة واحدة للكتابة والاستيراد (chooseShift في الاستيراد)." },
+      why: { en: "A very late arrival on the right shift stays late and is never mistaken for a shift change.", ar: "المتأخر جداً على ورديته الصحيحة يبقى متأخراً ولا يُظن تغيير وردية." },
+      alts: [
+        { en: "'Fits another shift better' by distance only: not chosen — an 11:30 arrival on a day shift could be read as another shift.", ar: "«تناسب وردية أخرى أكثر» بالمسافة فقط: لم يُختر — قد يُقرأ حضور 11:30 في وردية نهارية كوردية أخرى." }
+      ]
+    },
+    {
+      id: 'OW11', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "A night shift ending on a day off counts for the night's date", ar: "وردية الليل المنتهية في يوم راحة تُحسب لتاريخ الليلة" },
+      decision: { en: "Monday 20:00 → Tuesday 08:00 with Tuesday off: every minute counts for Monday; Tuesday stays off with no day-off work, no flag and no overtime. Staying later is Monday's ordinary overtime by Monday's pattern. A holiday after midnight changes nothing (holiday_split = False).", ar: "الاثنين 20:00 ← الثلاثاء 08:00 والثلاثاء راحة: كل دقيقة تُحسب للاثنين؛ ويبقى الثلاثاء راحة بلا عمل يوم راحة ولا علامة ولا إضافي. والبقاء بعد ذلك إضافي عادي للاثنين حسب نمطه. والعطلة بعد منتصف الليل لا تغيّر شيئاً (holiday_split = False)." },
+      why: { en: "The person worked one planned shift; the calendar date of its morning hours is not a second working day (brief §9.1: attribution = start date).", ar: "عمل الشخص وردية مخططة واحدة؛ وتاريخ ساعات صباحها ليس يوم عمل ثانياً (الموجز §9.1: النسبة لتاريخ البداية)." },
+      alts: [
+        { en: "Count the hours after midnight as day-off work on Tuesday: not chosen — pays overtime for a normal planned shift (Q-OW9).", ar: "حساب الساعات بعد منتصف الليل عمل يوم راحة يوم الثلاثاء: لم يُختر — يدفع إضافياً عن وردية مخططة عادية (Q-OW9)." }
+      ]
+    },
+    {
+      id: 'OW12', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "The end of a night is never day-off work", ar: "نهاية الليلة ليست عمل يوم راحة أبداً" },
+      decision: { en: "On an off day, a time inside the previous day's planned night window is never day-off work. Typing: refused with a link to the previous day. Import: joined to the night (a check-out-only row closes the open check-in; a midnight split within 2 minutes becomes one pair), shown as 'joined to the previous night'.", ar: "في يوم الراحة، الوقت الواقع داخل نافذة وردية الليل المخططة لليوم السابق ليس عمل يوم راحة أبداً. الكتابة: يُرفض مع رابط إلى اليوم السابق. الاستيراد: يُضم إلى الليلة (سطر خروج فقط يغلق الدخول المفتوح؛ والانقسام عند منتصف الليل بفارق دقيقتين أو أقل يصبح زوجاً واحداً)، ويظهر «ضُمّ إلى الليلة السابقة»." },
+      why: { en: "Without it, the 'no shift on a day off' rule would turn the morning of a night into paid day-off work.", ar: "بدونه تحوّل قاعدة «بلا وردية في يوم الراحة» صباح الليلة إلى عمل يوم راحة مدفوع." },
+      alts: [
+        { en: "Move typed times to the previous day automatically: not chosen by default — a typing mistake should be seen, not silently moved (Q-OW11).", ar: "نقل الأوقات المكتوبة إلى اليوم السابق تلقائياً: لم يُختر افتراضياً — خطأ الكتابة يجب أن يُرى لا أن يُنقل بصمت (Q-OW11)." }
+      ]
+    },
+    {
+      id: 'OW13', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      title: { en: "Partial leave on a night shift belongs to the night's date", ar: "الإجازة الجزئية في وردية ليل تتبع تاريخ الليلة" },
+      decision: { en: "Leave 04:00–08:00 on a Monday night that ends on an off Tuesday is recorded on Monday, counted there (240 min, no early leave) and allowed although Tuesday is off. Built in the hourly-leave plan (HL3 clarified, test H14).", ar: "إجازة 04:00–08:00 في ليلة اثنين تنتهي في ثلاثاء راحة تُسجل على الاثنين وتُحسب هناك (240 دقيقة، بلا خروج مبكر) ويُسمح بها رغم أن الثلاثاء راحة. تُبنى في خطة الإجازة الساعية (توضيح HL3، الاختبار H14)." },
+      why: { en: "The leave is part of Monday's shift; refusing it because Tuesday is off would be wrong.", ar: "الإجازة جزء من وردية الاثنين؛ ورفضها لأن الثلاثاء راحة خطأ." },
+      alts: [
+        { en: "Build partial leave inside this plan: not chosen — it has its own plan with its own questions; this plan only makes sure the night case works.", ar: "بناء الإجازة الجزئية داخل هذه الخطة: لم يُختر — لها خطتها وأسئلتها؛ وهذه الخطة تضمن فقط عمل حالة الليل." }
+      ]
     },
     {
       id: 'JB1', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
@@ -2398,7 +2445,7 @@
     {
       id: 'HL3', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
       title: { en: "Only inside a planned shift, never the whole shift", ar: "داخل وردية مخططة فقط، وليس الوردية كلها" },
-      decision: { en: "Refused on off days, holidays, days with a full-day state and outside the shift window; a range covering the whole required time is refused with \"use a full-day state\".", ar: "تُرفض في أيام العطلة والأعياد والأيام ذات الحالة الكاملة وخارج نافذة الوردية؛ والمدة التي تغطي كامل الوقت المطلوب تُرفض مع «استخدم حالة يوم كامل»." },
+      decision: { en: "Refused on off days, holidays, days with a full-day state and outside the shift window; a range covering the whole required time is refused with \"use a full-day state\". The shift date decides, not the calendar date of the hours: leave on Tuesday morning inside Monday's night is allowed even when Tuesday is off (OW13, added 2026-11-09).", ar: "تُرفض في أيام العطلة والأعياد والأيام ذات الحالة الكاملة وخارج نافذة الوردية؛ والمدة التي تغطي كامل الوقت المطلوب تُرفض مع «استخدم حالة يوم كامل». تاريخ الوردية هو الحاكم لا تاريخ الساعات: إجازة صباح الثلاثاء داخل ليلة الاثنين مسموحة ولو كان الثلاثاء راحة (OW13، أُضيف 2026-11-09)." },
       why: { en: "One clear meaning per day; a full day already has its own state.", ar: "معنى واحد واضح لكل يوم؛ لليوم الكامل حالته الخاصة أصلاً." },
       alts: [
         { en: "Allow it anywhere and let the engine ignore the rest: not chosen — HR would record leave that counts for nothing without noticing.", ar: "السماح بها في أي وقت وترك المحرك يتجاهل الباقي: لم يُختر — ستسجل الموارد البشرية إجازة لا تُحتسب دون أن تنتبه." }
@@ -2825,10 +2872,15 @@
     ["Q-OW1", "No shift only on days without a planned shift, or on every day?", "only days without a planned shift (OW1)", "بلا وردية فقط في الأيام بلا وردية مخططة أم في كل يوم؟", "فقط الأيام بلا وردية مخططة (OW1)"],
     ["Q-OW2", "Screen name for it: 'Day-off work'?", "yes", "اسمه على الشاشة: 'عمل يوم راحة'؟", "نعم"],
     ["Q-OW3", "A night of day-off work stays on the date it started?", "yes (OW3)", "ليلة عمل يوم راحة تبقى على تاريخ بدايتها؟", "نعم (OW3)"],
-    ["Q-OW4", "Another shift on a planned day: refuse until a swap, or calculate against the shift worked?", "refuse + link to the swap form (OW7)", "وردية أخرى في يوم مخطط: رفض حتى التبديل أم حساب مقابل الوردية المعمولة؟", "رفض + رابط لنموذج التبديل (OW7)"],
+    ["Q-OW4", "Another shift on a planned day: refuse until a shift change is approved, or calculate against the shift worked?", "refuse + Shift change button (OW7, OW9)", "وردية أخرى في يوم مخطط: رفض حتى الموافقة على تغيير الوردية أم حساب مقابل الوردية المعمولة؟", "رفض + زر تغيير الوردية (OW7، OW9)"],
     ["Q-OW5", "Work on a swap-off day: today's flag or its own flag?", "its own flag", "العمل في يوم إجازة تبديل: العلامة الحالية أم علامة خاصة؟", "علامة خاصة"],
     ["Q-OW6", "Payroll export: own column for day-off work hours?", "yes, beside overtime", "تصدير الرواتب: عمود خاص لساعات عمل يوم الراحة؟", "نعم، بجانب الإضافي"],
-    ["Q-OW7", "Move punches already saved on a made-up shift on a day off to 'no shift'?", "no; new punches only", "نقل البصمات المحفوظة بوردية مختلقة في يوم راحة إلى 'بلا وردية'؟", "لا؛ البصمات الجديدة فقط"]
+    ["Q-OW7", "Move punches already saved on a made-up shift on a day off to 'no shift'?", "no; new punches only", "نقل البصمات المحفوظة بوردية مختلقة في يوم راحة إلى 'بلا وردية'؟", "لا؛ البصمات الجديدة فقط"],
+    ["Q-OW8", "The 2 October night rows: an exchange with a colleague, or did the person just work the night?", "one-person shift change (OW9); exchange only if needed", "سطرا الليل في تشرين الأول: تبادل مع زميل أم عمل الشخص الليلة فقط؟", "تغيير وردية لشخص واحد (OW9)؛ والتبادل عند الحاجة فقط"],
+    ["Q-OW9", "Night ending on a day off, person stays to 09:00: Monday's ordinary overtime or day-off rate?", "Monday's ordinary overtime (OW11)", "ليلة تنتهي في يوم راحة والشخص يبقى حتى 09:00: إضافي عادي للاثنين أم أجر يوم راحة؟", "إضافي عادي للاثنين (OW11)"],
+    ["Q-OW10", "Night ending on a holiday: hours after midnight stay ordinary?", "yes (holiday_split = False)", "ليلة تنتهي في عطلة: الساعات بعد منتصف الليل تبقى عادية؟", "نعم (holiday_split = False)"],
+    ["Q-OW11", "A typed time on the off day that belongs to the previous night: refuse with a link, or move it automatically?", "refuse with a link; the import joins automatically (OW12)", "وقت مكتوب في يوم الراحة يتبع الليلة السابقة: رفض مع رابط أم نقل تلقائي؟", "رفض مع رابط؛ والاستيراد يضم تلقائياً (OW12)"],
+    ["Q-OW12", "Approve the hourly-leave plan with its defaults and build it right after this one?", "yes (OW13)", "الموافقة على خطة الإجازة الساعية بافتراضاتها وبناؤها بعد هذه مباشرة؟", "نعم (OW13)"]
   ];
 
   function el(tag, attrs, children) {

@@ -62,7 +62,7 @@ numbers G2, G6, G7).
 |---|---|---|
 | HL1 | **A new table `hourly_leave`**, not more columns on `absence`: one row per range, `starts_at`/`ends_at` as `timestamptz`, `paid boolean`, a reason, cancelled never deleted (Q-HL1) | `absence` is day-granular with a per-date `EXCLUDE`; mixing time ranges into it would break that rule and every reader of it. Times as `timestamptz` (CLAUDE.md §6.4), overnight shifts included |
 | HL2 | **Entered as a time range** (from–to, local time) on a shift date, **not as a number of minutes** (Q-HL2) | The range tells the engine whether it covers the late start, the early end or the middle, so lateness and early leave are measured correctly; HR reads "10:00–12:00", not "120" |
-| HL3 | **Only on a planned work day, inside the planned shift window.** Refused on off days, holidays, days with a full-day state, and outside the shift. A range that covers the **whole** required time is refused with "use a full-day state instead" | One clear meaning per day; a full day already has its own state (PR19) |
+| HL3 | **Only on a planned work day, inside the planned shift window.** Refused on off days, holidays, days with a full-day state, and outside the shift. A range that covers the **whole** required time is refused with "use a full-day state instead" **The shift date decides, not the calendar date of the hours** (added 2026-11-09, off-day-work plan OW13): on a Monday 20:00 → Tuesday 08:00 night, leave 04:00–08:00 is recorded on Monday and allowed even when Tuesday is an off day | One clear meaning per day; a full day already has its own state (PR19); a night's morning hours are part of the night |
 | HL4 | **Several ranges per day are allowed if they don't overlap** (`EXCLUDE` on `tstzrange` per person among active rows), minimum **15 minutes** each (Q-HL3) | Morning errand plus an afternoon appointment is real; overlaps would double count |
 | HL5 | **If the roster changes after the leave was recorded** (day becomes off, a full-day state is set, the shift moves), the row stays but counts only its minutes inside the new shift window (often 0), and the day gets a "Hourly leave outside the shift" tag | Rows are never edited by side effects (R17: regeneration keeps manual work); HR sees and fixes it |
 | HL6 | **Lateness and early leave are measured around the leave:** a range starting at the shift start moves the expected arrival to its end; a range ending at the shift end moves the expected departure to its start. Grace (R5) applies after that | 08:00 shift, leave 08:00–10:00, check-in 10:05 → late 5 (within grace), not 125 |
@@ -126,6 +126,7 @@ Migrations go to `attendance_app_test` and `attendance_app_e2e` without asking, 
 | H11 | No leave, in 08:00, out 19:30 | early leave 30 (new column), short true |
 | H12 | Paid 08:00–09:00 and 09:00–10:00 (touching), in 10:00 | arrival moved to 10:00, late 0 |
 | H13 | Golden G2 / G6 / G7 re-expressed with paid hourly leave | the minutes S4.1 needs are on the day (contract test for Lane C) |
+| H14 | Night shift 20:00–08:00 on Mon, **Tue is an off day**; paid 04:00–08:00, out 04:00 | allowed and stored on Mon; counted 240, early leave 0, OT 0; Tue stays `off` with nothing on it (off-day-work plan OW13, N9) |
 
 ## 6. Tasks
 
@@ -145,7 +146,7 @@ Migrations go to `attendance_app_test` and `attendance_app_e2e` without asking, 
 ### Phase 2 · Engine (pure)
 - [ ] 2.1 `src/lib/leave/hourly.ts` (`countedRanges`, `leaveMinutes`, `expectedWindow`) and the
       `shiftSummary` / `dayResultOf` changes, `DAY_RESULT_ENGINE = 2`, `diffDayResult` tracks the
-      three new fields. **Done when** H1–H8, H11–H13 pass and the existing tests still pass.
+      three new fields. **Done when** H1–H8, H11–H14 pass and the existing tests still pass.
 - [ ] 2.2 `balance.ts` hours (HL9). **Done when** H9, H10 pass and T23/T24 still pass.
 - [ ] 2.3 Day tags `hourly_leave_paid`, `hourly_leave_unpaid`, `hourly_leave_outside_shift`,
       `worked_during_leave` (+ explanations, colour guide entries). **Done when** `day-tags.test.ts`
@@ -188,6 +189,8 @@ Migrations go to `attendance_app_test` and `attendance_app_e2e` without asking, 
   6. Night shift: add 02:00–04:00 on a 20:00–08:00 day → stored on that shift date.
   7. Paid hourly leave beyond the balance → warning, saved.
   8. `/ar/attendance/days` → the same section right to left, times in `<bdi>`.
+  9. Night shift ending on an off day (Mon 20:00 → Tue 08:00, Tue off): add 04:00–08:00 on Monday
+     → saved on Monday, no early leave; Tuesday still shows an off day with nothing on it.
 
 ## 7. Questions for the user (defaults in **bold**)
 

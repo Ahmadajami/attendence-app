@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Outside the Roster</title>
+<!--
+  Plain-English explainer for plans/2026-11-09-off-day-work-and-shift-changes.md (the URGENT plan).
+  Self-contained: no external fonts, scripts or CDNs (CLAUDE.md §1). Made-up examples only.
+-->
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --app: #1f6f8b; --app-soft: #e3f1f6;
+    --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5; --plum: #714b67; --plum-soft: #f1e9ef;
+    --track: #e7ebf1; --off: #eef0f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --app: #6cc3df; --app-soft: #16303a;
+      --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+      --track: #2a313d; --off: #222833;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+    --app: #6cc3df; --app-soft: #16303a;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+    --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+    --track: #2a313d; --off: #222833;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 30px; line-height: 1.25; margin: 8px 0 6px; }
+  h2 { font-size: 23px; line-height: 1.3; margin: 40px 0 10px; }
+  h3 { font-size: 18px; margin: 18px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0; padding-inline-start: 22px; }
+  li { margin: 4px 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85em;
+    background: var(--app-soft); padding: 0 4px; border-radius: 4px; overflow-wrap: anywhere; }
+  .muted { color: var(--muted); }
+  .lead { font-size: 19px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 14px 0; }
+  .tag { display: inline-block; font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+  .t-urgent { background: var(--bad-soft); color: var(--bad); }
+  .t-new { background: var(--plum-soft); color: var(--plum); }
+  .t-ok { background: var(--ok-soft); color: var(--ok); }
+  .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--app); color: #fff; font-weight: 700; margin-inline-end: 8px; flex: none; }
+  .case-h { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin: 0 0 4px; }
+  .case-h h2 { margin: 0; font-size: 21px; }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+  .box { border-radius: 12px; padding: 10px 12px; font-size: 15.5px; }
+  .box b.h { display: block; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .b-today { background: var(--app-soft); }
+  .b-today b.h { color: var(--app); }
+  .b-wrong { background: var(--bad-soft); }
+  .b-wrong b.h { color: var(--bad); }
+  .b-fix { background: var(--ok-soft); }
+  .b-fix b.h { color: var(--ok); }
+
+  /* timeline */
+  .tl { margin: 14px 0 4px; }
+  .tl-row { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: center; margin: 6px 0; }
+  .tl-row > span { font-size: 13px; color: var(--muted); text-align: end; }
+  .lane { position: relative; height: 26px; background: var(--track); border-radius: 6px; overflow: hidden; }
+  .seg { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; }
+  .s-plan { background: var(--app); }
+  .s-work { background: var(--ok); }
+  .s-leave { background: var(--plum); }
+  .s-bad { background: var(--bad); }
+  .s-off { background: repeating-linear-gradient(45deg, var(--off), var(--off) 6px, var(--track) 6px, var(--track) 12px);
+    color: var(--muted); }
+  .midnight { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); opacity: .55; }
+  .axis { position: relative; height: 20px; margin-inline-start: 100px; font-size: 12px; color: var(--muted); }
+  .axis i { position: absolute; transform: translateX(-50%); font-style: normal; white-space: nowrap; }
+  .days { position: relative; height: 20px; margin-inline-start: 100px; font-size: 12.5px; font-weight: 700; }
+  .days i { position: absolute; font-style: normal; }
+  @media (max-width: 520px) {
+    .tl-row { grid-template-columns: 64px 1fr; }
+    .axis, .days { margin-inline-start: 72px; }
+    .seg { font-size: 10.5px; }
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15.5px; }
+  th, td { text-align: start; padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border-top: 0; }
+  .table-wrap { overflow-x: auto; }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 8px; margin: 10px 0; }
+  .steps li::before { content: counter(s); display: grid; place-items: center; width: 28px; height: 28px;
+    border-radius: 50%; background: var(--app-soft); color: var(--app); font-weight: 700; }
+  .rec { border-inline-start: 4px solid var(--ok); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--muted); margin-top: 6px; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+    margin-inline-end: 6px; vertical-align: -1px; background: var(--c); }
+</style>
+</head>
+<body>
+<main>
+  <p class="muted">Attendance App · plan <code>plans/2026-11-09-off-day-work-and-shift-changes.md</code> · 2026-11-09</p>
+  <h1>Work outside the roster, explained simply</h1>
+  <p class="lead">Sometimes people don't work exactly what the roster says. This page shows the
+  <strong>four situations</strong> the urgent plan fixes. For each one: what the app does today, what
+  goes wrong, and what I recommend.</p>
+  <p><span class="tag t-urgent">URGENT</span> This plan must be finished before the October punches for
+  the Operations team are imported.</p>
+
+  <div class="card">
+    <b>How to read the pictures</b>
+    <div class="legend">
+      <span style="--c: var(--app)">the roster's plan</span>
+      <span style="--c: var(--ok)">hours worked</span>
+      <span style="--c: var(--plum)">partial leave</span>
+      <span style="--c: var(--bad)">counted wrongly</span>
+      <span style="--c: var(--track)">day off (striped)</span>
+    </div>
+    <p class="muted" style="margin-bottom:0">The dark line is midnight. The examples are made up: a day shift is
+    08:00–20:00 and a night shift is 20:00–08:00 (12 hours each).</p>
+  </div>
+
+  <!-- 1 -->
+  <section class="card">
+    <div class="case-h"><span class="num">1</span><h2>Working on a day off</h2></div>
+    <p>Tuesday is the person's day off, but they came in and worked from 13:00 to 19:45.</p>
+    <div class="tl">
+      <div class="days"><i style="inset-inline-start:0">Tuesday (day off)</i></div>
+      <div class="tl-row"><span>Roster</span><div class="lane"><div class="seg s-off" style="inset-inline-start:0;width:100%">day off</div></div></div>
+      <div class="tl-row"><span>Worked</span><div class="lane"><div class="seg s-work" style="inset-inline-start:38.9%;width:37.5%">13:00–19:45</div></div></div>
+      <div class="axis"><i style="inset-inline-start:11.1%">08:00</i><i style="inset-inline-start:38.9%">13:00</i><i style="inset-inline-start:77.8%">20:00</i></div>
+    </div>
+    <div class="cols">
+      <div class="box b-today"><b class="h">Today</b>The app makes you pick a shift for every punch, so you must choose one nobody worked.</div>
+      <div class="box b-wrong"><b class="h">What goes wrong</b>The screens show a shift name that is not true. The pay is right, but only by luck.</div>
+      <div class="box b-fix"><b class="h">Recommended</b>Save it with <b>no shift</b>. The screens say <b>"Day-off work 13:00–19:45, 6 h 45 min"</b>. The pay stays exactly the same.</div>
+    </div>
+    <p class="muted">"No shift" is allowed only on a day with no planned shift (a day off, a swap-off day or a holiday). A normal work day still needs a shift.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="card">
+    <div class="case-h"><span class="num">2</span><h2>Working a different shift on a work day</h2></div>
+    <p>The roster says <b>day shift</b> on Monday, but the person worked the <b>night shift</b>.</p>
+    <div class="tl">
+      <div class="days"><i style="inset-inline-start:0">Monday</i><i style="inset-inline-start:57%">Tuesday</i></div>
+      <div class="tl-row"><span>Roster</span><div class="lane"><div class="seg s-plan" style="inset-inline-start:6.25%;width:37.5%">day shift 08–20</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="tl-row"><span>Worked</span><div class="lane"><div class="seg s-work" style="inset-inline-start:43.75%;width:37.5%">20:00–08:00</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="tl-row"><span>Today</span><div class="lane"><div class="seg s-bad" style="inset-inline-start:6.25%;width:37.5%">"12 hours late"</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="axis"><i style="inset-inline-start:6.25%">08:00</i><i style="inset-inline-start:43.75%">20:00</i><i style="inset-inline-start:56.25%">00:00</i><i style="inset-inline-start:81.25%">08:00</i></div>
+    </div>
+    <div class="cols">
+      <div class="box b-today"><b class="h">Today</b>The app compares the 20:00 check-in with the planned 08:00 start.</div>
+      <div class="box b-wrong"><b class="h">What goes wrong</b>The person shows as <b>720 minutes late</b>, which is false. And the existing swaps can't fix it: they move days off, not shifts.</div>
+      <div class="box b-fix"><b class="h">Recommended</b>The app stops and says <b>"These times fit the night shift, not the planned day shift."</b> A <b>Shift change</b> button opens a new request, already filled in. You approve it and the punches save as a night shift: <b>late 0</b>.</div>
+    </div>
+    <p class="muted">A person who is simply very late on their own shift (in at 11:30 on a day shift) is <b>not</b> treated as a shift change. They stay late, as they should. The rule: only when <i>both</i> times fit another shift and not the planned one.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="card">
+    <div class="case-h"><span class="num">3</span><h2>A night shift that ends on a day off</h2><span class="tag t-new">your new case</span></div>
+    <p>Monday night shift from 20:00 to Tuesday 08:00. <b>Tuesday is the person's day off.</b></p>
+    <div class="tl">
+      <div class="days"><i style="inset-inline-start:0">Monday</i><i style="inset-inline-start:57%">Tuesday (day off)</i></div>
+      <div class="tl-row"><span>Roster</span><div class="lane"><div class="seg s-off" style="inset-inline-start:56.25%;width:43.75%"></div><div class="seg s-plan" style="inset-inline-start:43.75%;width:37.5%">night shift</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="tl-row"><span>Worked</span><div class="lane"><div class="seg s-work" style="inset-inline-start:43.75%;width:37.5%">20:00–08:00</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="tl-row"><span>Counts for</span><div class="lane"><div class="seg s-work" style="inset-inline-start:43.75%;width:37.5%">all Monday · 12 h · OT 0</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="axis"><i style="inset-inline-start:43.75%">20:00</i><i style="inset-inline-start:56.25%">00:00</i><i style="inset-inline-start:81.25%">08:00</i></div>
+    </div>
+    <div class="cols">
+      <div class="box b-today"><b class="h">Today</b>Correct when typed: the whole night is saved on Monday, so Tuesday stays an empty day off with no overtime. (I checked this in the code.)</div>
+      <div class="box b-wrong"><b class="h">What could go wrong</b>The new "no shift on a day off" rule could read Tuesday 00:00–08:00 as <b>day-off work</b> and pay it as overtime. Punch files often split a night at midnight, which is exactly how this would happen.</div>
+      <div class="box b-fix"><b class="h">Recommended</b>A night shift <b>always belongs to the day it starts</b>. The morning hours on Tuesday count for Monday. Tuesday shows <b>nothing</b>: no day-off work, no flag, no overtime.</div>
+    </div>
+    <h3>The details</h3>
+    <ul>
+      <li><b>Overtime:</b> 12 hours worked on a 12-hour shift is <b>0 overtime</b>. If they stay until 09:00, that extra hour is <b>Monday's normal overtime</b> (by Monday's pay rules), not day-off pay.</li>
+      <li><b>Typing:</b> if someone types 00:00–08:00 on Tuesday by mistake, the app refuses: <i>"This belongs to Monday's night shift."</i> A link opens Monday.</li>
+      <li><b>Import:</b> if the file has a Tuesday row with only the 08:00 check-out, or splits the night at midnight, the app <b>joins it to Monday's night</b> and shows this in the preview.</li>
+      <li><b>Holiday:</b> if Tuesday is a holiday instead of a day off, the Monday night hours still count as normal hours.</li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section class="card">
+    <div class="case-h"><span class="num">4</span><h2>Partial leave on that night</h2><span class="tag t-new">your new case</span></div>
+    <p>Same Monday night shift, Tuesday off. The person <b>leaves at 04:00</b> with permission: partial leave 04:00–08:00.</p>
+    <div class="tl">
+      <div class="days"><i style="inset-inline-start:0">Monday</i><i style="inset-inline-start:57%">Tuesday (day off)</i></div>
+      <div class="tl-row"><span>Roster</span><div class="lane"><div class="seg s-off" style="inset-inline-start:56.25%;width:43.75%"></div><div class="seg s-plan" style="inset-inline-start:43.75%;width:37.5%">night shift</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="tl-row"><span>Worked</span><div class="lane"><div class="seg s-work" style="inset-inline-start:43.75%;width:25%">20:00–04:00</div><div class="seg s-leave" style="inset-inline-start:68.75%;width:12.5%">leave</div><div class="midnight" style="inset-inline-start:56.25%"></div></div></div>
+      <div class="axis"><i style="inset-inline-start:43.75%">20:00</i><i style="inset-inline-start:56.25%">00:00</i><i style="inset-inline-start:68.75%">04:00</i><i style="inset-inline-start:81.25%">08:00</i></div>
+    </div>
+    <div class="cols">
+      <div class="box b-today"><b class="h">Today</b>Partial leave doesn't exist yet. It has its own plan (<code>2026-11-09-hourly-leave.md</code>), which is waiting for your answers.</div>
+      <div class="box b-wrong"><b class="h">What could go wrong</b>That plan only allows leave on a work day. Read too strictly, it would <b>refuse</b> this leave because 04:00–08:00 falls on Tuesday, a day off.</div>
+      <div class="box b-fix"><b class="h">Recommended</b>The leave is part of <b>Monday's shift</b>, so you add it on Monday. Monday shows 8 h worked plus 4 h leave, and <b>not</b> "left early". Tuesday stays empty.</div>
+    </div>
+    <p class="muted">I have already added this rule and a test for it to the partial-leave plan. If the leave is paid, it comes off the yearly balance as part of Monday: 4 h of a 12 h shift = 0.33 day.</p>
+  </section>
+
+  <h2>The new "Shift change" request</h2>
+  <p>This is the one new thing you will use. It works like the swaps you already have:</p>
+  <ol class="steps">
+    <li><div>On <b>Swaps</b> (<code>/changes</code>), choose <b>Shift change</b>: one person, one date, the new shift and a reason. Or click the <b>Shift change</b> button that appears when the app refuses a punch, and everything is filled in for you.</div></li>
+    <li><div>The request is <b>pending</b>. Approve it, or reject it with a note.</div></li>
+    <li><div>Once it is approved, the roster for that day says <b>night shift</b>, and the punches save with the right numbers.</div></li>
+    <li><div>Cancelling it puts the roster back. Every step shows in the day's History.</div></li>
+  </ol>
+  <p>For the October import, the preview lists the rows that need a shift change, with one button to create all those requests. You approve them, run the import again, and the rows save. Nothing is retyped.</p>
+
+  <h2>My recommendation, in short</h2>
+  <div class="card rec">
+    <ol>
+      <li><b>Day-off work</b> is saved with no shift and shown as "Day-off work". The pay doesn't change.</li>
+      <li><b>A different shift</b> on a work day is never shown as late. Fix the roster first with a <b>Shift change</b>, then the punches save.</li>
+      <li><b>A night shift belongs to the day it starts.</b> When the next day is a day off, that day stays empty, with no overtime.</li>
+      <li><b>Partial leave on a night</b> is entered on the night's day and counted there, even when its hours fall on a day off.</li>
+      <li>Build partial leave (its own plan) <b>right after</b> this plan.</li>
+    </ol>
+  </div>
+
+  <h2>What I need from you</h2>
+  <p>Answer each one, or just say <b>"all recommended"</b>.</p>
+  <div class="card table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Question</th><th>My recommendation</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Allow "no shift" only on days with no planned shift?</td><td>Yes, only those days</td></tr>
+        <tr><td>2</td><td>Call it "Day-off work" (Arabic «عمل يوم راحة») on the screens?</td><td>Yes</td></tr>
+        <tr><td>3</td><td>Night day-off work stays on the day it started?</td><td>Yes</td></tr>
+        <tr><td>4</td><td>A different shift on a work day: refuse until a shift change is approved?</td><td>Yes, refuse, with the Shift change button</td></tr>
+        <tr><td>5</td><td>Work on a swap-off day: its own warning, separate from "worked a day off"?</td><td>Yes, its own warning</td></tr>
+        <tr><td>6</td><td>Payroll export: day-off work hours in their own column?</td><td>Yes, next to overtime</td></tr>
+        <tr><td>7</td><td>Old test punches saved on a made-up shift: move them to "no shift"?</td><td>No, only new punches</td></tr>
+        <tr><td>8</td><td>The 2 October night rows: did a colleague take the person's day shift in exchange, or did the person just work the night?</td><td>Treat it as a one-person shift change. Add exchanges only if you need them</td></tr>
+        <tr><td>9</td><td>Night shift ending on a day off, person stays until 09:00: is that extra hour Monday's normal overtime?</td><td>Yes, Monday's normal overtime</td></tr>
+        <tr><td>10</td><td>Night shift ending on a holiday: the hours after midnight stay normal?</td><td>Yes</td></tr>
+        <tr><td>11</td><td>A time typed on the day off that belongs to the night before: refuse with a link, or move it automatically?</td><td>Refuse with a link (the import joins it automatically)</td></tr>
+        <tr><td>12</td><td>Approve the partial-leave plan with its defaults and build it right after this one?</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Order of work</h2>
+  <ol class="steps">
+    <li><div><b>Storage and calculation:</b> allow "no shift" and keep the pay numbers the same. Tests for all four situations.</div></li>
+    <li><div><b>Shift change request</b> on the Swaps page.</div></li>
+    <li><div><b>Typing:</b> the "No shift (day-off work)" option, the refusal with the Shift change button, and the night-shift guard.</div></li>
+    <li><div><b>Import:</b> the same rules, the "needs a shift change" list and joining split nights. Then the payroll column.</div></li>
+    <li><div><b>Your check</b> on the test server. After that, the October import comes off hold.</div></li>
+    <li><div><b>Partial leave</b> (its own plan), including the night-shift case above.</div></li>
+  </ol>
+  <p class="muted">The exact rules (OW1–OW13), the tests (N1–N11) and the task list are in the plan. Every decision with its reasons is in <code>docs/decisions.html</code>.</p>
+</main>
+</body>
+</html>

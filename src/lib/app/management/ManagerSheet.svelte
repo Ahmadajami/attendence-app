@@ -3,12 +3,12 @@
 	import { fieldProxy, superForm, type Infer, type SuperValidated } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
+	import PersonSelect from '#lib/app/people/PersonSelect.svelte';
 	import { formatCalendarDate } from '#lib/app/roster/labels.js';
 	import { addDays } from '#lib/roster/cycle.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import * as Select from '#lib/components/ui/select/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
@@ -86,13 +86,15 @@
 		});
 	});
 
-	/** "No manager" is only an item inside the select; the form posts '' (CLAUDE.md §3, Select). */
-	const staffValue = $derived($formData.staffId || 'none');
-
-	function personLabel(id: string): string {
-		const person = people.find((p) => p.id === id);
-		return person ? `${personName(person)} · ${person.employeeNo}` : m.departments_no_manager();
-	}
+	/** The people as the picker lists them. */
+	const options = $derived(
+		people.map(({ id, employeeNo, fullName, fullNameAr }) => ({
+			staffId: id,
+			employeeNo,
+			fullName,
+			fullNameAr
+		}))
+	);
 </script>
 
 <Sheet.Root bind:open>
@@ -113,22 +115,14 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>{m.departments_field_manager()}</Form.Label>
-						<input type="hidden" name={props.name} value={$formData.staffId} />
-						<Select.Root
-							type="single"
-							value={staffValue}
-							onValueChange={(value) => ($formData.staffId = value === 'none' ? '' : value)}
-						>
-							<Select.Trigger {...props} class="w-full">
-								{staffValue === 'none' ? m.departments_no_manager() : personLabel(staffValue)}
-							</Select.Trigger>
-							<Select.Content>
-								<Select.Item value="none" label={m.departments_no_manager()} />
-								{#each people as person (person.id)}
-									<Select.Item value={person.id} label={personLabel(person.id)} />
-								{/each}
-							</Select.Content>
-						</Select.Root>
+						<!-- "No manager" posts '' (the picker's hidden input). -->
+						<PersonSelect
+							{...props}
+							{options}
+							bind:value={$formData.staffId}
+							noneLabel={m.departments_no_manager()}
+							class="w-full"
+						/>
 					{/snippet}
 				</Form.Control>
 				<Form.Description>{m.management_no_manager_hint()}</Form.Description>

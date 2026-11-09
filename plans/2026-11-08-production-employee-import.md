@@ -1,6 +1,6 @@
 # Employee import from HR's reconciled workbook into the local real-data DB
 
-**Status:** in progress (approved 2026-11-08 with every default kept; **imported 2026-11-08**: 310 people, re-run = 0 changes; waiting for the user's manual check 3.5 and the Desktop clean-up 0.2)
+**Status:** in progress (approved 2026-11-08; imported 2026-11-08; **clean slate and re-import 2026-11-09**: the DB holds only the 310 people from the workbook; waiting for the user's manual check 3.5 and the Desktop clean-up 0.2)
 **Date:** 2026-11-08
 **Goal:** Load every employee in HR's reconciled workbook `ready_to_import.xlsx` (sheet
 `Employees`, 310 rows) **correctly** into the real-data DB **`attendance_app` on the user's PC**,
@@ -316,18 +316,41 @@ container. Nothing is deployed or exposed.
       export has 273 IDs: 190 match an HR ID, 195 match a badge, 76 match neither), and
       historical punches (S1.3) matched through `legacy_badge_no`.
 
-## 5. Manual check (the user, on `http://127.0.0.1:5173` after 3.2)
+### Phase 5: clean slate and re-import (user request 2026-11-09, EI15)
 
-1. `/employees`: the list shows 318 people (8 test + 310). The status filter "inactive" shows
+The user asked to remove everything the import added, the hand-made test employees and the
+whole hierarchy, then import again, so `attendance_app` holds only the workbook's people.
+
+- [x] 5.1 Delete, in one transaction (SQL in the agent's scratchpad, not versioned): team
+      memberships, pattern assignments, own rules (`staff_schedule`), staff documents, department
+      manager rows, team supervisors, **all staff**, teams, departments (children first), job
+      titles. One `audit_log` row `data.reset` holds the counts. **Kept:** accounts, roles and
+      permissions, settings, shifts, patterns (now unassigned), the lookup lists (`staff_function`,
+      `document_type`) and the existing `audit_log` history.
+      > note: 2026-11-09 removed staff 318 (310 imported + 8 test), department 25, team 28,
+      > job_title 26, memberships 265, pattern_assignment 3, staff_schedule 5, staff_document 1,
+      > department_manager 1. Afterwards all nine are 0; shift 4, pattern 2, user 1,
+      > staff_function 4 unchanged.
+- [x] 5.2 Re-import: dry run, `--commit`, re-run (reports `report-2-*.csv` in the secure folder).
+      > note: 2026-11-09 dry run = commit: 23 departments, **27 teams** (no test `HR` to reuse any
+      > more), 23 job titles, 310 staff (278 active, 32 inactive), 257 memberships, 383 audit rows,
+      > 0 warnings, 0 people in a group with a pattern assignment. Re-run: 0 created, 0 updated,
+      > 310 unchanged. DB: staff 310, active 278, badge 302, with team 257, with department 254,
+      > with job 224, with start date 256; departments 23 (8 roots), teams 27, job titles 23, open
+      > memberships 257.
+
+## 5. Manual check (the user, on `http://127.0.0.1:5173`, after the Phase 5 re-import)
+
+1. `/employees`: the list shows 310 people. The status filter "inactive" shows
    the 32 `Odoo only` rows (Q-EI2).
 2. Open three employees: one from `Both`, one from `All Staff only` without a badge, one
    `Odoo only`. Each shows its number without a dash, its names, department, team, job title
    and start date as in the file.
-3. `/departments`: the tree shows `Station Damascus` and `Station Aleppo` with their children,
-   plus `Operations` and `Human Resources` next to the test departments, and no duplicated roots.
-4. `/teams`: 28 teams (2 test + 26 new, fewer after Q-EI5), `HR` not duplicated; a team's
-   member count matches the file.
-5. The test `Operation` team and department: same members as before, no imported person added.
+3. `/departments`: 8 top-level departments (`Station Damascus`, `Station Aleppo`, `Operations`,
+   `Human Resources`, `IT`, `Finance`, `Commercial`, `Quality Assurance`) and 15 children; no
+   test departments left.
+4. `/teams`: 27 teams, `HR` once; a team's member count matches the file.
+5. `/patterns`: the 2 old test patterns are still there but assigned to nobody.
 6. `/ar/employees` and `/ar/departments`: right to left, Arabic names shown, no English-only
    lookup names where Q-EI9 gave a translation.
 7. Create one new employee by hand: the generated number follows Q-EI8. Then deactivate

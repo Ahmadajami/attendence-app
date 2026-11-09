@@ -1,7 +1,15 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq, isNotNull } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
-import { custodyItemType, documentType, jobTitle, skill } from '#lib/server/db/schema/index.js';
+import {
+	custodyItemType,
+	documentType,
+	jobTitle,
+	skill,
+	staff,
+	team
+} from '#lib/server/db/schema/index.js';
 import type { StaffListKind } from '#lib/schemas/staff-lists.schema.js';
+import type { JobHolder } from '#lib/types/jobs.js';
 import type { StaffListOption } from '#lib/types/profile.js';
 import type { BatchQuery } from '../common.js';
 
@@ -19,6 +27,48 @@ export async function listJobTitles(): Promise<StaffListItem[]> {
 		.from(jobTitle)
 		.orderBy(asc(jobTitle.nameEn));
 	return rows.map((row) => ({ ...row, required: false }));
+}
+
+/** Everyone who holds a job title, active or not, with their current team (jobs plan JB7). */
+export async function listJobTitleHolders(): Promise<JobHolder[]> {
+	const rows = await db
+		.select({
+			id: staff.id,
+			jobTitleId: staff.jobTitleId,
+			employeeNo: staff.employeeNo,
+			fullName: staff.fullName,
+			fullNameAr: staff.fullNameAr,
+			active: staff.active,
+			teamNameEn: team.nameEn,
+			teamNameAr: team.nameAr
+		})
+		.from(staff)
+		.leftJoin(team, eq(staff.teamId, team.id))
+		.where(isNotNull(staff.jobTitleId))
+		.orderBy(asc(staff.fullName));
+	return rows.flatMap(({ jobTitleId, teamNameEn, teamNameAr, ...row }) =>
+		jobTitleId
+			? [
+					{
+						...row,
+						jobTitleId,
+						team:
+							teamNameEn !== null && teamNameAr !== null
+								? { nameEn: teamNameEn, nameAr: teamNameAr }
+								: null
+					}
+				]
+			: []
+	);
+}
+
+/** How many active people hold one job title (JB5). */
+export async function countActiveJobTitleHolders(jobTitleId: string): Promise<number> {
+	const [row] = await db
+		.select({ n: count() })
+		.from(staff)
+		.where(and(eq(staff.jobTitleId, jobTitleId), eq(staff.active, true)));
+	return row?.n ?? 0;
 }
 
 export async function listSkills(): Promise<StaffListItem[]> {

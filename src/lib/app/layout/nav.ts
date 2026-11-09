@@ -1,4 +1,5 @@
 import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
+import BriefcaseIcon from 'phosphor-svelte/lib/BriefcaseIcon';
 import BuildingsIcon from 'phosphor-svelte/lib/BuildingsIcon';
 import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
 import CalendarDotsIcon from 'phosphor-svelte/lib/CalendarDotsIcon';
@@ -40,6 +41,7 @@ export const dashboardNav: NavItem[] = [
 		permission: 'staff.write'
 	},
 	{ path: '/employees', label: m.nav_employees, icon: UsersThreeIcon },
+	{ path: '/jobs', label: m.nav_jobs, icon: BriefcaseIcon, permission: 'staff.write' },
 	{
 		path: '/attendance/entry',
 		label: m.nav_attendance_entry,

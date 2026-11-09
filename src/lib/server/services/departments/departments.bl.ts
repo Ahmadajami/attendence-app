@@ -11,6 +11,7 @@ import {
 	countActiveStaffByDepartment,
 	findDepartment,
 	insertDepartment,
+	listActiveDepartmentStaff,
 	listDepartmentRows,
 	listManagersOn,
 	updateDepartment,
@@ -70,6 +71,41 @@ export async function listDepartments(actor: Actor): Promise<DepartmentListItem[
 				: null
 		};
 	});
+}
+
+/** One active employee of a department, as its people sheet lists them. */
+export type DepartmentMember = {
+	staffId: string;
+	employeeNo: string;
+	fullName: string;
+	fullNameAr: string | null;
+	/** Their current team; `null` without one. */
+	team: { nameEn: string; nameAr: string } | null;
+};
+
+/**
+ * Each department's active employees (the ones its `staffCount` counts: their own department, not
+ * sub-departments), by name. Departments without anyone are left out.
+ */
+export async function listDepartmentMembers(
+	actor: Actor
+): Promise<Record<string, DepartmentMember[]>> {
+	requireActorPermission(actor, 'staff.write');
+	const members: Record<string, DepartmentMember[]> = {};
+	for (const row of await listActiveDepartmentStaff()) {
+		if (!row.departmentId) continue;
+		(members[row.departmentId] ??= []).push({
+			staffId: row.staffId,
+			employeeNo: row.employeeNo,
+			fullName: row.fullName,
+			fullNameAr: row.fullNameAr,
+			team:
+				row.teamNameEn !== null && row.teamNameAr !== null
+					? { nameEn: row.teamNameEn, nameAr: row.teamNameAr }
+					: null
+		});
+	}
+	return members;
 }
 
 async function requireDepartment(id: string): Promise<DepartmentRow> {

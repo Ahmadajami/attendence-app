@@ -22,3 +22,20 @@ export function personSearch(value: string | null | undefined): string | null {
 export function containsPattern(q: string): string {
 	return `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 }
+
+/** The fields a person is matched on in a list already loaded in the browser. */
+type Searchable = Pick<PersonOption, 'employeeNo' | 'fullName' | 'fullNameAr'>;
+
+/**
+ * The people of an already loaded list whose employee number or name (English or Arabic) contains
+ * the search, case-insensitive, in their list order; every person when the search is blank.
+ */
+export function filterPeople<T extends Searchable>(people: readonly T[], search: string): T[] {
+	const q = personSearch(search)?.toLocaleLowerCase();
+	if (!q) return [...people];
+	return people.filter((person) =>
+		[person.employeeNo, person.fullName, person.fullNameAr ?? ''].some((field) =>
+			field.toLocaleLowerCase().includes(q)
+		)
+	);
+}

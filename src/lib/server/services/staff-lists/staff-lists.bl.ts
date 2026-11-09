@@ -5,11 +5,15 @@ import { batch } from '#lib/server/db/index.js';
 import { ConflictError, NotFoundError } from '#lib/server/errors.js';
 import type { StaffListInput, StaffListKind } from '#lib/schemas/staff-lists.schema.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
+import { withHolderCounts } from '#lib/workforce/jobs.js';
+import type { JobHolder, JobRow } from '#lib/types/jobs.js';
 import {
+	countActiveJobTitleHolders,
 	findItem,
 	insertItem,
 	listCustodyItemTypes,
 	listDocumentTypes,
+	listJobTitleHolders,
 	listJobTitles,
 	listSkills,
 	updateItem,
@@ -46,6 +50,20 @@ export async function listStaffLists(actor: Actor) {
 		listCustodyItemTypes()
 	]);
 	return { jobTitles, skills, documentTypes, custodyItemTypes };
+}
+
+/** The jobs page (jobs plan JB6, JB7): every job title with its holder counts, and the holders. */
+export async function listJobs(actor: Actor): Promise<{ jobs: JobRow[]; holders: JobHolder[] }> {
+	requireActorPermission(actor, 'staff.write');
+	const [jobTitles, holders] = await Promise.all([listJobTitles(), listJobTitleHolders()]);
+	return { jobs: withHolderCounts(jobTitles, holders), holders };
+}
+
+/** How many active people keep a job title (JB5: shown when it is deactivated). */
+export async function countActiveJobHolders(actor: Actor, jobTitleId: string): Promise<number> {
+	requireActorPermission(actor, 'staff.write');
+	await requireItem('job_title', jobTitleId);
+	return countActiveJobTitleHolders(jobTitleId);
 }
 
 export async function createStaffListItem(

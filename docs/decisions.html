@@ -177,7 +177,10 @@
     daytags: { en: 'Day tags & colours', ar: 'وسوم اليوم والألوان' },
     swaps: { en: 'Swaps', ar: 'التبديلات' },
     empimport: { en: 'Employee import', ar: 'استيراد الموظفين' },
-    roster: { en: 'Monthly rosters', ar: 'الجداول الشهرية' }
+    roster: { en: 'Monthly rosters', ar: 'الجداول الشهرية' },
+    jobs: { en: 'Jobs page', ar: 'صفحة الوظائف' },
+    hourly: { en: 'Hourly leave', ar: 'الإجازة الساعية' },
+    balances: { en: 'Leave & sick balances', ar: 'أرصدة الإجازة والمرض' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -1920,13 +1923,23 @@
       alts: [ { en: "Backup plus a restored rehearsal copy (EI12): not chosen — the user declined it; extra steps for test data.", ar: "نسخة احتياطية ونسخة تجربة مستعادة (EI12): لم يُختر — رفضه المستخدم؛ خطوات إضافية لبيانات اختبار." } ]
     },
     {
-      id: 'EI14', group: 'empimport', status: 'approved', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1 (Q-EI3, Q-EI6)',
-      title: { en: "Existing test rows are left alone and not borrowed", ar: "صفوف الاختبار الموجودة لا تُمسّ ولا تُستعار" },
+      id: 'EI14', group: 'empimport', status: 'replaced', date: '2026-11-08', src: 'plans/2026-11-08-production-employee-import.md §1 (Q-EI3, Q-EI6)',
+      title: { en: "Existing test rows are left alone and not borrowed (replaced by EI15)", ar: "صفوف الاختبار الموجودة لا تُمسّ ولا تُستعار (استُبدل بـ EI15)" },
       decision: { en: "No mapping of the 8 test people and no aliases onto the test departments; only the team HR is reused because team names are unique, and the report says so.", ar: "لا ربط للأشخاص الثمانية التجريبيين ولا أسماء بديلة نحو الأقسام التجريبية؛ ويُعاد استخدام فريق HR فقط لأن أسماء الفرق فريدة، ويذكر التقرير ذلك." },
       why: { en: "Real people must not inherit test patterns, managers or records; the import touches only what the workbook describes.", ar: "يجب ألا يرث الأشخاص الحقيقيون أنماطاً أو مديرين أو سجلات تجريبية؛ ولا يمس الاستيراد إلا ما يصفه الملف." },
       alts: [
         { en: "Map the 2 name matches onto the test records: not chosen — they are test data (user, 2026-11-08).", ar: "ربط التطابقين بالاسم مع سجلات الاختبار: لم يُختر — هي بيانات اختبار (المستخدم، 2026-11-08)." },
         { en: "Reuse the test departments Operation and Human Resources Management: not chosen — Operation has a pattern, so real people would join a test roster.", ar: "إعادة استخدام قسمي الاختبار Operation وHuman Resources Management: لم يُختر — لقسم Operation نمط، فسينضم أشخاص حقيقيون إلى جدول تجريبي." }
+      ]
+    },
+    {
+      id: 'EI15', group: 'empimport', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-08-production-employee-import.md Phase 5 (user, chat 2026-11-09)',
+      title: { en: "Clean slate: remove test staff and hierarchy, then re-import", ar: "بداية نظيفة: حذف موظفي الاختبار والهيكل ثم إعادة الاستيراد" },
+      decision: { en: "In one transaction: all staff (310 imported + 8 test), teams, departments, job titles and the rows that point at them (memberships, pattern assignments, own rules, a document, a manager row) are deleted, with one data.reset audit row. Kept: accounts, roles, settings, shifts, patterns (unassigned), lookup lists, audit history. Then the workbook is imported again: 310 people, 23 departments, 27 teams, 23 job titles.", ar: "في معاملة واحدة: تُحذف كل سجلات الموظفين (310 مستورداً + 8 تجريبيين) والفرق والأقسام والمسميات الوظيفية والصفوف المرتبطة بها (العضويات وإسنادات الأنماط والقواعد الخاصة ومستند وصف مدير)، مع سجل تدقيق واحد data.reset. ويُحتفظ بالحسابات والأدوار والإعدادات والورديات والأنماط (دون إسناد) والقوائم المرجعية وتاريخ التدقيق. ثم يُستورد الملف من جديد: 310 أشخاص و23 قسماً و27 فريقاً و23 مسمى وظيفياً." },
+      why: { en: "The user's request: the hand-made test employees and test hierarchy were redundant; the DB should hold only the real people from HR's workbook.", ar: "طلب المستخدم: موظفو الاختبار اليدويون والهيكل التجريبي زائدون؛ ويجب ألا تحوي القاعدة إلا الأشخاص الحقيقيين من ملف الموارد البشرية." },
+      alts: [
+        { en: "Deactivate the test rows instead of deleting them: not chosen — they would still show under filters and pickers; the user asked for a clean DB.", ar: "إيقاف صفوف الاختبار بدل حذفها: لم يُختر — ستبقى ظاهرة في المرشحات والقوائم؛ وطلب المستخدم قاعدة نظيفة." },
+        { en: "Wipe the whole DB (shifts, patterns, accounts too): not chosen — not asked for; the shifts and the admin account are still needed.", ar: "مسح القاعدة كلها (مع الورديات والأنماط والحسابات): لم يُختر — لم يُطلب؛ والورديات وحساب المدير ما زالت لازمة." }
       ]
     },
     {
@@ -2269,6 +2282,426 @@
       why: { en: "Typing and importing must give the same days.", ar: "الكتابة والاستيراد يجب أن يعطيا الأيام نفسها." },
       alts: []
     },
+    {
+      id: 'JB1', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "\"Jobs\" are the existing job titles", ar: "«الوظائف» هي المسميات الوظيفية الموجودة" },
+      decision: { en: "The Jobs page manages the job_title list: the options of the Job title select when creating an employee (confirmed by the user, 2026-11-09); no new table.", ar: "صفحة الوظائف تدير قائمة job_title: خيارات قائمة «المسمى الوظيفي» عند إنشاء موظف (أكّده المستخدم، 2026-11-09)؛ بلا جدول جديد." },
+      why: { en: "One list: the employee pickers and the new page show the same rows.", ar: "قائمة واحدة: منتقيات الموظف والصفحة الجديدة تعرض الصفوف نفسها." },
+      alts: [
+        { en: "A new \"positions\" table (open posts to fill): not chosen — nothing asks for vacancies yet (Q-JB1).", ar: "جدول «مناصب» جديد (شواغر للتعيين): لم يُختر — لا شيء يطلب الشواغر بعد (Q-JB1)." }
+      ]
+    },
+    {
+      id: 'JB2', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "Sidebar entry \"Jobs\" at /jobs", ar: "عنصر «الوظائف» في الشريط الجانبي على /jobs" },
+      decision: { en: "A Jobs entry right after Employees, briefcase icon, visible with staff.write.", ar: "عنصر «الوظائف» بعد «الموظفين» مباشرة، بأيقونة الحقيبة، ظاهر لصلاحية staff.write." },
+      why: { en: "HR finds it next to the people it describes.", ar: "تجده الموارد البشرية بجانب الأشخاص الذين يصفهم." },
+      alts: [
+        { en: "A tab inside the Employees page: not chosen — that page is already a list of people with its own filters (Q-JB2).", ar: "تبويب داخل صفحة الموظفين: لم يُختر — تلك الصفحة قائمة أشخاص بمرشحاتها الخاصة (Q-JB2)." },
+        { en: "Bring back /staff-lists for all four lists: not chosen — V5 moved them to where they are used; only jobs were asked for.", ar: "إعادة /staff-lists للقوائم الأربع: لم يُختر — نقلها V5 إلى حيث تُستخدم؛ والمطلوب الوظائف فقط." }
+      ]
+    },
+    {
+      id: 'JB3', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "A job keeps its two names and active flag only", ar: "الوظيفة تحتفظ باسميها وحالة التفعيل فقط" },
+      decision: { en: "English name (unique), Arabic name, active. No code, description, department or grade in this plan.", ar: "الاسم الإنجليزي (فريد) والاسم العربي والتفعيل. بلا رمز أو وصف أو قسم أو درجة في هذه الخطة." },
+      why: { en: "No migration; extra fields come in a later plan once HR names them.", ar: "بلا ترحيل قاعدة بيانات؛ والحقول الإضافية في خطة لاحقة حين تسميها الموارد البشرية." },
+      alts: [
+        { en: "Add code, description, department and grade now: not chosen — nobody has said which fields HR needs (Q-JB3).", ar: "إضافة رمز ووصف وقسم ودرجة الآن: لم يُختر — لم يحدد أحد الحقول التي تحتاجها الموارد البشرية (Q-JB3)." }
+      ]
+    },
+    {
+      id: 'JB4', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "Delete means deactivate", ar: "الحذف يعني إلغاء التفعيل" },
+      decision: { en: "A job is never deleted: deactivated, it leaves the pickers; people who hold it keep it, shown as inactive. It can be reactivated.", ar: "لا تُحذف الوظيفة أبداً: عند إلغاء تفعيلها تختفي من المنتقيات؛ ويحتفظ بها من يحملها وتظهر غير نشطة. ويمكن إعادة تفعيلها." },
+      why: { en: "The app never hard-deletes (rule 6, H10); history and reports keep the name.", ar: "التطبيق لا يحذف نهائياً أبداً (القاعدة 6، H10)؛ ويحتفظ السجل والتقارير بالاسم." },
+      alts: [
+        { en: "Real delete of a job nobody ever held: not chosen — breaks the never-delete rule for little gain (Q-JB4).", ar: "حذف فعلي لوظيفة لم يحملها أحد: لم يُختر — يخالف قاعدة عدم الحذف لفائدة قليلة (Q-JB4)." }
+      ]
+    },
+    {
+      id: 'JB5', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "A job still held by active people can be deactivated", ar: "يمكن إلغاء تفعيل وظيفة ما زال يحملها أشخاص نشطون" },
+      decision: { en: "Allowed; the menu item and the toast show how many people keep the job.", ar: "مسموح؛ ويعرض عنصر القائمة والإشعار عدد الأشخاص الذين يحتفظون بالوظيفة." },
+      why: { en: "HR may retire a title before moving everyone off it; the count prevents surprises.", ar: "قد تُوقف الموارد البشرية مسمى قبل نقل الجميع عنه؛ والعدد يمنع المفاجآت." },
+      alts: [
+        { en: "Refuse while active people hold it: not chosen — HR would have to edit every profile first (Q-JB5).", ar: "الرفض ما دام يحملها نشطون: لم يُختر — ستضطر الموارد البشرية لتعديل كل ملف أولاً (Q-JB5)." }
+      ]
+    },
+    {
+      id: 'JB6', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "Jobs table: name, people, status, menu; search and status filter", ar: "جدول الوظائف: الاسم والأشخاص والحالة والقائمة؛ مع بحث ومرشح حالة" },
+      decision: { en: "Columns: job (current language, the other under it), people (active holders, inactive in muted text), status badge, row menu (Edit, People, Deactivate/Activate). Client-side search in both languages; status filter Active/Inactive/All in the URL, default Active.", ar: "الأعمدة: الوظيفة (باللغة الحالية والأخرى تحتها)، والأشخاص (الحاملون النشطون، وغير النشطين بنص باهت)، وشارة الحالة، وقائمة الصف (تعديل، الأشخاص، إلغاء التفعيل/التفعيل). بحث في المتصفح باللغتين؛ ومرشح الحالة نشط/غير نشط/الكل في الرابط، والافتراضي نشط." },
+      why: { en: "Same look and behaviour as the departments and employees pages.", ar: "الشكل والسلوك نفسهما في صفحتي الأقسام والموظفين." },
+      alts: [
+        { en: "Cards instead of a table: not chosen — a table compares head counts at a glance.", ar: "بطاقات بدل الجدول: لم يُختر — الجدول يقارن الأعداد بنظرة." }
+      ]
+    },
+    {
+      id: 'JB7', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "Read-only People sheet per job", ar: "لوحة «الأشخاص» للقراءة فقط لكل وظيفة" },
+      decision: { en: "People in the row menu opens a sheet with the active holders (name, employee number, team), each linking to the profile, and the inactive ones collapsed.", ar: "عنصر «الأشخاص» في قائمة الصف يفتح لوحة بالحاملين النشطين (الاسم ورقم الموظف والفريق) مع رابط لكل ملف، وغير النشطين مطويّون." },
+      why: { en: "Answers \"who holds this job?\" without leaving the page.", ar: "تجيب عن «من يحمل هذه الوظيفة؟» دون مغادرة الصفحة." },
+      alts: [
+        { en: "Move several people to another job from the sheet: not chosen — a bulk change needs its own rules and audit (Q-JB6).", ar: "نقل عدة أشخاص إلى وظيفة أخرى من اللوحة: لم يُختر — التغيير الجماعي يحتاج قواعد وتدقيقاً خاصين (Q-JB6)." },
+        { en: "Link to a filtered employees page: not chosen — that page has no job filter yet.", ar: "رابط إلى صفحة موظفين مُرشَّحة: لم يُختر — تلك الصفحة بلا مرشح للوظيفة بعد." }
+      ]
+    },
+    {
+      id: 'JB8', group: 'jobs', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-jobs-page.md §1',
+      title: { en: "Reuse the staff-lists service, form and sheet", ar: "إعادة استخدام خدمة القوائم ونموذجها ولوحتها" },
+      decision: { en: "The page mounts the shared saveListItem / setListItemActive actions and opens the existing ListItemSheet; the employee-side \"+ New job title\" and \"Manage job titles\" stay, and the manage sheet links to /jobs.", ar: "الصفحة تستخدم إجراءَي saveListItem / setListItemActive المشتركين وتفتح ListItemSheet الموجودة؛ ويبقى «+ مسمى وظيفي جديد» و«إدارة المسميات الوظيفية» في ملف الموظف، وترتبط لوحة الإدارة بـ /jobs." },
+      why: { en: "One service, one form, one audit trail; V5 still holds where jobs are picked.", ar: "خدمة واحدة ونموذج واحد وسجل تدقيق واحد؛ ويبقى V5 سارياً حيث تُختار الوظائف." },
+      alts: [
+        { en: "A separate jobs service and form: not chosen — duplicate rules and audit actions for the same table.", ar: "خدمة ونموذج منفصلان للوظائف: لم يُختر — قواعد وإجراءات تدقيق مكررة للجدول نفسه." }
+      ]
+    },
+    {
+      id: 'PK1', group: 'foundation', status: 'approved', date: '2026-11-09', src: 'chat 2026-11-09 (searchable employee pickers)',
+      title: { en: "Pick an employee by typing, never from a long dropdown", ar: "اختيار الموظف بالكتابة، لا من قائمة منسدلة طويلة" },
+      decision: { en: "Every form that picks one employee from a list the page loaded (department manager, team supervisor, add a person on the entry sheet) uses PersonSelect: a combobox that filters by English name, Arabic name or employee number in the browser. Forms that search the whole company keep the server pickers (PersonPicker, PersonCombobox).", ar: "كل نموذج يختار موظفاً واحداً من قائمة حمّلتها الصفحة (مدير القسم، مشرف الفريق، إضافة شخص في ورقة الإدخال) يستخدم PersonSelect: قائمة قابلة للبحث تُرشّح بالاسم الإنجليزي أو العربي أو الرقم الوظيفي داخل المتصفح. أما النماذج التي تبحث في كل الشركة فتبقى على أدوات البحث في الخادم (PersonPicker وPersonCombobox)." },
+      why: { en: "With 310 people a scrolled list is slow and error-prone; the page already holds the allowed people, so filtering them locally keeps the same choices (active only, current supervisors left out) with no new server call.", ar: "مع 310 أشخاص تصبح القائمة الطويلة بطيئة وعرضة للخطأ؛ والصفحة تحمل أصلاً الأشخاص المسموح بهم، فالترشيح المحلي يبقي الخيارات نفسها (النشطون فقط، دون المشرفين الحاليين) بلا طلب جديد إلى الخادم." },
+      alts: [
+        { en: "Reuse the server search (findPeople) everywhere: not chosen — it searches everyone, so the form would have to repeat each list's own rules.", ar: "استخدام بحث الخادم (findPeople) في كل مكان: لم يُختر — فهو يبحث في الجميع، فيلزم النموذج تكرار قواعد كل قائمة." },
+        { en: "Keep the dropdown and type-ahead on the first letter: not chosen — no match inside a name, no Arabic or number search.", ar: "إبقاء القائمة المنسدلة مع القفز بالحرف الأول: لم يُختر — لا يطابق داخل الاسم ولا يبحث بالعربية أو بالرقم." }
+      ]
+    },
+    {
+      id: 'PK2', group: 'foundation', status: 'approved', date: '2026-11-09', src: 'chat 2026-11-09 (department employees sheet)',
+      title: { en: "Departments page: a side sheet with the department's employees", ar: "صفحة الأقسام: لوحة جانبية بموظفي القسم" },
+      decision: { en: "The Employees count (and \"Show employees\" in the row menu) opens a side sheet listing the department's active employees with number and team, searchable, each linking to the profile. It lists exactly the people the count counts: the department itself, not its sub-departments.", ar: "عدد الموظفين (و«عرض الموظفين» في قائمة الصف) يفتح لوحة جانبية بموظفي القسم النشطين مع الرقم والفريق، قابلة للبحث، وكل اسم يفتح الملف الشخصي. تعرض الأشخاص الذين يعدّهم العدد بالضبط: القسم نفسه لا أقسامه الفرعية." },
+      why: { en: "HR wants to see who is behind a count without leaving the page; matching the count avoids two numbers that disagree.", ar: "يريد قسم الموارد البشرية رؤية من وراء العدد دون مغادرة الصفحة؛ ومطابقة العدد تمنع رقمين متعارضين." },
+      alts: [
+        { en: "Include sub-departments: not chosen — the count would then disagree with the list; each sub-department has its own sheet.", ar: "تضمين الأقسام الفرعية: لم يُختر — فسيختلف العدد عن القائمة؛ ولكل قسم فرعي لوحته." },
+        { en: "Link to /employees filtered by department: not chosen — that page has no department filter yet.", ar: "رابط إلى /employees مرشّحة بالقسم: لم يُختر — تلك الصفحة بلا مرشح للقسم بعد." }
+      ]
+    },
+    {
+      id: 'HL1', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Hourly leave gets its own table", ar: "للإجازة الساعية جدول خاص بها" },
+      decision: { en: "A new table hourly_leave: one row per time range (starts_at / ends_at as timestamptz), paid or unpaid, a reason; cancelled, never deleted.", ar: "جدول جديد hourly_leave: صف لكل مدة زمنية (بداية ونهاية بتوقيت مع منطقة زمنية)، مدفوعة أو غير مدفوعة، مع سبب؛ تُلغى ولا تُحذف." },
+      why: { en: "The absence table holds whole dates with a per-date overlap rule; time ranges inside it would break that rule and every screen that reads it.", ar: "جدول الغياب يحفظ أياماً كاملة مع قاعدة منع تداخل بالتاريخ؛ وإدخال مُدد زمنية فيه يكسر هذه القاعدة وكل شاشة تقرؤه." },
+      alts: [
+        { en: "Add start/end time columns to absence: not chosen — mixes day and time records in one table (Q-HL1).", ar: "إضافة عمودي وقت البداية والنهاية إلى جدول الغياب: لم يُختر — يخلط سجلات الأيام والساعات في جدول واحد (Q-HL1)." },
+        { en: "A minutes field on the stored day (like the old leave_credit_minutes): not chosen — the stored day is derived and recomputed, never edited by hand.", ar: "حقل دقائق على اليوم المحفوظ (مثل leave_credit_minutes القديم): لم يُختر — اليوم المحفوظ مشتق ويُعاد حسابه ولا يُعدَّل يدوياً." }
+      ]
+    },
+    {
+      id: 'HL2', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Entered as a time range, not as minutes", ar: "تُدخل كمدة من–إلى لا كعدد دقائق" },
+      decision: { en: "HR enters from–to in local time on a shift date (e.g. 10:00–12:00).", ar: "تُدخل الموارد البشرية «من–إلى» بالتوقيت المحلي على تاريخ الوردية (مثلاً 10:00–12:00)." },
+      why: { en: "The range tells the engine whether it covers the late start, the early end or the middle, so lateness and early leave are measured correctly.", ar: "المدة تُخبر المحرك إن كانت تغطي بداية الدوام أو نهايته أو وسطه، فيُحسب التأخير والخروج المبكر بشكل صحيح." },
+      alts: [
+        { en: "A number of minutes only: not chosen — the engine could not tell a late arrival from an early departure (Q-HL2).", ar: "عدد دقائق فقط: لم يُختر — لا يستطيع المحرك التمييز بين التأخر في الحضور والخروج المبكر (Q-HL2)." }
+      ]
+    },
+    {
+      id: 'HL3', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Only inside a planned shift, never the whole shift", ar: "داخل وردية مخططة فقط، وليس الوردية كلها" },
+      decision: { en: "Refused on off days, holidays, days with a full-day state and outside the shift window; a range covering the whole required time is refused with \"use a full-day state\".", ar: "تُرفض في أيام العطلة والأعياد والأيام ذات الحالة الكاملة وخارج نافذة الوردية؛ والمدة التي تغطي كامل الوقت المطلوب تُرفض مع «استخدم حالة يوم كامل»." },
+      why: { en: "One clear meaning per day; a full day already has its own state.", ar: "معنى واحد واضح لكل يوم؛ لليوم الكامل حالته الخاصة أصلاً." },
+      alts: [
+        { en: "Allow it anywhere and let the engine ignore the rest: not chosen — HR would record leave that counts for nothing without noticing.", ar: "السماح بها في أي وقت وترك المحرك يتجاهل الباقي: لم يُختر — ستسجل الموارد البشرية إجازة لا تُحتسب دون أن تنتبه." }
+      ]
+    },
+    {
+      id: 'HL4', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Several ranges a day, no overlap, at least 15 minutes", ar: "عدة مدد في اليوم، بلا تداخل، 15 دقيقة على الأقل" },
+      decision: { en: "A person may have several hourly leaves on one day if they don't overlap (database exclusion rule); each lasts at least 15 minutes.", ar: "يجوز للشخص عدة إجازات ساعية في اليوم إن لم تتداخل (قاعدة استبعاد في قاعدة البيانات)؛ ومدة كل منها 15 دقيقة على الأقل." },
+      why: { en: "A morning errand and an afternoon appointment happen; overlaps would count twice.", ar: "قد تقع مهمة صباحية وموعد بعد الظهر؛ والتداخل يُحتسب مرتين." },
+      alts: [
+        { en: "One range per day: not chosen — forces HR to merge two separate absences (Q-HL3).", ar: "مدة واحدة في اليوم: لم يُختر — يُجبر الموارد البشرية على دمج غيابين منفصلين (Q-HL3)." }
+      ]
+    },
+    {
+      id: 'HL5', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "A roster change keeps the leave row", ar: "تغيير الجدول يُبقي سجل الإجازة" },
+      decision: { en: "If the day later becomes off, gets a full-day state or the shift moves, the row stays but counts only its minutes inside the new shift (often 0), and the day is tagged \"Hourly leave outside the shift\".", ar: "إن أصبح اليوم لاحقاً عطلة أو أخذ حالة يوم كامل أو تحركت الوردية، يبقى السجل لكن تُحتسب دقائقه داخل الوردية الجديدة فقط (غالباً 0)، ويُوسم اليوم «إجازة ساعية خارج الوردية»." },
+      why: { en: "Manual work is never changed by side effects (R17); HR sees the tag and fixes it.", ar: "لا يتغير العمل اليدوي كأثر جانبي (R17)؛ ترى الموارد البشرية الوسم وتصلحه." },
+      alts: [
+        { en: "Cancel the leave automatically: not chosen — silently removes HR's record.", ar: "إلغاء الإجازة تلقائياً: لم يُختر — يحذف سجل الموارد البشرية بصمت." }
+      ]
+    },
+    {
+      id: 'HL6', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Lateness and early leave are measured around the leave", ar: "التأخير والخروج المبكر يُقاسان حول الإجازة" },
+      decision: { en: "A range starting at the shift start moves the expected arrival to its end; a range ending at the shift end moves the expected departure to its start. Grace applies after that.", ar: "المدة التي تبدأ مع بداية الوردية تنقل موعد الحضور المتوقع إلى نهايتها؛ والتي تنتهي مع نهاية الوردية تنقل موعد الانصراف المتوقع إلى بدايتها. وتُطبَّق فترة السماح بعد ذلك." },
+      why: { en: "Example: 08:00 shift, leave 08:00–10:00, check-in 10:05 → late 5, not 125.", ar: "مثال: وردية 08:00، إجازة 08:00–10:00، حضور 10:05 ← تأخير 5 دقائق لا 125." },
+      alts: [
+        { en: "Measure lateness from the shift start and subtract the leave later in pay: not chosen — the day would show \"late\" for an approved absence.", ar: "قياس التأخير من بداية الوردية وطرح الإجازة لاحقاً في الأجر: لم يُختر — سيظهر اليوم «متأخراً» بسبب غياب موافق عليه." }
+      ]
+    },
+    {
+      id: 'HL7', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Paid hourly leave is a credit that never creates overtime", ar: "الإجازة الساعية المدفوعة رصيد لا يُنشئ عملاً إضافياً" },
+      decision: { en: "Paid minutes reduce the shortage and add to Final (R8, R9; golden G2, G6, G7) but overtime stays worked − required.", ar: "الدقائق المدفوعة تُنقص النقص وتُضاف إلى الصافي (R8، R9؛ الأرقام المرجعية G2 وG6 وG7) لكن العمل الإضافي يبقى = العمل الفعلي − المطلوب." },
+      why: { en: "Matches the old leave_credit_minutes and the golden numbers HR already trusts.", ar: "يطابق leave_credit_minutes القديم والأرقام المرجعية التي تثق بها الموارد البشرية." },
+      alts: [
+        { en: "Cap the credit at the gap (required − worked): not chosen by default — differs from golden G7; HR may choose it (Q-HL5).", ar: "تحديد الرصيد بالفجوة (المطلوب − الفعلي): لم يُختر افتراضياً — يخالف G7؛ ويمكن للموارد البشرية اختياره (Q-HL5)." }
+      ]
+    },
+    {
+      id: 'HL8', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Unpaid hourly leave is excused but not paid", ar: "الإجازة الساعية غير المدفوعة مُبرَّرة لكن غير مدفوعة" },
+      decision: { en: "Unpaid minutes don't make the day late or short and get no tardiness bracket, but the payroll engine subtracts them from Final, so they show in Deduction.", ar: "الدقائق غير المدفوعة لا تجعل اليوم متأخراً أو ناقصاً ولا تُطبَّق عليها شريحة التأخير، لكن محرك الرواتب يطرحها من الصافي فتظهر في الخصم." },
+      why: { en: "\"Unpaid\" means the salary goes down, not that the person broke a rule.", ar: "«غير مدفوعة» تعني أن الراتب ينقص، لا أن الشخص خالف قاعدة." },
+      alts: [
+        { en: "Treat it as plain lateness/shortage: not chosen — would add a tardiness penalty on top of the lost pay.", ar: "معاملتها كتأخير أو نقص عادي: لم يُختر — يضيف عقوبة تأخير فوق الأجر المفقود." }
+      ]
+    },
+    {
+      id: 'HL9', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Paid hours come off the balance as a fraction of that day", ar: "الساعات المدفوعة تُخصم من الرصيد كجزء من ذلك اليوم" },
+      decision: { en: "Paid hourly leave reduces the yearly balance by minutes ÷ that day's required minutes (3 h of a 12 h shift = 0.25 day). The balance stays in days with two decimals and also shows hours. Unpaid leave never counts.", ar: "الإجازة الساعية المدفوعة تُنقص الرصيد السنوي بمقدار الدقائق ÷ الدقائق المطلوبة لذلك اليوم (3 ساعات من وردية 12 ساعة = 0.25 يوم). يبقى الرصيد بالأيام بمنزلتين عشريتين ويعرض الساعات أيضاً. وغير المدفوعة لا تُحتسب أبداً." },
+      why: { en: "A full-day leave already counts one planned work day whatever its length (PR31); the fraction keeps that rule for part of a day, with no new setting.", ar: "إجازة اليوم الكامل تُحتسب يوم عمل واحداً مهما كان طوله (PR31)؛ والكسر يحافظ على القاعدة نفسها لجزء من اليوم دون إعداد جديد." },
+      alts: [
+        { en: "A fixed day length (every 8 h = 1 day): not chosen by default — a 12 h shift worker would lose 1.5 days for one full shift's worth of hours (Q-HL4).", ar: "طول يوم ثابت (كل 8 ساعات = يوم): لم يُختر افتراضياً — صاحب وردية 12 ساعة يخسر 1.5 يوم مقابل ساعات وردية واحدة (Q-HL4)." },
+        { en: "A separate hours balance: not chosen — two balances for the same leave confuse HR.", ar: "رصيد ساعات منفصل: لم يُختر — رصيدان للإجازة نفسها يربكان الموارد البشرية." }
+      ]
+    },
+    {
+      id: 'HL10', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Over the balance: warn, don't refuse", ar: "تجاوز الرصيد: تحذير لا رفض" },
+      decision: { en: "Recording paid hourly leave beyond the balance shows a warning and saves (same as PR33).", ar: "تسجيل إجازة ساعية مدفوعة فوق الرصيد يُظهر تحذيراً ويحفظ (مثل PR33)." },
+      why: { en: "HR may approve exceptions.", ar: "قد توافق الموارد البشرية على استثناءات." },
+      alts: [
+        { en: "Refuse: not chosen — HR would have to raise the yearly days first.", ar: "الرفض: لم يُختر — ستضطر الموارد البشرية لرفع الأيام السنوية أولاً." }
+      ]
+    },
+    {
+      id: 'HL11', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Same permission and recompute path as day states", ar: "الصلاحية ومسار إعادة الحساب نفسيهما كحالات اليوم" },
+      decision: { en: "attendance.record sets and cancels; past dates allowed; every write audited without the reason, then the days are flagged and recomputed (source day_edit, cause hourly_leave).", ar: "صلاحية attendance.record تُسجّل وتُلغي؛ والتواريخ السابقة مسموحة؛ وكل كتابة تُدقَّق دون السبب ثم تُعلَّم الأيام ويُعاد حسابها (المصدر day_edit، السبب hourly_leave)." },
+      why: { en: "Nothing new to learn; reasons may hold health details.", ar: "لا شيء جديد لتعلمه؛ وقد تحمل الأسباب تفاصيل صحية." },
+      alts: [
+        { en: "A separate leave permission: not chosen — the same HR people already set full-day leave.", ar: "صلاحية إجازات منفصلة: لم يُختر — موظفو الموارد البشرية أنفسهم يسجلون إجازة اليوم الكامل." }
+      ]
+    },
+    {
+      id: 'HL12', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Entered in the existing day editor", ar: "تُدخل في محرر اليوم الحالي" },
+      decision: { en: "A Hourly leave section in the day editor on /attendance/days (list, add, cancel); day tags for paid / unpaid; hours on the Leave card and /leave.", ar: "قسم «إجازة ساعية» في محرر اليوم في /attendance/days (قائمة، إضافة، إلغاء)؛ ووسوم يوم للمدفوعة وغير المدفوعة؛ والساعات في بطاقة الإجازات و/leave." },
+      why: { en: "HR already edits days there; no new page.", ar: "تُعدِّل الموارد البشرية الأيام هناك أصلاً؛ بلا صفحة جديدة." },
+      alts: [
+        { en: "A separate /hourly-leave page: not chosen — splits one day's facts over two screens (Q-HL6).", ar: "صفحة /hourly-leave منفصلة: لم يُختر — تُوزّع معلومات اليوم الواحد على شاشتين (Q-HL6)." }
+      ]
+    },
+    {
+      id: 'HL13', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "HR records approved leave; no request flow yet", ar: "الموارد البشرية تسجل الإجازة الموافق عليها؛ بلا طلبات بعد" },
+      decision: { en: "No employee request or approval steps in this plan.", ar: "لا خطوات طلب أو موافقة للموظف في هذه الخطة." },
+      why: { en: "Employee requests need login (S8).", ar: "طلبات الموظفين تحتاج تسجيل دخول (S8)." },
+      alts: [
+        { en: "Request → supervisor → HR flow now: not chosen — no login yet (Q-HL7).", ar: "مسار طلب ← مشرف ← موارد بشرية الآن: لم يُختر — لا تسجيل دخول بعد (Q-HL7)." }
+      ]
+    },
+    {
+      id: 'HL14', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "No monthly cap; the monthly total is shown", ar: "بلا حد شهري؛ ويُعرض المجموع الشهري" },
+      decision: { en: "No limit on hours per month or year in this plan; the person's monthly total appears on the Leave card.", ar: "لا حد للساعات شهرياً أو سنوياً في هذه الخطة؛ ويظهر مجموع الشخص الشهري في بطاقة الإجازات." },
+      why: { en: "Nobody named a cap; adding one later is a setting.", ar: "لم يحدد أحد حداً؛ وإضافته لاحقاً مجرد إعداد." },
+      alts: [
+        { en: "A fixed cap now: not chosen — the number is HR's to give (Q-HL8).", ar: "حد ثابت الآن: لم يُختر — الرقم تحدده الموارد البشرية (Q-HL8)." }
+      ]
+    },
+    {
+      id: 'HL15', group: 'hourly', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-hourly-leave.md §2',
+      title: { en: "Full-day unpaid leave is not in this plan", ar: "إجازة اليوم الكامل غير المدفوعة ليست في هذه الخطة" },
+      decision: { en: "HR keeps using the \"other\" state for a whole unpaid day until asked.", ar: "تستمر الموارد البشرية باستخدام حالة «أخرى» لليوم الكامل غير المدفوع حتى يُطلب غير ذلك." },
+      why: { en: "The request was hourly leave; a new absence type touches the balance, tags and reports.", ar: "الطلب كان الإجازة الساعية؛ ونوع غياب جديد يمس الرصيد والوسوم والتقارير." },
+      alts: [
+        { en: "Add an unpaid_leave day state now: not chosen by default (Q-HL9).", ar: "إضافة حالة يوم unpaid_leave الآن: لم يُختر افتراضياً (Q-HL9)." }
+      ]
+    },
+    {
+      id: 'LB1', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Two balances per person and year: annual and sick", ar: "رصيدان لكل شخص وسنة: سنوي ومرضي" },
+      decision: { en: "Annual counts leave absences, sick counts sick absences; mission, no show and other never count. One table: leave_entitlement gets a kind column, unique per person, year and kind.", ar: "السنوي يحسب غيابات الإجازة والمرضي يحسب غيابات المرض؛ ولا تُحسب المهمة أو عدم الحضور أو غيرها. جدول واحد: يُضاف إلى leave_entitlement عمود النوع، فريد لكل شخص وسنة ونوع." },
+      why: { en: "Same maths and screens; a second table would copy every query.", ar: "الحساب والشاشات نفسها؛ وجدول ثانٍ ينسخ كل استعلام." },
+      alts: [
+        { en: "A separate sick_entitlement table: not chosen — duplicate queries and screens for the same formula.", ar: "جدول sick_entitlement منفصل: لم يُختر — استعلامات وشاشات مكررة للمعادلة نفسها." }
+      ]
+    },
+    {
+      id: 'LB2', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Both balances count planned work days only", ar: "الرصيدان يحسبان أيام العمل المخططة فقط" },
+      decision: { en: "Off days and holidays inside a leave or sick period don't count, as PR31 already does for annual leave.", ar: "أيام العطلة والأعياد داخل فترة الإجازة أو المرض لا تُحسب، كما يفعل PR31 للإجازة السنوية." },
+      why: { en: "One rule HR can explain; the roster already knows the planned days.", ar: "قاعدة واحدة تشرحها الموارد البشرية؛ والجدول يعرف الأيام المخططة." },
+      alts: [
+        { en: "Count sick leave on every calendar day: not chosen until HR asks (Q-LB5).", ar: "حساب المرض على كل يوم تقويمي: لم يُختر حتى تطلبه الموارد البشرية (Q-LB5)." }
+      ]
+    },
+    {
+      id: 'LB3', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Days left = yearly + carried − used before − taken − booked", ar: "المتبقي = السنوي + المرحَّل − المستخدم قبل التطبيق − المأخوذ − المحجوز" },
+      decision: { en: "Taken up to today, booked after today. Below zero is a warning, never a refusal, for both kinds.", ar: "المأخوذ حتى اليوم والمحجوز بعده. النزول تحت الصفر تحذير لا رفض، للنوعين." },
+      why: { en: "HR may approve exceptions; sick leave cannot be refused.", ar: "قد توافق الموارد البشرية على استثناءات؛ ولا يمكن رفض المرض." },
+      alts: [
+        { en: "Refuse leave beyond the balance: not chosen — PR33 already chose a warning.", ar: "رفض الإجازة فوق الرصيد: لم يُختر — اختار PR33 التحذير." }
+      ]
+    },
+    {
+      id: 'LB4', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Calendar year for both balances", ar: "السنة التقويمية للرصيدين" },
+      decision: { en: "Both balances run January to December (PR31, Q-PR5).", ar: "يمتد الرصيدان من كانون الثاني إلى كانون الأول (PR31، Q-PR5)." },
+      why: { en: "Already decided; one year boundary.", ar: "مقرر سابقاً؛ وحد سنة واحد." },
+      alts: [
+        { en: "Year from each person's start date: not chosen (Q-PR5).", ar: "سنة من تاريخ مباشرة كل شخص: لم يُختر (Q-PR5)." }
+      ]
+    },
+    {
+      id: 'LB5', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "One balances start date for the whole app", ar: "تاريخ بدء أرصدة واحد للتطبيق كله" },
+      decision: { en: "An admin sets balances_start_date once (proposed 2026-10-01). From that date the app's absences count; earlier absences are ignored for balances.", ar: "يضبط المسؤول balances_start_date مرة واحدة (المقترح 2026-10-01). من ذلك التاريخ تُحسب غيابات التطبيق؛ وتُهمل الغيابات الأقدم في الأرصدة." },
+      why: { en: "Earlier leave is in HR's files; counting both would count it twice.", ar: "الإجازات الأقدم في ملفات الموارد البشرية؛ وحساب الاثنين يحسبها مرتين." },
+      alts: [
+        { en: "A start date per person: not chosen — one date covers new hires too (no absences before hiring).", ar: "تاريخ بدء لكل شخص: لم يُختر — تاريخ واحد يغطي الموظفين الجدد أيضاً." },
+        { en: "Count every absence in the app: not chosen — partial old data would double count.", ar: "حساب كل غياب في التطبيق: لم يُختر — البيانات القديمة الجزئية تُحسب مرتين." }
+      ]
+    },
+    {
+      id: 'LB6', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Opening balance: yearly, carried and used before the start", ar: "الرصيد الافتتاحي: السنوي والمرحَّل والمستخدم قبل البدء" },
+      decision: { en: "For the start year HR types three numbers per person and kind; the screen shows the resulting days left on the start date as HR types.", ar: "لسنة البدء تُدخل الموارد البشرية ثلاثة أرقام لكل شخص ونوع؛ وتعرض الشاشة المتبقي في تاريخ البدء أثناء الكتابة." },
+      why: { en: "Matches HR's paper record; days left stays a result that can be checked.", ar: "يطابق سجل الموارد البشرية الورقي؛ ويبقى المتبقي نتيجة قابلة للتحقق." },
+      alts: [
+        { en: "Type only the days left: not chosen as default — loses yearly and carried; still possible by typing it as yearly (Q-LB2).", ar: "إدخال المتبقي فقط: لم يُختر افتراضياً — يضيع السنوي والمرحَّل؛ ويبقى ممكناً بإدخاله كسنوي (Q-LB2)." }
+      ]
+    },
+    {
+      id: 'LB7', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Used-before days only in the start year", ar: "أيام «المستخدم قبل التطبيق» في سنة البدء فقط" },
+      decision: { en: "used_before_days above zero is refused for any year after the start year.", ar: "يُرفض used_before_days فوق الصفر لأي سنة بعد سنة البدء." },
+      why: { en: "After the start year every used day is an absence in the app.", ar: "بعد سنة البدء كل يوم مستخدم غياب في التطبيق." },
+      alts: []
+    },
+    {
+      id: 'LB8', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Opening balances typed in a grid on /leave", ar: "إدخال الأرصدة الافتتاحية في جدول على /leave" },
+      decision: { en: "One row per active person of a department or team, three numbers per kind, days left computed; Save writes changed rows in one batch with one audit row per person. A file import only if HR has a file (Q-LB3).", ar: "صف لكل شخص نشط في قسم أو فريق، وثلاثة أرقام لكل نوع، والمتبقي محسوب؛ والحفظ يكتب الصفوف المعدّلة دفعة واحدة مع سجل تدقيق لكل شخص. والاستيراد من ملف فقط إن وُجد ملف (Q-LB3)." },
+      why: { en: "Feasible per department; an import needs a file format nobody has shown yet.", ar: "ممكن لكل قسم؛ والاستيراد يحتاج صيغة ملف لم يعرضها أحد بعد." },
+      alts: [
+        { en: "Import only: not chosen — no file known.", ar: "الاستيراد فقط: لم يُختر — لا ملف معروف." }
+      ]
+    },
+    {
+      id: 'LB9', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Moving the start date warns with the affected count", ar: "تغيير تاريخ البدء يحذّر بعدد المتأثرين" },
+      decision: { en: "Allowed, but the setting sheet shows how many opening balances were entered for the old date.", ar: "مسموح، لكن لوحة الإعداد تعرض عدد الأرصدة الافتتاحية المدخلة للتاريخ القديم." },
+      why: { en: "Moving the date changes which absences count; HR must re-check.", ar: "تغيير التاريخ يغير الغيابات المحسوبة؛ ويجب أن تعيد الموارد البشرية التحقق." },
+      alts: [
+        { en: "Lock the date once balances exist: not chosen — a typo would need a database fix.", ar: "قفل التاريخ بعد وجود أرصدة: لم يُختر — خطأ مطبعي سيحتاج إصلاحاً في قاعدة البيانات." }
+      ]
+    },
+    {
+      id: 'LB10', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "No automatic roll-over: HR opens each year", ar: "لا ترحيل تلقائي: الموارد البشرية تفتح كل سنة" },
+      decision: { en: "Open year on /leave: year, kind, people, mode (Hold or Reset), number of days, reason; one batch and one audit row per person.", ar: "«فتح سنة» على /leave: السنة والنوع والأشخاص والطريقة (ترحيل أو إعادة ضبط) وعدد الأيام والسبب؛ دفعة واحدة وسجل تدقيق لكل شخص." },
+      why: { en: "One PC, no scheduler; nothing changes behind HR's back.", ar: "حاسوب واحد بلا مجدول؛ ولا يتغير شيء دون علم الموارد البشرية." },
+      alts: [
+        { en: "A job on 1 January: not chosen — no scheduler, and HR must choose the mode.", ar: "مهمة في 1 كانون الثاني: لم يُختر — لا مجدول، ويجب أن تختار الموارد البشرية الطريقة." }
+      ]
+    },
+    {
+      id: 'LB11', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Reset: the new year starts at the number HR types", ar: "إعادة الضبط: تبدأ السنة الجديدة بالرقم الذي تُدخله الموارد البشرية" },
+      decision: { en: "Yearly days = the typed number, carried = 0; last year's leftover is dropped, positive or negative.", ar: "السنوي = الرقم المُدخل والمرحَّل = 0؛ ويُسقط متبقي السنة الماضية، موجباً كان أم سالباً." },
+      why: { en: "The user's first option (2026-11-09).", ar: "الخيار الأول للمستخدم (2026-11-09)." },
+      alts: []
+    },
+    {
+      id: 'LB12', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Hold: last year's leftover moves into the new year", ar: "الترحيل: ينتقل متبقي السنة الماضية إلى السنة الجديدة" },
+      decision: { en: "Carried = last year's days left at opening, yearly = the typed number (may be 0). A negative leftover is carried too; an optional cap limits a positive carry.", ar: "المرحَّل = متبقي السنة الماضية عند الفتح، والسنوي = الرقم المُدخل (قد يكون 0). ويُرحَّل المتبقي السالب أيضاً؛ وسقف اختياري يحد الترحيل الموجب." },
+      why: { en: "The user's second option (2026-11-09); the cap waits for HR's rule without a code change.", ar: "الخيار الثاني للمستخدم (2026-11-09)؛ والسقف ينتظر قاعدة الموارد البشرية دون تعديل الكود." },
+      alts: [
+        { en: "Hold without new days: not chosen as default — annual leave normally adds the new year's days (Q-LB6).", ar: "ترحيل دون أيام جديدة: لم يُختر افتراضياً — الإجازة السنوية تضيف عادة أيام السنة الجديدة (Q-LB6)." },
+        { en: "Drop negative leftovers in Hold: not chosen — the debt would vanish (Q-LB4).", ar: "إسقاط المتبقي السالب في الترحيل: لم يُختر — سيختفي الدين (Q-LB4)." }
+      ]
+    },
+    {
+      id: 'LB13', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Defaults: annual Hold, sick Reset, same days as last year", ar: "الافتراضي: السنوي ترحيل، والمرضي إعادة ضبط، والأيام كالسنة الماضية" },
+      decision: { en: "The Open year sheet preselects Hold for annual and Reset for sick and prefills each person's yearly days from last year; HR can switch for any selection.", ar: "لوحة «فتح سنة» تختار مسبقاً الترحيل للسنوي وإعادة الضبط للمرضي وتملأ أيام كل شخص من السنة الماضية؛ ويمكن التبديل لأي مجموعة." },
+      why: { en: "Annual leave usually carries, sick leave usually restarts; per-selection choice covers exceptions.", ar: "الإجازة السنوية تُرحَّل عادة والمرضية تبدأ من جديد؛ والاختيار لكل مجموعة يغطي الاستثناءات." },
+      alts: [
+        { en: "One company-wide mode per kind in settings: not chosen — no settings screen yet, and groups may differ.", ar: "طريقة واحدة لكل نوع في الإعدادات: لم يُختر — لا شاشة إعدادات بعد، وقد تختلف المجموعات." }
+      ]
+    },
+    {
+      id: 'LB14', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "The mode is stored on each balance row", ar: "الطريقة تُخزَّن على كل صف رصيد" },
+      decision: { en: "opened_as: opening, reset, hold or set (typed by hand), shown as a badge.", ar: "opened_as: افتتاحي أو إعادة ضبط أو ترحيل أو يدوي، ويظهر كشارة." },
+      why: { en: "HR and auditors see how each number came to be.", ar: "ترى الموارد البشرية والمدققون كيف نشأ كل رقم." },
+      alts: []
+    },
+    {
+      id: 'LB15', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Opening a year skips people who already have that year", ar: "فتح سنة يتخطى من لديهم تلك السنة" },
+      decision: { en: "Existing rows are skipped and listed; changing one is Edit on that row with a reason.", ar: "تُتخطى الصفوف الموجودة وتُعرض؛ وتعديلها عبر «تعديل» على الصف مع سبب." },
+      why: { en: "Opening twice must never overwrite a corrected row.", ar: "الفتح مرتين يجب ألا يكتب فوق صف مصحَّح." },
+      alts: [
+        { en: "Overwrite on re-open: not chosen — silent loss of corrections.", ar: "الكتابة فوقه عند إعادة الفتح: لم يُختر — ضياع صامت للتصحيحات." }
+      ]
+    },
+    {
+      id: 'LB16', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "A year opens from 1 December; a missing year is shown", ar: "تُفتح السنة من 1 كانون الأول؛ والسنة غير المفتوحة تظهر" },
+      decision: { en: "From 1 January /leave shows how many people have no row for the year; warnings say \"year not opened\".", ar: "من 1 كانون الثاني تعرض /leave عدد من ليس لهم صف للسنة؛ والتحذيرات تقول «السنة غير مفتوحة»." },
+      why: { en: "HR can prepare in December; a missing year is visible, never guessed.", ar: "يمكن التحضير في كانون الأول؛ والسنة الناقصة ظاهرة لا مُخمَّنة." },
+      alts: []
+    },
+    {
+      id: 'LB17', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Late changes to the old year are flagged, with Carry again", ar: "التغييرات المتأخرة على السنة القديمة تُعلَّم مع «إعادة الترحيل»" },
+      decision: { en: "Rows whose stored carried differs from last year's current days left are marked; Carry again updates them, audited. Nothing changes by itself.", ar: "تُعلَّم الصفوف التي يختلف مرحَّلها المخزَّن عن متبقي السنة الماضية الحالي؛ و«إعادة الترحيل» تحدّثها مع التدقيق. لا شيء يتغير وحده." },
+      why: { en: "December corrections happen; the approved number stays until HR re-carries.", ar: "تصحيحات كانون الأول تحدث؛ ويبقى الرقم المعتمد حتى تعيد الموارد البشرية الترحيل." },
+      alts: [
+        { en: "Recompute carried live: not chosen — the opened number would move without HR's approval.", ar: "حساب المرحَّل مباشرة: لم يُختر — سيتحرك الرقم المعتمد دون موافقة." }
+      ]
+    },
+    {
+      id: 'LB18', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "No previous row: Hold carries 0", ar: "لا صف سابق: الترحيل ينقل 0" },
+      decision: { en: "New hires or people never entered get carried 0; HR can edit the row.", ar: "الموظفون الجدد أو غير المُدخلين يُرحَّل لهم 0؛ ويمكن تعديل الصف." },
+      why: { en: "Nothing to carry.", ar: "لا شيء للترحيل." },
+      alts: []
+    },
+    {
+      id: 'LB19', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "A /leave page with Annual and Sick tabs", ar: "صفحة /leave بتبويبي السنوي والمرضي" },
+      decision: { en: "Sidebar Leave after Attendance (staff.write); filters year, department, team; columns yearly, carried, used before, taken, booked, left, opened as; actions Opening balances, Open year, Edit, Carry again.", ar: "عنصر «الإجازات» بعد الحضور (staff.write)؛ مرشحات السنة والقسم والفريق؛ أعمدة السنوي والمرحَّل والمستخدم قبل والمأخوذ والمحجوز والمتبقي وطريقة الفتح؛ إجراءات الأرصدة الافتتاحية وفتح سنة والتعديل وإعادة الترحيل." },
+      why: { en: "One place for every balance (PR34 extended to two kinds).", ar: "مكان واحد لكل الأرصدة (PR34 موسَّعاً لنوعين)." },
+      alts: []
+    },
+    {
+      id: 'LB20', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Employee Leave card shows both kinds", ar: "بطاقة الإجازات في ملف الموظف تعرض النوعين" },
+      decision: { en: "The year's numbers per kind and the counted periods (dates only; sick reasons never shown).", ar: "أرقام السنة لكل نوع والفترات المحسوبة (تواريخ فقط؛ ولا تظهر أسباب المرض)." },
+      why: { en: "Looked up per person; reasons may hold health details.", ar: "يُبحث عنها لكل شخص؛ والأسباب قد تحوي تفاصيل صحية." },
+      alts: []
+    },
+    {
+      id: 'LB21', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Days-left warning when setting leave or sick", ar: "تحذير المتبقي عند تسجيل إجازة أو مرض" },
+      decision: { en: "The day editor and entry sheet show the days left after the change; a warning, never a block.", ar: "محرر اليوم وورقة الإدخال يعرضان المتبقي بعد التغيير؛ تحذير لا منع." },
+      why: { en: "HR sees the effect before saving.", ar: "ترى الموارد البشرية الأثر قبل الحفظ." },
+      alts: []
+    },
+    {
+      id: 'LB22', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Sick balances are health data", ar: "أرصدة المرض بيانات صحية" },
+      decision: { en: "Numbers and ids only in audit, toasts, logs and chat; tests use made-up people.", ar: "أرقام ومعرّفات فقط في التدقيق والإشعارات والسجلات والمحادثة؛ والاختبارات بأشخاص وهميين." },
+      why: { en: "CLAUDE.md §1 and R18.", ar: "CLAUDE.md §1 وR18." },
+      alts: []
+    },
+    {
+      id: 'LB23', group: 'balances', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-leave-sick-balances.md §1',
+      title: { en: "Hourly leave uses the same balance function", ar: "الإجازة الساعية تستخدم دالة الرصيد نفسها" },
+      decision: { en: "Paid hourly leave (HL9) is part of taken/booked of the annual balance as day fractions, after the start date; never the sick balance. Whichever plan is built second merges into the first one's balance().", ar: "الإجازة الساعية المدفوعة (HL9) جزء من المأخوذ/المحجوز في الرصيد السنوي ككسور أيام، بعد تاريخ البدء؛ ولا تمس الرصيد المرضي. والخطة المنفذة ثانياً تندمج في balance() الخاصة بالأولى." },
+      why: { en: "One balance function, one number on every screen.", ar: "دالة رصيد واحدة ورقم واحد في كل شاشة." },
+      alts: []
+    }
   ];
 
   // Defaults used until the user answers (main plan §13 + builder plan §1).
@@ -2358,6 +2791,28 @@
     ["Q-RO8", "Operations roster: Arabic name of the monthly patterns? (answered 2026-11-09: default kept)", "the same text as the English name (Operation-1/Oct/2026), as the November pattern has", "جدول العمليات: الاسم العربي للأنماط الشهرية؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "النص نفسه كالاسم الإنجليزي (Operation-1/Oct/2026)، كما في نمط تشرين الثاني"],
     ["Q-RO9", "Operations roster: month view on the pattern page as its own tab or a filter above all tabs? (answered 2026-11-09: default kept)", "its own tab (Month); the header keeps today's followers", "جدول العمليات: عرض الشهر في صفحة النمط كتبويب مستقل أم مرشّح فوق كل التبويبات؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "تبويب مستقل («الشهر»)؛ ويبقى في الرأس متّبعو اليوم"],
     ["Q-RO10", "Operations roster: calendar month or payroll period (21st–20th) for the month views? (answered 2026-11-09: default kept)", "calendar month, like HR's workbooks", "جدول العمليات: شهر تقويمي أم فترة الرواتب (21–20) لعروض الشهر؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "شهر تقويمي، مثل ملفات الموارد البشرية"],
+    ["Q-JB1", "Jobs page: by \"jobs\", the job titles people hold, or something new (e.g. open positions)? (answered 2026-11-09: the Job title select when creating an employee)", "the existing job titles (JB1)", "صفحة الوظائف: هل «الوظائف» هي المسميات الوظيفية التي يحملها الأشخاص أم شيء جديد (مثل المناصب الشاغرة)؟ (أُجيب 2026-11-09: قائمة «المسمى الوظيفي» عند إنشاء موظف)", "المسميات الوظيفية الموجودة (JB1)"],
+    ["Q-JB2", "Jobs page: its own sidebar entry, or a tab inside the Employees page? (answered 2026-11-09: default kept)", "own sidebar entry after Employees (JB2)", "صفحة الوظائف: عنصر مستقل في الشريط الجانبي أم تبويب داخل صفحة الموظفين؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "عنصر مستقل بعد «الموظفين» (JB2)"],
+    ["Q-JB3", "Jobs page: more fields on a job (code, description, department, grade, head-count target)? (answered 2026-11-09: default kept)", "no, names only for now (JB3)", "صفحة الوظائف: حقول إضافية للوظيفة (رمز، وصف، قسم، درجة، عدد مستهدف)؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "لا، الاسمان فقط الآن (JB3)"],
+    ["Q-JB4", "Jobs page: deactivate only, or a real delete for a job nobody ever held? (answered 2026-11-09: default kept)", "deactivate only (JB4)", "صفحة الوظائف: إلغاء التفعيل فقط أم حذف فعلي لوظيفة لم يحملها أحد؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "إلغاء التفعيل فقط (JB4)"],
+    ["Q-JB5", "Jobs page: may HR deactivate a job that active people still hold? (answered 2026-11-09: default kept)", "yes, with the count shown (JB5)", "صفحة الوظائف: هل يجوز إلغاء تفعيل وظيفة ما زال يحملها أشخاص نشطون؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "نعم، مع عرض العدد (JB5)"],
+    ["Q-JB6", "Jobs page: change several people's job at once from the People sheet? (answered 2026-11-09: default kept)", "no: read-only; the job is changed on the profile (JB7)", "صفحة الوظائف: تغيير وظيفة عدة أشخاص دفعة واحدة من لوحة الأشخاص؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "لا: للقراءة فقط؛ وتُغيَّر الوظيفة في الملف (JB7)"],
+    ["Q-HL1", "Hourly leave: new table, or time columns on the full-day absence table?", "new table (HL1)", "الإجازة الساعية: جدول جديد أم أعمدة وقت على جدول الغياب الكامل؟", "جدول جديد (HL1)"],
+    ["Q-HL2", "Hourly leave: enter a time range or a number of minutes?", "time range (HL2)", "الإجازة الساعية: إدخال مدة من–إلى أم عدد دقائق؟", "مدة من–إلى (HL2)"],
+    ["Q-HL3", "Hourly leave: smallest length? Several per day?", "15 minutes; several, not overlapping (HL4)", "الإجازة الساعية: أقل مدة؟ وهل يجوز أكثر من واحدة في اليوم؟", "15 دقيقة؛ عدة مدد دون تداخل (HL4)"],
+    ["Q-HL4", "Paid hourly leave off the yearly balance: fraction of that day's shift, or a fixed day length (e.g. 8 h = 1 day)?", "fraction of that day's required time (HL9)", "خصم الإجازة الساعية المدفوعة من الرصيد: كجزء من وردية ذلك اليوم أم بطول يوم ثابت (مثلاً 8 ساعات = يوم)؟", "جزء من الوقت المطلوب لذلك اليوم (HL9)"],
+    ["Q-HL5", "Paid hourly leave on a day the person still worked the full shift: pay the credit anyway (golden G7) or count nothing?", "old rule + a \"worked during hourly leave\" tag (HL7)", "إجازة ساعية مدفوعة في يوم عمل فيه الشخص الوردية كاملة: يُدفع الرصيد (G7) أم لا يُحتسب شيء؟", "القاعدة القديمة + وسم «عمل أثناء الإجازة الساعية» (HL7)"],
+    ["Q-HL6", "Where is hourly leave entered: day editor only, or also the entry sheet?", "day editor only (HL12)", "أين تُدخل الإجازة الساعية: محرر اليوم فقط أم ورقة الإدخال أيضاً؟", "محرر اليوم فقط (HL12)"],
+    ["Q-HL7", "Do employees request hourly leave in the app, or does HR record approved leave?", "HR records it (HL13)", "هل يطلب الموظفون الإجازة الساعية في التطبيق، أم تسجل الموارد البشرية الإجازة الموافق عليها؟", "تسجلها الموارد البشرية (HL13)"],
+    ["Q-HL8", "Is there a limit on hourly leave (hours per month or year)?", "no limit; monthly total shown (HL14)", "هل يوجد حد للإجازة الساعية (ساعات في الشهر أو السنة)؟", "بلا حد؛ ويُعرض المجموع الشهري (HL14)"],
+    ["Q-HL9", "Also add full-day unpaid leave as a new day state?", "not in this plan (HL15)", "هل تُضاف أيضاً إجازة يوم كامل غير مدفوعة كحالة يوم جديدة؟", "ليس في هذه الخطة (HL15)"],
+    ["Q-LB1", "Balances start date: from which date do the app's leave and sick records count?", "2026-10-01 (LB5)", "تاريخ بدء الأرصدة: من أي تاريخ تُحسب سجلات الإجازة والمرض في التطبيق؟", "2026-10-01 (LB5)"],
+    ["Q-LB2", "Before the start, does HR have each person's used days, or only days left?", "yearly + carried + used; left computed (LB6)", "قبل البدء، هل لدى الموارد البشرية الأيام المستخدمة لكل شخص أم المتبقي فقط؟", "السنوي + المرحَّل + المستخدم؛ والمتبقي محسوب (LB6)"],
+    ["Q-LB3", "Are the opening numbers in a file we can import once?", "no: typed in the grid (LB8)", "هل الأرقام الافتتاحية في ملف يمكن استيراده مرة واحدة؟", "لا: تُكتب في الجدول (LB8)"],
+    ["Q-LB4", "Hold: a maximum of days carried? Is a negative balance carried?", "no cap (optional field); negative carried (LB12)", "الترحيل: حد أقصى للأيام المرحَّلة؟ وهل يُرحَّل الرصيد السالب؟", "بلا سقف (حقل اختياري)؛ والسالب يُرحَّل (LB12)"],
+    ["Q-LB5", "Sick days: planned work days only, or every calendar day?", "planned work days only (LB2)", "أيام المرض: أيام العمل المخططة فقط أم كل يوم تقويمي؟", "أيام العمل المخططة فقط (LB2)"],
+    ["Q-LB6", "Default new-year mode: annual Hold, sick Reset? Does Hold also add new days?", "annual Hold, sick Reset; Hold = leftover + typed days (LB12, LB13)", "الطريقة الافتراضية للسنة الجديدة: السنوي ترحيل والمرضي إعادة ضبط؟ وهل يضيف الترحيل أياماً جديدة؟", "السنوي ترحيل والمرضي إعادة ضبط؛ والترحيل = المتبقي + الأيام المُدخلة (LB12، LB13)"],
+    ["Q-LB7", "Sick days per year: one number for everyone, or per person?", "per person, prefilled from last year (LB13)", "أيام المرض في السنة: رقم واحد للجميع أم لكل شخص؟", "لكل شخص، مملوءة من السنة الماضية (LB13)"],
     ["Q-OI1", "October punches: which source?", "answered: the outside source, typed into the Operations template (OI13; Odoo data is old)", "بصمات تشرين الأول: أي مصدر؟", "أُجيب: المصدر الخارجي مكتوباً في قالب العمليات (OI13؛ بيانات Odoo قديمة)"],
     ["Q-OI2", "Source of the imported events: import or seed?", "answered 2026-11-09: import (OI16)", "مصدر الأحداث المستوردة: import أم seed؟", "أُجيب 2026-11-09: import (OI16)"],
     ["Q-OI3", "Time zone of the punch times?", "Damascus HH:MM in the template (OI14)", "المنطقة الزمنية لأوقات البصمات؟", "HH:MM بتوقيت دمشق في القالب (OI14)"],

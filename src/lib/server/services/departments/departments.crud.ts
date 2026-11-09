@@ -1,6 +1,6 @@
 import { and, asc, eq, gt, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
-import { department, departmentManager, staff } from '#lib/server/db/schema/index.js';
+import { department, departmentManager, staff, team } from '#lib/server/db/schema/index.js';
 import type { BatchQuery } from '../common.js';
 
 export const departmentColumns = {
@@ -33,6 +33,24 @@ export async function countActiveStaffByDepartment() {
 		.from(staff)
 		.where(and(eq(staff.active, true), isNotNull(staff.departmentId)))
 		.groupBy(staff.departmentId);
+}
+
+/** Active staff with a department and their current team, by name: the department's people sheet. */
+export async function listActiveDepartmentStaff() {
+	return db
+		.select({
+			staffId: staff.id,
+			employeeNo: staff.employeeNo,
+			fullName: staff.fullName,
+			fullNameAr: staff.fullNameAr,
+			departmentId: staff.departmentId,
+			teamNameEn: team.nameEn,
+			teamNameAr: team.nameAr
+		})
+		.from(staff)
+		.leftJoin(team, eq(team.id, staff.teamId))
+		.where(and(eq(staff.active, true), isNotNull(staff.departmentId)))
+		.orderBy(asc(staff.fullName));
 }
 
 /** Each department's manager on `date` (at most one, M2), with their names, for the list. */

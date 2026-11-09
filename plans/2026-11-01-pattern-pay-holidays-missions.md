@@ -636,6 +636,9 @@ Migrations: `0015`, `0016` ✅; `0017_swaps_leave_log` (generated) and
       for a selection (batch + audit), carry suggestion
 - [ ] 7.2 `/leave` page, `LeaveDaysSheet`, employee **Leave** card; days
       left and the below-zero warning in the day editor and the entry sheet
+      > note: 2026-11-09 proposed: 7.1 and 7.2 move to `plans/2026-11-09-leave-sick-balances.md`
+      > (two kinds annual + sick, opening balances, new year Hold or Reset). Until that plan is
+      > approved they stay here.
 
 ### Phase 8 · Strings, checks, docs, hand-off
 - [ ] 8.1 Every string in `messages/en.json` and `messages/ar.json`

@@ -22,6 +22,7 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { lookupName, personName } from '#lib/utils/locale.js';
 	import DepartmentFormSheet from './DepartmentFormSheet.svelte';
+	import DepartmentStaffSheet from './DepartmentStaffSheet.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -55,6 +56,15 @@
 	function openManager(row: Department) {
 		managerOf = row;
 		managerOpen = true;
+	}
+
+	// Who works in a department: the Employees count opens its people sheet.
+	let staffOpen = $state(false);
+	let staffOf = $state<Department | null>(null);
+
+	function openStaff(row: Department) {
+		staffOf = row;
+		staffOpen = true;
 	}
 
 	const patternById = $derived(new Map(data.patterns.map((p) => [p.id, p])));
@@ -152,10 +162,19 @@
 								{/if}
 							</Table.Cell>
 							<Table.Cell>
-								<span class="inline-flex items-center gap-1.5 text-muted-foreground">
-									<UsersThreeIcon class="size-4" />
+								<Button
+									variant="ghost"
+									size="sm"
+									class="text-muted-foreground"
+									aria-label={m.departments_show_staff_of({
+										count: row.staffCount,
+										name: lookupName(row)
+									})}
+									onclick={() => openStaff(row)}
+								>
+									<UsersThreeIcon data-icon="inline-start" />
 									{row.staffCount}
-								</span>
+								</Button>
 							</Table.Cell>
 							<Table.Cell class="text-sm">
 								{#if row.assignment}
@@ -200,6 +219,10 @@
 										<DropdownMenu.Item onSelect={() => openEdit(row)}>
 											<PencilSimpleIcon />
 											{m.departments_edit()}
+										</DropdownMenu.Item>
+										<DropdownMenu.Item onSelect={() => openStaff(row)}>
+											<UsersThreeIcon />
+											{m.departments_show_staff()}
 										</DropdownMenu.Item>
 										{#if row.active}
 											<DropdownMenu.Item onSelect={() => openManager(row)}>
@@ -274,6 +297,12 @@
 	{target}
 	departments={data.departments}
 	bind:open={formOpen}
+/>
+
+<DepartmentStaffSheet
+	department={staffOf}
+	members={staffOf ? (data.members[staffOf.id] ?? []) : []}
+	bind:open={staffOpen}
 />
 
 <ManagerSheet

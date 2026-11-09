@@ -13,6 +13,7 @@ import { todayInDamascus } from '#lib/server/time.js';
 import {
 	createDepartment,
 	editDepartment,
+	listDepartmentMembers,
 	listDepartments,
 	setDepartmentActive
 } from '#lib/server/services/departments/departments.bl.js';
@@ -35,14 +36,16 @@ function actorFrom(locals: App.Locals): Actor {
 export const load: PageServerLoad = async ({ locals }) => {
 	const actor = actorFrom(locals);
 	const today = todayInDamascus();
-	const [departments, managers, histories, patterns, forms, managerSheetForm] = await Promise.all([
-		listDepartments(actor),
-		listManagerOptions(actor),
-		listManagerHistories(actor),
-		listPatterns(actor),
-		patternForms(today, { kind: 'department', id: '' }),
-		managerForm(today)
-	]);
+	const [departments, members, managers, histories, patterns, forms, managerSheetForm] =
+		await Promise.all([
+			listDepartments(actor),
+			listDepartmentMembers(actor),
+			listManagerOptions(actor),
+			listManagerHistories(actor),
+			listPatterns(actor),
+			patternForms(today, { kind: 'department', id: '' }),
+			managerForm(today)
+		]);
 	const assigned = await currentAssignments(
 		actor,
 		'department',
@@ -51,6 +54,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	);
 	return {
 		departments: departments.map((d) => ({ ...d, assignment: assigned.get(d.id) ?? null })),
+		/** Each department's active employees, for its people sheet. */
+		members,
 		managers,
 		/** Each department's managers, newest first, for the change-manager sheet (M3). */
 		histories,

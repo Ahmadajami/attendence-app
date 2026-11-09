@@ -2,9 +2,9 @@
 	import { enhance } from '$app/forms';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import PersonSelect from '#lib/app/people/PersonSelect.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
-	import * as Select from '#lib/components/ui/select/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { StaffOption, SupervisorRow } from '#lib/server/services/roster/roster.crud.js';
@@ -71,16 +71,14 @@
 				class="flex flex-wrap items-center gap-2"
 				use:enhance={toastNotice}
 			>
-				<Select.Root type="single" name="staffId" bind:value={staffId}>
-					<Select.Trigger class="min-w-56" aria-label={m.roster_supervisor_pick()}>
-						{selected ? personName(selected) : m.roster_supervisor_pick()}
-					</Select.Trigger>
-					<Select.Content>
-						{#each available as option (option.staffId)}
-							<Select.Item value={option.staffId} label={personName(option)} />
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				<PersonSelect
+					options={available}
+					name="staffId"
+					bind:value={staffId}
+					placeholder={m.roster_supervisor_pick()}
+					aria-label={m.roster_supervisor_pick()}
+					class="min-w-56"
+				/>
 				<!-- Once added, the person leaves `available`, so a stale `staffId` can't be posted again. -->
 				<Button type="submit" variant="outline" disabled={!selected}>
 					<PlusIcon data-icon="inline-start" />

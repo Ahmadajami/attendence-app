@@ -69,3 +69,4 @@ graphify-out/
 *.xls
 playwright-report/
 test-results/
+answers/

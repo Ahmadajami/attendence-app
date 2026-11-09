@@ -6,6 +6,7 @@
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
 	import DayStatusTags from '#lib/app/attendance/DayStatusTags.svelte';
+	import PersonSelect from '#lib/app/people/PersonSelect.svelte';
 	import DayTagPopover from '#lib/app/attendance/DayTagPopover.svelte';
 	import OvertimeCell from '#lib/app/attendance/OvertimeCell.svelte';
 	import PunchTime from '#lib/app/attendance/PunchTime.svelte';
@@ -140,10 +141,8 @@
 
 	let addStaffId = $state('');
 	let addShiftId = $state(untrack(() => sheet.shifts.find((s) => s.active)?.id ?? ''));
-	const addPersonLabel = $derived.by(() => {
-		const picked = available.find((o) => o.person.staffId === addStaffId);
-		return picked ? personName(picked.person) : m.attendance_add_person();
-	});
+	/** The people not on the sheet yet, as the add picker lists them. */
+	const availablePeople = $derived(available.map((o) => o.person));
 
 	function addPerson() {
 		const picked = available.find((o) => o.person.staffId === addStaffId);
@@ -428,19 +427,13 @@
 
 	<div class="flex flex-wrap items-center gap-2 px-4 pb-4">
 		{#if available.length > 0}
-			<Select.Root type="single" bind:value={addStaffId}>
-				<Select.Trigger class="w-64" aria-label={m.attendance_add_person()}>
-					{addPersonLabel}
-				</Select.Trigger>
-				<Select.Content>
-					{#each available as other (other.person.staffId)}
-						<Select.Item
-							value={other.person.staffId}
-							label={`${personName(other.person)} · ${other.person.employeeNo}`}
-						/>
-					{/each}
-				</Select.Content>
-			</Select.Root>
+			<PersonSelect
+				options={availablePeople}
+				bind:value={addStaffId}
+				placeholder={m.attendance_add_person()}
+				aria-label={m.attendance_add_person()}
+				class="w-64"
+			/>
 			<Select.Root type="single" bind:value={addShiftId}>
 				<Select.Trigger class="w-44" aria-label={m.attendance_col_shift()}>
 					{shiftLabel(addShiftId)}

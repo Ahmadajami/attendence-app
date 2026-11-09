@@ -36,3 +36,6 @@ test-results/
 
 # --- graphify (local knowledge graph, rebuilt with /graphify) ---
 graphify-out/
+
+# --- local answer pages (EN/AR HTML, one per question) ---
+answers/

@@ -1,6 +1,7 @@
 # Work outside the roster: day-off work without a shift, and work on another shift
 
-**Status:** to do (proposed 2026-11-09; waiting for answers to Q-OW1–Q-OW7 and approval)
+**Status:** to do — **URGENT** (marked by the user 2026-11-09: it blocks the October Operations import; proposed, waiting for answers to Q-OW1–Q-OW7 and approval)
+**Priority:** urgent
 **Date:** 2026-11-09
 **Goal:** every punch that does not match the roster is recorded and calculated
 correctly, by hand and by import, now and in the future:

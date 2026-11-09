@@ -13,6 +13,7 @@
 	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
+	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import type { StaffListKind } from '#lib/schemas/staff-lists.schema.js';
 	import type { StaffListOption } from '#lib/types/profile.js';
@@ -49,10 +50,18 @@
 		</Sheet.Header>
 
 		<div class="flex flex-col gap-4 px-4 pb-4">
-			<Button variant="outline" size="sm" class="self-start" onclick={() => onEdit(null)}>
-				<PlusIcon data-icon="inline-start" />
-				{newItemLabel(kind)}
-			</Button>
+			<div class="flex flex-wrap items-center gap-2">
+				<Button variant="outline" size="sm" onclick={() => onEdit(null)}>
+					<PlusIcon data-icon="inline-start" />
+					{newItemLabel(kind)}
+				</Button>
+				{#if kind === 'job_title'}
+					<!-- The full list with who holds each job (jobs plan JB8). -->
+					<Button variant="link" size="sm" href={localizedHref('/jobs')}>
+						{m.jobs_open_page()}
+					</Button>
+				{/if}
+			</div>
 
 			{#if items.length === 0}
 				<Empty icon={ListChecksIcon} title={m.staff_lists_empty()} />

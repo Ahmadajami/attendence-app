@@ -20,6 +20,8 @@ correctly, by hand and by import, now and in the future:
   (added by the user 2026-11-09; built in `2026-11-09-hourly-leave.md`).
 
 Plain-English explainer with pictures: `docs/off-day-work-explained.html`.
+Arabic page with one example per question and an answer sheet: `docs/off-day-work-questions-ar.html`
+(includes the proposed Q-OW13 "day with no roster", not yet in §2).
 
 It came up in the October Operations import
 (`2026-11-09-operations-october-punch-import.md`, now on hold until this plan is

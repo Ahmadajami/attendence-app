@@ -2054,8 +2054,8 @@
       ]
     },
     {
-      id: 'OI1', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
-      title: { en: "October punches come from Odoo hr_attendance", ar: "بصمات تشرين الأول من جدول hr_attendance في Odoo" },
+      id: 'OI1', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "October punches come from Odoo hr_attendance (replaced by OI13: Odoo data is old, user 2026-11-09)", ar: "بصمات تشرين الأول من جدول hr_attendance في Odoo (حلّ محله OI13: بيانات Odoo قديمة، المستخدم 2026-11-09)" },
       decision: { en: "The 6 Operations people's October punches are read from Odoo's hr_attendance: 58 closed pairs with full timestamps. The Excel Daily sheet is a cross-check only.", ar: "تُقرأ بصمات أشخاص العمليات الستة لتشرين الأول من جدول hr_attendance في Odoo: 58 زوجاً مغلقاً بطوابع زمنية كاملة. وورقة Daily في ملف Excel للمقارنة فقط." },
       why: { en: "raw_attendance_log (the device punch table) is empty in every local Odoo DB; the pairs have full timestamps and agree 58/58 with the Excel, which has HH:MM only.", ar: "جدول raw_attendance_log (بصمات الجهاز) فارغ في كل قواعد Odoo المحلية؛ والأزواج بطوابع كاملة وتطابق ملف Excel في 58 من 58، وExcel فيه الساعة والدقيقة فقط." },
       alts: [
@@ -2064,8 +2064,8 @@
       ]
     },
     {
-      id: 'OI2', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
-      title: { en: "Odoo history is stored with source = seed", ar: "تاريخ Odoo يُخزَّن بالمصدر seed" },
+      id: 'OI2', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "Odoo history is stored with source = seed (replaced by OI16: the data no longer comes from Odoo)", ar: "تاريخ Odoo يُخزَّن بالمصدر seed (حلّ محله OI16: البيانات لم تعد من Odoo)" },
       decision: { en: "Every imported event gets source = seed.", ar: "كل حدث مستورد يأخذ المصدر seed." },
       why: { en: "The main plan names Odoo history the seed; import stays for device files (S1.6) and manual for typed punches.", ar: "الخطة الرئيسية تسمي تاريخ Odoo بالبذرة (seed)؛ ويبقى import لملفات الجهاز (S1.6) وmanual للبصمات المكتوبة." },
       alts: [
@@ -2073,8 +2073,8 @@
       ]
     },
     {
-      id: 'OI3', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
-      title: { en: "Odoo punch times are UTC", ar: "أوقات بصمات Odoo بتوقيت UTC" },
+      id: 'OI3', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "Odoo punch times are UTC (replaced by OI14: Odoo data is old, user 2026-11-09)", ar: "أوقات بصمات Odoo بتوقيت UTC (حلّ محله OI14: بيانات Odoo قديمة، المستخدم 2026-11-09)" },
       decision: { en: "hr_attendance check_in / check_out are read as UTC and stored as timestamptz unchanged.", ar: "تُقرأ check_in وcheck_out في hr_attendance بتوقيت UTC وتُخزَّن timestamptz دون تغيير." },
       why: { en: "Odoo stores naive UTC; converted to Asia/Damascus they match the Excel's times 58/58.", ar: "Odoo يخزن UTC بلا منطقة؛ وبعد التحويل إلى Asia/Damascus تطابق أوقات Excel في 58 من 58." },
       alts: [
@@ -2082,8 +2082,8 @@
       ]
     },
     {
-      id: 'OI4', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
-      title: { en: "One pair = two events on one shift, matched by attributeEvent", ar: "زوج واحد = حدثان على وردية واحدة، بمطابقة attributeEvent" },
+      id: 'OI4', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "One pair = two events on one shift, matched by attributeEvent (replaced by OI14: Odoo data is old, user 2026-11-09)", ar: "زوج واحد = حدثان على وردية واحدة، بمطابقة attributeEvent (حلّ محله OI14: بيانات Odoo قديمة، المستخدم 2026-11-09)" },
       decision: { en: "Each pair becomes a check_in and a check_out (type from the Odoo column). Shift date and shift come from the existing attributeEvent() over the person's roster days; the check-out uses the check-in's attribution as the open one. A pair whose ends land on different shift dates or shifts is held for the user, not imported.", ar: "يصبح كل زوج حدث دخول وحدث خروج (النوع من عمود Odoo). تاريخ الوردية والوردية من attributeEvent() الموجودة على أيام جدول الشخص؛ والخروج يستخدم نسبة الدخول كوردية مفتوحة. والزوج الذي يقع طرفاه على تاريخين أو ورديتين مختلفتين يُحجز للمستخدم ولا يُستورد." },
       why: { en: "One matcher (BRIEF §10), already tested; a pair is one shift worked and is never split.", ar: "مطابِق واحد (BRIEF §10) مختبر مسبقاً؛ والزوج وردية عمل واحدة ولا يُقسم أبداً." },
       alts: [
@@ -2121,15 +2121,15 @@
     {
       id: 'OI8', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
       title: { en: "Only the 6 Operations people, October only", ar: "الأشخاص الستة في العمليات فقط، تشرين الأول فقط" },
-      decision: { en: "The extractor takes the 6 badges from the app by staff record ID; the importer rejects any other employee number and any shift date outside 2026-10-01 to 2026-10-31 (one pair from 2026-09-30) with a reason.", ar: "يأخذ المستخرج الأرقام الستة من التطبيق بمعرّف سجل الموظف؛ ويرفض المستورد أي رقم آخر وأي تاريخ وردية خارج 2026-10-01 إلى 2026-10-31 (زوج واحد من 2026-09-30) مع السبب." },
+      decision: { en: "The importer rejects any other employee number and any shift date outside 2026-10-01 to 2026-10-31 with a reason.", ar: "يرفض المستورد أي رقم آخر وأي تاريخ وردية خارج 2026-10-01 إلى 2026-10-31 مع السبب." },
       why: { en: "Hard scope of the task; the other 29 people and other teams are not on this roster.", ar: "نطاق المهمة الصارم؛ والأشخاص الـ29 الآخرون والفرق الأخرى ليسوا على هذا الجدول." },
       alts: [
         { en: "Import all October punches from Odoo: not chosen — out of scope, and those people have no roster in the app yet.", ar: "استيراد كل بصمات تشرين الأول من Odoo: لم يُختر — خارج النطاق، ولا جدول لهؤلاء في التطبيق بعد." }
       ]
     },
     {
-      id: 'OI9', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1 (user, chat 2026-11-09)',
-      title: { en: "Oct 21–31 stay without punches", ar: "21–31 تشرين الأول تبقى بلا بصمات" },
+      id: 'OI9', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1 (user, chat 2026-11-09)',
+      title: { en: "Oct 21–31 stay without punches (replaced by OI15: Odoo data is old, user 2026-11-09)", ar: "21–31 تشرين الأول تبقى بلا بصمات (حلّ محله OI15: بيانات Odoo قديمة، المستخدم 2026-11-09)" },
       decision: { en: "Nothing is imported or invented for 2026-10-21 to 2026-10-31; planned days there show as missing punches.", ar: "لا يُستورد ولا يُخترع شيء من 2026-10-21 إلى 2026-10-31؛ وتظهر الأيام المخططة هناك ببصمات ناقصة." },
       why: { en: "Those punches were never collected (user, 2026-11-09).", ar: "تلك البصمات لم تُجمع أصلاً (المستخدم، 2026-11-09)." },
       alts: [
@@ -2159,6 +2159,42 @@
       why: { en: "The existing absence service writes the row, the audit and the recompute; the Odoo reason text is health data and is never copied.", ar: "خدمة الغياب الموجودة تكتب الصف والتدقيق وإعادة الحساب؛ ونص سبب Odoo بيانات صحية ولا يُنسخ أبداً." },
       alts: [
         { en: "The import script writes the absences itself: not chosen — it would bypass the service's checks for 2 actions.", ar: "سكربت الاستيراد يكتب الغياب بنفسه: لم يُختر — يتجاوز فحوص الخدمة من أجل إجراءين." }
+      ]
+    },
+    {
+      id: 'OI13', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1 (user, chat 2026-11-09)',
+      title: { en: "October punches come from the outside source, typed into one Operations template", ar: "بصمات تشرين الأول من المصدر الخارجي، مكتوبة في قالب واحد للعمليات" },
+      decision: { en: "Odoo is not used at all. The new data from the outside source is filled into operations_punches_2026-10_template.xlsx (in the secure folder): one row per person per date, Oct 1–31, only the 6 Operations people, with Check in and Check out columns.", ar: "لا يُستخدم Odoo إطلاقاً. تُكتب البيانات الجديدة من المصدر الخارجي في operations_punches_2026-10_template.xlsx (في المجلد الآمن): سطر لكل شخص في كل تاريخ، 1–31 تشرين الأول، للأشخاص الستة في العمليات فقط، مع عمودي الدخول والخروج." },
+      why: { en: "The user: Odoo holds old data; new data comes from outside. One small readable sheet is easy to fill and check.", ar: "المستخدم: Odoo فيه بيانات قديمة؛ والبيانات الجديدة تأتي من الخارج. ورقة صغيرة واضحة سهلة التعبئة والمراجعة." },
+      alts: [
+        { en: "Odoo hr_attendance pairs (OI1): not chosen — old data.", ar: "أزواج hr_attendance في Odoo (OI1): لم يُختر — بيانات قديمة." },
+        { en: "Import the outside source's own file as it comes: not chosen — its layout is not known yet; the template gives one known layout.", ar: "استيراد ملف المصدر الخارجي كما هو: لم يُختر — شكله غير معروف بعد؛ والقالب يعطي شكلاً واحداً معروفاً." }
+      ]
+    },
+    {
+      id: 'OI14', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "Template times are Damascus HH:MM, read like manual entry", ar: "أوقات القالب HH:MM بتوقيت دمشق، تُقرأ كالإدخال اليدوي" },
+      decision: { en: "The row's date is the shift date. Check in / Check out are 24-hour Damascus times turned into instants by the manual entry's resolvePair() (a check-out earlier than the check-in is the next morning). The shift is the planned one; on an off day, the active shift that fits best (attributeEvent's rule) with the unplanned reason. validatePair() checks apply (OI5).", ar: "تاريخ السطر هو تاريخ الوردية. الدخول والخروج بتوقيت دمشق بنظام 24 ساعة، وتحوّلهما resolvePair() الخاصة بالإدخال اليدوي إلى لحظات (الخروج الأبكر من الدخول = صباح اليوم التالي). والوردية هي المخططة؛ وفي يوم الراحة الوردية النشطة الأنسب (قاعدة attributeEvent) مع سبب غير مخطط. وتنطبق فحوص validatePair() (OI5)." },
+      why: { en: "The same logic as typing the times into the entry sheet; a night shift sits on the row of the evening it started.", ar: "المنطق نفسه كما عند كتابة الأوقات في ورقة الإدخال؛ ووردية الليل في سطر المساء الذي بدأت فيه." },
+      alts: [
+        { en: "Full date + time in each cell: not chosen — harder to fill by hand, and the row date already says it.", ar: "تاريخ ووقت كاملان في كل خانة: لم يُختر — أصعب في التعبئة اليدوية، وتاريخ السطر يكفي." }
+      ]
+    },
+    {
+      id: 'OI15', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "Every October date is in the template; empty stays missing", ar: "كل تواريخ تشرين الأول في القالب؛ والفارغ يبقى ناقصاً" },
+      decision: { en: "The template has all 31 dates for the 6 people (186 rows). Whatever the outside source has is imported; an empty cell is a missing punch and nothing is invented.", ar: "في القالب كل التواريخ الـ31 للأشخاص الستة (186 سطراً). يُستورد كل ما لدى المصدر الخارجي؛ والخانة الفارغة بصمة ناقصة ولا يُخترع شيء." },
+      why: { en: "The new source may cover days Odoo never had (Oct 21–31).", ar: "قد يغطي المصدر الجديد أياماً لم تكن في Odoo (21–31 تشرين الأول)." },
+      alts: []
+    },
+    {
+      id: 'OI16', group: 'roster', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-operations-october-punch-import.md §1',
+      title: { en: "Outside punch data is stored with source = import", ar: "بيانات البصمات الخارجية تُخزَّن بالمصدر import" },
+      decision: { en: "Every event from the filled template gets source = import.", ar: "كل حدث من القالب المعبأ يأخذ المصدر import." },
+      why: { en: "The schema keeps seed for Odoo history and import for punch readings from a file; this data is punch readings from an outside source, not Odoo.", ar: "المخطط يحفظ seed لتاريخ Odoo وimport لقراءات البصمة من ملف؛ وهذه قراءات بصمة من مصدر خارجي لا من Odoo." },
+      alts: [
+        { en: "seed (OI2): not chosen — it would label outside data as Odoo history.", ar: "seed (OI2): لم يُختر — يسمّي البيانات الخارجية تاريخ Odoo." },
+        { en: "manual: not chosen — nobody typed them in the app's entry sheet.", ar: "manual: لم يُختر — لم يكتبها أحد في ورقة الإدخال في التطبيق." }
       ]
     },
   ];
@@ -2250,14 +2286,14 @@
     ["Q-RO8", "Operations roster: Arabic name of the monthly patterns? (answered 2026-11-09: default kept)", "the same text as the English name (Operation-1/Oct/2026), as the November pattern has", "جدول العمليات: الاسم العربي للأنماط الشهرية؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "النص نفسه كالاسم الإنجليزي (Operation-1/Oct/2026)، كما في نمط تشرين الثاني"],
     ["Q-RO9", "Operations roster: month view on the pattern page as its own tab or a filter above all tabs? (answered 2026-11-09: default kept)", "its own tab (Month); the header keeps today's followers", "جدول العمليات: عرض الشهر في صفحة النمط كتبويب مستقل أم مرشّح فوق كل التبويبات؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "تبويب مستقل («الشهر»)؛ ويبقى في الرأس متّبعو اليوم"],
     ["Q-RO10", "Operations roster: calendar month or payroll period (21st–20th) for the month views? (answered 2026-11-09: default kept)", "calendar month, like HR's workbooks", "جدول العمليات: شهر تقويمي أم فترة الرواتب (21–20) لعروض الشهر؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "شهر تقويمي، مثل ملفات الموارد البشرية"],
-    ["Q-OI1", "October punches: Odoo hr_attendance pairs or the Excel Daily sheet?", "hr_attendance (OI1)", "بصمات تشرين الأول: أزواج hr_attendance في Odoo أم ورقة Daily في Excel؟", "hr_attendance (OI1)"],
-    ["Q-OI2", "Source of the imported events: seed or import?", "seed (OI2)", "مصدر الأحداث المستوردة: seed أم import؟", "seed (OI2)"],
-    ["Q-OI3", "Are Odoo's punch times UTC?", "yes (OI3)", "هل أوقات بصمات Odoo بتوقيت UTC؟", "نعم (OI3)"],
-    ["Q-OI4", "Oct 21–31: import nothing, planned days stay missing?", "yes (OI9)", "21–31 تشرين الأول: لا استيراد وتبقى الأيام المخططة ناقصة؟", "نعم (OI9)"],
+    ["Q-OI1", "October punches: which source?", "answered: the outside source, typed into the Operations template (OI13; Odoo data is old)", "بصمات تشرين الأول: أي مصدر؟", "أُجيب: المصدر الخارجي مكتوباً في قالب العمليات (OI13؛ بيانات Odoo قديمة)"],
+    ["Q-OI2", "Source of the imported events: import or seed?", "import (OI16)", "مصدر الأحداث المستوردة: import أم seed؟", "import (OI16)"],
+    ["Q-OI3", "Time zone of the punch times?", "Damascus HH:MM in the template (OI14)", "المنطقة الزمنية لأوقات البصمات؟", "HH:MM بتوقيت دمشق في القالب (OI14)"],
+    ["Q-OI4", "Dates without punches?", "every date is in the template; empty = missing (OI15)", "التواريخ بلا بصمات؟", "كل التواريخ في القالب؛ الفارغ = ناقص (OI15)"],
     ["Q-OI5", "Duplicate punches: same person and type within how many seconds?", "60 s (OI7)", "البصمات المكررة: الشخص والنوع نفسه خلال كم ثانية؟", "60 ثانية (OI7)"],
-    ["Q-OI6", "Night pairs on two planned D8 days of one person: unplanned N8, hold, or fix the roster first?", "unplanned N8 on the check-in date", "زوجا ليل في يومي D8 مخططين لشخص واحد: N8 غير مخطط، حجز، أم تصحيح الجدول أولاً؟", "N8 غير مخطط بتاريخ الدخول"],
+    ["Q-OI6", "Punches on another shift than planned?", "decided from the dry run of the new data", "بصمات على وردية غير المخططة؟", "يُقرر من التشغيل التجريبي للبيانات الجديدة"],
     ["Q-OI7", "Day pairs on 2 off days: import as unplanned work?", "yes", "زوجا نهار في يومي راحة: استيراد كعمل غير مخطط؟", "نعم"],
-    ["Q-OI8", "Day pairs on one person's 2 swap-off days: import as unplanned, or fix the swap first?", "import as unplanned; keep attributeEvent's shift", "زوجا نهار في يومي إجازة تبديل لشخص واحد: استيراد كغير مخطط أم تصحيح التبديل أولاً؟", "استيراد كغير مخطط؛ مع وردية attributeEvent"],
+    ["Q-OI8", "Punches on swap-off days?", "decided from the dry run of the new data", "بصمات في أيام إجازة التبديل؟", "يُقرر من التشغيل التجريبي للبيانات الجديدة"],
     ["Q-OI9", "The 4 sick days: the user in the day editor, or the script?", "the user, day editor (OI12)", "أيام المرض الأربعة: المستخدم في محرر اليوم أم السكربت؟", "المستخدم في محرر اليوم (OI12)"]
   ];
 

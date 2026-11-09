@@ -1,10 +1,11 @@
 # Operations team: October 2026 punch history from Odoo
 
-**Status:** to do (proposed 2026-11-09; Phase 0 done, waiting for the user's answers to Q-OI1–Q-OI9 and "approved")
+**Status:** to do (proposed 2026-11-09; source changed by the user the same day: Odoo is old data, new data from an outside source goes into an Operations template (OI13). Template made; waiting for the filled file, the open questions and "approved")
 **Date:** 2026-11-09
 **Goal:** bring the October 2026 check-ins and check-outs of the 6 members of
-team Operations (`31da93d7-07cf-4ee6-bf02-606158f67fa2`) from the local Odoo DB
-into `attendance_app`, so the app computes their October days against the
+team Operations (`31da93d7-07cf-4ee6-bf02-606158f67fa2`) into `attendance_app`
+from **new data from an outside source**, typed into one Operations template
+(OI13; the user dropped Odoo on 2026-11-09 because it holds old data), so the app computes their October days against the
 roster already entered (plan `2026-11-09-operations-roster-nov-2026.md`).
 A one-time history import: not the general punch-file import S1.6 (still
 blocked on Q-A11).
@@ -26,6 +27,29 @@ Nobody else is extracted, imported, given an absence or recomputed:
 | ec994043 | `ec994043-3806-4bf7-9c06-42cdd38c62b8` |
 
 ## 0. What Phase 0 found (read-only, 2026-11-09)
+
+> **2026-11-09, user:** do not use Odoo (`hr_attendance` holds old data); new
+> data comes from an outside source. The Odoo and Excel findings below are kept
+> as history only: they are **not** the source and not a target (OI1, OI3, OI4,
+> OI9 replaced by OI13–OI15).
+
+**The template (OI13)** —
+`~/secure/syravia/imports/punches/2026-10/operations_punches_2026-10_template.xlsx`
+(folder 700, file 600, never in the repo):
+
+- Sheet `Punches`: 186 rows = 6 people × 31 dates (2026-10-01 → 10-31), sorted
+  by person then date. Columns: `Employee No`, `Name`, `Name (AR)`, `Date`,
+  `Day`, `Planned shift`, `Planned time`, **`Check in`**, **`Check out`**,
+  `Note`. Header and the first 2 columns frozen; each person's rows shaded
+  alike; the two fill-in columns yellow.
+- `Planned shift` comes from the app's stored days: D8 60, N8 29, Off 89,
+  plus the 8 swap days marked (`D8 (swap: works)` 2, `N8 (swap: works)` 2,
+  `Off (swap: off)` 4). Off rows are grey.
+- Sheet `How to fill` (EN + AR): 24-hour Damascus HH:MM; a night shift goes
+  on the row of the evening it started (check-out earlier than check-in = next
+  morning); empty = no punch, never guessed; a second visit on one date = a
+  copied row; Employee No, Date and Planned columns are not edited; Note holds
+  short facts only, no medical or leave reasons.
 
 **App DB `attendance_app`**
 
@@ -119,32 +143,34 @@ before 15 h, night pair = after)
 
 | ID | Decision | Why |
 |---|---|---|
-| OI1 | **Source = Odoo `hr_attendance`** (58 closed pairs, full timestamps) for the 6, check-in in October Damascus time. The Excel `Daily` sheet is a cross-check only | `raw_attendance_log` is empty in every Odoo DB; the pairs carry full timestamps and agree 58/58 with the Excel; the Excel has HH:MM only |
-| OI2 | **`source = 'seed'`** on every imported event | Main plan §2/§4: Odoo history is the seed. `import` stays for device files (S1.6), `manual` for typed punches |
-| OI3 | **Times are UTC** in Odoo; stored as `timestamptz` as they are | Odoo stores naive UTC; the Excel's Damascus HH:MM match 58/58 after converting |
-| OI4 | **Each pair → 2 events** (`check_in`, `check_out`; type from the Odoo column, never guessed). Shift date and shift from `attributeEvent()` over the person's roster days (day before, day, day after); the check-out with `open` = the check-in's attribution. A pair whose two ends land on different shift dates or shifts is **held** (not imported, listed by person ID + date) for the user | One matcher, the existing one; a pair is one shift worked, never split |
+| ~~OI1~~ (replaced by OI13) | **Source = Odoo `hr_attendance`** (58 closed pairs, full timestamps) for the 6, check-in in October Damascus time. The Excel `Daily` sheet is a cross-check only | `raw_attendance_log` is empty in every Odoo DB; the pairs carry full timestamps and agree 58/58 with the Excel; the Excel has HH:MM only |
+| ~~OI2~~ (replaced by OI16) | **`source = 'seed'`** on every imported event | Main plan §2/§4: Odoo history is the seed. `import` stays for device files (S1.6), `manual` for typed punches |
+| ~~OI3~~ (replaced by OI14) | **Times are UTC** in Odoo; stored as `timestamptz` as they are | Odoo stores naive UTC; the Excel's Damascus HH:MM match 58/58 after converting |
+| ~~OI4~~ (replaced by OI14) | **Each pair → 2 events** (`check_in`, `check_out`; type from the Odoo column, never guessed). Shift date and shift from `attributeEvent()` over the person's roster days (day before, day, day after); the check-out with `open` = the check-in's attribution. A pair whose two ends land on different shift dates or shifts is **held** (not imported, listed by person ID + date) for the user | One matcher, the existing one; a pair is one shift worked, never split |
 | OI5 | **Manual entry's checks** (`validatePair`): an error (over 16 h, overlap, future) rejects the pair; a warning (outside window, unplanned) imports it with a fixed reason, `Odoo history (October 2026): not on the planned shift` | Same rules as typed punches; the service requires a reason on unplanned punches |
 | OI6 | **Roster days for matching = the stored `day_result` rows** (shift, team, swap role) of the 6 for 2026-09-30 → 2026-11-01, read before writing | The script cannot load the roster through the services; those rows were recomputed and verified 186/186 against the workbook (roster plan). Alternative: an admin-only server action that loads the roster through the services (more code, same result today) |
 | OI7 | **Idempotent**: an event already stored with the same staff, `occurred_at`, type and `source = seed` is skipped; two punches of one person within **60 s** of each other count as one (the later is skipped) | A rerun inserts nothing; the 58 pairs have minute precision, so 60 s catches only real duplicates |
-| OI8 | **Scope filter everywhere**: the extractor reads only the 6 people's pairs (their badges come from the app by staff ID, never typed); the importer rejects any other employee number with a reason; shift dates outside 10-01 → 10-31 are rejected (the 09-30 pair) | Hard scope of this task |
-| OI9 | **Oct 21–31 stay without punches** (planned days show as missing); nothing is invented | The punches were never collected (user, 2026-11-09) |
+| OI8 | **Scope filter everywhere**: the importer rejects any employee number other than the 6 and any date outside 10-01 → 10-31, with a reason | Hard scope of this task |
+| ~~OI9~~ (replaced by OI15) | **Oct 21–31 stay without punches** (planned days show as missing); nothing is invented | The punches were never collected (user, 2026-11-09) |
 | OI10 | **Recompute only the team**: daily page → scope team Operations → **Recompute these days** 2026-10-01 → 2026-10-31 (the user, in the browser). Not "Recompute from a date" | The existing scoped recompute, 6 people only, one audit row |
 | OI11 | **Never imported**: Odoo statuses, schedules, cycles, swaps, `manual_state`, leave reasons | The app's roster is the truth; the old cycles were wrong for ec994043 and 4e26598d |
+| OI13 | **Source = the outside data typed into the Operations template** (approved by the user 2026-11-09). Odoo is not used | Odoo holds old data; one small readable sheet is easy to fill and check |
+| OI14 | **Template rows read like manual entry**: row date = shift date; HH:MM Damascus → instants with `resolvePair()` (check-out earlier = next morning); shift = the planned one, on an off day the best-fitting active shift (`attributeEvent`'s rule) with the unplanned reason; `validatePair()` checks (OI5) | The same logic as typing the times into the entry sheet |
+| OI16 | **`source = 'import'`** on every event from the template | `seed` means Odoo history; this is punch readings from an outside file |
+| OI15 | **Every October date is in the template**; an empty cell stays a missing punch, nothing is invented | The new source may cover days Odoo never had (Oct 21–31) |
 | OI12 | **The 4 sick days** are entered by the user in the day editor (2 actions: 412d2b7e one 2-day range, b2339c1f one 2-day range), state `sick`, reason `Odoo history (October 2026)` | Goes through the existing absence service (`setDayState`), with its audit and recompute; the Odoo reason text is never copied |
 
 ## 2. Questions for the user (answer before "approved")
 
 | ID | Question | Default |
 |---|---|---|
-| Q-OI1 | Source: Odoo `hr_attendance` pairs (58, full timestamps) as OI1, or the Excel `Daily` sheet (HH:MM as Damascus, check-out < check-in = next day)? They agree 58/58 | `hr_attendance` |
-| Q-OI2 | `source = seed` for these events (OI2), or `import`? | `seed` |
-| Q-OI3 | Odoo times are UTC (OI3, confirmed by the Excel match): agree? | yes |
-| Q-OI4 | Oct 21–31: import nothing, the planned days stay "missing" (OI9)? | yes |
+| Q-OI1 | Source? | **answered 2026-11-09:** the outside source, typed into the template (OI13) |
+| Q-OI2 | `source = import` for these events (OI16), or `seed`? | `import` |
+| Q-OI3 | Time zone? | Damascus HH:MM in the template (OI14) |
+| Q-OI4 | Dates without punches? | every date is in the template; empty = missing (OI15) |
 | Q-OI5 | Duplicates: same person, same type within 60 s = one punch (OI7)? None expected | 60 s |
-| Q-OI6 | **4e26598d, 2026-10-13 and 10-14:** night pairs (20:00 → 08:00) on days the roster plans D8. `attributeEvent` puts each check-in on the planned D8 (inside its window, which runs to 02:00) and the check-out on the next day's D8, so OI4 would hold both pairs. Options: (a) import each as an **unplanned N8 on its check-in date** with the OI5 reason, the planned D8 then shows as not worked; (b) hold them and you enter them in the day editor; (c) first record what really happened in the roster (e.g. a self swap D8 → N8), then import as planned | (a) |
-| Q-OI7 | **Day pairs on off days** (4e26598d 10-17, 8b8d9748 10-16): import as unplanned work on an off day with the OI5 reason? The day engine then treats them by the pattern's pay rules for work on an off day | yes |
-| Q-OI8 | **b2339c1f, 2026-10-01 and 10-02:** the app has these as the person's `swap_off` days of the Oct 1–4 swap, but Odoo has a day pair on both (07:00, 824 min; 13:00, 405 min). Import them as unplanned work on swap-off days (the day then shows the swap and the punches), or is the swap as entered wrong for this person (then fix the swap first)? Note: the 13:00 pair fits shift D (09–18) better than D8 by `attributeEvent`'s distance rule; force D8 for it? | import as unplanned; keep `attributeEvent`'s choice |
-| Q-OI9 | The 4 sick days (2 people, one 2-day range each, OI12): record them as `sick` absences — you in the day editor (default), or the import script writing the absence rows plus audit itself? | you, in the day editor |
+| Q-OI6–Q-OI8 | (were about the old Odoo pairs) Punches on another shift than planned, on off days, on swap-off days | decided case by case from the dry run of the new data (2.4) |
+| Q-OI9 | The 4 sick days (2 people, one 2-day range each, OI12; counted from the old Odoo report — still wanted?): record them as `sick` absences — you in the day editor (default), or the import script writing the absence rows plus audit itself? | you, in the day editor |
 
 ## 3. Tasks
 
@@ -155,24 +181,22 @@ before 15 h, night pair = after)
 - [x] 0.2 Compare the pairs with the app's planned days
       > note: 52 on the planned shift, 4 on off days (2 of them b2339c1f's swap-off days), 2 night pairs on planned D8 days (4e26598d); 4 sick lines (412d2b7e 2, b2339c1f 2)
 - [x] 0.3 Write this plan, the index row and decisions OI1–OI12 (proposed)
-- [ ] 0.4 The user answers Q-OI1–Q-OI9 and says "approved"
+- [x] 0.4 Source decided by the user: outside data in an Operations template (OI13)
+      > note: 2026-11-09 template written: 186 rows (6 × 31), D8 60, N8 29, Off 89, swap rows 8; read back OK; mode 600 in `~/secure/syravia/imports/punches/2026-10/`
+- [ ] 0.5 The user answers Q-OI2, Q-OI5, Q-OI9 and says "approved"
 
-### Phase 1: Extraction (after approval)
+### Phase 1: Fill the template (the user / the outside source)
 
-- [ ] 1.1 Read-only extractor `scripts/extract-october-punches.sh`: takes the 6
-      employee numbers from `attendance_app` by staff record ID, runs one
-      `BEGIN READ ONLY` query on `odoo-db` (`docker exec … psql`), writes
-      `~/secure/syravia/imports/punches/2026-10/operations_punches_2026-10.csv`
-      (folder 700, file 600): `employee_number, occurred_at` (ISO UTC),
-      `type` (`check_in` | `check_out`), `odoo_attendance_id`. Prints counts only
-      — *done when* the file has 116 rows (58 × 2), 6 employee numbers, mode 600,
-      and nothing is written in the repo
+- [ ] 1.1 The outside data is typed into a copy of the template, saved in the
+      same folder as `operations_punches_2026-10.xlsx` (mode 600) — *done when*
+      the user says it is filled
+- ~~1.1 (old) Read-only extractor from Odoo~~ dropped 2026-11-09 (OI13)
 
 ### Phase 2: Import script
 
-- [ ] 2.1 Pure helpers in `src/lib/attendance/punch-import.ts` (parse rows, scope
-      filter, 60 s duplicate rule, pair → `attributeEvent` → held / rejected /
-      accepted with reason) + Vitest tests with made-up people only — *done when*
+- [ ] 2.1 Pure helpers in `src/lib/attendance/punch-import.ts` (read template rows,
+      scope filter, 60 s duplicate rule, row → `resolvePair` + shift (OI14) →
+      rejected / accepted with reason) + Vitest tests with made-up people only — *done when*
       `pnpm test` passes
 - [ ] 2.2 `scripts/import-october-punches.ts` (style of
       `scripts/backdate-import-memberships.ts`, `scripts/lib.ts`): `--file`,
@@ -192,8 +216,8 @@ before 15 h, night pair = after)
 
 - [ ] 3.1 The user: day editor, 4 sick days (Q-OI9) and the scoped recompute
       (OI10)
-- [ ] 3.2 Report (counts only): days with a punch per person ID next to the
-      Odoo baseline (6/10/10/11/11/10), every difference explained; days per
+- [ ] 3.2 Report (counts only): days with a punch per person ID (filled rows
+      in the template vs stored); days per
       status per person; the 8 swap days with their swap role; Oct 21–31 as
       missing
 - [ ] 3.3 Manual check by the user (unticked until reported): Month tab of the

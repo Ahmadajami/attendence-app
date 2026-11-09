@@ -165,12 +165,17 @@ Two files, both with the employee number in column A (added by the user
 
 ### Phase 2: The check script (read-only)
 
-- [ ] 2.1 Pure module `#lib/roster/fit-roster.ts`: for a cycle's slots (as shift
+- [x] 2.1 Pure module `#lib/roster/fit-roster.ts`: for a cycle's slots (as shift
       codes) and an anchor, list the crew starts that reproduce a row of codes,
       with the dates that don't fit, and pairs of rows whose odd days are each
       other's planned days (a swap between two people). Vitest with made-up rows:
       a perfect fit, a two-person swap, a row that fits nothing, a short row. Done when: `pnpm test` passes.
-- [ ] 2.2 `scripts/check-team-roster.ts --file <xlsx> --month 2026-10 --team <id>
+      > note: 2026-11-09: `fitRow`, `findSwaps`, plus the workbook reader
+      > (`readWorkbookRows`, `dropDuplicateRows`); 7 Vitest cases (the four above, an
+      > unexplained odd day, the reader, a duplicate row). `AIRPORT_TIME_ZONE` moved to
+      > `#lib/utils/timezone.ts` (re-exported by `datetime.ts`) so `#lib/roster` no longer
+      > loads the paraglide runtime in scripts. `pnpm test` 440 passed.
+- [x] 2.2 `scripts/check-team-roster.ts --file <xlsx> --month 2026-10 --team <id>
       --pattern <id> --anchor 2026-10-31 --code D=D8 --code N=N8`. It reads column A
       as the employee number (refuses unknown, inactive or non-member numbers;
       reports a duplicate row), column C as day 1. Two modes:
@@ -184,6 +189,13 @@ Two files, both with the employee number in column A (added by the user
         match count plus each mismatch as row/date/expected/got.
       Done when: `plan` prints the table of §0, the Oct 1–4 swap of rows 8 and 13,
       and no unexplained day in either month.
+      > note: 2026-11-09 `plan` with the November pattern, anchor 2026-10-31: October
+      > 7 rows → 6 people (row 7 duplicate of row 13, 6 filled days, ignored); crew
+      > starts rows 5/6/8/11/12/13 = 0/16/8/4/20/12; 2 swaps A = row 8, B = row 13: Oct 1
+      > return Oct 3, Oct 2 return Oct 4; 178/186 on the cycle + 8 by swaps, 0
+      > unexplained. November rows 7/8/9/11/12/13 = 0/16/8/4/20/12, 180/180, no swaps.
+      > `verify` smoke run (before Phase 3, November): 70/180, as expected with the old
+      > anchor and no crew starts. Read-only; a workbook inside the repo is refused.
 
 ### Phase 3: Entry in the app (the user, 11 forms)
 

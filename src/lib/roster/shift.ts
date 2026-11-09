@@ -6,7 +6,7 @@ import {
 	requiredMinutes,
 	spanMinutes
 } from '#lib/payroll/schedule.js';
-import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
+import { AIRPORT_TIME_ZONE } from '#lib/utils/timezone.js';
 import { LATE_GRACE_MINUTES } from './rules.js';
 
 /**

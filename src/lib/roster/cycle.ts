@@ -1,7 +1,7 @@
 import { fromDate, parseDate, toCalendarDate } from '@internationalized/date';
 import { slotIndex } from '#lib/payroll/schedule.js';
 import type { PatternType } from '#lib/schemas/enums.js';
-import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
+import { AIRPORT_TIME_ZONE } from '#lib/utils/timezone.js';
 
 /**
  * What decides a pattern's slot on a date: the pattern's type and slots (shift ids, `null` = off),

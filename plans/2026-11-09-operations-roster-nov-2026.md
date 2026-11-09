@@ -202,35 +202,45 @@ Two files, both with the employee number in column A (added by the user
 The order matters: patterns, then the assignments oldest first, then the crew
 starts, then the swaps (a swap is checked against the planned days).
 
-- [ ] 3.1 Patterns → `Operation-1/Nov/2026` → **Copy**; open the copy, rename it
+- [x] 3.1 Patterns → `Operation-1/Nov/2026` → **Copy**; open the copy, rename it
       `Operation-1/Oct/2026` (both languages), leave the days as they are, save
       (RO11). Done when: the library shows both patterns, same 24 days.
-- [ ] 3.2 Team Operations → "Assign a pattern": `Operation-1/Oct/2026`, from
+      > note: 2026-11-09 by the user: copy `528461f1…` (`Operation-1/Oct/2026`), active, same 24 days as `f89ce44b…` (slots identical; audit `pattern.copy` ×1).
+- [x] 3.2 Team Operations → "Assign a pattern": `Operation-1/Oct/2026`, from
       **2026-10-01**, "Cycle day 1 is on" **2026-10-31**, reason "Roster OCT 2026
       workbook". Done when: the audit has `pattern_assignment.set` with
       `cae8156d…` under `before.removed`.
-- [ ] 3.3 Team Operations → "Assign a pattern": `Operation-1/Nov/2026`, from
+      > note: 2026-11-09 by the user: `528461f1…` from 2026-10-01, anchor 2026-10-31; an audit `pattern_assignment.set` holds `cae8156d…` under `before`.
+- [x] 3.3 Team Operations → "Assign a pattern": `Operation-1/Nov/2026`, from
       **2026-11-01**, "Cycle day 1 is on" **2026-10-31**, reason "Roster NOV 2026
       workbook". Done when: 2 assignments for the team: October pattern
       2026-10-01 → 2026-11-01, November pattern from 2026-11-01, open.
-- [ ] 3.4 For each of the 6 employee pages (paths from 2.2 `plan`): Own rules →
+      > note: 2026-11-09: first check: not entered yet (the open October assignment also planned November; shifts right, 0 assignments on `f89ce44b…`).
+      > note: 2026-11-09 by the user: 2 assignments: `528461f1…` 2026-10-01 → 2026-11-01, `f89ce44b…` from 2026-11-01, open, both anchor 2026-10-31.
+- [x] 3.4 For each of the 6 employee pages (paths from 2.2 `plan`): Own rules →
       "Crew start" = the UI choice in §0, from **2026-10-01**, reason "Roster
       OCT–NOV 2026 workbooks". Done when: 6 `staff_schedule` rows from
       2026-10-01, crew starts {0, 16, 8, 4, 20, 12}.
-- [ ] 3.5 Swaps → new **employee swap** ×2 (RO8), reason "Sub-team change, roster
+      > note: 2026-11-09 by the user, after a first save from 2026-11-09 (the form default) was re-entered from 2026-10-01: 6 rows from 2026-10-01, crew starts {0, 4, 8, 12, 16, 20}, none later.
+- [x] 3.5 Swaps → new **employee swap** ×2 (RO8), reason "Sub-team change, roster
       OCT 2026": A = row 8 (`b2339c1f…`), B = row 13 (`4e26598d…`), scope month;
       swap 1: date Oct 1, return Oct 3; swap 2: date Oct 2, return Oct 4. Approve
       both. Done when: 2 approved swaps; the daily page shows "Swap: works /
       Swap: off" on Oct 1–4 for these two people and for nobody else.
+      > note: 2026-11-09 by the user: 2 approved swaps; 8 active overrides, all on Oct 1–4 for `b2339c1f…` and `4e26598d…` only (off/works as planned).
 
 ### Phase 4: Verify
 
-- [ ] 4.1 `check-team-roster.ts verify` on both files (October with the October
+- [x] 4.1 `check-team-roster.ts verify` on both files (October with the October
       pattern, November with the November pattern). Done when: **October
       186/186** (the row 7 copy ignored) and **November 180/180**, 0 mismatches.
-- [ ] 4.2 Recompute the stored days: daily page → "Recompute from a date"
+      > note: 2026-11-09: October vs `528461f1…` **186/186**, 0 mismatches (row 7 ignored; 8 swap days, 6 own-rule versions). November vs `528461f1…` 180/180; vs `f89ce44b…` 0/180, every day "planned by another pattern" (3.3 missing). Rerun November after 3.3.
+      > note: 2026-11-09 after 3.3: October vs `528461f1…` **186/186**, November vs `f89ce44b…` **180/180**, 0 mismatches.
+- [x] 4.2 Recompute the stored days: daily page → "Recompute from a date"
       2026-10-01. Done when: the toast reports the days; no day of the 6 shows
       "no pattern" between Oct 1 and today.
+      > note: 2026-11-09: stored days already recomputed by the saves: 240 for the team (Oct 93 work + 93 off, Nov 1–9 27 + 27), all on `528461f1…`, none without a pattern. After 3.3 Nov 1–9 must move to `f89ce44b…`.
+      > note: 2026-11-09 after 3.3: the assignment save recomputed Nov 1–9 itself (no manual recompute needed): Oct 93 + 93 on `528461f1…`, Nov 1–9 27 + 27 on `f89ce44b…`, 0 days without a pattern.
 - [ ] 4.3 Manual check by the user (on `http://127.0.0.1:5173`, real data):
       - Team page, next 14 days: every day 2 on D8 and 1 on N8.
       - Each of the 6 people, Schedule tab: the history list (Phase 5) shows

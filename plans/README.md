@@ -22,6 +22,9 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 
 ## Index
 
+Overview page with every plan, its progress and open tasks: `docs/plans-status.html`
+(generated; rebuild with `node tools/plans-status.mjs` after a plan changes).
+
 | Date | Plan | Status |
 |---|---|---|
 | 2026-10-28 | [Attendance App](2026-10-28-attendance-app.md) | in progress (approved, ready to implement) |

@@ -26,6 +26,7 @@ import { descendantIds } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
 import { listActiveStaffInDepartments, listEventsBetween } from '../attendance/attendance.crud.js';
 import { causeBy, markNeedsRecompute, recomputeAfter } from '../day-results/day-results.bl.js';
+import { requireEffectiveDate } from '../effective-date.js';
 import { findDepartment, listDepartmentRows } from '../departments/departments.crud.js';
 import {
 	carryStatements,
@@ -78,13 +79,8 @@ const toTarget = (kind: AssignTargetKind, id: string): AssignmentTarget =>
 			? { kind, teamId: id }
 			: { kind, departmentId: id };
 
-/** Today or later until periods exist (B7). */
-function requireFromDate(date: string): void {
-	if (date < todayInDamascus())
-		throw new InvalidInputError('effective_past', m.roster_error_effective_past(), {
-			field: 'effectiveFrom'
-		});
-}
+/** A past date is allowed with the reason, up to the backfill limit, until periods exist (B7b). */
+const requireFromDate = (date: string) => requireEffectiveDate(date);
 
 /** A cycle needs the date its slot 0 falls on (B4); a weekly pattern has none. */
 function anchorFor(type: PatternType, anchorDate: string): string | null {
@@ -179,31 +175,35 @@ export async function patternCandidates(
 }
 
 /**
- * The people whose stored days a change from `from` reaches (pay plan PR17). Stored days stop at
- * today (PR18) and changes start today or later (B7), so only a change from today reaches any.
+ * The people whose stored days a change from `from` reaches (pay plan PR17): stored days stop at
+ * today (PR18), so a future change reaches none, and a past one (B7b) everyone the targets covered
+ * from `from` to today.
  */
 async function peopleReached(
 	targets: readonly Pick<TargetItem, 'kind' | 'id'>[],
 	from: string
 ): Promise<string[]> {
-	if (from > todayInDamascus()) return [];
-	const people = await Promise.all(targets.map((t) => peopleOf(t, from, 1)));
+	const today = todayInDamascus();
+	if (from > today) return [];
+	const days = daysBetween(from, today) + 1;
+	const people = await Promise.all(targets.map((t) => peopleOf(t, from, days)));
 	return [...new Set(people.flat().map((p) => p.staffId))];
 }
 
-/** Commit an assignment change and recompute the stored days it reaches. */
+/** Commit an assignment change and recompute the stored days it reaches, `from` to today. */
 async function commitAndRecompute(
 	actor: Actor,
 	statements: readonly BatchQuery[],
 	reached: readonly string[],
 	from: string
 ): Promise<void> {
+	const today = todayInDamascus();
 	try {
-		await batch([...statements, ...markNeedsRecompute(reached, from, from)]);
+		await batch([...statements, ...markNeedsRecompute(reached, from, today)]);
 	} catch (error) {
 		throw overlapConflict(error) ?? error;
 	}
-	await recomputeAfter(reached, from, from, causeBy(actor, 'roster_change'));
+	await recomputeAfter(reached, from, today, causeBy(actor, 'roster_change'));
 }
 
 /**
@@ -326,7 +326,7 @@ export async function assignStatements(
 				action: 'pattern_assignment.set',
 				entityType: item.kind,
 				entityId: item.id,
-				before: { closed: closed?.id ?? null, removed: removed.map((a) => a.id) },
+				before: { closed: closed?.id ?? null, removed },
 				after: values,
 				reason: input.reason
 			})
@@ -374,7 +374,7 @@ export async function endAssignment(actor: Actor, input: EndAssignmentInput): Pr
 				action: 'pattern_assignment.end',
 				entityType: item.kind,
 				entityId: item.id,
-				before: { closed: closed?.id ?? null, removed: removed.map((a) => a.id) },
+				before: { closed: closed?.id ?? null, removed },
 				after: { effectiveTo: input.effectiveFrom },
 				reason: input.reason
 			})
@@ -461,7 +461,7 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 					reason: input.reason
 				})
 			),
-			...markNeedsRecompute(reached, from, from)
+			...markNeedsRecompute(reached, from, todayInDamascus())
 		]);
 	} catch (error) {
 		if (pgErrorCode(error) === '23505')
@@ -471,7 +471,7 @@ export async function editFromDate(actor: Actor, input: EditFromDateInput): Prom
 			});
 		throw overlapConflict(error) ?? error;
 	}
-	await recomputeAfter(reached, from, from, causeBy(actor, 'roster_change'));
+	await recomputeAfter(reached, from, todayInDamascus(), causeBy(actor, 'roster_change'));
 	return copyId;
 }
 
@@ -517,7 +517,7 @@ export async function buildPattern(actor: Actor, input: PatternBuilderInput): Pr
 	try {
 		await batch([
 			...statements,
-			...markNeedsRecompute(reached, input.effectiveFrom, input.effectiveFrom)
+			...markNeedsRecompute(reached, input.effectiveFrom, todayInDamascus())
 		]);
 	} catch (error) {
 		if (pgErrorCode(error) === '23505')
@@ -530,7 +530,7 @@ export async function buildPattern(actor: Actor, input: PatternBuilderInput): Pr
 	await recomputeAfter(
 		reached,
 		input.effectiveFrom,
-		input.effectiveFrom,
+		todayInDamascus(),
 		causeBy(actor, 'roster_change')
 	);
 	return id;

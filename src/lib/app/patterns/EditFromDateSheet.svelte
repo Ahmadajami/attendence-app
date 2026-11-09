@@ -11,6 +11,7 @@
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { earliestEffectiveDate } from '#lib/roster/backdate.js';
 	import type { RosterShift } from '#lib/roster/shift.js';
 	import { editFromDateSchema, type PatternMessage } from '#lib/schemas/pattern.schema.js';
 	import { endSide } from '#lib/utils/locale.js';
@@ -89,7 +90,12 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-						<Input {...props} type="date" min={today} bind:value={$formData.effectiveFrom} />
+						<Input
+							{...props}
+							type="date"
+							min={earliestEffectiveDate(today)}
+							bind:value={$formData.effectiveFrom}
+						/>
 					{/snippet}
 				</Form.Control>
 				<Form.Description>{m.patterns_edit_from_date_hint()}</Form.Description>

@@ -62,7 +62,7 @@ export type PatternInput = z.infer<PatternFormSchema>;
 const assignmentFields = {
 	targetKind: z.enum(ASSIGN_TARGETS).default('team'),
 	targetIds: z.array(z.uuid()).default([]),
-	/** Today or later until periods exist (B7). */
+	/** A past date (≤ 400 days back) with the reason, until periods exist (B7b). */
 	effectiveFrom: z.string().default(''),
 	/** Cycle only: the date slot 0 falls on for these targets (B4). */
 	anchorDate: z.string().default(''),

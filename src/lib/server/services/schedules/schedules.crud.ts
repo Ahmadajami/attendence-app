@@ -17,7 +17,7 @@ export function closeSchedule(id: string, effectiveTo: string): BatchQuery {
 	return db.update(staffSchedule).set({ effectiveTo }).where(eq(staffSchedule.id, id));
 }
 
-/** Remove scheduled versions that never took effect (they start today or later). */
+/** Remove the versions a change replaces (they start on or after the change date; B7b). */
 export function deleteSchedules(ids: readonly string[]): BatchQuery {
 	return db.delete(staffSchedule).where(inArray(staffSchedule.id, [...ids]));
 }

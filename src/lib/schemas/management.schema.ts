@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
 
 // Two-level management (plans/2026-11-01-two-level-management.md, task 3.1): change a
-// department's manager from a date (M3). Dates are `yyyy-mm-dd` strings; today or later (Q-M5).
+// department's manager from a date (M3). Dates are `yyyy-mm-dd` strings; a past date up to 400 days back (B7b).
 
 const isoDate = z.iso.date({ error: () => m.roster_date_invalid() });
 

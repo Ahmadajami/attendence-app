@@ -30,6 +30,7 @@ import {
 	type CauseOf
 } from '../day-results/day-results.bl.js';
 import { listStaffToRecompute } from '../day-results/day-results.crud.js';
+import { requireEffectiveDate } from '../effective-date.js';
 import { requirePattern } from '../patterns/patterns.bl.js';
 import { loadRosterData, type RosterPerson } from '../roster/roster.bl.js';
 import {
@@ -307,13 +308,8 @@ const overlap = (code: string, message: () => string, field?: string) => (error:
 		? new ConflictError(code, message(), { field, cause: error })
 		: undefined;
 
-/** Pay rules start today or later until periods exist (PR5). */
-function requireFromToday(date: string): void {
-	if (date < todayInDamascus())
-		throw new InvalidInputError('effective_past', m.roster_error_effective_past(), {
-			field: 'effectiveFrom'
-		});
-}
+/** A past date is allowed with the reason, up to the backfill limit, until periods exist (B7b). */
+const requireFromDate = (date: string) => requireEffectiveDate(date);
 
 /**
  * Close or remove the versions a change from `from` replaces, plus the audit row. A version in force
@@ -336,7 +332,7 @@ async function payRuleChange(owner: string | null, from: string) {
 export async function setPayRule(actor: Actor, input: PayRuleInput): Promise<string> {
 	requireActorPermission(actor, 'roster.manage');
 	const owner = await ownerOf(input.patternId);
-	requireFromToday(input.effectiveFrom);
+	requireFromDate(input.effectiveFrom);
 	const from = input.effectiveFrom;
 	const { closed, removed, statements } = await payRuleChange(owner, from);
 	const values = {
@@ -351,7 +347,7 @@ export async function setPayRule(actor: Actor, input: PayRuleInput): Promise<str
 		reason: input.reason,
 		createdBy: actor.user.id
 	};
-	const range = storedRange(from, from);
+	const range = storedRange(from, todayInDamascus());
 	await commitAndRecompute(
 		[
 			...statements,
@@ -360,7 +356,7 @@ export async function setPayRule(actor: Actor, input: PayRuleInput): Promise<str
 				actor: actor.user,
 				action: 'pattern_pay_rule.set',
 				...auditTarget(owner),
-				before: { closed: closed?.id ?? null, removed: removed.map((v) => v.id) },
+				before: { closed: closed?.id ?? null, removed },
 				after: values,
 				reason: input.reason
 			})
@@ -377,14 +373,14 @@ export async function setPayRule(actor: Actor, input: PayRuleInput): Promise<str
 export async function resetPayRule(actor: Actor, input: PayRuleResetInput): Promise<void> {
 	requireActorPermission(actor, 'roster.manage');
 	const owner = await ownerOf(input.patternId);
-	requireFromToday(input.effectiveFrom);
+	requireFromDate(input.effectiveFrom);
 	const from = input.effectiveFrom;
 	const { closed, removed, statements } = await payRuleChange(owner, from);
 	if (statements.length === 0)
 		throw new InvalidInputError('nothing_to_reset', m.pattern_pay_error_nothing_to_reset(), {
 			field: 'effectiveFrom'
 		});
-	const range = storedRange(from, from);
+	const range = storedRange(from, todayInDamascus());
 	await commitAndRecompute(
 		[
 			...statements,
@@ -392,7 +388,7 @@ export async function resetPayRule(actor: Actor, input: PayRuleResetInput): Prom
 				actor: actor.user,
 				action: 'pattern_pay_rule.reset',
 				...auditTarget(owner),
-				before: { closed: closed?.id ?? null, removed: removed.map((v) => v.id) },
+				before: { closed: closed?.id ?? null, removed },
 				after: { effectiveTo: from },
 				reason: input.reason
 			})

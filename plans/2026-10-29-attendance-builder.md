@@ -71,6 +71,7 @@ schedules" views.
 | B5 | **Own off days** (`staff_schedule.off_weekdays`, any set of Sun…Sat) apply to **weekly** patterns only: a listed weekday → off; a weekday the pattern has off but isn't listed → work with the pattern's `default_work_shift_id` (defaults to its most used shift). Crew start applies to **cycle** patterns only | BRIEF §9.4 "Employee off-day override", mockup "Employee schedules" |
 | B6 | Department assignments always reach sub-departments; the nearest department wins (D10, as the engine does today). No `include_sub_departments` switch | Matches D10 and today's engine; one rule less for HR |
 | B7 | **Dates:** an assignment starts today or later until the `period` table exists (S3.1). After S3.1, a past date is allowed only inside an **open** period, with a reason. Never inside a closed or locked period | Main plan §4 "backdating only inside an open period"; nothing to check it against yet |
+| B7b | **Dates, until S3.1 (user, 2026-11-09; replaces B7's today-or-later part):** an assignment, a person's own rule, a pay rule or a department manager may start on a past date, at most 400 days back (`MAX_BACKFILL_DAYS`, `#lib/roster/backdate.ts`), with the form's reason (audited). The stored days from that date to today are recomputed for the people reached. After S3.1 the open-period check of B7 replaces the 400-day limit | HR must enter the months before go-live; no month has been paid from the app yet. Rejected: build S3.1 first (blocks old data), a go-live cutoff setting (one more setting), no limit (recompute over years) |
 | B8 | **Membership dates rule:** a member follows the team only on dates their membership covers (`teamOnDate`, unchanged). Joining mid-cycle keeps the team's anchor (+ their crew start); it does not restart the cycle | Crews stay aligned with the team |
 | B9 | Assignments never touch punches, overrides or absences. A schedule change only changes what is **planned**; stored day results are marked for recompute once S4.2 exists | BRIEF R17, A3, A5 |
 | B10 | **Rotations (BRIEF §9.5) are out of scope**: Q13 says rotation groups are unused (0 in the data). Crew start covers staggered crews | Smaller scope; revisit if HR asks |
@@ -279,6 +280,10 @@ team ── department (new FK)
       > pattern + assignments in one batch. `editFromDate` closes current
       > assignments at the date, re-creates scheduled ones on the copy with
       > their own dates, keeps each anchor; one audit row per moved target.
+      > note: 2026-11-09, B7b: past dates allowed (≤ 400 days back, with the
+      > reason) in `assignments`, `schedules`, `pattern-pay` and `management`
+      > (`requireEffectiveDate`, `services/effective-date.ts`); the recompute
+      > now covers `from` → today. Date inputs use `min` = 400 days back.
 - [x] 3.4 `services/schedules/schedules.{crud,bl}.ts`: set / reset a person's
       own off days and crew start from a date (versioned like assignments,
       reason, audit).

@@ -4,7 +4,7 @@ import { daysBetween } from '#lib/roster/cycle.js';
 
 // A pattern's overtime pay rule, holidays and missions (pay plan PR1–PR15, task 4.1), and the
 // company's own rule and holidays (PR35, PR36: the same forms with `patternId` ''). Dates are
-// `yyyy-mm-dd` strings; "today or later" (pay rules, PR5) is the service's check.
+// `yyyy-mm-dd` strings; how far back (pay rules, B7b) is the service's check.
 
 const isoDate = z.iso.date({ error: () => m.roster_date_invalid() });
 

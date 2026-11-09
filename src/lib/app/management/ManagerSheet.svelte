@@ -13,6 +13,7 @@
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { earliestEffectiveDate } from '#lib/roster/backdate.js';
 	import {
 		departmentManagerFormSchema,
 		type DepartmentManagerMessage
@@ -138,7 +139,12 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-						<Input {...props} type="date" min={today} bind:value={$formData.validFrom} />
+						<Input
+							{...props}
+							type="date"
+							min={earliestEffectiveDate(today)}
+							bind:value={$formData.validFrom}
+						/>
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -174,8 +180,7 @@
 						<li class="flex flex-col gap-0.5 text-sm">
 							<span class="flex flex-wrap items-center gap-2">
 								<span class="font-medium">{personName(row)}</span>
-								<bdi dir="ltr" class="font-mono text-xs text-muted-foreground"
-									>{row.employeeNo}</bdi
+								<bdi dir="ltr" class="font-mono text-xs text-muted-foreground">{row.employeeNo}</bdi
 								>
 								{#if row.validFrom <= today && (row.validTo === null || row.validTo > today)}
 									<Badge variant="secondary">{m.management_history_current()}</Badge>

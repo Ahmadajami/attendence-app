@@ -5,8 +5,8 @@ import type { AssignTargetKind } from '#lib/schemas/pattern.schema.js';
 import type { BatchQuery } from '../common.js';
 
 // Who follows which pattern, when (builder plan B1). Rows are never edited: a change closes the
-// assignment in force (`effective_to`) and opens the next; scheduled ones that never took effect
-// are removed.
+// assignment in force (`effective_to`) and opens the next; later ones it replaces are removed
+// (their rows kept in the audit, B7b).
 
 /** An assignment joined with its pattern (the engine's `RosterAssignment`, plus person and reason). */
 export const assignmentColumns = {
@@ -90,7 +90,7 @@ export function closeAssignment(id: string, effectiveTo: string): BatchQuery {
 	return db.update(patternAssignment).set({ effectiveTo }).where(eq(patternAssignment.id, id));
 }
 
-/** Remove scheduled assignments that never took effect (they start today or later). */
+/** Remove the assignments a change replaces (they start on or after the change date; B7b). */
 export function deleteAssignments(ids: readonly string[]): BatchQuery {
 	return db.delete(patternAssignment).where(inArray(patternAssignment.id, [...ids]));
 }

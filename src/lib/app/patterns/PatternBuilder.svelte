@@ -21,6 +21,7 @@
 	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { earliestEffectiveDate } from '#lib/roster/backdate.js';
 	import { WEEKLY_SLOTS } from '#lib/payroll/schedule.js';
 	import { addDays, mostUsedShift, patternSlot } from '#lib/roster/cycle.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
@@ -440,7 +441,12 @@
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-								<Input {...props} type="date" min={today} bind:value={$formData.effectiveFrom} />
+								<Input
+									{...props}
+									type="date"
+									min={earliestEffectiveDate(today)}
+									bind:value={$formData.effectiveFrom}
+								/>
 							{/snippet}
 						</Form.Control>
 						<Form.FieldErrors />

@@ -12,6 +12,7 @@
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { earliestEffectiveDate } from '#lib/roster/backdate.js';
 	import {
 		assignmentFormSchema,
 		type AssignTargetKind,
@@ -33,7 +34,7 @@
 		targetId: string;
 		/** Active library patterns. */
 		patterns: AssignablePattern[];
-		/** Damascus today: the earliest start date (B7). */
+		/** Damascus today; the earliest start date is 400 days back (B7b). */
 		today: string;
 		/** "Build a new pattern" link, prefilled with this target. */
 		buildHref?: string;
@@ -150,7 +151,12 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-							<Input {...props} type="date" min={today} bind:value={$formData.effectiveFrom} />
+							<Input
+								{...props}
+								type="date"
+								min={earliestEffectiveDate(today)}
+								bind:value={$formData.effectiveFrom}
+							/>
 						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />

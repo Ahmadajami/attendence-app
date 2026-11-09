@@ -11,6 +11,7 @@
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { earliestEffectiveDate } from '#lib/roster/backdate.js';
 	import type { PatternType } from '#lib/schemas/enums.js';
 	import {
 		resetScheduleSchema,
@@ -152,7 +153,12 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-						<Input {...props} type="date" min={today} bind:value={$setValues.effectiveFrom} />
+						<Input
+							{...props}
+							type="date"
+							min={earliestEffectiveDate(today)}
+							bind:value={$setValues.effectiveFrom}
+						/>
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -191,7 +197,12 @@
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-								<Input {...props} type="date" min={today} bind:value={$resetValues.effectiveFrom} />
+								<Input
+									{...props}
+									type="date"
+									min={earliestEffectiveDate(today)}
+									bind:value={$resetValues.effectiveFrom}
+								/>
 							{/snippet}
 						</Form.Control>
 						<Form.FieldErrors />

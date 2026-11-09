@@ -622,11 +622,22 @@
       alts: [ { en: 'The brief\'s include_sub_departments flag: not chosen — a sub-department can simply get its own assignment.', ar: 'علامة include_sub_departments في الموجز: لم يُختر — يمكن ببساطة إعطاء القسم الفرعي إسناده الخاص.' } ]
     },
     {
-      id: 'B7', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
-      title: { en: 'Assignments start today or later (for now)', ar: 'تبدأ الإسنادات اليوم أو لاحقاً (حالياً)' },
-      decision: { en: 'After the period table exists (S3.1): a past date only inside an open period, with a reason; never in a closed or locked one.', ar: 'بعد وجود جدول الفترات (S3.1): يُسمح بتاريخ سابق داخل فترة مفتوحة فقط ومع سبب؛ ولا يُسمح أبداً في فترة مغلقة أو مقفلة.' },
+      id: 'B7', group: 'builder', status: 'replaced', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
+      title: { en: 'Assignments start today or later (for now) (replaced by B7b)', ar: 'تبدأ الإسنادات اليوم أو لاحقاً (حالياً) (استُبدل بـ B7b)' },
+      decision: { en: 'After the period table exists (S3.1): a past date only inside an open period, with a reason; never in a closed or locked one. Replaced by B7b (2026-11-09): until S3.1 a past date is allowed with a reason, up to 400 days back; the open-period rule still applies once S3.1 exists.', ar: 'بعد وجود جدول الفترات (S3.1): يُسمح بتاريخ سابق داخل فترة مفتوحة فقط ومع سبب؛ ولا يُسمح أبداً في فترة مغلقة أو مقفلة. استُبدل بـ B7b (2026-11-09): حتى S3.1 يُسمح بتاريخ سابق مع سبب حتى 400 يوم إلى الوراء؛ وتبقى قاعدة الفترة المفتوحة سارية عند وجود S3.1.' },
       why: { en: 'Nothing to check an open period against yet.', ar: 'لا يوجد ما يُتحقق منه للفترة المفتوحة بعد.' },
       alts: [ { en: 'Allow any past date with a reason now: not chosen — could change already-paid months.', ar: 'السماح بأي تاريخ سابق مع سبب الآن: لم يُختر — قد يغيّر أشهراً دُفعت بالفعل.' } ]
+    },
+    {
+      id: 'B7b', group: 'builder', status: 'approved', date: '2026-11-09', src: 'plans/2026-10-29-attendance-builder.md §1 (user, chat 2026-11-09)',
+      title: { en: 'Past start dates allowed with a reason until periods exist', ar: 'تواريخ البدء السابقة مسموحة مع سبب حتى توجد الفترات' },
+      decision: { en: 'Assignments (assign, end, edit from a date, the builder), a person\'s own off days / crew start, pattern pay rules and department managers may start on a past date, at most 400 days back (the backfill limit), always with the form\'s reason in the audit row. The stored days from that date to today are recomputed for the people reached. After S3.1 the open-period check of B7 replaces the 400-day limit.', ar: 'يجوز أن تبدأ الإسنادات (الإسناد والإنهاء والتعديل من تاريخ والمنشئ) وأيام العطلة الخاصة / بداية الطاقم وقواعد أجر النمط ومديرو الأقسام من تاريخ سابق، حتى 400 يوم إلى الوراء (حد إعادة الحساب)، ومع سبب النموذج دائماً في سجل التدقيق. وتُعاد حساب الأيام المخزنة من ذلك التاريخ حتى اليوم للأشخاص المعنيين. وبعد S3.1 يحل فحص الفترة المفتوحة في B7 محل حد الـ 400 يوم.' },
+      why: { en: 'HR must enter the months before go-live (old punches need the pattern that was in force); no payroll month has been paid from this app yet, so nothing closed can change.', ar: 'يجب على الموارد البشرية إدخال الأشهر السابقة للتشغيل (البصمات القديمة تحتاج النمط الذي كان سارياً)؛ ولم يُدفع أي شهر رواتب من هذا التطبيق بعد، فلا شيء مغلق يمكن أن يتغير.' },
+      alts: [
+        { en: 'Build the period table (S3.1) first and keep today-or-later until then: not chosen — blocks entering old data for a whole task.', ar: 'بناء جدول الفترات (S3.1) أولاً وإبقاء "اليوم أو لاحقاً" حتى ذلك: لم يُختر — يمنع إدخال البيانات القديمة طوال مهمة كاملة.' },
+        { en: 'A go-live cutoff setting (past dates only until a chosen date): not chosen — one more setting to maintain; periods will give the real limit.', ar: 'إعداد تاريخ تشغيل (التواريخ السابقة مسموحة حتى تاريخ محدد فقط): لم يُختر — إعداد إضافي للصيانة؛ والفترات ستعطي الحد الحقيقي.' },
+        { en: 'Any past date with no limit: not chosen — the recompute after the save would run on years of days; 400 days matches the backfill.', ar: 'أي تاريخ سابق بلا حد: لم يُختر — ستعمل إعادة الحساب بعد الحفظ على سنوات من الأيام؛ و400 يوم توافق حد إعادة الحساب.' }
+      ]
     },
     {
       id: 'B8', group: 'builder', status: 'approved', date: '2026-10-29', src: 'plans/2026-10-29-attendance-builder.md §1',
@@ -1200,7 +1211,7 @@
     {
       id: 'PR5', group: 'payroll', status: 'approved', date: '2026-11-02', src: 'plans/2026-11-01-pattern-pay-holidays-missions.md §1',
       title: { en: "Pay rules versioned by date", ar: "قواعد الأجر بإصدارات مؤرخة" },
-      decision: { en: "A change closes the open version and opens the next, from today or later until periods exist; \"back to defaults\" closes it. Never edited in place.", ar: "التغيير يغلق الإصدار المفتوح ويفتح التالي، من اليوم أو لاحقاً حتى توجد الفترات؛ و«العودة إلى الافتراضي» تغلقه. لا تعديل في المكان أبداً." },
+      decision: { en: "A change closes the open version and opens the next, from a date (a past date with a reason, up to 400 days back, until periods exist: B7b, 2026-11-09; was today or later); \"back to defaults\" closes it. Never edited in place.", ar: "التغيير يغلق الإصدار المفتوح ويفتح التالي، من تاريخ (تاريخ سابق مع سبب حتى 400 يوم إلى الوراء، حتى توجد الفترات: B7b، 2026-11-09؛ وكان اليوم أو لاحقاً)؛ و«العودة إلى الافتراضي» تغلقه. لا تعديل في المكان أبداً." },
       why: { en: "Changing a rate must not rewrite past pay.", ar: "تغيير المعامل يجب ألا يعيد كتابة الأجر السابق." },
       alts: [ { en: "Columns on the pattern row: not chosen — no history, a change would reach back.", ar: "أعمدة في صف النمط: لم يُختر — بلا تاريخ، والتغيير يمتد إلى الماضي." }, { en: "Edit versions in place: not chosen — past figures would change silently.", ar: "تعديل الإصدارات في مكانها: لم يُختر — تتغير الأرقام السابقة بصمت." } ]
     },
@@ -1945,7 +1956,7 @@
     ["Q-M2", "Must a supervisor be a member of the team they supervise? (answered 2026-11-01: default kept)", "No", "هل يجب أن يكون المشرف عضواً في الفريق الذي يشرف عليه؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا"],
     ["Q-M3", "May a supervisor come from another department than the team's? (answered 2026-11-01: default kept)", "No: same department branch (shown as a gap, not refused)", "هل يجوز أن يكون المشرف من قسم غير قسم الفريق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "لا: من فرع القسم نفسه (يُعرض كفجوة دون رفض)"],
     ["Q-M4", "When a sub-department has its own manager, does the parent's manager still see it? (answered 2026-11-01: default kept)", "Yes; the nearest manager is first in the chain", "عندما يكون للقسم الفرعي مديره، هل يبقى مدير القسم الأب يراه؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "نعم؛ والمدير الأقرب أولاً في السلسلة"],
-    ["Q-M5", "May a change of manager start on a past date? (answered 2026-11-01: default kept)", "Today or later until payroll periods exist", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "اليوم أو لاحقاً حتى توجد فترات الرواتب"],
+    ["Q-M5", "May a change of manager start on a past date? (answered 2026-11-01: default kept; changed 2026-11-09 by B7b)", "Yes, with a reason, up to 400 days back, until payroll periods exist (B7b; was today or later)", "هل يجوز أن يبدأ تغيير المدير من تاريخ سابق؟ (أُجيب 2026-11-01: أُبقي الافتراضي؛ وتغيّر 2026-11-09 بالقرار B7b)", "نعم، مع سبب وحتى 400 يوم إلى الوراء، حتى توجد فترات الرواتب (B7b؛ وكان اليوم أو لاحقاً)"],
     ["Q-M6", "Is HR the last level after the manager, or a parallel path? (answered 2026-11-01: default kept)", "Last level, and can always act directly", "هل الموارد البشرية المستوى الأخير بعد المدير أم مسار موازٍ؟ (أُجيب 2026-11-01: أُبقي الافتراضي)", "المستوى الأخير، وتستطيع التصرف مباشرة دائماً"],
     ["Q-M7", "Until the dated sheet (task 4.2), may the department form change the manager from today, with a fixed reason? (obsolete: replaced by M25)", "Yes, from today (M13)", "حتى اللوحة المؤرخة (المهمة 4.2)، هل يجوز لنموذج القسم تغيير المدير من اليوم بسبب ثابت؟", "نعم، من اليوم (M13)"],
     ["Q-M8", "Read memberships and supervisors at 00:00 of the day, and today at the current instant?", "Yes (M23)", "هل تُقرأ العضويات والمشرفون عند 00:00 من اليوم، واليوم الحالي عند اللحظة الحالية؟", "نعم (M23)"],

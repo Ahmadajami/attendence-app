@@ -9,6 +9,7 @@
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { earliestEffectiveDate } from '#lib/roster/backdate.js';
 	import type { PayRule } from '#lib/payroll/pay-rule.js';
 	import {
 		OT_CHOICES,
@@ -152,7 +153,12 @@
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>{m.roster_field_effective_from()}</Form.Label>
-						<Input {...props} type="date" min={today} bind:value={$formData.effectiveFrom} />
+						<Input
+							{...props}
+							type="date"
+							min={earliestEffectiveDate(today)}
+							bind:value={$formData.effectiveFrom}
+						/>
 					{/snippet}
 				</Form.Control>
 				<Form.Description>{m.pattern_pay_from_hint()}</Form.Description>

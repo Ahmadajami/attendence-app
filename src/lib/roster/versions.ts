@@ -6,8 +6,9 @@ type Span = { effectiveFrom: string; effectiveTo: string | null };
  * a department).
  * Versions are never edited in place (ROSTER_PLAN.md):
  * - `closed`: the version in force on `from`, which now ends there (`effective_to = from`);
- * - `removed`: versions starting on or after `from`. `from` is today or later, so they are
- *   scheduled changes the new version replaces.
+ * - `removed`: versions starting on or after `from`, which the new version replaces. With a past
+ *   `from` (builder plan B7b) they may have been in force, so the services keep the full rows in
+ *   the audit row's `before`.
  * The new version is open-ended. Used by the roster service and by the editor's live preview.
  */
 export function planVersionChange<T extends Span>(

@@ -13,6 +13,7 @@ import {
 	recomputeAfter,
 	type RecomputeCause
 } from '../day-results/day-results.bl.js';
+import { requireEffectiveDate } from '../effective-date.js';
 import { findRosterPerson } from '../roster/roster.crud.js';
 import {
 	closeSchedule,
@@ -25,12 +26,8 @@ import {
 // A person's own off days (weekly patterns) and crew start (cycles), from a date (builder plan B4,
 // B5, B7). Set with `roster.manage`; every change is audited.
 
-function requireFromDate(date: string): void {
-	if (date < todayInDamascus())
-		throw new InvalidInputError('effective_past', m.roster_error_effective_past(), {
-			field: 'effectiveFrom'
-		});
-}
+/** A past date is allowed with the reason, up to the backfill limit, until periods exist (B7b). */
+const requireFromDate = (date: string) => requireEffectiveDate(date);
 
 async function requireActivePerson(staffId: string) {
 	const person = await findRosterPerson(staffId);
@@ -52,7 +49,7 @@ function versionStatements(versions: readonly ScheduleRow[], from: string) {
 
 /**
  * Commit a schedule change, then recompute the person's stored days it reaches (pay plan PR17):
- * stored days stop at today (PR18) and changes start today or later, so only today, if at all.
+ * stored days stop at today (PR18), so `from` to today, or none for a future change (B7b).
  */
 async function commit(
 	actor: Actor,
@@ -61,15 +58,16 @@ async function commit(
 	statements: BatchQuery[],
 	cause: RecomputeCause
 ): Promise<void> {
-	const reached = from <= todayInDamascus() ? [staffId] : [];
+	const today = todayInDamascus();
+	const reached = from <= today ? [staffId] : [];
 	try {
-		await batch([...statements, ...markNeedsRecompute(reached, from, from)]);
+		await batch([...statements, ...markNeedsRecompute(reached, from, today)]);
 	} catch (error) {
 		if (pgErrorCode(error) === '23P01')
 			throw new ConflictError('schedule_overlap', m.roster_error_overlap(), { cause: error });
 		throw error;
 	}
-	await recomputeAfter(reached, from, from, cause);
+	await recomputeAfter(reached, from, today, cause);
 }
 
 /** A person's own rules from `effectiveFrom`; later scheduled versions are replaced. */
@@ -104,7 +102,7 @@ export async function setSchedule(actor: Actor, input: StaffScheduleInput): Prom
 				action: 'staff_schedule.set',
 				entityType: 'staff',
 				entityId: input.staffId,
-				before: { closed: closed?.id ?? null, removed: removed.map((v) => v.id) },
+				before: { closed: closed?.id ?? null, removed },
 				after: values,
 				reason: input.reason
 			})
@@ -136,7 +134,7 @@ export async function resetSchedule(actor: Actor, input: ResetScheduleInput): Pr
 				action: 'staff_schedule.reset',
 				entityType: 'staff',
 				entityId: input.staffId,
-				before: { closed: closed?.id ?? null, removed: removed.map((v) => v.id) },
+				before: { closed: closed?.id ?? null, removed },
 				after: { effectiveTo: input.effectiveFrom },
 				reason: input.reason
 			})

@@ -92,7 +92,7 @@ export function closePayRule(id: string, effectiveTo: string): BatchQuery {
 	return db.update(patternPayRule).set({ effectiveTo }).where(eq(patternPayRule.id, id));
 }
 
-/** Remove versions that start on or after the change date (they start today or later, PR5). */
+/** Remove versions that start on or after the change date (PR5, B7b). */
 export function deletePayRules(ids: readonly string[]): BatchQuery {
 	return db.delete(patternPayRule).where(inArray(patternPayRule.id, [...ids]));
 }

@@ -7,6 +7,7 @@ import {
 	type RecomputeCause
 } from '#lib/attendance/recompute.js';
 import { resolvePayRule, type PayRuleVersion } from '#lib/payroll/pay-rule.js';
+import { MAX_BACKFILL_DAYS } from '#lib/roster/backdate.js';
 import { addDays, daysBetween } from '#lib/roster/cycle.js';
 import { rosterInputOf } from '#lib/roster/input.js';
 import { rosterDay } from '#lib/roster/roster.js';
@@ -218,8 +219,8 @@ export async function catchUpFlagged(limit = 2_000): Promise<RecomputeResult> {
 	return result;
 }
 
-/** The longest range one backfill may cover, in days. */
-export const MAX_BACKFILL_DAYS = 400;
+/** The longest range one backfill may cover, in days (shared with backdated changes, B7b). */
+export { MAX_BACKFILL_DAYS };
 
 /**
  * Backfill (plan task 3.3): recompute every active person, and anyone with punches, from `from` to

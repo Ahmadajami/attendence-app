@@ -42,6 +42,7 @@ import {
 	type ManagerHistoryRow,
 	type OrgRows
 } from './management.crud.js';
+import { requireEffectiveDate } from '../effective-date.js';
 
 // Two-level management (plans/2026-11-01-two-level-management.md, task 3.2): the tree with
 // managers, supervisors and gaps; a person's chain and scope; changing a manager from a date.
@@ -322,7 +323,7 @@ export function managerChange(
 			action: 'department.manager.set',
 			entityType: 'department',
 			entityId: departmentId,
-			before: { closed: closed?.id ?? null, removed: removed.map((row) => row.id) },
+			before: { closed: closed?.id ?? null, removed },
 			after: opened ?? { staffId: null, validFrom: from },
 			reason
 		})
@@ -339,8 +340,8 @@ export function managerConflict(error: unknown, field = 'staffId'): ConflictErro
 }
 
 /**
- * `staffId` (or nobody) manages the department from `validFrom` (M3): today or later until payroll
- * periods exist (Q-M5); an active department and an active employee; refused when nothing would
+ * `staffId` (or nobody) manages the department from `validFrom` (M3): a past date with the reason,
+ * up to the backfill limit, until payroll periods exist (B7b, replacing Q-M5); an active department and an active employee; refused when nothing would
  * change. Audited with the reason.
  */
 export async function setDepartmentManager(
@@ -349,10 +350,7 @@ export async function setDepartmentManager(
 ): Promise<void> {
 	requireActorPermission(actor, 'staff.write');
 	requireDate(input.validFrom);
-	if (input.validFrom < todayInDamascus())
-		throw new InvalidInputError('effective_past', m.roster_error_effective_past(), {
-			field: 'validFrom'
-		});
+	requireEffectiveDate(input.validFrom, 'validFrom');
 
 	const department = await findDepartmentForManager(input.departmentId);
 	if (!department) throw new NotFoundError(m.departments_error_not_found());

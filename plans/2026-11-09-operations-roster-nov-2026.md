@@ -292,7 +292,7 @@ Can be built before or after Phases 1–4. It is how the user checks 4.3.
       > panel on the Schedule tab; current / scheduled badges as in the pattern history;
       > swap links open `/changes?swap=<id>`. 15 `schedule_history_*` strings in en + ar.
       > Autofixer clean (card and page), eslint, prettier, `pnpm check` clean.
-- [ ] 5.4 Manual check by the user (`http://127.0.0.1:5174`, e2e data, then real
+- [x] 5.4 Manual check by the user (`http://127.0.0.1:5174`, e2e data, then real
       data after Phase 3):
       - The history lists every period, newest first, with the right pattern and
         crew start.
@@ -301,6 +301,7 @@ Can be built before or after Phases 1–4. It is how the user checks 4.3.
       - The pattern names link to the pattern pages.
       - `/ar/...`: right to left, Arabic labels, dates readable.
       Done when: the user reports it holds.
+      > note: 2026-11-09: the user reported it holds on real data (`http://127.0.0.1:5173`, staff `b2339c1f…`, en + ar).
 
 ### Phase 6: Month filter on the pattern page (RO13)
 
@@ -344,7 +345,7 @@ a whole month for the crew (4.3).
       > `formatMonth`); per-day counts per shift code, off and absent; 26 new strings
       > (`pattern_tab_month`, `patterns_month_*`) in en + ar. Autofixer clean (tab and
       > page), eslint, prettier, `pnpm check` clean.
-- [ ] 6.4 Manual check by the user (`http://127.0.0.1:5174`, e2e data, then real
+- [x] 6.4 Manual check by the user (`http://127.0.0.1:5174`, e2e data, then real
       data after Phase 3):
       - `Operation-1/Oct/2026` → Month → October 2026: assigned to team
         Operations 1–31 Oct; 6 people; every day 2 D8 + 1 N8; the 2 swaps on
@@ -355,6 +356,7 @@ a whole month for the crew (4.3).
         are unchanged.
       - `/ar/...`: right to left, arrows mirrored, Arabic month names.
       Done when: the user reports it holds.
+      > note: 2026-11-09: the user reported it holds on real data (`528461f1…` October, `f89ce44b…` November, en + ar).
 
 ## 4. Out of scope
 

@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import BuildingsIcon from 'phosphor-svelte/lib/BuildingsIcon';
+	import CalendarDotsIcon from 'phosphor-svelte/lib/CalendarDotsIcon';
 	import CalendarStarIcon from 'phosphor-svelte/lib/CalendarStarIcon';
 	import CurrencyCircleDollarIcon from 'phosphor-svelte/lib/CurrencyCircleDollarIcon';
 	import GridFourIcon from 'phosphor-svelte/lib/GridFourIcon';
@@ -10,6 +11,7 @@
 	import UsersFourIcon from 'phosphor-svelte/lib/UsersFourIcon';
 	import PatternBuilder from '#lib/app/patterns/PatternBuilder.svelte';
 	import PatternDatesTab from '#lib/app/patterns/PatternDatesTab.svelte';
+	import PatternMonthTab from '#lib/app/patterns/PatternMonthTab.svelte';
 	import PayRuleCard from '#lib/app/patterns/PayRuleCard.svelte';
 	import { formatCalendarDate } from '#lib/app/roster/labels.js';
 	import { Badge } from '#lib/components/ui/badge/index.js';
@@ -30,8 +32,11 @@
 				? localizedHref('/teams/[id]', { id })
 				: localizedHref('/departments');
 
-	/** The open tab lives in `?tab=` (pay plan PR12). The load ignores it: switching never refetches. */
-	const TABS = ['days', 'pay', 'dates'] as const;
+	/**
+	 * The open tab lives in `?tab=` (pay plan PR12). The load ignores it: switching never refetches.
+	 * The Month tab's data depends on `?month=` (RO13), which opening the tab adds once.
+	 */
+	const TABS = ['days', 'pay', 'dates', 'month'] as const;
 	type Tab = (typeof TABS)[number];
 	const tab = $derived.by((): Tab => {
 		const value = page.url.searchParams.get('tab');
@@ -46,7 +51,9 @@
 	function setTab(next: string) {
 		const url = new URL(page.url.href);
 		url.searchParams.set('tab', next);
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- same page, only `?tab=` changes
+		if (next === 'month' && !url.searchParams.has('month'))
+			url.searchParams.set('month', data.today.slice(0, 7));
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- same page, only `?tab=` (and `?month=`) change
 		void goto(url, { replace: true, reset: false });
 	}
 </script>
@@ -108,6 +115,10 @@
 				<CalendarStarIcon />
 				{m.pattern_tab_dates()}
 			</UnderlineTabs.Trigger>
+			<UnderlineTabs.Trigger value="month">
+				<CalendarDotsIcon />
+				{m.pattern_tab_month()}
+			</UnderlineTabs.Trigger>
 		</UnderlineTabs.List>
 
 		<!-- The page is reused when "change from a date" moves to the copy: remount the tabs. -->
@@ -143,6 +154,16 @@
 
 			<UnderlineTabs.Content value="dates" class="flex flex-col gap-4">
 				<PatternDatesTab pay={data.pay} forms={data.payForms} today={data.today} />
+			</UnderlineTabs.Content>
+
+			<UnderlineTabs.Content value="month" class="flex flex-col gap-4">
+				{#if data.monthView}
+					<PatternMonthTab
+						view={data.monthView}
+						today={data.today}
+						isCycle={data.pattern.type === 'cycle'}
+					/>
+				{/if}
 			</UnderlineTabs.Content>
 		{/key}
 	</UnderlineTabs.Root>

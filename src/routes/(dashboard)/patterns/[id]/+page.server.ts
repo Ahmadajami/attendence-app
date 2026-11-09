@@ -16,21 +16,28 @@ import {
 	payRuleActions,
 	payRuleForms
 } from '#lib/server/pattern-pay-forms.js';
+import { getPatternMonth } from '#lib/server/services/assignments/assignments.bl.js';
 import { getPatternPay } from '#lib/server/services/pattern-pay/pattern-pay.bl.js';
 import { getPattern } from '#lib/server/services/patterns/patterns.bl.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, params, url }) => {
+export const load: PageServerLoad = async ({ locals, params, url, untrack }) => {
 	const actor = actorFrom(locals);
 	if (!z.uuid().safeParse(params.id).success)
 		error(404, m.patterns_error_not_found(), { code: 'not_found' });
 	const today = todayInDamascus();
-	const [pattern, options, shift, pay] = await Promise.all([
+	// The Month tab (RO13): the load depends on `?month=` only, so switching the other tabs never
+	// refetches. Opening the tab adds `month=`; a link straight to `?tab=month` gets this month.
+	const month =
+		url.searchParams.get('month') ??
+		(untrack(() => url.searchParams.get('tab')) === 'month' ? today.slice(0, 7) : null);
+	const [pattern, options, shift, pay, monthView] = await Promise.all([
 		getPattern(actor, params.id),
 		builderOptions(actor),
 		shiftForm(),
-		getPatternPay(actor, params.id)
+		getPatternPay(actor, params.id),
+		month === null ? Promise.resolve(null) : getPatternMonth(actor, params.id, month)
 	]);
 	const canManage = actor.permissions.has('roster.manage');
 	const fields = {
@@ -47,6 +54,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		canManage,
 		pattern,
 		pay,
+		/** The Month tab's data; `null` until the tab is opened. */
+		monthView,
 		// The "Overtime & pay" and "Holidays & missions" sheets (pay plan PR12, PR36).
 		payForms: canManage
 			? {

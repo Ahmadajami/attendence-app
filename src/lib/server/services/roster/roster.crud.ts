@@ -167,6 +167,16 @@ export async function findRosterPerson(staffId: string) {
 
 export type RosterPersonRow = NonNullable<Awaited<ReturnType<typeof findRosterPerson>>>;
 
+/** These people's names (and employee numbers), by name. */
+export async function listPeopleNames(staffIds: readonly string[]) {
+	if (staffIds.length === 0) return [];
+	return db
+		.select(personColumns)
+		.from(staff)
+		.where(inArray(staff.id, [...staffIds]))
+		.orderBy(asc(staff.fullName));
+}
+
 /** Who was in a team at any time in `[from, to)`, with the span of that membership. */
 export async function listTeamMembersBetween(teamId: string, from: Date, to: Date) {
 	return db

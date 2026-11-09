@@ -297,7 +297,7 @@ Can be built before or after Phases 1–4. It is how the user checks 4.3.
 Can be built after Phase 5 (it reuses its history logic). It is how the user checks
 a whole month for the crew (4.3).
 
-- [ ] 6.1 Pure `#lib/roster/pattern-month.ts`: from the roster data of the
+- [x] 6.1 Pure `#lib/roster/pattern-month.ts`: from the roster data of the
       pattern's candidates for a month (`patternCandidates`, `loadRosterData`),
       return (a) the targets with their dates clipped to the month; (b) each person
       whose days the pattern planned, with day count, first and last date, crew
@@ -306,12 +306,19 @@ a whole month for the crew (4.3).
       the 15th; a person who joins the team mid-month; a swap day (counts the
       shift the person really works); nobody in the month.
       Done when: `pnpm test` passes.
-- [ ] 6.2 Loader for `/patterns/[id]`: when `?tab=month`, read `?month=YYYY-MM`
+      > note: 2026-11-09: `patternMonth` + `isMonth`, `addMonths`, `monthDates`; 6 Vitest
+      > cases (the five above + the month helpers). `pnpm test` 452 passed.
+- [x] 6.2 Loader for `/patterns/[id]`: when `?tab=month`, read `?month=YYYY-MM`
       (default the current month; refuse other formats with the shared
       `InvalidInputError`), load the candidates and their roster data for that
       month, run 6.1, add the swaps and day edits of those people in the month.
       Read with `staff.write` like the page. Done when: `pnpm check` is clean.
-- [ ] 6.3 UI: a **Month** tab on the pattern page (component in
+      > note: 2026-11-09: `getPatternMonth` in `assignments.bl.ts` (+ `listPeopleNames` in
+      > `roster.crud.ts`). The load depends on `?month=` only; `?tab=` is read through
+      > `untrack` (a direct `?tab=month` link gets this month), so switching the other
+      > tabs still never refetches; opening the Month tab adds `month=`. Day edits come
+      > from the followers' days (no extra query). `pnpm check` 0 errors.
+- [x] 6.3 UI: a **Month** tab on the pattern page (component in
       `#lib/app/patterns/`): a month switcher (GET form / links with
       `localizedHref`, ‹ › with `rtl:rotate-180`, the month name from
       `@internationalized/date` in the current locale); "Assigned to" (targets
@@ -322,6 +329,11 @@ a whole month for the crew (4.3).
       state when nobody followed the pattern that month. Strings
       `patterns_month_*` in `en` and `ar`. Svelte autofixer clean. Done when:
       eslint, prettier and `pnpm check` are clean.
+      > note: 2026-11-09: `#lib/app/patterns/PatternMonthTab.svelte`; month switcher is a
+      > GET form like `PreviewRange` (‹ › `rtl:rotate-180`, "This month", name from
+      > `formatMonth`); per-day counts per shift code, off and absent; 26 new strings
+      > (`pattern_tab_month`, `patterns_month_*`) in en + ar. Autofixer clean (tab and
+      > page), eslint, prettier, `pnpm check` clean.
 - [ ] 6.4 Manual check by the user (`http://127.0.0.1:5174`, e2e data, then real
       data after Phase 3):
       - `Operation-1/Oct/2026` → Month → October 2026: assigned to team

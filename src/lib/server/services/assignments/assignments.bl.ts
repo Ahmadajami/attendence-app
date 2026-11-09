@@ -9,8 +9,15 @@ import {
 } from '#lib/roster/assignments.js';
 import { addDays, daysBetween, startOfDamascusDay } from '#lib/roster/cycle.js';
 import { rosterInputOf } from '#lib/roster/input.js';
+import {
+	isMonth,
+	monthDates,
+	patternMonth,
+	type MonthFollower,
+	type PatternMonth
+} from '#lib/roster/pattern-month.js';
 import type { RosterAssignment } from '#lib/roster/roster.js';
-import type { PatternType } from '#lib/schemas/enums.js';
+import type { PatternType, SwapKind } from '#lib/schemas/enums.js';
 import type {
 	AssignmentInput,
 	AssignTargetKind,
@@ -37,7 +44,13 @@ import {
 	updatePatternDetails
 } from '../patterns/patterns.bl.js';
 import { loadRosterData, PREVIEW_DAYS, type RosterPerson } from '../roster/roster.bl.js';
-import { findRosterPerson, listTeamMembersBetween } from '../roster/roster.crud.js';
+import {
+	findRosterPerson,
+	listPeopleNames,
+	listTeamMembersBetween
+} from '../roster/roster.crud.js';
+import { listAssignmentTargets } from '../patterns/patterns.crud.js';
+import { listSwapRows } from '../swaps/swaps.crud.js';
 import { findTeam } from '../teams/teams.crud.js';
 import {
 	closeAssignment,
@@ -552,4 +565,106 @@ export async function currentAssignments(
 			result.set(id, { patternId: row.patternId, effectiveFrom: row.effectiveFrom });
 	}
 	return result;
+}
+
+/** An assignment of the pattern inside the month, with its target's name (RO13). */
+export type MonthAssignment = {
+	kind: AssignTargetKind;
+	id: string;
+	nameEn: string;
+	nameAr: string | null;
+	effectiveFrom: string;
+	effectiveTo: string | null;
+};
+
+/** A follower of the month with their name. */
+export type MonthFollowerRow = MonthFollower & {
+	fullName: string;
+	fullNameAr: string | null;
+};
+
+/** An approved swap of the followers in the month. */
+export type MonthSwap = {
+	id: string;
+	kind: SwapKind;
+	firstDate: string;
+	secondDate: string | null;
+	a: { staffId: string; fullName: string; fullNameAr: string | null };
+	b: { staffId: string; fullName: string; fullNameAr: string | null } | null;
+};
+
+export type PatternMonthData = Omit<PatternMonth<MonthAssignment>, 'followers'> & {
+	followers: MonthFollowerRow[];
+	swaps: MonthSwap[];
+};
+
+/**
+ * One calendar month of a pattern (RO13, 6.2): who it was assigned to, whose days it planned, the
+ * per-day counts, and the followers' approved swaps in the month (day edits are on their days).
+ */
+export async function getPatternMonth(
+	actor: Actor,
+	patternId: string,
+	month: string
+): Promise<PatternMonthData> {
+	requireActorPermission(actor, 'staff.write');
+	if (!isMonth(month))
+		throw new InvalidInputError('invalid_month', m.patterns_month_error_invalid(), {
+			field: 'month'
+		});
+	await requirePattern(patternId);
+	const dates = monthDates(month);
+	const first = dates[0];
+	const last = dates[dates.length - 1];
+	const [people, targets, swaps] = await Promise.all([
+		patternCandidates(patternId, first, last),
+		listAssignmentTargets(),
+		listSwapRows(['approved'], first, last, null)
+	]);
+	const data = await loadRosterData(people, first, dates.length);
+	const result = patternMonth(
+		patternId,
+		month,
+		targets
+			.filter((t) => t.patternId === patternId)
+			.map((t) => ({
+				kind: (t.staffId ? 'staff' : t.teamId ? 'team' : 'department') as AssignTargetKind,
+				id: t.staffId ?? t.teamId ?? t.departmentId ?? '',
+				nameEn: t.nameEn,
+				nameAr: t.nameAr,
+				effectiveFrom: t.effectiveFrom,
+				effectiveTo: t.effectiveTo
+			})),
+		data,
+		people.map((p) => p.staffId)
+	);
+	const names = new Map(
+		(await listPeopleNames(result.followers.map((f) => f.staffId))).map((p) => [p.staffId, p])
+	);
+	const followers = result.followers
+		.map((f) => ({
+			...f,
+			fullName: names.get(f.staffId)?.fullName ?? '—',
+			fullNameAr: names.get(f.staffId)?.fullNameAr ?? null
+		}))
+		.sort((x, y) => x.fullName.localeCompare(y.fullName));
+	const ids = new Set(followers.map((f) => f.staffId));
+	return {
+		...result,
+		followers,
+		swaps: swaps
+			.filter((s) => ids.has(s.staffId) || (s.otherStaffId !== null && ids.has(s.otherStaffId)))
+			.map((s) => ({
+				id: s.id,
+				kind: s.kind,
+				firstDate: s.firstDate,
+				secondDate: s.secondDate,
+				a: { staffId: s.staffId, fullName: s.a.fullName, fullNameAr: s.a.fullNameAr },
+				b:
+					s.otherStaffId && s.b?.fullName
+						? { staffId: s.otherStaffId, fullName: s.b.fullName, fullNameAr: s.b.fullNameAr }
+						: null
+			}))
+			.sort((x, y) => x.firstDate.localeCompare(y.firstDate))
+	};
 }

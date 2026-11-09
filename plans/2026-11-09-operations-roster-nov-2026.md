@@ -135,7 +135,7 @@ Two files, both with the employee number in column A (added by the user
 
 ### Phase 1: Memberships from 2026-10-01 (RO4)
 
-- [ ] 1.1 `scripts/backdate-import-memberships.ts --from 2026-10-01 [--apply]`
+- [x] 1.1 `scripts/backdate-import-memberships.ts --from 2026-10-01 [--apply]`
       (dry-run by default). It takes the open memberships opened by the import
       (`valid_from` = the import instant) whose person has **no other**
       membership row, and refuses the run if any person has one. A later run with
@@ -145,10 +145,23 @@ Two files, both with the employee number in column A (added by the user
       "Import memberships from 2026-10-01 (RO4)"). Prints counts only. Pure date
       helper with Vitest (made-up dates). Done when: eslint, prettier,
       `pnpm check` and `pnpm test` are clean.
-- [ ] 1.2 Dry-run on `attendance_app`. Done when: it reports 257 memberships and
+      > note: 2026-11-09: pure helper `src/lib/roster/membership-backdate.ts`
+      > (`startOfDayIn`, `planMembershipBackdate`) with 7 Vitest cases. "Opened by the
+      > import" = people with a `staff.import` audit row; refused also: a closed row, or
+      > a `--from` later than the current start. Added `--database <name>` (must equal the
+      > connected DB, as in `import-employees.ts`). The dry run runs every write and rolls
+      > back. eslint, prettier, `pnpm check` (0 errors) and `pnpm test` (433) clean.
+- [x] 1.2 Dry-run on `attendance_app`. Done when: it reports 257 memberships and
       0 refused; the user gives their OK.
-- [ ] 1.3 `--apply` on `attendance_app`. Done when: 257 updated, 257 audit rows;
+      > note: 2026-11-09 dry run: 310 imported people, 257 membership rows (0 of people
+      > not imported), to move 257, already at the date 0, refused 0, 1 distinct current
+      > start; 257 updated + 257 audit rows, rolled back (DB re-checked: still 257 at the
+      > import instant, 0 backdate audit rows). User's OK 2026-11-09.
+- [x] 1.3 `--apply` on `attendance_app`. Done when: 257 updated, 257 audit rows;
       a query shows every imported membership opening 2026-10-01 00:00 Damascus.
+      > note: 2026-11-09 applied: 257 updated, 257 `staff_team_membership.backdate`
+      > audit rows; query: 257 of 257 memberships open at 2026-10-01 00:00 Damascus.
+      > Stored days not touched (recompute in 4.2).
 
 ### Phase 2: The check script (read-only)
 

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>شرح السؤالين 7 و8</title>
+<!--
+  Arabic explainer of Q-OW7 and Q-OW8 in plans/2026-11-09-off-day-work-and-shift-changes.md.
+  Self-contained: no external fonts, scripts or CDNs (CLAUDE.md §1). Record IDs and counts only.
+-->
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --app: #1f6f8b; --app-soft: #e3f1f6;
+    --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5; --plum: #714b67; --plum-soft: #f1e9ef;
+    --track: #e7ebf1; --off: #eef0f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --app: #6cc3df; --app-soft: #16303a;
+      --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+      --track: #2a313d; --off: #222833;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+    --app: #6cc3df; --app-soft: #16303a;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+    --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+    --track: #2a313d; --off: #222833;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 18px/1.85 "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 30px; line-height: 1.4; margin: 8px 0 6px; }
+  h2 { font-size: 25px; line-height: 1.4; margin: 0 0 6px; }
+  h3 { font-size: 19px; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0; padding-inline-start: 24px; }
+  li { margin: 4px 0; }
+  bdi, .ltr { direction: ltr; unicode-bidi: isolate; font-family: system-ui, "Segoe UI", sans-serif; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8em; background: var(--app-soft);
+    padding: 0 4px; border-radius: 4px; direction: ltr; unicode-bidi: isolate; }
+  .muted { color: var(--muted); }
+  .lead { font-size: 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 18px 0; }
+  .q-h { display: flex; gap: 12px; align-items: center; margin-bottom: 4px; }
+  .qn { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px;
+    background: var(--app); color: #fff; font-weight: 700; font-size: 22px; font-family: system-ui, sans-serif; }
+  .ask { background: var(--app-soft); border-radius: 12px; padding: 10px 14px; margin: 10px 0; }
+  .ask b { color: var(--app); }
+  .rec { background: var(--ok-soft); border-radius: 12px; padding: 10px 14px; margin: 12px 0; border-inline-start: 4px solid var(--ok); }
+  .rec b.h { color: var(--ok); display: block; }
+  .note { background: var(--warn-soft); border-radius: 12px; padding: 10px 14px; margin: 12px 0; border-inline-start: 4px solid var(--warn); }
+  .note b.h { color: var(--warn); display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 16.5px; }
+  th, td { text-align: start; padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 14px; color: var(--muted); border-top: 0; }
+  td.n { font-family: system-ui, sans-serif; font-weight: 700; white-space: nowrap; }
+  .wrap { overflow-x: auto; }
+  .same { color: var(--ok); font-weight: 700; }
+  .diff { color: var(--warn); font-weight: 700; }
+
+  .cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
+  @media (max-width: 760px) { .cases { grid-template-columns: 1fr; } }
+  .case { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .case.a { border-color: var(--ok); }
+  .case .letter { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--app); color: #fff; font-weight: 700; font-family: system-ui, sans-serif; margin-inline-end: 6px; }
+  .case h4 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; }
+  .case .cnt { display: block; margin-top: 8px; font-weight: 700; color: var(--app); }
+
+  /* timeline: flows right to left */
+  .tl { margin: 10px 0; }
+  .tl-row { display: grid; grid-template-columns: 120px 1fr; gap: 8px; align-items: center; margin: 6px 0; }
+  .tl-row > span { font-size: 14px; color: var(--muted); }
+  .lane { position: relative; height: 28px; background: var(--track); border-radius: 6px; overflow: hidden; }
+  .seg { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; }
+  .s-plan { background: var(--app); } .s-work { background: var(--ok); } .s-bad { background: var(--bad); }
+  .s-ghost { background: transparent; border: 2px dashed var(--muted); color: var(--muted); }
+  .axis { position: relative; height: 22px; margin-inline-start: 128px; font-size: 13px; color: var(--muted); }
+  .axis i { position: absolute; transform: translateX(50%); font-style: normal; direction: ltr; }
+  @media (max-width: 520px) { .tl-row { grid-template-columns: 84px 1fr; } .axis { margin-inline-start: 92px; } .seg { font-size: 11px; } }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 36px 1fr; gap: 8px; margin: 10px 0; }
+  .steps li::before { content: counter(s); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--app-soft); color: var(--app); font-weight: 700; font-family: system-ui, sans-serif; }
+  .reply { font-family: system-ui, sans-serif; direction: ltr; text-align: left; background: var(--track);
+    border-radius: 10px; padding: 10px 14px; white-space: pre-wrap; font-size: 15px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="muted">تطبيق الحضور · خطة <code>plans/2026-11-09-off-day-work-and-shift-changes.md</code> · <bdi>2026-11-09</bdi></p>
+  <h1>شرح السؤالين 7 و8</h1>
+  <p class="lead">هذان السؤالان يتعلقان ببيانات موجودة فعلاً: الأول ببصمات قديمة، والثاني بسطرين محددين في بصمات تشرين الأول.</p>
+  <p class="muted">لا أسماء في هذه الصفحة: الأشخاص بأرقام سجلاتهم فقط. وردية النهار <bdi>D8</bdi> = <bdi>08:00–20:00</bdi>، ووردية الليل <bdi>N8</bdi> = <bdi>20:00–08:00</bdi>.</p>
+
+  <!-- Q7 -->
+  <section class="card">
+    <div class="q-h"><span class="qn">7</span><h2>البصمات القديمة المحفوظة بوردية وهمية</h2></div>
+
+    <div class="ask"><b>السؤال:</b> قبل هذا الإصلاح كانت الطريقة الوحيدة لحفظ بصمات في يوم راحة أن نعطيها وردية لم يعملها أحد. بعد الإصلاح، البصمات الجديدة من هذا النوع تُحفظ <b>بلا وردية</b>. فماذا نفعل بالبصمات التي حُفظت بالطريقة القديمة؟</div>
+
+    <h3>أين توجد هذه البصمات اليوم؟</h3>
+    <div class="wrap">
+      <table>
+        <tr><th>قاعدة البيانات</th><th>ماذا فيها</th><th>هل يهم؟</th></tr>
+        <tr><td><b>الحقيقية</b> <code>attendance_app</code></td><td class="n">0 بصمات</td><td>لا. استيراد تشرين الأول متوقف، فلا شيء حقيقي بوردية وهمية.</td></tr>
+        <tr><td><b>الاختبار اليدوي</b> <code>attendance_app_e2e</code></td><td class="n">زوج واحد (بصمتان)</td><td>قليلاً. بيانات الاختبار أنشأت «وردية إضافية» في يوم راحة بحفظ دخول وخروج على وردية النهار <bdi>D8</bdi>، وهذه بالضبط الطريقة القديمة.</td></tr>
+        <tr><td><b>اختبارات Playwright</b> <code>attendance_app_test</code></td><td class="n">—</td><td>لا. الاختبارات تعيد بناءها كل مرة.</td></tr>
+      </table>
+    </div>
+    <p class="muted">وإذا كتبت أنت بصمات في يوم راحة أثناء الاختبار على <bdi>5174</bdi>، فهي أيضاً محفوظة بوردية وهمية.</p>
+
+    <h3>مثال</h3>
+    <p>في بيانات الاختبار: شخص وهمي، السبت يوم راحته، عمل <bdi>08:00–20:00</bdi>. البصمتان محفوظتان على وردية <bdi>D8</bdi>.</p>
+    <div class="wrap">
+      <table>
+        <tr><th></th><th>نتركها كما هي (المقترح)</th><th>نحوّلها تلقائياً</th></tr>
+        <tr><td><b>الأجر</b></td><td><span class="same">720 دقيقة عمل يوم راحة</span></td><td><span class="same">720 دقيقة عمل يوم راحة (نفسه)</span></td></tr>
+        <tr><td><b>الشاشة</b></td><td>تبقى «<bdi>D8</bdi>»</td><td>تصبح «عمل يوم راحة»</td></tr>
+        <tr><td><b>السجل (History)</b></td><td>بلا تغيير</td><td><span class="diff">البصمات لا تُعدَّل أبداً، فيضيف البرنامج أسطر تصحيح لم يطلبها أحد</span></td></tr>
+      </table>
+    </div>
+
+    <div class="rec"><b class="h">المقترح: نتركها كما هي</b>الأجر لا يتغير، والفرق في الاسم فقط، ولا توجد بيانات حقيقية متأثرة. وإذا أردت تصحيح واحدة، يمكن تحويلها إلى «بلا وردية» بتصحيح عادي في محرر اليوم.</div>
+  </section>
+
+  <!-- Q8 -->
+  <section class="card">
+    <div class="q-h"><span class="qn">8</span><h2>سطرا الليل في بصمات تشرين الأول</h2></div>
+
+    <div class="ask"><b>السؤال:</b> في بصمات تشرين الأول، أحد أفراد فريق العمليات (السجل <code>4e26598d</code>) مخطط <b>نهاراً <bdi>D8</bdi> يومي 13 و14 تشرين الأول</b>، لكن بصماته تقول إنه عمل <b>ليلاً <bdi>20:00 ← 08:00</bdi>، 12 ساعة، في اليومين</b>. قبل الاستيراد يجب أن يقول الجدول ما حدث فعلاً، فأحتاج أن أعرف ماذا حدث.</div>
+    <p class="muted">ملاحظة من الخطة: نظام Odoo القديم كان يضع هذا الشخص على «كتل يومين»، فربما الليالي هي طريقة عمله الحقيقية.</p>
+
+    <h3>ماذا يحدث لو استوردنا البصمات الآن؟</h3>
+    <div class="tl">
+      <div class="tl-row"><span>الجدول (13 ت1)</span><div class="lane"><div class="seg s-plan" style="inset-inline-start:6.25%;width:37.5%">نهار <bdi>D8</bdi></div></div></div>
+      <div class="tl-row"><span>البصمات</span><div class="lane"><div class="seg s-work" style="inset-inline-start:43.75%;width:37.5%">ليل <bdi>20:00–08:00</bdi></div></div></div>
+      <div class="tl-row"><span>البرنامج اليوم</span><div class="lane"><div class="seg s-bad" style="inset-inline-start:6.25%;width:37.5%">«متأخر 720 دقيقة»</div></div></div>
+      <div class="axis"><i style="inset-inline-start:6.25%">08:00</i><i style="inset-inline-start:43.75%">20:00</i><i style="inset-inline-start:56.25%">00:00</i><i style="inset-inline-start:81.25%">08:00</i></div>
+    </div>
+    <p>يظهر الموظف <b>متأخراً 12 ساعة</b> في كل يوم، وهذا خطأ. لذلك يجب تصحيح الجدول أولاً.</p>
+
+    <h3>ثلاثة احتمالات</h3>
+    <div class="cases">
+      <div class="case a">
+        <h4><span class="letter">A</span>عمل الليل وحده</h4>
+        <p>عمل ليلاً في اليومين، ولم يتغير أحد غيره.</p>
+        <p><b>نسجّل:</b> «تغيير وردية» للسجل <code>4e26598d</code> من <bdi>D8</bdi> إلى <bdi>N8</bdi> يوم 13، ومثله يوم 14.</p>
+        <span class="cnt">طلبان (2)</span>
+        <p class="muted">المقترح إن كان هذا ما حدث.</p>
+      </div>
+      <div class="case">
+        <h4><span class="letter">B</span>تبادل مع زميل</h4>
+        <p>زميل كان مخططاً ليلاً عمل وردية النهار مكانه.</p>
+        <p><b>نسجّل:</b> تغيير وردية <b>للاثنين</b> في اليومين. وإلا يُرفض الزميل أيضاً، لأنه «مخطط ليلاً وبصماته نهارية».</p>
+        <span class="cnt">4 طلبات (أو 2 إن بنينا طلب «تبادل»)</span>
+      </div>
+      <div class="case">
+        <h4><span class="letter">C</span>الجدول خاطئ</h4>
+        <p>جدول تشرين الأول من الموارد البشرية خاطئ في هذين اليومين، وكان يجب أن يكون ليلاً من الأصل.</p>
+        <p><b>نصحّح:</b> الجدول (النمط) نفسه، لا طلب.</p>
+        <span class="cnt">0 طلبات</span>
+      </div>
+    </div>
+
+    <h3>كيف يبدو الاحتمال B</h3>
+    <div class="tl">
+      <div class="tl-row"><span><code>4e26598d</code> مخطط</span><div class="lane"><div class="seg s-plan" style="inset-inline-start:6.25%;width:37.5%">نهار</div></div></div>
+      <div class="tl-row"><span><code>4e26598d</code> عمل</span><div class="lane"><div class="seg s-work" style="inset-inline-start:43.75%;width:37.5%">ليل</div></div></div>
+      <div class="tl-row"><span>الزميل مخطط</span><div class="lane"><div class="seg s-plan" style="inset-inline-start:43.75%;width:37.5%">ليل</div></div></div>
+      <div class="tl-row"><span>الزميل عمل</span><div class="lane"><div class="seg s-work" style="inset-inline-start:6.25%;width:37.5%">نهار</div></div></div>
+      <div class="axis"><i style="inset-inline-start:6.25%">08:00</i><i style="inset-inline-start:43.75%">20:00</i><i style="inset-inline-start:81.25%">08:00</i></div>
+    </div>
+
+    <h3>كيف تعرف أي احتمال هو الصحيح؟</h3>
+    <ol class="steps">
+      <li><div>افتح ملف بصمات تشرين الأول في <code>~/secure/syravia/imports/punches/2026-10/</code>.</div></li>
+      <li><div>انظر إلى يومي <b>13 و14 تشرين الأول</b> لكل أفراد الفريق.</div></li>
+      <li><div>إذا كان أحد الزملاء <b>مخططاً ليلاً</b> وأوقاته <b>نهارية</b> (حوالي <bdi>08:00–20:00</bdi>) في اليومين نفسيهما، فهو الاحتمال <b>B</b>.</div></li>
+      <li><div>إذا لم تتغير أوقات أي زميل، فهو <b>A</b>. وإذا قالت الموارد البشرية إن الجدول كان خاطئاً، فهو <b>C</b>.</div></li>
+    </ol>
+
+    <div class="note"><b class="h">تصحيح لقائمة المهام القديمة</b>خطة استيراد تشرين الأول (المهمة <bdi>T2</bdi>) تقول «سجّل تبديلاً ذاتياً من <bdi>D8</bdi> إلى <bdi>N8</bdi>». هذا لا يعمل، لأن التبديل الذاتي ينقل يوم الراحة فقط ولا يغيّر الوردية. لهذا اقترحنا طلب «تغيير وردية» الجديد.</div>
+
+    <div class="rec"><b class="h">المقترح</b>إن كان الاحتمال A، فطلبا «تغيير وردية» لشخص واحد. ونبني طلب «التبادل» لاحقاً فقط إن احتجته.</div>
+  </section>
+
+  <section class="card">
+    <h2>كيف ترسل جوابك</h2>
+    <p>انسخ هذا وعدّله حسب ما تختار، مع أجوبة باقي الأسئلة:</p>
+    <div class="reply">Q-OW7: leave them (recommended)
+Q-OW8: A   (or B + the colleague's record ID, or C)</div>
+    <p class="muted">في الاحتمال B أرسل <b>رقم سجل</b> الزميل، لا اسمه.</p>
+  </section>
+</main>
+</body>
+</html>

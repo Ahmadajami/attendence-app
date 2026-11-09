@@ -156,6 +156,7 @@ before 15 h, night pair = after)
 | OI11 | **Never imported**: Odoo statuses, schedules, cycles, swaps, `manual_state`, leave reasons | The app's roster is the truth; the old cycles were wrong for ec994043 and 4e26598d |
 | OI13 | **Source = the outside data typed into the Operations template** (approved by the user 2026-11-09). Odoo is not used | Odoo holds old data; one small readable sheet is easy to fill and check |
 | OI14 | **Template rows read like manual entry**: row date = shift date; HH:MM Damascus → instants with `resolvePair()` (check-out earlier = next morning); shift = the planned one, on an off day the best-fitting active shift (`attributeEvent`'s rule) with the unplanned reason; `validatePair()` checks (OI5) | The same logic as typing the times into the entry sheet |
+| OI17 | **The template is prefilled from the October report** (`Daily` sheet): `operations_punches_2026-10.xlsx`, 58 rows Oct 1–20, the 4 sick rows marked in Note; outside data for other dates goes into the same file (user, 2026-11-09) | The report has those days; its times match line for line |
 | OI16 | **`source = 'import'`** on every event from the template | `seed` means Odoo history; this is punch readings from an outside file |
 | OI15 | **Every October date is in the template**; an empty cell stays a missing punch, nothing is invented | The new source may cover days Odoo never had (Oct 21–31) |
 | OI12 | **The 4 sick days** are entered by the user in the day editor (2 actions: 412d2b7e one 2-day range, b2339c1f one 2-day range), state `sick`, reason `Odoo history (October 2026)` | Goes through the existing absence service (`setDayState`), with its audit and recompute; the Odoo reason text is never copied |
@@ -164,7 +165,7 @@ before 15 h, night pair = after)
 
 | ID | Question | Default |
 |---|---|---|
-| Q-OI1 | Source? | **answered 2026-11-09:** the outside source, typed into the template (OI13) |
+| Q-OI1 | Source? | **answered 2026-11-09:** the template (OI13), prefilled from the October report (OI17); outside data adds other dates |
 | Q-OI2 | `source = import` for these events (OI16), or `seed`? | `import` |
 | Q-OI3 | Time zone? | Damascus HH:MM in the template (OI14) |
 | Q-OI4 | Dates without punches? | every date is in the template; empty = missing (OI15) |
@@ -187,9 +188,11 @@ before 15 h, night pair = after)
 
 ### Phase 1: Fill the template (the user / the outside source)
 
-- [ ] 1.1 The outside data is typed into a copy of the template, saved in the
-      same folder as `operations_punches_2026-10.xlsx` (mode 600) — *done when*
-      the user says it is filled
+- [x] 1.1 Filled copy `operations_punches_2026-10.xlsx` (mode 600) from the
+      October report's `Daily` sheet (OI17)
+      > note: 2026-11-09 186 rows; 58 with check in + out (per person 6/10/10/10/11/11), 0 with only one side, last date 2026-10-20; 20 night rows (out < in); 4 on Off rows; 4 sick rows marked in Note; 0 report lines outside the template
+- [ ] 1.2 The user adds the outside source's punches (other dates) to the same
+      file, or says there are none — *done when* the user confirms
 - ~~1.1 (old) Read-only extractor from Odoo~~ dropped 2026-11-09 (OI13)
 
 ### Phase 2: Import script

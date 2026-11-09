@@ -1,6 +1,6 @@
 # Operations team follows the October and November 2026 rosters
 
-**Status:** in progress (approved 2026-11-09 with every default: Q-RO4, Q-RO8, Q-RO9, Q-RO10)
+**Status:** done (2026-11-09; approved 2026-11-09 with every default: Q-RO4, Q-RO8, Q-RO9, Q-RO10; manual checks 4.3, 5.4, 6.4 confirmed by the user)
 **Date:** 2026-11-09
 **Goal:** the 6 members of team Operations (`31da93d7-07cf-4ee6-bf02-606158f67fa2`)
 are planned in the app exactly as HR's two workbooks say, every day from
@@ -241,7 +241,7 @@ starts, then the swaps (a swap is checked against the planned days).
       "no pattern" between Oct 1 and today.
       > note: 2026-11-09: stored days already recomputed by the saves: 240 for the team (Oct 93 work + 93 off, Nov 1–9 27 + 27), all on `528461f1…`, none without a pattern. After 3.3 Nov 1–9 must move to `f89ce44b…`.
       > note: 2026-11-09 after 3.3: the assignment save recomputed Nov 1–9 itself (no manual recompute needed): Oct 93 + 93 on `528461f1…`, Nov 1–9 27 + 27 on `f89ce44b…`, 0 days without a pattern.
-- [ ] 4.3 Manual check by the user (on `http://127.0.0.1:5173`, real data):
+- [x] 4.3 Manual check by the user (on `http://127.0.0.1:5173`, real data):
       - Team page, next 14 days: every day 2 on D8 and 1 on N8.
       - Each of the 6 people, Schedule tab: the history list (Phase 5) shows
         October with `Operation-1/Oct/2026` and November with
@@ -253,6 +253,7 @@ starts, then the swaps (a swap is checked against the planned days).
         November on the November pattern, as in 6.4.
       - `/ar/...`: the same pages right to left.
       Done when: the user reports it holds.
+      > note: 2026-11-09: the user reported it holds on real data (team page, the 6 Schedule tabs, swap tags of `b2339c1f…` and `4e26598d…`, en + ar).
 
 ### Phase 5: Schedule history on the Schedule tab (RO12)
 

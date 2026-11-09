@@ -176,7 +176,8 @@
     testdata: { en: 'Test data', ar: 'بيانات الاختبار' },
     daytags: { en: 'Day tags & colours', ar: 'وسوم اليوم والألوان' },
     swaps: { en: 'Swaps', ar: 'التبديلات' },
-    empimport: { en: 'Employee import', ar: 'استيراد الموظفين' }
+    empimport: { en: 'Employee import', ar: 'استيراد الموظفين' },
+    roster: { en: 'Monthly rosters', ar: 'الجداول الشهرية' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -1927,6 +1928,130 @@
         { en: "Map the 2 name matches onto the test records: not chosen — they are test data (user, 2026-11-08).", ar: "ربط التطابقين بالاسم مع سجلات الاختبار: لم يُختر — هي بيانات اختبار (المستخدم، 2026-11-08)." },
         { en: "Reuse the test departments Operation and Human Resources Management: not chosen — Operation has a pattern, so real people would join a test roster.", ar: "إعادة استخدام قسمي الاختبار Operation وHuman Resources Management: لم يُختر — لقسم Operation نمط، فسينضم أشخاص حقيقيون إلى جدول تجريبي." }
       ]
+    },
+    {
+      id: 'RO1', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Keep the existing pattern as the November pattern", ar: "الإبقاء على النمط الحالي كنمط تشرين الثاني" },
+      decision: { en: "Pattern f89ce44b (Operation-1/Nov/2026; 24-day cycle: 4 N8, 4 off, 4 D8, 4 off, 4 D8, 4 off) stays as the November pattern: no delete.", ar: "يبقى النمط f89ce44b (Operation-1/Nov/2026؛ دورة 24 يوماً: 4 N8، 4 راحة، 4 D8، 4 راحة، 4 D8، 4 راحة) نمطاً لتشرين الثاني: بلا حذف." },
+      why: { en: "It matches the November workbook slot for slot.", ar: "يطابق ملف تشرين الثاني خانةً بخانة." },
+      alts: [
+        { en: "Delete and re-create it: not chosen — identical result; a delete is a hard delete.", ar: "حذفه وإعادة إنشائه: لم يُختر — النتيجة نفسها؛ والحذف حذف نهائي." }
+      ]
+    },
+    {
+      id: 'RO2', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Two monthly team assignments, oldest first, anchor 2026-10-31", ar: "إسنادان شهريان للفريق، الأقدم أولاً، ببداية 2026-10-31" },
+      decision: { en: "Team Operations gets the October pattern from 2026-10-01, then the November pattern from 2026-11-01, both with cycle day 1 on 2026-10-31. The first replaces cae8156d (from 2026-11-01, anchor 2026-11-09), whose row stays in the audit; the second closes the first at Nov 1.", ar: "يحصل فريق العمليات على نمط تشرين الأول من 2026-10-01، ثم نمط تشرين الثاني من 2026-11-01، وكلاهما مع اليوم الأول للدورة في 2026-10-31. الأول يحل محل cae8156d (من 2026-11-01 ببداية 2026-11-09)، ويبقى صفه في التدقيق؛ والثاني يغلق الأول في 1 تشرين الثاني." },
+      why: { en: "The cycle runs on across the month line, so the anchor stays; an assignment from an earlier date removes later ones, so the order matters.", ar: "تستمر الدورة عبر حد الشهر فتبقى البداية نفسها؛ والإسناد من تاريخ أقدم يحذف ما بعده، فالترتيب مهم." },
+      alts: [
+        { en: "Keep 2026-11-09 and add 9 to every crew start: not chosen — the numbers no longer match the workbook.", ar: "إبقاء 2026-11-09 وإضافة 9 لكل بداية طاقم: لم يُختر — الأرقام لا تطابق الملف." }
+      ]
+    },
+    {
+      id: 'RO3', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Day offs through one crew start per person", ar: "أيام الراحة عبر بداية طاقم لكل شخص" },
+      decision: { en: "Each of the 6 members gets one own crew start from 2026-10-01: 0, 16, 8 (crew 1) and 4, 20, 12 (crew 2); it carries over the month line because both monthly patterns are the same cycle. Every day then has 2 on D8 and 1 on N8.", ar: "يحصل كل من الأعضاء الستة على بداية طاقم خاصة واحدة من 2026-10-01: 0 و16 و8 (الطاقم 1) و4 و20 و12 (الطاقم 2)؛ وتستمر عبر حد الشهر لأن النمطين الشهريين دورة واحدة. فيصبح في كل يوم شخصان على D8 وواحد على N8." },
+      why: { en: "Who is on which day inside the crew is the crew start (B4); monthly patterns don't replace it.", ar: "من يعمل في أي يوم داخل الطاقم تحدده بداية الطاقم (B4)؛ والأنماط الشهرية لا تحل محلها." },
+      alts: [
+        { en: "Six separate patterns: not chosen — six things to maintain each month.", ar: "ستة أنماط منفصلة: لم يُختر — ستة أشياء للصيانة كل شهر." },
+        { en: "Personal assignments: not chosen — they bypass the team.", ar: "إسنادات شخصية: لم يُختر — تتجاوز الفريق." }
+      ]
+    },
+    {
+      id: 'RO4', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Imported memberships start on 2026-10-01", ar: "عضويات الاستيراد تبدأ في 2026-10-01" },
+      decision: { en: "All 257 memberships opened by the import (2026-11-09 09:54 Damascus) move to 00:00 Damascus on 2026-10-01, by a dry-run-first script with an audit row each; an older month later can move them back again.", ar: "تُنقل العضويات الـ257 التي فتحها الاستيراد (2026-11-09 09:54 بتوقيت دمشق) إلى 00:00 بتوقيت دمشق في 2026-10-01، بسكربت يجرب أولاً ومع سجل تدقيق لكل منها؛ ويمكن لاحقاً إرجاعها أكثر لشهر أقدم." },
+      why: { en: "A team plan reaches a person only while the membership covers 00:00 of the day; only a date on or before the first month entered is needed, not the real join date (user, 2026-11-09).", ar: "تصل خطة الفريق إلى الشخص فقط حين تغطي العضوية الساعة 00:00 من اليوم؛ والمطلوب تاريخ في أول شهر يُدخل أو قبله فقط، لا تاريخ الانضمام الحقيقي (المستخدم، 2026-11-09)." },
+      alts: [
+        { en: "Each person's start date: not chosen — the user has no join dates and they do not matter here.", ar: "تاريخ مباشرة كل شخص: لم يُختر — لا يملك المستخدم تواريخ الانضمام ولا أهمية لها هنا." },
+        { en: "Only the 6 Operations memberships: not chosen — every other team would hit the same wall.", ar: "عضويات العمليات الست فقط: لم يُختر — كل فريق آخر سيواجه المشكلة نفسها." }
+      ]
+    },
+    {
+      id: 'RO5', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Workbook D = D8, N = N8", ar: "في الملف D = D8 وN = N8" },
+      decision: { en: "D is the 12-hour day D8 (08:00–20:00), N the night N8 (20:00–08:00), O off (user, 2026-11-09).", ar: "D هي وردية النهار D8 لمدة 12 ساعة (08:00–20:00)، وN الليل N8 (20:00–08:00)، وO راحة (المستخدم، 2026-11-09)." },
+      why: { en: "Two 12-hour shifts cover 24 hours.", ar: "ورديتان من 12 ساعة تغطيان 24 ساعة." },
+      alts: [
+        { en: "D = shift D (09:00–18:00): not chosen — leaves 18:00–20:00 and 08:00–09:00 uncovered.", ar: "D = الوردية D (09:00–18:00): لم يُختر — تترك 18:00–20:00 و08:00–09:00 دون تغطية." }
+      ]
+    },
+    {
+      id: 'RO6', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "The November assignment stays open; December gets its own pattern", ar: "يبقى إسناد تشرين الثاني مفتوحاً؛ ولكانون الأول نمطه الخاص" },
+      decision: { en: "When the December workbook arrives: run the check script against the November pattern, then Copy it to Operation-1/Dec/2026 and assign it from 2026-12-01, changing days or crew starts only where the check shows differences (user, 2026-11-09).", ar: "عند وصول ملف كانون الأول: يُشغّل سكربت الفحص على نمط تشرين الثاني، ثم يُنسخ إلى Operation-1/Dec/2026 ويُسند من 2026-12-01، مع تغيير الأيام أو بدايات الطاقم فقط حيث يُظهر الفحص اختلافاً (المستخدم، 2026-11-09)." },
+      why: { en: "Ending it with nothing after would leave the 6 without any plan.", ar: "إنهاؤه دون شيء بعده يترك الستة بلا أي خطة." },
+      alts: [
+        { en: "End it on 2026-12-01 with nothing after: not chosen — no plan in December.", ar: "إنهاؤه في 2026-12-01 دون شيء بعده: لم يُختر — لا خطة في كانون الأول." }
+      ]
+    },
+    {
+      id: 'RO7', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Roster entered through the app's forms, checked by a read-only script", ar: "إدخال الجدول عبر نماذج التطبيق مع فحص بسكربت للقراءة فقط" },
+      decision: { en: "The user enters the patterns, assignments, crew starts and swaps in the app; scripts/check-team-roster.ts prints what to enter and verifies every day of each workbook (Oct 186, Nov 180).", ar: "يُدخل المستخدم الأنماط والإسنادات وبدايات الطاقم والتبديلات في التطبيق؛ ويطبع scripts/check-team-roster.ts ما يُدخل ويتحقق من كل يوم في كل ملف (تشرين الأول 186، تشرين الثاني 180)." },
+      why: { en: "The forms run the permission, audit and recompute logic; the script proves the result.", ar: "تشغّل النماذج منطق الصلاحيات والتدقيق وإعادة الحساب؛ ويثبت السكربت النتيجة." },
+      alts: [
+        { en: "A script that writes directly: not chosen — would duplicate the business logic outside SvelteKit.", ar: "سكربت يكتب مباشرة: لم يُختر — يكرر منطق العمل خارج SvelteKit." }
+      ]
+    },
+    {
+      id: 'RO8', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "October 1–4 exception entered as two employee swaps", ar: "استثناء 1–4 تشرين الأول يُدخل كتبديلين بين موظفين" },
+      decision: { en: "Two crew members exchanged Oct 1–4 (one has the other's nights on Oct 1–2, the other has the first's days on Oct 3–4). By the Operations and HR rules, days against the pattern are a swap (user, 2026-11-09), so this is two employee swaps with a return date (Oct 1↔3, Oct 2↔4), scope month, approved; it was done to manage a sub-team change. Briefly replaced by RO9 the same day, restored when the user confirmed the rule.", ar: "تبادل عضوان من الطاقم الأيام 1–4 تشرين الأول (أحدهما أخذ ليلتي الآخر في 1–2، والآخر أخذ نهاري الأول في 3–4). وبحسب قواعد العمليات والموارد البشرية فإن الأيام المخالفة للنمط تبديل (المستخدم، 2026-11-09)، فهذان تبديلان بين موظفين مع تاريخ إرجاع (1↔3 و2↔4)، بنطاق الشهر، وموافق عليهما؛ وقد جرى ذلك لإدارة تغيير في الفريق الفرعي. استُبدل لفترة قصيرة بـ RO9 في اليوم نفسه، وأُعيد عندما أكد المستخدم القاعدة." },
+      why: { en: "The swap is what happened and must be recorded; the pattern and crew starts stay right for the rest of both months. Checked by script: with the swaps, 186/186 October days match.", ar: "التبديل هو ما حدث ويجب تسجيله؛ ويبقى النمط وبدايات الطاقم صحيحة لبقية الشهرين. فُحص بسكربت: مع التبديلين تطابق أيام تشرين الأول 186/186." },
+      alts: [
+        { en: "A crew change on Oct 5 (RO9): not chosen — same October days, but it hides a swap the rules require to be recorded.", ar: "تغيير طاقم في 5 تشرين الأول (RO9): لم يُختر — أيام تشرين الأول نفسها، لكنه يخفي تبديلاً تفرض القواعد تسجيله." },
+        { en: "Eight one-off day edits: not chosen — loses the link between the two people.", ar: "ثماني تعديلات ليوم واحد: لم يُختر — تفقد الربط بين الشخصين." }
+      ]
+    },
+    {
+      id: 'RO9', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Two crew members change sub-team (crew) on 2026-10-05 (replaced by RO8)", ar: "عضوان من الطاقم يغيّران الفريق الفرعي (الطاقم) في 2026-10-05 (استُبدل بـ RO8)" },
+      decision: { en: "Crew start 12 then 8 from Oct 5 for one person, 8 then 12 for the other. Replaced by RO8 the same day: by the Operations and HR rules the Oct 1–4 days are a swap.", ar: "بداية الطاقم 12 ثم 8 من 5 تشرين الأول لشخص، و8 ثم 12 للآخر. استُبدل بـ RO8 في اليوم نفسه: بحسب قواعد العمليات والموارد البشرية فإن أيام 1–4 تشرين الأول تبديل." },
+      why: { en: "It reproduced the October days with crew starts only.", ar: "كان يعيد أيام تشرين الأول ببدايات الطاقم فقط." },
+      alts: [
+        { en: "Two employee swaps (RO8): chosen in the end — the rules require the swap to be recorded.", ar: "تبديلان بين موظفين (RO8): اختير في النهاية — القواعد تفرض تسجيل التبديل." }
+      ]
+    },
+    {
+      id: 'RO10', group: 'roster', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "The Schedule tab shows one calendar month at a time (replaced by RO12)", ar: "تبويب الجدول يعرض شهراً تقويمياً في كل مرة (استُبدل بـ RO12)" },
+      decision: { en: "A month switcher, the whole month grid and a \"How this month is planned\" list. Replaced by RO12 the same day: with one pattern per month (RO11) a history list is enough.", ar: "مبدّل أشهر وشبكة الشهر كاملاً وقائمة «كيف يُخطط هذا الشهر». استُبدل بـ RO12 في اليوم نفسه: مع نمط لكل شهر (RO11) تكفي قائمة التاريخ." },
+      why: { en: "HR thinks in monthly rosters.", ar: "تفكر الموارد البشرية بجداول شهرية." },
+      alts: [
+        { en: "A history list with monthly patterns (RO11, RO12): chosen by the user (option A).", ar: "قائمة تاريخ مع أنماط شهرية (RO11، RO12): اختارها المستخدم (الخيار A)." }
+      ]
+    },
+    {
+      id: 'RO11', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "One pattern per month, named by month", ar: "نمط لكل شهر باسم الشهر" },
+      decision: { en: "Operation-1/Oct/2026 for October (Copy of the November pattern, renamed; same 24 slots) and Operation-1/Nov/2026 for November. A later month: Copy the previous month's pattern (it carries the pay rule and upcoming holidays, PR14), rename it, change the days only if the roster changes, assign it from the 1st (user, 2026-11-09, option A).", ar: "Operation-1/Oct/2026 لتشرين الأول (نسخة من نمط تشرين الثاني بعد إعادة تسميتها؛ نفس الخانات الـ24) وOperation-1/Nov/2026 لتشرين الثاني. ولأي شهر لاحق: نسخ نمط الشهر السابق (ينقل قاعدة الأجر والعطل القادمة، PR14)، وإعادة تسميته، وتغيير الأيام فقط إذا تغير الجدول، وإسناده من أول الشهر (المستخدم، 2026-11-09، الخيار A)." },
+      why: { en: "HR works in monthly rosters, so the pattern name says which month's roster a day follows.", ar: "تعمل الموارد البشرية بجداول شهرية، فيقول اسم النمط أي جدول شهري يتبعه اليوم." },
+      alts: [
+        { en: "One pattern for every month: not chosen — the name says nothing about the month.", ar: "نمط واحد لكل الأشهر: لم يُختر — الاسم لا يقول شيئاً عن الشهر." },
+        { en: "One pattern per person per month: not chosen — 6 × 12 = 72 a year.", ar: "نمط لكل شخص لكل شهر: لم يُختر — 6 × 12 = 72 في السنة." }
+      ]
+    },
+    {
+      id: 'RO12', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Schedule history list on the employee's Schedule tab", ar: "قائمة تاريخ الجدول في تبويب الجدول للموظف" },
+      decision: { en: "One line per period in which nothing changes, newest first: dates, source (team / department / personal), pattern name with a link, crew start or off days with the rule's reason, and the approved swaps inside the period. Read-only, built from the dated rows; the 28-day preview stays.", ar: "سطر لكل فترة لا يتغير فيها شيء، الأحدث أولاً: التواريخ، والمصدر (فريق / قسم / شخصي)، واسم النمط برابط، وبداية الطاقم أو أيام الراحة مع سبب القاعدة، والتبديلات الموافق عليها داخل الفترة. للقراءة فقط، ويُبنى من الأسطر المؤرخة؛ وتبقى معاينة الـ28 يوماً." },
+      why: { en: "The tab shows only today; with monthly patterns the list shows every past month and why each day was planned so.", ar: "التبويب يعرض اليوم فقط؛ ومع الأنماط الشهرية تُظهر القائمة كل شهر سابق ولماذا خُطط كل يوم هكذا." },
+      alts: [
+        { en: "The full month view (RO10): not chosen — more work; the pattern name now carries the month.", ar: "عرض الشهر الكامل (RO10): لم يُختر — عمل أكثر؛ واسم النمط يحمل الشهر الآن." },
+        { en: "No change to the tab: not chosen — October could not be checked from December.", ar: "عدم تغيير التبويب: لم يُختر — لا يمكن فحص تشرين الأول من كانون الأول." }
+      ]
+    },
+    {
+      id: 'RO13', group: 'roster', status: 'approved', date: '2026-11-09', src: 'plans/2026-11-09-operations-roster-nov-2026.md §2',
+      title: { en: "Month filter on the pattern page", ar: "مرشّح الشهر في صفحة النمط" },
+      decision: { en: "A Month tab (?tab=month&month=YYYY-MM, default the current month, ‹ › to move) shows who followed the pattern that month (the teams, departments and people it was assigned to with dates, and every person whose days it actually planned, with day count and crew start) and what happened (the month grid with swap and day-edit markers, per-day counts of D8 / N8 / off, the list of swaps and day edits). Read-only; the header's followers of today stay (user, 2026-11-09).", ar: "تبويب «الشهر» (?tab=month&month=YYYY-MM، افتراضياً الشهر الحالي، والتنقل بـ ‹ ›) يُظهر من اتبع النمط في ذلك الشهر (الفرق والأقسام والأشخاص الذين أُسند إليهم مع التواريخ، وكل شخص خطط النمط أيامه فعلاً مع عدد الأيام وبداية الطاقم) وما الذي حدث (شبكة الشهر مع علامات التبديل وتعديل اليوم، وعدد D8 / N8 / الراحة لكل يوم، وقائمة التبديلات وتعديلات الأيام). للقراءة فقط؛ ويبقى في رأس الصفحة من يتبع النمط اليوم (المستخدم، 2026-11-09)." },
+      why: { en: "With one pattern per month (RO11) the pattern page is where HR checks a month: who was on the roster and what changed against it.", ar: "مع نمط لكل شهر (RO11) تصبح صفحة النمط المكان الذي تفحص فيه الموارد البشرية الشهر: من كان على الجدول وما الذي تغيّر عنه." },
+      alts: [
+        { en: "Filter the whole page by month: not chosen — the Days, Pay and Dates tabs don't depend on the month.", ar: "تصفية الصفحة كلها بالشهر: لم يُختر — تبويبات الأيام والأجر والتواريخ لا تعتمد على الشهر." },
+        { en: "Only the employee history (RO12): not chosen — one person at a time, no view of the crew.", ar: "تاريخ الموظف فقط (RO12): لم يُختر — شخص واحد في كل مرة، بلا عرض للطاقم." },
+        { en: "The team roster screen (S3.2): not chosen for now — later, and by team rather than by pattern.", ar: "شاشة جدول الفريق (S3.2): لم يُختر الآن — لاحقاً، وبحسب الفريق لا النمط." }
+      ]
     }
   ];
 
@@ -2007,6 +2132,16 @@
     ["Q-EI7", "Employee import: store location, probation, weekly hours, shift?", "default kept 2026-11-08: no, report only", "استيراد الموظفين: تخزين الموقع وفترة التجربة والساعات الأسبوعية والوردية؟", "أُبقي الافتراضي 2026-11-08: لا، في التقرير فقط"],
     ["Q-EI8", "Employee import: new-hire numbers after the import?", "default kept 2026-11-08: highest + 1 for now; revisit before the first hire", "استيراد الموظفين: أرقام الموظفين الجدد بعد الاستيراد؟", "أُبقي الافتراضي 2026-11-08: الأعلى + 1 مؤقتاً؛ وتُراجع قبل أول تعيين"],
     ["Q-EI9", "Employee import: Arabic names for new departments, teams, job titles?", "default kept 2026-11-08: agent proposes, user corrects", "استيراد الموظفين: الأسماء العربية للأقسام والفرق والمسميات الجديدة؟", "أُبقي الافتراضي 2026-11-08: يقترحها الوكيل ويصححها المستخدم"],
+    ["Q-RO1", "Operations roster: from which date do the imported memberships start? (answered 2026-11-09)", "2026-10-01 for everyone; no join dates needed (RO4)", "جدول العمليات: من أي تاريخ تبدأ عضويات الاستيراد؟ (أُجيب 2026-11-09)", "2026-10-01 للجميع؛ لا حاجة لتواريخ الانضمام (RO4)"],
+    ["Q-RO2", "Operations roster: is the workbook's D the 12-hour day D8 (08:00–20:00)? (answered 2026-11-09)", "yes (RO5)", "جدول العمليات: هل D في الملف هي وردية النهار D8 لمدة 12 ساعة (08:00–20:00)؟ (أُجيب 2026-11-09)", "نعم (RO5)"],
+    ["Q-RO3", "Operations roster: keep the assignment open into December? (answered 2026-11-09)", "yes; December gets its own pattern (RO6, RO11)", "جدول العمليات: هل يبقى الإسناد مفتوحاً في كانون الأول؟ (أُجيب 2026-11-09)", "نعم؛ ولكانون الأول نمطه الخاص (RO6، RO11)"],
+    ["Q-RO4", "Operations roster: October row 7 repeats row 13 (same employee number, Oct 1–6); ignore it? (answered 2026-11-09: default kept)", "yes", "جدول العمليات: السطر 7 في تشرين الأول يكرر السطر 13 (الرقم الوظيفي نفسه، 1–6 تشرين الأول)؛ هل يُتجاهل؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "نعم"],
+    ["Q-RO5", "Operations roster: row 11's employee number missed one digit in both files; fix the files? (answered 2026-11-09)", "fixed by the user; all numbers match", "جدول العمليات: الرقم الوظيفي في السطر 11 كان ينقصه رقم في الملفين؛ هل تُصحح الملفات؟ (أُجيب 2026-11-09)", "صحّحه المستخدم؛ وكل الأرقام مطابقة"],
+    ["Q-RO6", "Operations roster: crew start of one person before a crew change on Oct 5? (obsolete 2026-11-09: the Oct 1–4 days are a swap, RO8)", "—", "جدول العمليات: بداية طاقم أحد الشخصين قبل تغيير طاقم في 5 تشرين الأول؟ (لم يعد قائماً 2026-11-09: أيام 1–4 تشرين الأول تبديل، RO8)", "—"],
+    ["Q-RO7", "Operations roster: Schedule tab month = calendar month or payroll period? (obsolete 2026-11-09: no month view, RO12)", "—", "جدول العمليات: شهر تبويب الجدول تقويمي أم فترة رواتب؟ (لم يعد قائماً 2026-11-09: لا عرض شهري، RO12)", "—"],
+    ["Q-RO8", "Operations roster: Arabic name of the monthly patterns? (answered 2026-11-09: default kept)", "the same text as the English name (Operation-1/Oct/2026), as the November pattern has", "جدول العمليات: الاسم العربي للأنماط الشهرية؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "النص نفسه كالاسم الإنجليزي (Operation-1/Oct/2026)، كما في نمط تشرين الثاني"],
+    ["Q-RO9", "Operations roster: month view on the pattern page as its own tab or a filter above all tabs? (answered 2026-11-09: default kept)", "its own tab (Month); the header keeps today's followers", "جدول العمليات: عرض الشهر في صفحة النمط كتبويب مستقل أم مرشّح فوق كل التبويبات؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "تبويب مستقل («الشهر»)؛ ويبقى في الرأس متّبعو اليوم"],
+    ["Q-RO10", "Operations roster: calendar month or payroll period (21st–20th) for the month views? (answered 2026-11-09: default kept)", "calendar month, like HR's workbooks", "جدول العمليات: شهر تقويمي أم فترة الرواتب (21–20) لعروض الشهر؟ (أُجيب 2026-11-09: أُبقي الافتراضي)", "شهر تقويمي، مثل ملفات الموارد البشرية"],
   ];
 
   function el(tag, attrs, children) {

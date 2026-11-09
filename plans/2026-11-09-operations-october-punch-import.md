@@ -1,6 +1,6 @@
 # Operations team: October 2026 punch history from Odoo
 
-**Status:** to do (proposed 2026-11-09; source changed by the user the same day: Odoo is old data, new data from an outside source goes into an Operations template (OI13). Template made; waiting for the filled file, the open questions and "approved")
+**Status:** in progress (approved 2026-11-09: source `import`, 60 s, record the sick days; Phases 1–2.4 done, the dry run on `attendance_app` shown; waiting for the user's OK to commit, then Phase 3)
 **Date:** 2026-11-09
 **Goal:** bring the October 2026 check-ins and check-outs of the 6 members of
 team Operations (`31da93d7-07cf-4ee6-bf02-606158f67fa2`) into `attendance_app`
@@ -147,7 +147,7 @@ before 15 h, night pair = after)
 | ~~OI2~~ (replaced by OI16) | **`source = 'seed'`** on every imported event | Main plan §2/§4: Odoo history is the seed. `import` stays for device files (S1.6), `manual` for typed punches |
 | ~~OI3~~ (replaced by OI14) | **Times are UTC** in Odoo; stored as `timestamptz` as they are | Odoo stores naive UTC; the Excel's Damascus HH:MM match 58/58 after converting |
 | ~~OI4~~ (replaced by OI14) | **Each pair → 2 events** (`check_in`, `check_out`; type from the Odoo column, never guessed). Shift date and shift from `attributeEvent()` over the person's roster days (day before, day, day after); the check-out with `open` = the check-in's attribution. A pair whose two ends land on different shift dates or shifts is **held** (not imported, listed by person ID + date) for the user | One matcher, the existing one; a pair is one shift worked, never split |
-| OI5 | **Manual entry's checks** (`validatePair`): an error (over 16 h, overlap, future) rejects the pair; a warning (outside window, unplanned) imports it with a fixed reason, `Odoo history (October 2026): not on the planned shift` | Same rules as typed punches; the service requires a reason on unplanned punches |
+| OI5 | **Manual entry's checks** (`validatePair`): an error (over 16 h, overlap, future) rejects the pair; a warning (outside window, unplanned) imports it with a fixed reason, `October 2026 punch import: not on the planned shift` | Same rules as typed punches; the service requires a reason on unplanned punches |
 | OI6 | **Roster days for matching = the stored `day_result` rows** (shift, team, swap role) of the 6 for 2026-09-30 → 2026-11-01, read before writing | The script cannot load the roster through the services; those rows were recomputed and verified 186/186 against the workbook (roster plan). Alternative: an admin-only server action that loads the roster through the services (more code, same result today) |
 | OI7 | **Idempotent**: an event already stored with the same staff, `occurred_at`, type and `source = seed` is skipped; two punches of one person within **60 s** of each other count as one (the later is skipped) | A rerun inserts nothing; the 58 pairs have minute precision, so 60 s catches only real duplicates |
 | OI8 | **Scope filter everywhere**: the importer rejects any employee number other than the 6 and any date outside 10-01 → 10-31, with a reason | Hard scope of this task |
@@ -166,12 +166,13 @@ before 15 h, night pair = after)
 | ID | Question | Default |
 |---|---|---|
 | Q-OI1 | Source? | **answered 2026-11-09:** the template (OI13), prefilled from the October report (OI17); outside data adds other dates |
-| Q-OI2 | `source = import` for these events (OI16), or `seed`? | `import` |
+| Q-OI2 | `source = import` for these events (OI16), or `seed`? | **answered 2026-11-09:** `import` |
 | Q-OI3 | Time zone? | Damascus HH:MM in the template (OI14) |
 | Q-OI4 | Dates without punches? | every date is in the template; empty = missing (OI15) |
-| Q-OI5 | Duplicates: same person, same type within 60 s = one punch (OI7)? None expected | 60 s |
+| Q-OI5 | Duplicates: same person, same type within 60 s = one punch (OI7)? None expected | **answered 2026-11-09:** 60 s |
 | Q-OI6–Q-OI8 | (were about the old Odoo pairs) Punches on another shift than planned, on off days, on swap-off days | decided case by case from the dry run of the new data (2.4) |
-| Q-OI9 | The 4 sick days (2 people, one 2-day range each, OI12; counted from the old Odoo report — still wanted?): record them as `sick` absences — you in the day editor (default), or the import script writing the absence rows plus audit itself? | you, in the day editor |
+| Q-OI9 | The 4 sick days (2 people, one 2-day range each, OI12) | **answered 2026-11-09:** record them; the user in the day editor (the absence service can't be called from a script) |
+| Q-OI10 | Dry run: b2339c1f's pair on 2026-10-02 (check-in 13:00, a swap-off day) fits shift D (09:00–18:00) better than D8 by `attributeEvent`'s distance rule. Keep D, or count it as D8? | keep D (the rule as written) |
 
 ## 3. Tasks
 
@@ -184,7 +185,8 @@ before 15 h, night pair = after)
 - [x] 0.3 Write this plan, the index row and decisions OI1–OI12 (proposed)
 - [x] 0.4 Source decided by the user: outside data in an Operations template (OI13)
       > note: 2026-11-09 template written: 186 rows (6 × 31), D8 60, N8 29, Off 89, swap rows 8; read back OK; mode 600 in `~/secure/syravia/imports/punches/2026-10/`
-- [ ] 0.5 The user answers Q-OI2, Q-OI5, Q-OI9 and says "approved"
+- [x] 0.5 The user answers Q-OI2, Q-OI5, Q-OI9 and says "approved"
+      > note: 2026-11-09 approved: `import`, 60 s, record the sick days; OI5–OI17 approved
 
 ### Phase 1: Fill the template (the user / the outside source)
 
@@ -193,15 +195,17 @@ before 15 h, night pair = after)
       > note: 2026-11-09 186 rows; 58 with check in + out (per person 6/10/10/10/11/11), 0 with only one side, last date 2026-10-20; 20 night rows (out < in); 4 on Off rows; 4 sick rows marked in Note; 0 report lines outside the template
 - [ ] 1.2 The user adds the outside source's punches (other dates) to the same
       file, or says there are none — *done when* the user confirms
+      > note: 2026-11-09 not confirmed yet; the import is idempotent, so a later run adds only new rows
 - ~~1.1 (old) Read-only extractor from Odoo~~ dropped 2026-11-09 (OI13)
 
 ### Phase 2: Import script
 
-- [ ] 2.1 Pure helpers in `src/lib/attendance/punch-import.ts` (read template rows,
+- [x] 2.1 Pure helpers in `src/lib/attendance/punch-import.ts` (read template rows,
       scope filter, 60 s duplicate rule, row → `resolvePair` + shift (OI14) →
       rejected / accepted with reason) + Vitest tests with made-up people only — *done when*
       `pnpm test` passes
-- [ ] 2.2 `scripts/import-october-punches.ts` (style of
+      > note: 2026-11-09 `src/lib/attendance/punch-import.ts` + 14 tests; whole suite 479/479
+- [x] 2.2 `scripts/import-october-punches.ts` (style of
       `scripts/backdate-import-memberships.ts`, `scripts/lib.ts`): `--file`,
       `--database` (must equal the connected DB), dry run by default, `--commit`.
       Reads the 6 people's roster days (OI6), team on the shift date from the
@@ -210,9 +214,12 @@ before 15 h, night pair = after)
       counts, `source = seed`). Prints counts only: people matched, events per
       person ID and per day, rejected / held by reason, duplicates skipped —
       *done when* `pnpm check`, eslint and prettier pass
-- [ ] 2.3 `attendance_app_e2e`: dry run, commit and a rerun (0 new) with a
+      > note: 2026-11-09 `pnpm check` 0 errors (1 old warning in generated `ui/`), eslint and prettier clean; refuses a file inside the repo and, on `attendance_app`, any team, range or member set but the 6 in October
+- [x] 2.3 `attendance_app_e2e`: dry run, commit and a rerun (0 new) with a
       synthetic file (made-up numbers for the e2e Operation people)
-- [ ] 2.4 Dry run on `attendance_app`, shown to the user
+      > note: 2026-11-09 team e80c2732, 2026-11-01 → 11-03, 21 synthetic rows: 9 pairs / 18 events inserted, 1 audit row; rejected not_in_scope 1, out_of_range 1, overlap 1; duplicate 1; rerun: 10 already imported, 0 inserted
+- [x] 2.4 Dry run on `attendance_app`, shown to the user
+      > note: 2026-11-09 6 of 6 people matched; 58 rows with times, 128 without; 0 rejected, 0 duplicates; 58 pairs / 116 events (per person 10/6/11/11/10/10 for 1c5c2c19/412d2b7e/4e26598d/8b8d9748/b2339c1f/ec994043); shifts D8 37, N8 20, D 1; 6 unplanned with the reason (4e26598d 10-13 N8, 10-14 N8, 10-17 D8; 8b8d9748 10-16 D8; b2339c1f 10-01 D8, 10-02 D); 0 open pairs; rolled back: 0 events, 0 audit rows stored
 - [ ] 2.5 Commit on `attendance_app` after the user's OK; rerun dry = 0 new
 
 ### Phase 3: Recompute and verify

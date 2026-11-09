@@ -248,7 +248,7 @@ starts, then the swaps (a swap is checked against the planned days).
 
 Can be built before or after Phases 1–4. It is how the user checks 4.3.
 
-- [ ] 5.1 Pure `#lib/roster/schedule-history.ts`: from a person's dated rows
+- [x] 5.1 Pure `#lib/roster/schedule-history.ts`: from a person's dated rows
       (memberships, team / department / personal assignments with anchor, own-rule
       versions), return the periods in which nothing changes (swaps are one-off
       days, listed under the history as "Swaps in this period"):
@@ -258,11 +258,18 @@ Can be built before or after Phases 1–4. It is how the user checks 4.3.
       made-up people: one period; a monthly pattern change on the 1st; a crew
       start change mid-month; a team move; no plan before the first membership.
       Done when: `pnpm test` passes.
-- [ ] 5.2 Loader: the employee page loads the person's memberships, the
+      > note: 2026-11-09: each period's state comes from `rosterDay` itself (no
+      > overrides), evaluated on every date where a membership, assignment or own rule
+      > starts or ends, so the precedence is the engine's. 6 Vitest cases (the five above
+      > + a personal plan winning over own rules). `pnpm test` 446 passed.
+- [x] 5.2 Loader: the employee page loads the person's memberships, the
       assignments that reach them (personal, their teams', their departments'),
       own-rule versions with reasons, and the pattern names; then 5.1.
       Done when: `pnpm check` is clean.
-- [ ] 5.3 UI: a "Schedule history" `Card` on the Schedule tab under the summary
+      > note: 2026-11-09: `getScheduleHistory` in `roster.bl.ts` (also team and
+      > department names and the person's approved swaps, via `swaps.crud.ts`); the
+      > employee page loads it as `scheduleHistory`. `pnpm check` 0 errors.
+- [x] 5.3 UI: a "Schedule history" `Card` on the Schedule tab under the summary
       (component in `#lib/app/patterns/`): one line per period with the dates
       (`formatCalendarDate` in `<bdi>`), the source (team / department /
       personal), the pattern name linking to `/patterns/[id]` via
@@ -271,6 +278,10 @@ Can be built before or after Phases 1–4. It is how the user checks 4.3.
       to the swap); an `Empty` state when there is none. Strings `schedule_history_*` in `en` and
       `ar`. Svelte autofixer clean. Done when: eslint, prettier and `pnpm check`
       are clean.
+      > note: 2026-11-09: `#lib/app/patterns/ScheduleHistoryCard.svelte`, after the day
+      > panel on the Schedule tab; current / scheduled badges as in the pattern history;
+      > swap links open `/changes?swap=<id>`. 15 `schedule_history_*` strings in en + ar.
+      > Autofixer clean (card and page), eslint, prettier, `pnpm check` clean.
 - [ ] 5.4 Manual check by the user (`http://127.0.0.1:5174`, e2e data, then real
       data after Phase 3):
       - The history lists every period, newest first, with the right pattern and

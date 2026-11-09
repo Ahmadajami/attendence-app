@@ -41,7 +41,11 @@ import type { Actor } from '#lib/server/services/common.js';
 import { listStoredFigures } from '#lib/server/services/daily/daily.bl.js';
 import { managementTreeFor } from '#lib/server/services/management/management.bl.js';
 import { listPatterns } from '#lib/server/services/patterns/patterns.bl.js';
-import { getPersonRoster, getPersonSchedule } from '#lib/server/services/roster/roster.bl.js';
+import {
+	getPersonRoster,
+	getPersonSchedule,
+	getScheduleHistory
+} from '#lib/server/services/roster/roster.bl.js';
 import {
 	listActiveDepartments,
 	listActiveTeams,
@@ -92,7 +96,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		departments,
 		functions,
 		listForm,
-		management
+		management,
+		scheduleHistory
 	] = await Promise.all([
 		canRecord
 			? listPersonEvents(actor, roster.person.staffId, roster.preview.from, last)
@@ -107,7 +112,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		listActiveDepartments(actor),
 		listFunctions(actor),
 		staffListForm(),
-		managementTreeFor(actor, id, managementDate)
+		managementTreeFor(actor, id, managementDate),
+		getScheduleHistory(actor, id)
 	]);
 	return {
 		...roster,
@@ -123,6 +129,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			(v) => v.effectiveTo === null || v.effectiveTo > roster.today
 		),
 		schedule,
+		/** The Schedule tab's history list (RO12): periods, names and approved swaps. */
+		scheduleHistory,
 		/** The library, for pattern names and the assign sheet. */
 		patterns: patterns.map(({ id, nameEn, nameAr, type, slots, defaultWorkShiftId, active }) => ({
 			id,

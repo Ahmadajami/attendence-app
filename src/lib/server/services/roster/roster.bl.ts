@@ -7,7 +7,8 @@ import { damascusDayRange, todayInDamascus } from '#lib/server/time.js';
 import { addDays, damascusDate, daysBetween, startOfDamascusDay } from '#lib/roster/cycle.js';
 import { rosterInputOf } from '#lib/roster/input.js';
 import { patternOn, rosterDay } from '#lib/roster/roster.js';
-import type { PatternType } from '#lib/schemas/enums.js';
+import { scheduleHistory, type SchedulePeriod } from '#lib/roster/schedule-history.js';
+import type { PatternType, SwapKind } from '#lib/schemas/enums.js';
 import { ancestorChain } from '#lib/workforce/departments.js';
 import { pgErrorCode, requireActorPermission, type Actor } from '../common.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
@@ -19,6 +20,7 @@ import {
 	type HolidayRow
 } from '../pattern-pay/pattern-pay.crud.js';
 import { loadShifts } from '../shifts/shifts.bl.js';
+import { listSwapRows, listTeamNames } from '../swaps/swaps.crud.js';
 import type { ShiftRow } from '../shifts/shifts.crud.js';
 import { findTeam, type TeamRow } from '../teams/teams.crud.js';
 import {
@@ -254,6 +256,85 @@ export async function getPersonSchedule(actor: Actor, staffId: string): Promise<
 		person.teamId ? [person.teamId] : []
 	);
 	return schedule;
+}
+
+/** A named team or department of the history. */
+export type HistoryName = { id: string; nameEn: string; nameAr: string };
+
+/** An approved swap of the person, for "Swaps in this period" (RO12). */
+export type HistorySwap = {
+	id: string;
+	kind: SwapKind;
+	firstDate: string;
+	secondDate: string | null;
+	/** Employee swap: the other person; `null` for a self swap. */
+	other: { staffId: string; fullName: string; fullNameAr: string | null } | null;
+};
+
+export type ScheduleHistoryData = {
+	/** Newest first (`#lib/roster/schedule-history`). */
+	periods: SchedulePeriod[];
+	teams: HistoryName[];
+	departments: HistoryName[];
+	swaps: HistorySwap[];
+};
+
+const EVER = { from: '0001-01-01', to: '9999-12-31' };
+
+/**
+ * One person's schedule history (RO12, 5.2): every membership, the assignments that reach them
+ * (personal, their teams', their department chain's), the own-rule versions with reasons, and their
+ * approved swaps.
+ */
+export async function getScheduleHistory(
+	actor: Actor,
+	staffId: string
+): Promise<ScheduleHistoryData> {
+	requireActorPermission(actor, 'staff.write');
+	const person = await requirePerson(staffId);
+	const [memberships, personal, schedules, departments, swaps] = await Promise.all([
+		listMembershipsBetween([staffId], new Date(0), startOfDamascusDay(EVER.to)),
+		listPersonalPatterns([staffId]),
+		listSchedules([staffId]),
+		listDepartmentRows(),
+		listSwapRows(['approved'], EVER.from, EVER.to, staffId)
+	]);
+	const departmentChain = ancestorChain(departments, person.departmentId);
+	const teamIds = [...new Set(memberships.map((m) => m.teamId))];
+	const [teamAssignments, departmentAssignments, teams] = await Promise.all([
+		listTeamPatterns(teamIds),
+		listDepartmentPatterns(departmentChain),
+		listTeamNames(teamIds)
+	]);
+	const periods = scheduleHistory({
+		memberships,
+		personalAssignments: personal.map(withSlots),
+		teamAssignments: teamAssignments.map(withSlots),
+		departmentAssignments: departmentAssignments.map(withSlots),
+		departmentChain,
+		schedules
+	});
+	return {
+		periods,
+		teams,
+		departments: departments
+			.filter((d) => departmentChain.includes(d.id))
+			.map(({ id, nameEn, nameAr }) => ({ id, nameEn, nameAr })),
+		swaps: swaps.map((s) => {
+			const otherId = s.staffId === staffId ? s.otherStaffId : s.staffId;
+			const other = s.staffId === staffId ? s.b : s.a;
+			return {
+				id: s.id,
+				kind: s.kind,
+				firstDate: s.firstDate,
+				secondDate: s.secondDate,
+				other:
+					otherId && other?.fullName
+						? { staffId: otherId, fullName: other.fullName, fullNameAr: other.fullNameAr }
+						: null
+			};
+		})
+	};
 }
 
 /** Ids of a team's members now or joining later (who a team page may set own rules for). */

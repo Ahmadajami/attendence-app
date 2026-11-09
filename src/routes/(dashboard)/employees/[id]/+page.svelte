@@ -19,6 +19,7 @@
 	import AssignSheet from '#lib/app/patterns/AssignSheet.svelte';
 	import ManagementTab from '#lib/app/management/ManagementTab.svelte';
 	import EndAssignmentSheet from '#lib/app/patterns/EndAssignmentSheet.svelte';
+	import ScheduleHistoryCard from '#lib/app/patterns/ScheduleHistoryCard.svelte';
 	import ScheduleSheet from '#lib/app/patterns/ScheduleSheet.svelte';
 	import PatternHistory from '#lib/app/roster/PatternHistory.svelte';
 	import CustodyPanel from '#lib/app/profile/CustodyPanel.svelte';
@@ -257,6 +258,8 @@
 							</Card.Content>
 						</Card.Root>
 					{/if}
+
+					<ScheduleHistoryCard history={data.scheduleHistory} {patternNames} today={data.today} />
 				</UnderlineTabs.Content>
 
 				<UnderlineTabs.Content value="personal" class="flex flex-col gap-4">

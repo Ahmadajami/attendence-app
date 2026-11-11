@@ -1,6 +1,6 @@
 # Operations team: October 2026 punch history from Odoo
 
-**Status:** on hold (2026-11-09, user: do not import yet; first the improvements in [2026-11-09-off-day-work-and-shift-changes.md](2026-11-09-off-day-work-and-shift-changes.md) and the to-do list below. Nothing is stored on `attendance_app`: 0 events)
+**Status:** superseded (2026-11-11) by [2026-11-11-attendance-import-odoo-and-devices.md](2026-11-11-attendance-import-odoo-and-devices.md): import from Odoo for every team, in the app with a check page; this plan's helpers and open HR confirmations T2–T4 move there. Was: on hold (2026-11-09, user: do not import yet; first the improvements in [2026-11-09-off-day-work-and-shift-changes.md](2026-11-09-off-day-work-and-shift-changes.md) and the to-do list below. Nothing is stored on `attendance_app`: 0 events)
 **Date:** 2026-11-09
 **Goal:** bring the October 2026 check-ins and check-outs of the 6 members of
 team Operations (`31da93d7-07cf-4ee6-bf02-606158f67fa2`) into `attendance_app`

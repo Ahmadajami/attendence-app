@@ -2041,7 +2041,7 @@
       decision: { en: "Operation-1/Oct/2026 for October (Copy of the November pattern, renamed; same 24 slots) and Operation-1/Nov/2026 for November. A later month: Copy the previous month's pattern (it carries the pay rule and upcoming holidays, PR14), rename it, change the days only if the roster changes, assign it from the 1st (user, 2026-11-09, option A).", ar: "Operation-1/Oct/2026 لتشرين الأول (نسخة من نمط تشرين الثاني بعد إعادة تسميتها؛ نفس الخانات الـ24) وOperation-1/Nov/2026 لتشرين الثاني. ولأي شهر لاحق: نسخ نمط الشهر السابق (ينقل قاعدة الأجر والعطل القادمة، PR14)، وإعادة تسميته، وتغيير الأيام فقط إذا تغير الجدول، وإسناده من أول الشهر (المستخدم، 2026-11-09، الخيار A)." },
       why: { en: "HR works in monthly rosters, so the pattern name says which month's roster a day follows.", ar: "تعمل الموارد البشرية بجداول شهرية، فيقول اسم النمط أي جدول شهري يتبعه اليوم." },
       alts: [
-        { en: "One pattern for every month: not chosen — the name says nothing about the month.", ar: "نمط واحد لكل الأشهر: لم يُختر — الاسم لا يقول شيئاً عن الشهر." },
+        { en: "One pattern for every month: not chosen — the name says nothing about the month. Raised again 2026-11-11 (an open pattern plans every future day by itself) and rejected again by the user: a pattern per month keeps the logic clear.", ar: "نمط واحد لكل الأشهر: لم يُختر — الاسم لا يقول شيئاً عن الشهر. طُرح مجدداً في 2026-11-11 (النمط المفتوح يخطط كل يوم قادم وحده) ورفضه المستخدم مجدداً: نمط لكل شهر يبقي المنطق واضحاً." },
         { en: "One pattern per person per month: not chosen — 6 × 12 = 72 a year.", ar: "نمط لكل شخص لكل شهر: لم يُختر — 6 × 12 = 72 في السنة." }
       ]
     },
@@ -2220,9 +2220,9 @@
       ]
     },
     {
-      id: 'OW1', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW1', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "No shift only on a day with no planned shift", ar: "بلا وردية فقط في يوم بلا وردية مخططة" },
-      decision: { en: "A punch may have no shift only on a day off, a swap-off day or a holiday; a planned work day still needs a shift.", ar: "يمكن أن تكون البصمة بلا وردية فقط في يوم راحة أو يوم إجازة تبديل أو عطلة؛ ويوم العمل المخطط ما زال يحتاج وردية." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: A punch may have no shift only on a day off, a swap-off day or a holiday; a planned work day still needs a shift.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: يمكن أن تكون البصمة بلا وردية فقط في يوم راحة أو يوم إجازة تبديل أو عطلة؛ ويوم العمل المخطط ما زال يحتاج وردية." },
       why: { en: "Day-off work has nothing to be compared with; a planned day always has.", ar: "عمل يوم الراحة لا شيء يُقارن به؛ واليوم المخطط له دائماً ما يُقارن به." },
       alts: [
         { en: "No shift on any day: not chosen — late and short would be lost on planned days.", ar: "بلا وردية في أي يوم: لم يُختر — يضيع التأخير والنقص في الأيام المخططة." },
@@ -2230,39 +2230,39 @@
       ]
     },
     {
-      id: 'OW2', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW2', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "attendance_event.shift_id becomes nullable", ar: "attendance_event.shift_id يصبح قابلاً للفراغ" },
-      decision: { en: "A migration makes shift_id nullable; the service enforces OW1; existing rows keep their shift.", ar: "ترحيل يجعل shift_id قابلاً للفراغ؛ والخدمة تفرض OW1؛ والصفوف الموجودة تحتفظ بورديتها." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: A migration makes shift_id nullable; the service enforces OW1; existing rows keep their shift.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: ترحيل يجعل shift_id قابلاً للفراغ؛ والخدمة تفرض OW1؛ والصفوف الموجودة تحتفظ بورديتها." },
       why: { en: "Smallest change; the rule depends on the roster, which the database can't see.", ar: "أصغر تغيير؛ والقاعدة تعتمد على الجدول الذي لا تراه قاعدة البيانات." },
       alts: [
         { en: "A special 'day-off' shift row: not chosen — a fake shift again, with its own times and window.", ar: "صف وردية خاص 'يوم راحة': لم يُختر — وردية مزيفة مرة أخرى بأوقاتها ونافذتها." }
       ]
     },
     {
-      id: 'OW3', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW3', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "Reading times without a shift", ar: "قراءة الأوقات بلا وردية" },
-      decision: { en: "The check-in is that time on the day's date; a check-out earlier than or equal to the check-in is the next morning; the pair stays on the date it started.", ar: "الدخول هو ذلك الوقت في تاريخ اليوم؛ والخروج الأبكر من الدخول أو المساوي له صباح اليوم التالي؛ ويبقى الزوج على تاريخ بدايته." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: The check-in is that time on the day's date; a check-out earlier than or equal to the check-in is the next morning; the pair stays on the date it started.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: الدخول هو ذلك الوقت في تاريخ اليوم؛ والخروج الأبكر من الدخول أو المساوي له صباح اليوم التالي؛ ويبقى الزوج على تاريخ بدايته." },
       why: { en: "The same rule the entry sheet already uses for check-outs.", ar: "القاعدة نفسها التي تستخدمها ورقة الإدخال للخروج أصلاً." },
       alts: []
     },
     {
-      id: 'OW4', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW4', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "Checks without a shift", ar: "الفحوص بلا وردية" },
-      decision: { en: "Over 16 h, overlap and future stay errors; the shift-window warning is skipped; a reason is still required.", ar: "أكثر من 16 ساعة والتداخل والمستقبل تبقى أخطاء؛ ويُتخطى تحذير نافذة الوردية؛ ويبقى السبب مطلوباً." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: Over 16 h, overlap and future stay errors; the shift-window warning is skipped; a reason is still required.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: أكثر من 16 ساعة والتداخل والمستقبل تبقى أخطاء؛ ويُتخطى تحذير نافذة الوردية؛ ويبقى السبب مطلوباً." },
       why: { en: "Same safety as today; there is no window without a shift.", ar: "الأمان نفسه كاليوم؛ ولا نافذة بلا وردية." },
       alts: []
     },
     {
-      id: 'OW5', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW5', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "Day-off work without a shift calculates as today", ar: "عمل يوم الراحة بلا وردية يُحسب كاليوم" },
-      decision: { en: "Required 0, late 0, every minute is day-off work by the pay rules, the existing flag; overtime no longer needs a shift id.", ar: "المطلوب 0، التأخير 0، كل دقيقة عمل يوم راحة حسب قواعد الأجر، مع العلامة الموجودة؛ والإضافي لم يعد يحتاج معرّف وردية." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: Required 0, late 0, every minute is day-off work by the pay rules, the existing flag; overtime no longer needs a shift id.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: المطلوب 0، التأخير 0، كل دقيقة عمل يوم راحة حسب قواعد الأجر، مع العلامة الموجودة؛ والإضافي لم يعد يحتاج معرّف وردية." },
       why: { en: "On a day off the shift was only a label; the numbers must not change.", ar: "في يوم الراحة كانت الوردية اسماً فقط؛ ويجب ألا تتغير الأرقام." },
       alts: []
     },
     {
-      id: 'OW6', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW6', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "Screens say 'Day-off work'", ar: "الشاشات تقول 'عمل يوم راحة'" },
-      decision: { en: "Entry sheet and day editor offer 'No shift (day-off work)' first on a day with no planned shift; daily page, Month tab, day History and Schedule show 'Day-off work' with times and hours, in English and Arabic.", ar: "ورقة الإدخال ومحرر اليوم يعرضان 'بلا وردية (عمل يوم راحة)' أولاً في يوم بلا وردية مخططة؛ والصفحة اليومية وتبويب الشهر وسجل اليوم والجدول تُظهر 'عمل يوم راحة' مع الأوقات والساعات، بالإنجليزية والعربية." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: Entry sheet and day editor offer 'No shift (day-off work)' first on a day with no planned shift; daily page, Month tab, day History and Schedule show 'Day-off work' with times and hours, in English and Arabic.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: ورقة الإدخال ومحرر اليوم يعرضان 'بلا وردية (عمل يوم راحة)' أولاً في يوم بلا وردية مخططة؛ والصفحة اليومية وتبويب الشهر وسجل اليوم والجدول تُظهر 'عمل يوم راحة' مع الأوقات والساعات، بالإنجليزية والعربية." },
       why: { en: "The user sees what really happened.", ar: "يرى المستخدم ما حدث فعلاً." },
       alts: []
     },
@@ -2277,9 +2277,9 @@
       ]
     },
     {
-      id: 'OW8', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW8', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "The import follows the same rules (revised)", ar: "الاستيراد يتبع القواعد نفسها (معدّل)" },
-      decision: { en: "Day-off rows are saved without a shift; rows that need a shift change are listed in the preview with a Create shift changes button and not saved; a rerun after approval saves them.", ar: "أسطر يوم الراحة تُحفظ بلا وردية؛ والأسطر التي تحتاج تغيير وردية تُدرج في المعاينة مع زر «إنشاء طلبات تغيير الوردية» ولا تُحفظ؛ وإعادة التشغيل بعد الموافقة تحفظها." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: Day-off rows are saved without a shift; rows that need a shift change are listed in the preview with a Create shift changes button and not saved; a rerun after approval saves them.", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: أسطر يوم الراحة تُحفظ بلا وردية؛ والأسطر التي تحتاج تغيير وردية تُدرج في المعاينة مع زر «إنشاء طلبات تغيير الوردية» ولا تُحفظ؛ وإعادة التشغيل بعد الموافقة تحفظها." },
       why: { en: "Typing and importing must give the same days, without retyping anything.", ar: "الكتابة والاستيراد يجب أن يعطيا الأيام نفسها، دون إعادة كتابة شيء." },
       alts: []
     },
@@ -2294,9 +2294,9 @@
       ]
     },
     {
-      id: 'OW10', group: 'rules', status: 'proposed', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
+      id: 'OW10', group: 'rules', status: 'replaced', date: '2026-11-09', src: 'plans/2026-11-09-off-day-work-and-shift-changes.md §1',
       title: { en: "When a pair needs a shift change", ar: "متى يحتاج الزوج تغيير وردية" },
-      decision: { en: "Both times inside the planned shift's window: planned. Else both inside another shift's window: needs a shift change. Else the planned shift with today's outside-window warning. One rule for typing and import (the import's chooseShift).", ar: "الوقتان داخل نافذة الوردية المخططة: مخطط. وإلا فداخل نافذة وردية أخرى: يحتاج تغيير وردية. وإلا فالوردية المخططة مع تحذير «خارج النافذة» الحالي. قاعدة واحدة للكتابة والاستيراد (chooseShift في الاستيراد)." },
+      decision: { en: "Replaced 2026-11-11 by PS1–PS3 (a punch has no shift; the roster decides). Was: Both times inside the planned shift's window: planned. Else both inside another shift's window: needs a shift change. Else the planned shift with today's outside-window warning. One rule for typing and import (the import's chooseShift).", ar: "استُبدل في 2026-11-11 بـ PS1–PS3 (البصمة بلا وردية؛ والجدول يقرر). كان: الوقتان داخل نافذة الوردية المخططة: مخطط. وإلا فداخل نافذة وردية أخرى: يحتاج تغيير وردية. وإلا فالوردية المخططة مع تحذير «خارج النافذة» الحالي. قاعدة واحدة للكتابة والاستيراد (chooseShift في الاستيراد)." },
       why: { en: "A very late arrival on the right shift stays late and is never mistaken for a shift change.", ar: "المتأخر جداً على ورديته الصحيحة يبقى متأخراً ولا يُظن تغيير وردية." },
       alts: [
         { en: "'Fits another shift better' by distance only: not chosen — an 11:30 arrival on a day shift could be read as another shift.", ar: "«تناسب وردية أخرى أكثر» بالمسافة فقط: لم يُختر — قد يُقرأ حضور 11:30 في وردية نهارية كوردية أخرى." }
@@ -2327,6 +2327,342 @@
       why: { en: "The leave is part of Monday's shift; refusing it because Tuesday is off would be wrong.", ar: "الإجازة جزء من وردية الاثنين؛ ورفضها لأن الثلاثاء راحة خطأ." },
       alts: [
         { en: "Build partial leave inside this plan: not chosen — it has its own plan with its own questions; this plan only makes sure the night case works.", ar: "بناء الإجازة الجزئية داخل هذه الخطة: لم يُختر — لها خطتها وأسئلتها؛ وهذه الخطة تضمن فقط عمل حالة الليل." }
+      ]
+    },
+    {
+      id: 'EN1', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "One versioned rule set: company → department → pattern", ar: "مجموعة قواعد واحدة بإصدارات: الشركة ← القسم ← النمط"},
+      decision: {en: "A new table attendance_rule (nullable fields inherit) with dated versions for the company, a department or a pattern; per day the pattern wins, then the department, then the company, then the built-in Odoo default, and the source of each value is kept for the explanation. Rates stay in pattern_pay_rule, which gains the department level.", ar: "جدول جديد attendance_rule (الحقول الفارغة ترث) بإصدارات مؤرخة للشركة أو قسم أو نمط؛ في كل يوم يفوز النمط ثم القسم ثم الشركة ثم القيمة الافتراضية من Odoo، ويُحفظ مصدر كل قيمة للشرح. وتبقى المعدلات في pattern_pay_rule الذي يأخذ مستوى القسم أيضاً."},
+      why: {en: "More configuration without a constant per rule; dated versions never rewrite past months silently.", ar: "إعدادات أكثر بلا ثابت لكل قاعدة؛ والإصدارات المؤرخة لا تعيد كتابة الأشهر الماضية بصمت."},
+      alts: [
+        {en: "Constants in code (today): not chosen — every change needs a release.", ar: "ثوابت في الكود (اليوم): لم يُختر — كل تغيير يحتاج إصداراً."},
+        {en: "One company-wide setting only: not chosen — teams pay overtime differently.", ar: "إعداد واحد للشركة فقط: لم يُختر — الفرق تدفع الإضافي بطرق مختلفة."}
+      ]
+    },
+    {
+      id: 'EN2', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "The rules that differed from Odoo become settings", ar: "القواعد التي اختلفت عن Odoo تصبح إعدادات"},
+      decision: {en: "Grace (15), grace minutes paid (on), make-up rule (on), tardiness brackets (60/120/240/540, charged only when HR ticks the day), OT rounding (15, nearest), minimum OT (0), Friday Prayer (on, 60, Friday, two segments), early-out tracking (on).", ar: "السماح (15)، دفع دقائق السماح (مفعّل)، قاعدة التعويض (مفعّلة)، شرائح التأخير (60/120/240/540، تُخصم فقط إذا أشّرت الموارد البشرية على اليوم)، تقريب الإضافي (15، للأقرب)، أدنى إضافي (0)، صلاة الجمعة (مفعّلة، 60، الجمعة، فترتان)، تتبع الخروج المبكر (مفعّل)."},
+      why: {en: "Each difference between the two engines becomes a visible choice; the defaults reproduce Odoo.", ar: "كل فرق بين المحركين يصبح خياراً ظاهراً؛ والقيم الافتراضية تعيد نتائج Odoo."},
+      alts: [
+        {en: "Copy Odoo's behaviour as fixed rules: not chosen — the goal is more configuration.", ar: "نسخ سلوك Odoo كقواعد ثابتة: لم يُختر — الهدف إعدادات أكثر."}
+      ]
+    },
+    {
+      id: 'EN3', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "A stored day balance with its parts", ar: "رصيد يومي محفوظ مع أجزائه"},
+      decision: {en: "day_result stores credit, shortage, early out, grace paid, bracket (and charged), OT cancelled, Final and balance = Final − Required (2 decimals). Engine version 2 recomputes every stored day.", ar: "يحفظ day_result الرصيد المضاف والنقص والخروج المبكر ودقائق السماح المدفوعة والشريحة (وهل خُصمت) وإلغاء الإضافي والعمل النهائي والرصيد = النهائي − المطلوب (منزلتان عشريتان). الإصدار 2 من المحرك يعيد حساب كل الأيام."},
+      why: {en: "One number per day that adds up to the period, with the parts that explain it.", ar: "رقم واحد لكل يوم يُجمع للفترة، مع الأجزاء التي تشرحه."},
+      alts: [
+        {en: "Compute the balance only in reports: not chosen — screens and reports would drift.", ar: "حساب الرصيد في التقارير فقط: لم يُختر — تختلف الشاشات عن التقارير."}
+      ]
+    },
+    {
+      id: 'EN4', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Show OT minutes and the weighted balance together", ar: "عرض دقائق الإضافي والرصيد الموزون معاً"},
+      decision: {en: "Screens show e.g. \"OT 7:25 (paid as 9:16)\" and \"Balance +10:38\", never only the weighted figure.", ar: "تعرض الشاشات مثلاً «إضافي 7:25 (يُدفع كـ 9:16)» و«الرصيد ‎+10:38‎»، ولا تعرض الرقم الموزون وحده أبداً."},
+      why: {en: "Odoo's +10:38 looked like overtime minutes but already held the ×1.25 premium and credits (2026-11-10).", ar: "رقم Odoo ‎+10:38‎ بدا دقائق إضافي لكنه كان يتضمن علاوة ×1.25 والأرصدة (2026-11-10)."},
+      alts: [
+        {en: "Only the weighted balance, like Odoo: not chosen — it caused the confusion.", ar: "الرصيد الموزون وحده كما في Odoo: لم يُختر — هو سبب الالتباس."}
+      ]
+    },
+    {
+      id: 'EN5', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Friday Prayer is an engine rule, not a stored credit", ar: "صلاة الجمعة قاعدة في المحرك لا رصيد محفوظ"},
+      decision: {en: "The engine adds the 60 minutes when the day qualifies (FP1) and tags the day; a day action \"No prayer credit\" turns it off for one day.", ar: "يضيف المحرك الستين دقيقة عندما يستحقها اليوم (FP1) ويضع علامة على اليوم؛ وإجراء «بلا رصيد صلاة» يلغيها ليوم واحد."},
+      why: {en: "Re-imports and corrections can't stack or lose it.", ar: "إعادة الاستيراد والتصحيح لا تكررها ولا تضيعها."},
+      alts: [
+        {en: "A stored credit row like Odoo's mission credit: not chosen — needs idempotency code on every import.", ar: "سطر رصيد محفوظ كرصيد المهمة في Odoo: لم يُختر — يحتاج كوداً يمنع التكرار في كل استيراد."}
+      ]
+    },
+    {
+      id: 'EN6', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Per-day HR actions: charge bracket, cancel OT, no prayer credit", ar: "إجراءات يومية للموارد البشرية: خصم الشريحة، إلغاء الإضافي، بلا رصيد صلاة"},
+      decision: {en: "Stored as one audited, reversible day_adjustment row per person and date, with a reason.", ar: "تُحفظ في سطر day_adjustment واحد لكل شخص وتاريخ، مع سجل تدقيق وسبب، ويمكن التراجع عنها."},
+      why: {en: "Odoo's per-day switches, without editing figures by hand.", ar: "مفاتيح Odoo اليومية، بلا تعديل الأرقام يدوياً."},
+      alts: [
+        {en: "Edit the day's figures directly: not chosen — figures must always come from the engine.", ar: "تعديل أرقام اليوم مباشرة: لم يُختر — الأرقام تأتي دائماً من المحرك."}
+      ]
+    },
+    {
+      id: 'EN7', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Switch to v2 only after the October comparison", ar: "التحول إلى الإصدار 2 فقط بعد مقارنة تشرين الأول"},
+      decision: {en: "A read-only script compares v2 day balances with the October report (secure folder) and lists every difference with its cause; v2 replaces v1 when 0 rows are unexplained.", ar: "سكربت للقراءة فقط يقارن أرصدة الإصدار 2 اليومية بتقرير تشرين الأول (المجلد الآمن) ويسرد كل فرق مع سببه؛ ويحل الإصدار 2 محل الأول عندما لا يبقى سطر بلا تفسير."},
+      why: {en: "The discussion page already matched Odoo on 126/126 rows; v2 must stay explainable row by row.", ar: "صفحة النقاش طابقت Odoo في 126/126 سطراً؛ والإصدار 2 يجب أن يبقى قابلاً للتفسير سطراً سطراً."},
+      alts: [
+        {en: "Switch without a comparison: not chosen — payroll differences would be found by employees.", ar: "التحول بلا مقارنة: لم يُختر — سيكتشف الموظفون فروق الرواتب."}
+      ]
+    },
+    {
+      id: 'EN8', group: 'payroll', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Hourly leave kinds: annual, sick, mission, unpaid", ar: "أنواع الإجازة الساعية: سنوية، مرضية، مهمة، غير مدفوعة"},
+      decision: {en: "Annual and sick are paid and come off their balance as a fraction of the day's required time; mission is paid with no balance; unpaid is excused, not paid. Replaces the paid flag of the hourly-leave plan (HL1, HL7–HL9).", ar: "السنوية والمرضية مدفوعتان وتُخصمان من رصيدهما كجزء من المطلوب في ذلك اليوم؛ والمهمة مدفوعة بلا رصيد؛ وغير المدفوعة معذورة لكنها لا تُدفع. تحل محل خيار «مدفوعة» في خطة الإجازة الساعية (HL1، HL7–HL9)."},
+      why: {en: "User's choice on 2026-11-11.", ar: "اختيار المستخدم في 2026-11-11."},
+      alts: [
+        {en: "Paid / unpaid only: not chosen — HR needs to mark a part day as sick or mission.", ar: "مدفوعة / غير مدفوعة فقط: لم يُختر — تحتاج الموارد البشرية تعليم جزء اليوم مرضاً أو مهمة."}
+      ]
+    },
+    {
+      id: 'EN9', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Hourly leave: \"Cover the gap\" in one click", ar: "الإجازة الساعية: «غطِّ الفجوة» بضغطة واحدة"},
+      decision: {en: "The day editor prefills the range from the last check-out to the shift end (or shift start to first check-in); the kind defaults to the last used; the leave shows as a band on the shift timeline; sick ranges show no reason outside the editor.", ar: "محرر اليوم يملأ المدى من آخر خروج إلى نهاية الوردية (أو من بدايتها إلى أول دخول)؛ والنوع الافتراضي هو آخر نوع مستخدم؛ وتظهر الإجازة شريطاً على خط الوردية؛ ولا يظهر سبب المرض خارج المحرر."},
+      why: {en: "Odoo's \"Mark partial leave\" in one click, but with times.", ar: "«تسجيل إجازة جزئية» في Odoo بضغطة واحدة، لكن مع الأوقات."},
+      alts: [
+        {en: "Type both times every time: not chosen — slower, more mistakes.", ar: "كتابة الوقتين كل مرة: لم يُختر — أبطأ وأخطاء أكثر."}
+      ]
+    },
+    {
+      id: 'EN10', group: 'payroll', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Two carries: leave days and the time balance", ar: "ترحيلان: أيام الإجازة ورصيد الوقت"},
+      decision: {en: "Leave days carry into the new year (leave-sick-balances plan, Hold/Reset); the attendance time balance carries between pay periods (engine-v2 Phase 4).", ar: "أيام الإجازة تُرحَّل إلى السنة الجديدة (خطة أرصدة الإجازة والمرض، ترحيل/إعادة ضبط)؛ ورصيد وقت الحضور يُرحَّل بين فترات الرواتب (المرحلة 4 من المحرك 2)."},
+      why: {en: "User's answer on 2026-11-11: \"Both\".", ar: "جواب المستخدم في 2026-11-11: «الاثنان»."},
+      alts: [
+        {en: "Only one of the two: not chosen by the user.", ar: "واحد فقط منهما: لم يختره المستخدم."}
+      ]
+    },
+    {
+      id: 'EN11', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Time balance per pay period, closed and reopened with audit", ar: "رصيد الوقت لكل فترة رواتب، يُغلق ويُعاد فتحه مع التدقيق"},
+      decision: {en: "pay_period (open → closed → locked) and one time_balance row per person and period: opening, earned, paid out, written off, closing, carried out. Reopening an unlocked period reverses its rows.", ar: "pay_period (مفتوحة ← مغلقة ← مقفلة) وسطر time_balance لكل شخص وفترة: الافتتاحي، المكتسب، المدفوع، المشطوب، الختامي، المرحَّل. وإعادة فتح فترة غير مقفلة تعكس أسطرها."},
+      why: {en: "One place where carry, payout and corrections are visible and undoable.", ar: "مكان واحد يظهر فيه الترحيل والدفع والتصحيح ويمكن التراجع عنها."},
+      alts: [
+        {en: "A running total with no periods: not chosen — nothing to close, pay out or lock.", ar: "مجموع جارٍ بلا فترات: لم يُختر — لا شيء يُغلق أو يُدفع أو يُقفل."}
+      ]
+    },
+    {
+      id: 'EN12', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Carry settings: netting, mode, cap, positive at close", ar: "إعدادات الترحيل: التسوية، الطريقة، السقف، الموجب عند الإغلاق"},
+      decision: {en: "In attendance_rule: netting on/off (Odoo: shortage eats ×1.25 OT first), carry mode none / both / negative only / positive only, an optional cap, and a positive balance at close paid or carried.", ar: "في attendance_rule: التسوية مفعّلة أو لا (Odoo: النقص يأكل إضافي ×1.25 أولاً)، وطريقة الترحيل لا شيء / الاثنان / السالب فقط / الموجب فقط، وسقف اختياري، والرصيد الموجب عند الإغلاق يُدفع أو يُرحَّل."},
+      why: {en: "Teams pay overtime differently; defaults follow Q-EN8 and Q-EN9.", ar: "الفرق تدفع الإضافي بطرق مختلفة؛ والقيم الافتراضية حسب Q-EN8 وQ-EN9."},
+      alts: [
+        {en: "One fixed company rule: not chosen — the goal is configuration.", ar: "قاعدة ثابتة واحدة للشركة: لم يُختر — الهدف هو الإعدادات."}
+      ]
+    },
+    {
+      id: 'EN13', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "One Balances page with Time, Annual and Sick tabs", ar: "صفحة أرصدة واحدة بتبويبات الوقت والسنوية والمرضية"},
+      decision: {en: "/balances: same filters, per person opening, earned, used/paid, closing, a 6-period sparkline and a badge; Close period and Open year are sheets with a preview first and Confirm second; every figure opens the days behind it. Replaces the /leave page (LB19).", ar: "/balances: الفلاتر نفسها، ولكل شخص الافتتاحي والمكتسب والمستخدم/المدفوع والختامي ومنحنى صغير لآخر 6 فترات وشارة؛ «إغلاق الفترة» و«فتح السنة» نافذتان تعرضان المعاينة أولاً ثم التأكيد؛ وكل رقم يفتح الأيام التي خلفه. تحل محل صفحة /leave (LB19)."},
+      why: {en: "One place for every balance; nothing written before a preview; every number traceable.", ar: "مكان واحد لكل الأرصدة؛ لا شيء يُكتب قبل المعاينة؛ وكل رقم يمكن تتبعه."},
+      alts: [
+        {en: "Separate /leave and /time-balance pages: not chosen — two places to look, two sets of filters.", ar: "صفحتان منفصلتان /leave و/time-balance: لم يُختر — مكانان للبحث ومجموعتا فلاتر."}
+      ]
+    },
+    {
+      id: 'EN14', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-engine-v2-hourly-leave-carry.md §1',
+      title: {en: "Employee page: one Balances card", ar: "صفحة الموظف: بطاقة أرصدة واحدة"},
+      decision: {en: "Time balance of the current period with its days, annual and sick days left, and the last carries.", ar: "رصيد الوقت للفترة الحالية مع أيامه، وأيام الإجازة السنوية والمرضية المتبقية، وآخر الترحيلات."},
+      why: {en: "HR answers \"how much does this person have\" in one place.", ar: "تجيب الموارد البشرية عن «كم لدى هذا الشخص» من مكان واحد."},
+      alts: [
+        {en: "Separate cards per balance: not chosen — scattered.", ar: "بطاقة منفصلة لكل رصيد: لم يُختر — متفرقة."}
+      ]
+    },
+    {
+      id: 'IM1', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Import source: the Odoo database, read-only, through CSV files", ar: "مصدر الاستيراد: قاعدة بيانات Odoo، للقراءة فقط، عبر ملفات CSV"},
+      decision: {en: "An extraction script reads Odoo and writes punches.csv (one row per segment), days.csv (Odoo's day figures) and states.csv (full-day leave/sick/mission) to ~/secure/syravia/imports/odoo/<month>/. The app reads the files, never Odoo's database. The October report stays a cross-check.", ar: "سكربت استخراج يقرأ Odoo ويكتب punches.csv (سطر لكل فترة) وdays.csv (أرقام أيام Odoo) وstates.csv (أيام الإجازة/المرض/المهمة الكاملة) في ~/secure/syravia/imports/odoo/<الشهر>/. التطبيق يقرأ الملفات ولا يتصل بقاعدة Odoo أبداً. ويبقى تقرير تشرين الأول للمطابقة."},
+      why: {en: "Odoo keeps the break segments and credits that the report lost; files keep the boundary clean and the run repeatable.", ar: "Odoo يحفظ فترات الاستراحة والأرصدة التي ضاعت في التقرير؛ والملفات تبقي الحدود واضحة والتشغيل قابلاً للتكرار."},
+      alts: [
+        {en: "The October report only: not chosen by default — first in / last out only, no breaks or credits (Q-IM1).", ar: "تقرير تشرين الأول فقط: ليس الافتراضي — أول دخول وآخر خروج فقط، بلا استراحات أو أرصدة (Q-IM1)."},
+        {en: "The app reads Odoo's DB directly: not chosen — no runtime link to Odoo's database.", ar: "التطبيق يقرأ قاعدة Odoo مباشرة: لم يُختر — لا اتصال تشغيلي بقاعدة Odoo."}
+      ]
+    },
+    {
+      id: 'IM2', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Pilot Operations October, then every team month by month", ar: "تجربة العمليات لتشرين الأول، ثم كل الفرق شهراً بشهر"},
+      decision: {en: "Operations (6 people) 2026-10-01 → 10-31 first; then every app person with an Odoo badge from 2026-10-01 to the day before go-live.", ar: "العمليات (6 أشخاص) من 2026-10-01 إلى 10-31 أولاً؛ ثم كل شخص في التطبيق له رقم في Odoo من 2026-10-01 حتى اليوم السابق للتشغيل."},
+      why: {en: "Operations was already compared row by row.", ar: "العمليات قورنت سطراً بسطر مسبقاً."},
+      alts: [
+        {en: "Everything at once: not chosen — one problem would hide in thousands of rows.", ar: "كل شيء دفعة واحدة: لم يُختر — مشكلة واحدة تختفي بين آلاف الأسطر."}
+      ]
+    },
+    {
+      id: 'IM3', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Punch import inside the app: preview, commit, undo", ar: "استيراد البصمات داخل التطبيق: معاينة، اعتماد، تراجع"},
+      decision: {en: "/imports gets a Punches kind: upload → preview per person and date (planned / day-off work / needs a shift change / joins the previous night / refused) → commit as one batch → undo batch (voids its events, audited, recompute).", ar: "صفحة /imports تأخذ نوع «البصمات»: رفع ← معاينة لكل شخص وتاريخ (مخطط / عمل يوم راحة / يحتاج تغيير وردية / يُضم لليلة السابقة / مرفوض) ← اعتماد كدفعة واحدة ← تراجع عن الدفعة (يلغي أحداثها، مع تدقيق وإعادة حساب)."},
+      why: {en: "HR sees every decision before anything is written; same flow as the employee import.", ar: "ترى الموارد البشرية كل قرار قبل كتابة أي شيء؛ نفس مسار استيراد الموظفين."},
+      alts: [
+        {en: "A one-off script (the superseded plan): not chosen — no preview for HR, no undo.", ar: "سكربت لمرة واحدة (الخطة المستبدلة): لم يُختر — بلا معاينة للموارد البشرية وبلا تراجع."}
+      ]
+    },
+    {
+      id: 'IM4', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Odoo segments stay two pairs; the engine adds Friday Prayer", ar: "فترات Odoo تبقى زوجين؛ والمحرك يضيف صلاة الجمعة"},
+      decision: {en: "Two Odoo rows on one day become two pairs; the gap is unpaid; FP1/EN5 add the prayer credit.", ar: "سطرا Odoo في يوم واحد يصبحان زوجين؛ والفاصل غير مدفوع؛ وFP1/EN5 تضيفان رصيد الصلاة."},
+      why: {en: "Matches Odoo without storing a credit.", ar: "يطابق Odoo بلا تخزين رصيد."},
+      alts: [
+        {en: "Merge to first in / last out: not chosen — the break would be paid.", ar: "الدمج إلى أول دخول وآخر خروج: لم يُختر — ستُدفع الاستراحة."}
+      ]
+    },
+    {
+      id: 'IM5', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Odoo's day figures kept as a reference, never as pay", ar: "أرقام أيام Odoo تُحفظ مرجعاً، لا أجراً أبداً"},
+      decision: {en: "odoo_day_reference holds Odoo's code, required, payable, break, credits, status, OT, shortage, final and balance per person and date.", ar: "جدول odoo_day_reference يحفظ رمز Odoo والمطلوب والمدفوع والاستراحة والأرصدة والحالة والإضافي والنقص والنهائي والرصيد لكل شخص وتاريخ."},
+      why: {en: "The check page needs Odoo's numbers beside the app's.", ar: "صفحة المطابقة تحتاج أرقام Odoo بجانب أرقام التطبيق."},
+      alts: [
+        {en: "Recompute Odoo's numbers in the app: not chosen — the reference must be what Odoo actually said.", ar: "إعادة حساب أرقام Odoo في التطبيق: لم يُختر — المرجع يجب أن يكون ما قاله Odoo فعلاً."}
+      ]
+    },
+    {
+      id: 'IM6', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Odoo's full-day leave, sick and mission days become absences", ar: "أيام الإجازة والمرض والمهمة الكاملة من Odoo تصبح غيابات"},
+      decision: {en: "Listed in the same preview, audited; sick details never shown outside the day editor.", ar: "تظهر في المعاينة نفسها، مع تدقيق؛ وتفاصيل المرض لا تظهر خارج محرر اليوم."},
+      why: {en: "Otherwise those days show as missing.", ar: "وإلا ستظهر تلك الأيام غياباً."},
+      alts: [
+        {en: "Leave them for HR to type: not chosen — slow and error-prone.", ar: "تركها لتكتبها الموارد البشرية: لم يُختر — بطيء وعرضة للخطأ."}
+      ]
+    },
+    {
+      id: 'IM7', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Odoo credit minutes: reference now, hourly leave later", ar: "أرصدة دقائق Odoo: مرجع الآن، وإجازة ساعية لاحقاً"},
+      decision: {en: "Shown as cause \"Odoo credit, not in the app\" until hourly leave exists; then converted once into hourly-leave rows of their kind.", ar: "تظهر بسبب «رصيد Odoo غير موجود في التطبيق» حتى توجد الإجازة الساعية؛ ثم تُحوَّل مرة واحدة إلى أسطر إجازة ساعية بنوعها."},
+      why: {en: "No guessed time ranges before the hourly-leave table exists.", ar: "لا أوقات مخمَّنة قبل وجود جدول الإجازة الساعية."},
+      alts: [
+        {en: "Drop the credits: not chosen — balances would differ from Odoo.", ar: "إسقاط الأرصدة: لم يُختر — ستختلف الأرصدة عن Odoo."}
+      ]
+    },
+    {
+      id: 'IM8', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "The comparison with Odoo becomes a check page in the app", ar: "المقارنة مع Odoo تصبح صفحة مطابقة في التطبيق"},
+      decision: {en: "/imports/[id]/check: app vs Odoo per day (worked, late, OT, shortage, balance, status), each difference with a cause; filters, counts per cause, the period card for both. Pure odoo-compare.ts with tests.", ar: "‎/imports/[id]/check‎: التطبيق مقابل Odoo لكل يوم (العمل، التأخير، الإضافي، النقص، الرصيد، الحالة)، ولكل فرق سببه؛ مع فلاتر وعدد لكل سبب وبطاقة الفترة للطرفين. ووحدة odoo-compare.ts خالصة مع اختبارات."},
+      why: {en: "Replaces the throw-away HTML page with stored data for every team.", ar: "تحل محل صفحة HTML المؤقتة ببيانات محفوظة لكل الفرق."},
+      alts: [
+        {en: "Keep comparing in HTML pages: not chosen by the user (2026-11-11).", ar: "الاستمرار بالمقارنة في صفحات HTML: لم يختره المستخدم (2026-11-11)."}
+      ]
+    },
+    {
+      id: 'IM9', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "A month is migrated when nothing is left unexplained", ar: "الشهر يُعتبر منقولاً عندما لا يبقى شيء بلا تفسير"},
+      decision: {en: "Causes from deliberate changes (rounding, off-day rules, a corrected roster) are accepted once per cause on the check page, audited.", ar: "الأسباب الناتجة عن تغييرات مقصودة (التقريب، قواعد يوم الراحة، جدول مصحح) تُقبل مرة واحدة لكل سبب في صفحة المطابقة، مع تدقيق."},
+      why: {en: "One clear finish line per month.", ar: "خط نهاية واضح لكل شهر."},
+      alts: [
+        {en: "Require identical numbers: not chosen — v2 deliberately differs from Odoo in places.", ar: "اشتراط أرقام متطابقة: لم يُختر — الإصدار 2 يختلف عن Odoo عمداً في مواضع."}
+      ]
+    },
+    {
+      id: 'IM10', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Fingerprint device files after the Odoo history", ar: "ملفات أجهزة البصمة بعد تاريخ Odoo"},
+      decision: {en: "A Device kind on /imports: raw stamps paired by state code, or by order inside the planned window; 60 s duplicates dropped; midnight split merged; unknown badges mapped once in an alias list. Designed once a sample file exists.", ar: "نوع «الجهاز» في /imports: بصمات خام تُقرن برمز الحالة أو بالترتيب داخل النافذة المخططة؛ وتُحذف المكررة خلال 60 ثانية؛ ويُدمج تقسيم منتصف الليل؛ وتُربط الأرقام المجهولة مرة واحدة في قائمة بدائل. يُصمم بعد وجود ملف عينة."},
+      why: {en: "The daily source after go-live.", ar: "المصدر اليومي بعد التشغيل."},
+      alts: [
+        {en: "Connect to the devices over the network: not chosen — no network exposure before the facility server (S8).", ar: "الاتصال بالأجهزة عبر الشبكة: لم يُختر — لا انكشاف على الشبكة قبل خادم المنشأة (S8)."}
+      ]
+    },
+    {
+      id: 'IM11', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Off-day rules before the first real commit; balance check after engine v2", ar: "قواعد يوم الراحة قبل أول اعتماد حقيقي؛ ومطابقة الرصيد بعد المحرك 2"},
+      decision: {en: "The pilot can be imported and checked on worked / late / OT before engine v2; nothing is committed to attendance_app before the off-day-work rules exist.", ar: "يمكن استيراد التجربة ومطابقتها على العمل / التأخير / الإضافي قبل المحرك 2؛ ولا يُعتمد شيء في attendance_app قبل وجود قواعد يوم الراحة."},
+      why: {en: "Punches must be stored the way they will stay.", ar: "البصمات يجب أن تُحفظ بالشكل الذي ستبقى عليه."},
+      alts: [
+        {en: "Import now with made-up shifts: not chosen — the reason the October import was stopped.", ar: "الاستيراد الآن بورديات مختلقة: لم يُختر — هو سبب إيقاف استيراد تشرين الأول."}
+      ]
+    },
+    {
+      id: 'IM12', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      title: {en: "Every import write goes through the app's BL", ar: "كل كتابة في الاستيراد تمر عبر منطق التطبيق"},
+      decision: {en: "Permission attendance.record, audit and recompute for every batch; the extraction script only reads Odoo.", ar: "صلاحية attendance.record والتدقيق وإعادة الحساب لكل دفعة؛ وسكربت الاستخراج يقرأ Odoo فقط."},
+      why: {en: "One path for typed, imported and device punches.", ar: "مسار واحد للبصمات المكتوبة والمستوردة وبصمات الأجهزة."},
+      alts: [
+        {en: "Scripts writing the DB directly: not chosen — duplicates the BL outside SvelteKit.", ar: "سكربتات تكتب في القاعدة مباشرة: لم يُختر — تكرار للمنطق خارج SvelteKit."}
+      ]
+    },
+    {
+      id: 'PS1', group: 'rules', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
+      title: {en: "A punch has no shift", ar: "البصمة بلا وردية"},
+      decision: {en: "attendance_event.shift_id is removed. A punch is person + date + check-in + check-out, whether typed, imported or from a device.", ar: "يُحذف attendance_event.shift_id. البصمة = الموظف + التاريخ + الدخول + الخروج، سواء كُتبت أو استوردت أو جاءت من جهاز."},
+      why: {en: "User's rule (2026-11-11): you enter the date, in and out; the roster tells you the rest. The real database has 0 punches, so nothing is lost.", ar: "قاعدة المستخدم (2026-11-11): تُدخل التاريخ والدخول والخروج، والجدول يخبرك بالباقي. وقاعدة البيانات الحقيقية فيها 0 بصمة، فلا يضيع شيء."},
+      alts: [
+        {en: "A shift only on planned days (OW1): not chosen — the user wants no shift on any punch.", ar: "وردية في الأيام المخططة فقط (OW1): لم يُختر — المستخدم يريد بلا وردية على أي بصمة."}
+      ]
+    },
+    {
+      id: 'PS2', group: 'rules', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
+      title: {en: "The date is the day the punch is entered on", ar: "التاريخ هو اليوم الذي تُدخل عليه البصمة"},
+      decision: {en: "Entry sheet, day editor or import row date. A check-out earlier than the check-in is the next morning; on a planned night a check-in after midnight is read as the next morning, using the roster's shift.", ar: "تاريخ شاشة الإدخال أو محرر اليوم أو سطر الاستيراد. الخروج الأبكر من الدخول = صباح اليوم التالي؛ وفي ليلة مخططة الدخول بعد منتصف الليل يُقرأ صباح اليوم التالي، حسب وردية الجدول."},
+      why: {en: "Nobody chooses a day either; it is where you type it.", ar: "لا أحد يختار اليوم أيضاً؛ إنه حيث تكتبه."},
+      alts: [
+        {en: "Let the app guess the day from the time: not chosen — surprises.", ar: "ترك التطبيق يخمّن اليوم من الوقت: لم يُختر — مفاجآت."}
+      ]
+    },
+    {
+      id: 'PS3', group: 'rules', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
+      title: {en: "The roster decides the comparison", ar: "الجدول يقرر المقارنة"},
+      decision: {en: "Planned shift → required, late, short, overtime against it; planned day off → every minute is day-off work at the off-day rate, with the \"worked a day off\" tag; full-day leave or sick → punches kept, not counted.", ar: "وردية مخططة ← المطلوب والتأخير والنقص والإضافي مقابلها؛ يوم راحة مخطط ← كل دقيقة عمل يوم راحة بمعامل يوم الراحة مع علامة «عمل في يوم راحة»؛ إجازة أو مرض ليوم كامل ← البصمات محفوظة ولا تُحسب."},
+      why: {en: "User's rule; the engine already measured against the roster, only the off-day overtime waited for a punch shift.", ar: "قاعدة المستخدم؛ والمحرك كان يقيس على الجدول أصلاً، وإضافي يوم الراحة فقط كان ينتظر وردية البصمة."},
+      alts: [
+        {en: "Compare with a shift chosen on the punch: not chosen — that is what made punches need shifts.", ar: "المقارنة مع وردية تُختار على البصمة: لم يُختر — هذا ما جعل البصمات تحتاج ورديات."}
+      ]
+    },
+    {
+      id: 'PS4', group: 'rules', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
+      title: {en: "No reason required to save a punch on a day off", ar: "لا سبب مطلوب لحفظ بصمة في يوم راحة"},
+      decision: {en: "The day shows the tag; HR may add a note.", ar: "اليوم يُظهر العلامة؛ ويمكن للموارد البشرية إضافة ملاحظة."},
+      why: {en: "Typing a month of punches should not stop on every day-off row.", ar: "إدخال شهر من البصمات لا يجب أن يتوقف عند كل سطر يوم راحة."},
+      alts: [
+        {en: "Keep the reason required (today): not chosen by default.", ar: "إبقاء السبب مطلوباً (اليوم): ليس الافتراضي."}
+      ]
+    },
+    {
+      id: 'PS5', group: 'rules', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
+      title: {en: "Times that don't fit the planned shift are saved with a warning", ar: "الأوقات التي لا تناسب الوردية المخططة تُحفظ مع تحذير"},
+      decision: {en: "For example a night on a day-shift date: saved, shown \"times don't fit the planned shift\"; the fix is in the roster (swap today, shift change request later), never on the punch.", ar: "مثلاً ليل في تاريخ وردية نهار: يُحفظ ويظهر «الأوقات لا تناسب الوردية المخططة»؛ والحل في الجدول (تبديل اليوم، وطلب تغيير وردية لاحقاً)، لا على البصمة."},
+      why: {en: "The punch records what happened; the roster records what was planned.", ar: "البصمة تسجل ما حدث؛ والجدول يسجل ما كان مخططاً."},
+      alts: [
+        {en: "Refuse such punches (OW7): not chosen for now — the shift change request isn't built.", ar: "رفض هذه البصمات (OW7): لم يُختر الآن — طلب تغيير الوردية غير مبني."}
+      ]
+    },
+    {
+      id: 'SC1', group: 'swaps', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-shift-change-request.md §1',
+      title: {en: "Shift change: a third kind of swap request", ar: "تغيير الوردية: نوع ثالث من طلبات التبديل"},
+      decision: {en: "swap_kind gains shift_change; swap_request gains shift_id (the new shift). One person, one date, no second date, no other person, never pay as overtime.", ar: "يُضاف shift_change إلى swap_kind، وshift_id (الوردية الجديدة) إلى swap_request. شخص واحد، تاريخ واحد، بلا تاريخ ثانٍ، بلا شخص آخر، ولا يُدفع إضافياً أبداً."},
+      why: {en: "The user asked for it on 2026-11-11 after the October import showed two nights worked on planned day-shift dates; existing swaps couldn't say \"same person, same day, another shift\".", ar: "طلبه المستخدم في 2026-11-11 بعد أن أظهر استيراد تشرين الأول ليلتين عُملتا في أيام نهار مخططة؛ والتبديلات الموجودة لا تستطيع قول «نفس الشخص، نفس اليوم، وردية أخرى»."},
+      alts: [
+        {en: "A separate request table: not chosen — the swap flow (approve, reject, cancel, audit, History) already does everything needed.", ar: "جدول طلبات منفصل: لم يُختر — مسار التبديل (موافقة، رفض، إلغاء، تدقيق، سجل) يفعل كل المطلوب."}
+      ]
+    },
+    {
+      id: 'SC2', group: 'swaps', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-shift-change-request.md §1',
+      title: {en: "Only on a planned work day, to a different shift", ar: "فقط في يوم عمل مخطط، إلى وردية مختلفة"},
+      decision: {en: "Refused on a day off, an absence, a holiday, a day with another override, or when the new shift is the planned one.", ar: "يُرفض في يوم راحة أو غياب أو عطلة أو يوم فيه تعديل آخر، أو إذا كانت الوردية الجديدة هي المخططة."},
+      why: {en: "A day off with work is day-off work already; a shift change only replaces a planned shift.", ar: "يوم الراحة مع عمل هو عمل يوم راحة أصلاً؛ وتغيير الوردية يستبدل وردية مخططة فقط."},
+      alts: [
+        {en: "Allow it on a day off too: not chosen — that is an extra shift, a different thing.", ar: "السماح به في يوم الراحة أيضاً: لم يُختر — هذه وردية إضافية، شيء مختلف."}
+      ]
+    },
+    {
+      id: 'SC3', group: 'swaps', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-shift-change-request.md §1',
+      title: {en: "Approval writes one roster override", ar: "الموافقة تكتب تعديلاً واحداً على الجدول"},
+      decision: {en: "Person, date, new shift, swap_group_id = the request; cancelling an approved one removes it; the day is recalculated with cause swap.", ar: "الشخص والتاريخ والوردية الجديدة وswap_group_id = الطلب؛ وإلغاء الطلب الموافَق عليه يزيله؛ ويُعاد حساب اليوم بسبب «تبديل»."},
+      why: {en: "Same mechanism as swaps, so History and the roster stay consistent.", ar: "نفس آلية التبديل، فيبقى السجل والجدول متسقين."},
+      alts: [
+        {en: "Edit the pattern for one day: not chosen — patterns are monthly rules, not single days.", ar: "تعديل النمط ليوم واحد: لم يُختر — الأنماط قواعد شهرية لا أيام منفردة."}
+      ]
+    },
+    {
+      id: 'SC4', group: 'swaps', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-shift-change-request.md §1',
+      title: {en: "The day is a normal work day on the new shift", ar: "اليوم يوم عمل عادي على الوردية الجديدة"},
+      decision: {en: "Required, late and overtime against the new shift; no off-day pay.", ar: "المطلوب والتأخير والإضافي مقابل الوردية الجديدة؛ بلا أجر يوم راحة."},
+      why: {en: "The person worked a planned day, only on other hours.", ar: "الشخص عمل يوماً مخططاً، لكن بساعات أخرى."},
+      alts: [
+        {en: "Pay it as overtime: not chosen — it isn't extra work.", ar: "دفعه كإضافي: لم يُختر — ليس عملاً إضافياً."}
+      ]
+    },
+    {
+      id: 'SC5', group: 'swaps', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-shift-change-request.md §1',
+      title: {en: "Where: Swaps page, day panel, entry sheet warning", ar: "أين: صفحة التبديلات، لوحة اليوم، تحذير شاشة الإدخال"},
+      decision: {en: "Swaps → New → kind Shift change; the day panel has a Shift change button; the entry sheet's \"times don't fit the planned shift\" warning links to it filled in.", ar: "التبديلات ← جديد ← نوع «تغيير وردية»؛ ولوحة اليوم فيها زر «تغيير وردية»؛ وتحذير «الأوقات لا تناسب الوردية المخططة» في شاشة الإدخال يفتحه معبأً."},
+      why: {en: "HR fixes the roster from where they see the problem.", ar: "تصلح الموارد البشرية الجدول من حيث ترى المشكلة."},
+      alts: [
+        {en: "Only on the Swaps page: not chosen — too far from where the problem shows.", ar: "في صفحة التبديلات فقط: لم يُختر — بعيد عن مكان ظهور المشكلة."}
+      ]
+    },
+    {
+      id: 'FP1', group: 'payroll', status: 'approved', date: '2026-11-10', src: 'chat 2026-11-10; docs/reference/BRIEF.md R15; plans/2026-10-28-attendance-app.md (rule settings: Friday prayer 60)',
+      title: { en: "Keep the old Friday Prayer rule", ar: "الإبقاء على قاعدة صلاة الجمعة القديمة" },
+      decision: { en: "A Friday (shift date) with two punch segments gets 60 paid credit minutes, as in Odoo. The break between the segments stays unpaid; the 60 minutes count toward the required time and are paid, but never count as overtime. Any credit left after covering a shortage is paid as extra time. Example: 07:30–12:10 + 13:25–20:15 → worked 690 + credit 60 = 750, required 720, balance +30, OT 0.", ar: "يوم جمعة (تاريخ الوردية) فيه فترتا بصمات يأخذ 60 دقيقة رصيد مدفوعة، كما في Odoo. الاستراحة بين الفترتين تبقى غير مدفوعة؛ والدقائق الستون تُحسب من المطلوب وتُدفع لكنها لا تُحسب إضافياً أبداً. وما يبقى من الرصيد بعد تغطية النقص يُدفع وقتاً زائداً. مثال: 07:30–12:10 + 13:25–20:15 ← عمل 690 + رصيد 60 = 750، المطلوب 720، الرصيد ‎+30‎، الإضافي 0." },
+      why: { en: "It is the company payroll rule HR already uses (Odoo import, brief R15); the user chose to keep it on 2026-11-10 after comparing one person's October balance with Odoo.", ar: "هي قاعدة الرواتب التي تستخدمها الموارد البشرية (استيراد Odoo، الموجز R15)؛ واختار المستخدم الإبقاء عليها في 2026-11-10 بعد مقارنة رصيد شخص في تشرين الأول مع Odoo." },
+      alts: [
+        { en: "Drop it and leave the break unpaid: not chosen — Friday balances would fall by up to 60 minutes against what HR pays today.", ar: "إلغاؤها وترك الاستراحة غير مدفوعة: لم يُختر — ينقص رصيد الجمعة حتى 60 دقيقة عمّا تدفعه الموارد البشرية اليوم." },
+        { en: "Pay the whole break whatever its length: not chosen — not the company rule (paid up to 60 minutes).", ar: "دفع الاستراحة كلها مهما طالت: لم يُختر — ليست قاعدة الشركة (تُدفع حتى 60 دقيقة)." }
       ]
     },
     {
@@ -2869,18 +3205,35 @@
     ["Q-OI7", "Day pairs on 2 off days: import as unplanned work?", "yes", "زوجا نهار في يومي راحة: استيراد كعمل غير مخطط؟", "نعم"],
     ["Q-OI8", "Punches on swap-off days?", "decided from the dry run of the new data", "بصمات في أيام إجازة التبديل؟", "يُقرر من التشغيل التجريبي للبيانات الجديدة"],
     ["Q-OI9", "Record the 4 sick days?", "answered 2026-11-09: yes, in the day editor (OI12)", "تسجيل أيام المرض الأربعة؟", "أُجيب 2026-11-09: نعم، في محرر اليوم (OI12)"],
-    ["Q-OW1", "No shift only on days without a planned shift, or on every day?", "only days without a planned shift (OW1)", "بلا وردية فقط في الأيام بلا وردية مخططة أم في كل يوم؟", "فقط الأيام بلا وردية مخططة (OW1)"],
+    ["Q-OW1", "No shift only on days without a planned shift, or on every day?", "answered 2026-11-11: no shift on any punch; the roster decides (PS1–PS3)", "بلا وردية فقط في الأيام بلا وردية مخططة أم في كل يوم؟", "أُجيب 2026-11-11: لا وردية على أي بصمة؛ والجدول يقرر (PS1–PS3)"],
     ["Q-OW2", "Screen name for it: 'Day-off work'?", "yes", "اسمه على الشاشة: 'عمل يوم راحة'؟", "نعم"],
     ["Q-OW3", "A night of day-off work stays on the date it started?", "yes (OW3)", "ليلة عمل يوم راحة تبقى على تاريخ بدايتها؟", "نعم (OW3)"],
     ["Q-OW4", "Another shift on a planned day: refuse until a shift change is approved, or calculate against the shift worked?", "refuse + Shift change button (OW7, OW9)", "وردية أخرى في يوم مخطط: رفض حتى الموافقة على تغيير الوردية أم حساب مقابل الوردية المعمولة؟", "رفض + زر تغيير الوردية (OW7، OW9)"],
     ["Q-OW5", "Work on a swap-off day: today's flag or its own flag?", "its own flag", "العمل في يوم إجازة تبديل: العلامة الحالية أم علامة خاصة؟", "علامة خاصة"],
     ["Q-OW6", "Payroll export: own column for day-off work hours?", "yes, beside overtime", "تصدير الرواتب: عمود خاص لساعات عمل يوم الراحة؟", "نعم، بجانب الإضافي"],
-    ["Q-OW7", "Move punches already saved on a made-up shift on a day off to 'no shift'?", "no; new punches only", "نقل البصمات المحفوظة بوردية مختلقة في يوم راحة إلى 'بلا وردية'؟", "لا؛ البصمات الجديدة فقط"],
+    ["Q-OW7", "Move punches already saved on a made-up shift on a day off to 'no shift'?", "answered 2026-11-10: not handled; test-data-only problems are not cases, the e2e rows may be deleted", "نقل البصمات المحفوظة بوردية مختلقة في يوم راحة إلى 'بلا وردية'؟", "أُجيب 2026-11-10: لا نعالجها؛ مشاكل بيانات الاختبار وحدها ليست حالات، وأسطر e2e يمكن حذفها"],
     ["Q-OW8", "The 2 October night rows: an exchange with a colleague, or did the person just work the night?", "one-person shift change (OW9); exchange only if needed", "سطرا الليل في تشرين الأول: تبادل مع زميل أم عمل الشخص الليلة فقط؟", "تغيير وردية لشخص واحد (OW9)؛ والتبادل عند الحاجة فقط"],
     ["Q-OW9", "Night ending on a day off, person stays to 09:00: Monday's ordinary overtime or day-off rate?", "Monday's ordinary overtime (OW11)", "ليلة تنتهي في يوم راحة والشخص يبقى حتى 09:00: إضافي عادي للاثنين أم أجر يوم راحة؟", "إضافي عادي للاثنين (OW11)"],
     ["Q-OW10", "Night ending on a holiday: hours after midnight stay ordinary?", "yes (holiday_split = False)", "ليلة تنتهي في عطلة: الساعات بعد منتصف الليل تبقى عادية؟", "نعم (holiday_split = False)"],
     ["Q-OW11", "A typed time on the off day that belongs to the previous night: refuse with a link, or move it automatically?", "refuse with a link; the import joins automatically (OW12)", "وقت مكتوب في يوم الراحة يتبع الليلة السابقة: رفض مع رابط أم نقل تلقائي؟", "رفض مع رابط؛ والاستيراد يضم تلقائياً (OW12)"],
-    ["Q-OW12", "Approve the hourly-leave plan with its defaults and build it right after this one?", "yes (OW13)", "الموافقة على خطة الإجازة الساعية بافتراضاتها وبناؤها بعد هذه مباشرة؟", "نعم (OW13)"]
+    ["Q-OW12", "Approve the hourly-leave plan with its defaults and build it right after this one?", "yes (OW13)", "الموافقة على خطة الإجازة الساعية بافتراضاتها وبناؤها بعد هذه مباشرة؟", "نعم (OW13)"],
+    ["Q-EN1", "Rule levels: company → department → pattern?", "yes, all three (EN1)", "مستويات القواعد: الشركة ← القسم ← النمط؟", "نعم، الثلاثة (EN1)"],
+    ["Q-EN2", "Overtime rounding: keep nearest 15 min, or Odoo's none?", "keep 15, nearest; a setting", "تقريب الإضافي: إبقاء الأقرب لـ 15 دقيقة أم بلا تقريب كما في Odoo؟", "إبقاء 15 للأقرب؛ كإعداد"],
+    ["Q-EN3", "Pay the minutes of a late arrival within grace (Odoo)?", "yes", "دفع دقائق التأخير ضمن السماح (Odoo)؟", "نعم"],
+    ["Q-EN4", "Late beyond grace: the extra time is make-up, not overtime (Odoo)?", "yes", "التأخير بعد السماح: الوقت الزائد تعويض لا إضافي (Odoo)؟", "نعم"],
+    ["Q-EN5", "Tardiness brackets shown always, charged only when HR ticks the day?", "yes", "شرائح التأخير تظهر دائماً وتُخصم فقط إذا أشّرت الموارد البشرية على اليوم؟", "نعم"],
+    ["Q-EN6", "Show OT minutes and the weighted balance side by side?", "yes (EN4)", "عرض دقائق الإضافي والرصيد الموزون جنباً إلى جنب؟", "نعم (EN4)"],
+    ["Q-EN7", "Friday Prayer also on an off day?", "no: work days only", "صلاة الجمعة في يوم الراحة أيضاً؟", "لا: أيام العمل فقط"],
+    ["Q-EN8", "Pay period: calendar month or 21st → 20th?", "calendar month", "فترة الرواتب: شهر ميلادي أم من 21 إلى 20؟", "شهر ميلادي"],
+    ["Q-EN9", "Time balance: netting? what carries? cap? positive at close?", "netting on; carry only a negative balance; no cap; positive paid", "رصيد الوقت: التسوية؟ ماذا يُرحَّل؟ السقف؟ الموجب عند الإغلاق؟", "التسوية مفعّلة؛ يُرحَّل السالب فقط؛ بلا سقف؛ الموجب يُدفع"],
+    ["Q-EN10", "One Balances page with Time / Annual / Sick tabs instead of /leave?", "yes (EN13)", "صفحة أرصدة واحدة بتبويبات بدلاً من /leave؟", "نعم (EN13)"],
+    ["Q-IM1", "Import source: the Odoo database or the October report?", "Odoo database, report as a cross-check (IM1)", "مصدر الاستيراد: قاعدة Odoo أم تقرير تشرين الأول؟", "قاعدة Odoo، والتقرير للمطابقة (IM1)"],
+    ["Q-IM2", "After the Operations pilot: which teams and months?", "every team with Odoo badges, 2026-10-01 to go-live (IM2)", "بعد تجربة العمليات: أي فرق وأشهر؟", "كل الفرق التي لها أرقام في Odoo، من 2026-10-01 حتى التشغيل (IM2)"],
+    ["Q-IM3", "Import Odoo's full-day leave / sick / mission days as absences?", "yes (IM6)", "استيراد أيام الإجازة/المرض/المهمة الكاملة من Odoo كغيابات؟", "نعم (IM6)"],
+    ["Q-IM4", "Odoo credit minutes: reference now, hourly leave later?", "yes (IM7)", "أرصدة دقائق Odoo: مرجع الآن وإجازة ساعية لاحقاً؟", "نعم (IM7)"],
+    ["Q-IM5", "Which device software, and one sample export?", "needed for Phase 5", "أي برنامج للأجهزة، وملف عينة واحد؟", "مطلوب للمرحلة 5"],
+    ["Q-IM6", "Import the pilot before engine v2 (balance checked later)?", "yes (IM11)", "استيراد التجربة قبل المحرك 2 (مطابقة الرصيد لاحقاً)؟", "نعم (IM11)"],
+    ["Q-IM7", "Who may undo an import batch?", "attendance.record", "من يستطيع التراجع عن دفعة استيراد؟", "attendance.record"]
   ];
 
   function el(tag, attrs, children) {

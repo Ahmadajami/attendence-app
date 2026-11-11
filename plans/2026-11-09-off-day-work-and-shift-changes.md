@@ -1,6 +1,6 @@
 # Work outside the roster: day-off work without a shift, and work on another shift
 
-**Status:** to do — **URGENT** (marked by the user 2026-11-09: it blocks the October Operations import; proposed, revised 2026-11-09 with the shift-change request, night shifts that end on a day off and partial leave on such a night; waiting for answers to Q-OW1–Q-OW12 and approval)
+**Status:** superseded (2026-11-11) by [2026-11-11-punches-without-shifts.md](2026-11-11-punches-without-shifts.md): the user's rule "a punch has no shift; the roster decides" answers Q-OW1 and makes most of this plan unnecessary; the shift change request and the other leftovers are listed there under "Later"
 **Priority:** urgent
 **Date:** 2026-11-09
 **Goal:** every punch that does not match the roster is recorded and calculated
@@ -73,7 +73,7 @@ Real data: CLAUDE.md §1. Record IDs, dates and counts only.
 | Q-OW4 | Another shift on a planned day: refuse until a shift change is approved (OW7), or allow and calculate against the shift actually worked (flagged)? | refuse + **Shift change** button |
 | Q-OW5 | Work on a **swap-off** day (b2339c1f, Oct 1–2): keep today's flag "worked a day off without a swap", or a separate flag "worked a swap-off day"? | separate flag, so HR can check the swap |
 | Q-OW6 | Payroll export: show day-off work hours in their own column? | yes, beside overtime |
-| Q-OW7 | Existing punches already saved on a made-up shift on a day off (e2e only today): move them to "no shift"? | no; only new punches (a correction can move one) |
+| Q-OW7 | Existing punches already saved on a made-up shift on a day off (e2e only today): move them to "no shift"? | **answered 2026-11-10:** not handled. Problems that exist only in test data are not cases for this plan; the e2e rows may be deleted (or the e2e DB reseeded) instead of migrated |
 | Q-OW8 | The 2 October night rows: did a colleague take that person's day shift in exchange, or did the person just work the night? | a one-person shift change (OW9); an exchange between two people = two shift changes approved together, added only if you need it |
 | Q-OW9 | Night shift ending on a day off, person stays until 09:00: Monday's ordinary overtime (OW11), or day-off rate for the hour on Tuesday? | Monday's ordinary overtime |
 | Q-OW10 | Night shift ending on a **holiday**: hours after midnight stay ordinary (brief `holiday_split = False`)? | yes |

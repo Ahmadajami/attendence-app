@@ -1,6 +1,7 @@
 # Hourly leave: paid and unpaid hours off inside a work day
 
 **Status:** to do (proposed 2026-11-09; waiting for the user's answers to Q-HL1–Q-HL9 or "every default")
+> note: 2026-11-11 the user chose four **kinds** instead of paid / unpaid: annual, sick, mission (paid) and unpaid (EN8 in `2026-11-11-engine-v2-hourly-leave-carry.md`). HL1 (`paid boolean` → `kind`), HL7–HL9 change accordingly before building; EN9 adds "Cover the gap". This plan is Phase 2 of engine v2.
 **Date:** 2026-11-09
 **Goal:** HR records that a person is away for **part of a work day** (for example 10:00–12:00
 on a 08:00–20:00 shift), as **paid** hourly leave (counted as time worked and taken from the

@@ -1,6 +1,7 @@
 # Leave and sick balances: opening balances from before the app, and the new-year choice (hold or reset)
 
 **Status:** to do (proposed 2026-11-09; waiting for the user's approval of §1 and the defaults in §8)
+> note: 2026-11-11 this plan is Phase 3 of `2026-11-11-engine-v2-hourly-leave-carry.md` (user: carry both leave days and the time balance, EN10). Proposed there: LB19's `/leave` page becomes the Annual / Sick tabs of one `/balances` page (EN13).
 **Date:** 2026-11-09
 **Goal:** Every person has two yearly balances, **annual leave** and **sick leave**. HR enters
 each person's **opening balance** (what was already granted, carried and used **before the app

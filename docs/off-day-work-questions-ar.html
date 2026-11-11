@@ -6,7 +6,7 @@
 <title>أسئلة خطة العمل خارج الجدول</title>
 <!--
   Arabic explainer of the questions in plans/2026-11-09-off-day-work-and-shift-changes.md
-  (Q-OW1–Q-OW12, plus the proposed Q-OW13 "unplanned day"), one made-up example per question.
+  (Q-OW1–Q-OW12 without Q-OW7, answered 2026-11-10, plus the proposed Q-OW13 "unplanned day"), one made-up example per question.
   Self-contained: no external fonts, scripts or CDNs (CLAUDE.md §1). Made-up people only.
 -->
 <style>
@@ -130,7 +130,7 @@
     </ul>
     <p>وأثناء دراسة هذا الحل ظهرت حالات قريبة منه يجب أن تُحسم معه. لذلك الأسئلة في <b>أربع مجموعات</b>:</p>
     <ol>
-      <li><b>الحل الأصلي:</b> البصمة بلا وردية في يوم الراحة (الأسئلة 1، 2، 3، 6، 7).</li>
+      <li><b>الحل الأصلي:</b> البصمة بلا وردية في يوم الراحة (الأسئلة 1، 2، 3، 6).</li>
       <li><b>العمل في يوم ليس يوم عمل عادياً:</b> يوم بلا جدول، ويوم راحة جاء من تبديل (الأسئلة 13، 5).</li>
       <li><b>وردية مختلفة في يوم عمل:</b> مخطط نهاراً وعمل ليلاً (الأسئلة 4، 8).</li>
       <li><b>وردية ليل تنتهي في يوم راحة أو عطلة، والإجازة الجزئية فيها</b> (الأسئلة 9، 10، 11، 12).</li>
@@ -151,7 +151,7 @@
 
   <!-- GROUP 1 -->
   <h2>المجموعة 1: الحل الأصلي، البصمة بلا وردية</h2>
-  <p class="group-intro">هذه الأسئلة تحدد كيف نحل المشكلة الأصلية نفسها.</p>
+  <p class="group-intro">هذه الأسئلة تحدد كيف نحل المشكلة الأصلية نفسها. (السؤال 7 حُذف: أُجيب في <bdi>2026-11-10</bdi>، مشاكل بيانات الاختبار وحدها لا نعالجها، وأسطر قاعدة <code>attendance_app_e2e</code> تُحذف ببساطة.)</p>
 
   <section class="q" data-q="1">
     <div class="q-h"><span class="qn">1</span><h3>متى نسمح بالبصمة «بلا وردية»؟ في أيام الراحة فقط، أم في كل يوم؟</h3></div>
@@ -186,15 +186,6 @@
     <div class="opts">
       <label class="opt rec"><input type="radio" name="q6" value="rec"><b class="h">المقترح: عمود خاص بجانب الإضافي</b>عمود «إضافي» = 6، وعمود «عمل يوم راحة» = 8.<span class="res good">المحاسب يرى مصدر كل ساعة</span></label>
       <label class="opt alt"><input type="radio" name="q6" value="alt"><b class="h">البديل: عمود واحد</b>عمود «إضافي» = 14.<span class="res badtxt">لا يُعرف كم منها يوم راحة</span></label>
-    </div>
-  </section>
-
-  <section class="q" data-q="7">
-    <div class="q-h"><span class="qn">7</span><h3>البصمات المحفوظة سابقاً بوردية «مختلقة» في يوم راحة: هل ننقلها إلى «بلا وردية»؟</h3></div>
-    <div class="ex"><b class="h">مثال</b>في قاعدة الاختبار فقط (<code>attendance_app_e2e</code>) توجد أزواج بصمات حُفظت على «وردية النهار» في أيام راحة، لأن البرنامج كان يجبرنا. قاعدة البيانات الحقيقية لا تحتوي أياً منها.</div>
-    <div class="opts">
-      <label class="opt rec"><input type="radio" name="q7" value="rec"><b class="h">المقترح: لا، الجديدة فقط</b>القديمة تبقى، وأرقامها نفسها في كل الأحوال. ومن أراد يصححها يدوياً.<span class="res good">لا تغيير صامت في السجل</span></label>
-      <label class="opt alt"><input type="radio" name="q7" value="alt"><b class="h">البديل: نقلها تلقائياً</b>تتغير كلها إلى «بلا وردية».<span class="res badtxt">أسطر جديدة في سجل التعديلات دون طلب أحد</span></label>
     </div>
   </section>
 
@@ -313,7 +304,7 @@
 </main>
 <script>
 (() => {
-  const order = [1, 2, 3, 6, 7, 13, 5, 4, 8, 9, 10, 11, 12];
+  const order = [1, 2, 3, 6, 13, 5, 4, 8, 9, 10, 11, 12];
   const out = document.getElementById('out');
   const count = document.getElementById('count');
   const label = (q, v) => {

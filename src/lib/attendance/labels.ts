@@ -3,7 +3,7 @@ import type { AbsenceType } from '#lib/schemas/enums.js';
 import type { PairIssue } from './entry.js';
 
 /** One sentence per check, the same in the entry sheet and in the service's refusals. */
-export function pairIssueMessage(issue: PairIssue | 'reason_required'): string {
+export function pairIssueMessage(issue: PairIssue): string {
 	switch (issue) {
 		case 'span_too_long':
 			return m.attendance_issue_span_too_long();
@@ -15,8 +15,6 @@ export function pairIssueMessage(issue: PairIssue | 'reason_required'): string {
 			return m.attendance_issue_outside_window();
 		case 'unplanned':
 			return m.attendance_issue_unplanned();
-		case 'reason_required':
-			return m.attendance_issue_reason_required();
 	}
 }
 

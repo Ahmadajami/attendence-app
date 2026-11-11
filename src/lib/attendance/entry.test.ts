@@ -23,7 +23,6 @@ const LATER = at('2026-12-01T00:00');
 const ctx = (patch: Partial<PairContext> = {}): PairContext => ({
 	shiftDate: '2026-11-03',
 	shift: N,
-	planned: true,
 	others: [],
 	now: LATER,
 	...patch
@@ -129,11 +128,25 @@ describe('validatePair', () => {
 		expect(validatePair(pair, ctx({ now: at('2026-11-03T18:00') })).errors).toEqual(['future']);
 	});
 
-	it("warns outside the shift's window and on an unplanned day", () => {
+	it("warns outside the planned shift's window and on a day off", () => {
 		const late = resolvePair('2026-11-03', N, '19:00', '14:00'); // 19 h is also too long
 		expect(validatePair(late, ctx()).warnings).toEqual(['outside_window']);
-		const extra = resolvePair('2026-11-03', N, '19:00', '07:00');
-		expect(validatePair(extra, ctx({ planned: false })).warnings).toEqual(['unplanned']);
+		// A day off: no planned shift, so no window to check; never an error (plan PS4).
+		const extra = resolvePair('2026-11-03', null, '19:00', '07:00');
+		const offDay = validatePair(extra, ctx({ shift: null }));
+		expect(offDay).toEqual({ errors: [], warnings: ['unplanned'] });
+	});
+
+	it('reads times on a day off as typed: the date, and a check-out before the check-in the next morning', () => {
+		const night = resolvePair('2026-11-03', null, '20:00', '08:00');
+		expect([iso(night.checkIn), iso(night.checkOut)]).toEqual([
+			iso(at('2026-11-03T20:00')),
+			iso(at('2026-11-04T08:00'))
+		]);
+		// Without a planned night, 02:00 is that date's 02:00 (not the next morning).
+		expect(iso(resolvePair('2026-11-03', null, '02:00', null).checkIn)).toBe(
+			iso(at('2026-11-03T02:00'))
+		);
 	});
 });
 

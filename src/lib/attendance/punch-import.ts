@@ -1,13 +1,11 @@
-// One-time punch history from a filled sheet (plan 2026-11-09-operations-october-punch-import,
-// OI13–OI17): one row per person and date with `HH:mm` check-in / check-out. Pure: the script loads
-// people, stored days, shifts and events; this decides what to insert. A row reads like the manual
-// entry sheet (`resolvePair`, `validatePair`); its shift is the planned one, or `attributeEvent`'s
-// best fit on the row's date when the times don't fit the planned shift's window.
-import { parseDate, parseTime, toCalendarDateTime } from '@internationalized/date';
-import { attributeEvent, type AttendanceEntry } from '#lib/roster/attendance.js';
+// Punch history from a filled sheet or a Markdown table (plan 2026-11-11-punches-without-shifts):
+// one row per person and date with `HH:mm` check-in / check-out. Pure: the script loads people,
+// stored days and events; this decides what to insert. A row reads exactly like the manual entry
+// sheet (`resolvePair`, `validatePair`) against the roster's planned shift. A punch carries no
+// shift (PS1): a day off or times outside the planned shift are warnings, never a refusal.
+import type { AttendanceEntry } from '#lib/roster/attendance.js';
 import type { SheetCell } from '#lib/roster/fit-roster.js';
-import type { RosterDay } from '#lib/roster/roster.js';
-import { attributionWindow, type RosterShift } from '#lib/roster/shift.js';
+import type { RosterShift } from '#lib/roster/shift.js';
 import type { PunchSource, RosterSource, SwapRole } from '#lib/schemas/enums.js';
 import { AIRPORT_TIME_ZONE } from '#lib/utils/timezone.js';
 import {
@@ -124,6 +122,76 @@ export function readPunchSheet(sheet: readonly (readonly SheetCell[])[]): {
 	return { rows, issues, empty };
 }
 
+/** The Markdown table's column headers (the October attendance file); other columns are ignored. */
+export const PUNCH_MARKDOWN_HEADERS = {
+	employeeNo: 'ID',
+	date: 'Date',
+	checkIn: 'Check In',
+	checkOut: 'Check Out'
+} as const;
+
+/**
+ * A Markdown table (`| ID | Name | Date | … |`) → the same filled rows as `readPunchSheet`. Lines
+ * that aren't table rows, the separator row and a `—` / `-` cell (no punch) are skipped or empty.
+ * `line` is the 1-based line in the text.
+ */
+export function readPunchMarkdown(text: string): ReturnType<typeof readPunchSheet> {
+	const lines = text.split(/\r?\n/);
+	const cellsOf = (row: string) =>
+		row
+			.trim()
+			.replace(/^\|/, '')
+			.replace(/\|$/, '')
+			.split('|')
+			.map((cell) => cell.trim());
+	const headerAt = lines.findIndex(
+		(l) => l.trim().startsWith('|') && cellsOf(l).includes(PUNCH_MARKDOWN_HEADERS.employeeNo)
+	);
+	if (headerAt < 0) throw new MissingHeaderError(PUNCH_MARKDOWN_HEADERS.employeeNo);
+	const header = cellsOf(lines[headerAt]);
+	const pick = (name: string) => {
+		const index = header.indexOf(name);
+		if (index < 0) throw new MissingHeaderError(name);
+		return index;
+	};
+	const at = {
+		employeeNo: pick(PUNCH_MARKDOWN_HEADERS.employeeNo),
+		date: pick(PUNCH_MARKDOWN_HEADERS.date),
+		checkIn: pick(PUNCH_MARKDOWN_HEADERS.checkIn),
+		checkOut: pick(PUNCH_MARKDOWN_HEADERS.checkOut)
+	};
+	const blank = (cell: string | undefined) => (cell === '—' || cell === '-' ? '' : (cell ?? ''));
+	// Rebuild a sheet in the template's header order and reuse its reader, so both read alike.
+	const sheet: SheetCell[][] = [
+		[
+			PUNCH_SHEET_HEADERS.employeeNo,
+			PUNCH_SHEET_HEADERS.date,
+			PUNCH_SHEET_HEADERS.checkIn,
+			PUNCH_SHEET_HEADERS.checkOut
+		]
+	];
+	const lineOf: number[] = [];
+	lines.forEach((l, index) => {
+		if (index <= headerAt || !l.trim().startsWith('|')) return;
+		const cells = cellsOf(l);
+		if (cells.every((c) => /^:?-{3,}:?$/.test(c))) return;
+		sheet.push([
+			cells[at.employeeNo] ?? '',
+			cells[at.date] ?? '',
+			blank(cells[at.checkIn]),
+			blank(cells[at.checkOut])
+		]);
+		lineOf.push(index + 1);
+	});
+	const read = readPunchSheet(sheet);
+	const realLine = (sheetLine: number) => lineOf[sheetLine - 2];
+	return {
+		rows: read.rows.map((r) => ({ ...r, line: realLine(r.line) })),
+		issues: read.issues.map((i) => ({ ...i, line: realLine(i.line) })),
+		empty: read.empty
+	};
+}
+
 /** A person's stored day (OI6): its planned shift (`null` when off) and team on that date. */
 export type ScopeDay = {
 	staffId: string;
@@ -145,15 +213,13 @@ export type ImportInput = {
 	people: ReadonlyMap<string, string>;
 	/** `${staffId} ${date}` → stored day. */
 	days: ReadonlyMap<string, ScopeDay>;
-	/** Active shifts; on a tie the first wins, so list the roster's own shifts first. */
-	shifts: readonly RosterShift[];
 	/** The people's stored events around the range (every source, corrections too). */
 	existing: readonly ExistingEvent[];
 	from: string;
 	to: string;
 	now: Date;
-	/** Stored on a pair outside its planned shift (OI5). */
-	reason: string;
+	/** Note stored on a pair with a warning (a day off, outside the planned shift); `null`: none. */
+	reason: string | null;
 	source: PunchSource;
 	timeZone?: string;
 };
@@ -163,7 +229,6 @@ export type ImportRejection =
 	| 'out_of_range'
 	| 'no_roster_day'
 	| 'check_out_only'
-	| 'no_shift_fits'
 	| 'span_too_long'
 	| 'overlap'
 	| 'future';
@@ -173,7 +238,6 @@ export type ImportEvent = {
 	type: 'check_in' | 'check_out';
 	occurredAt: Date;
 	shiftDate: string;
-	shiftId: string;
 	teamId: string | null;
 	reason: string | null;
 };
@@ -182,9 +246,8 @@ export type ImportPair = {
 	line: number;
 	staffId: string;
 	shiftDate: string;
-	shiftId: string;
-	/** On the shift the roster plans that day. */
-	planned: boolean;
+	/** The roster's planned shift that day; `null` on a day off (day-off work). */
+	plannedShiftId: string | null;
 	warnings: PairIssue[];
 	/** Events still to insert (an end already stored by an earlier run is left out). */
 	events: ImportEvent[];
@@ -199,14 +262,10 @@ export type ImportPlan = {
 	duplicates: number;
 };
 
-function wallClock(date: string, time: string, timeZone: string): Date {
-	return toCalendarDateTime(parseDate(date), parseTime(time)).toDate(timeZone);
-}
-
-/** The row's instants on a shift, as the entry sheet reads typed times. */
+/** The row's instants, read like the entry sheet reads typed times on the planned shift. */
 function resolveRow(
 	row: PunchRow & { checkIn: string },
-	shift: RosterShift,
+	shift: RosterShift | null,
 	timeZone: string
 ): Pair {
 	const checkIn = resolveCheckIn(row.date, shift, row.checkIn, timeZone);
@@ -216,67 +275,12 @@ function resolveRow(
 	};
 }
 
-function fits(pair: Pair, date: string, shift: RosterShift, timeZone: string): boolean {
-	const { start, end } = attributionWindow(date, shift, timeZone);
-	const inside = (at: Date) => at >= start && at <= end;
-	return inside(pair.checkIn) && (pair.checkOut === null || inside(pair.checkOut));
-}
-
-/** An off day on `date` for `attributeEvent`, so only unscheduled shifts on that date compete. */
-function offDay(day: ScopeDay): RosterDay {
-	return {
-		date: day.date,
-		teamId: day.teamId,
-		shiftId: null,
-		shift: null,
-		start: null,
-		end: null,
-		source: day.source,
-		plannedShiftId: null,
-		assignmentId: null,
-		patternId: null,
-		adjustment: null,
-		extra: false,
-		swapGroupId: null,
-		swapRole: day.swapRole,
-		absenceType: null,
-		holiday: null
-	};
-}
-
-/**
- * The shift a row is counted for, on the row's date: the planned shift when both times sit in its
- * attribution window; else the shift whose window holds the check-in best (`attributeEvent`) if both
- * times fit it; else the planned shift anyway (`validatePair` then warns `outside_window`).
- */
-function chooseShift(
-	row: PunchRow & { checkIn: string },
-	day: ScopeDay,
-	shifts: readonly RosterShift[],
-	timeZone: string
-): { shift: RosterShift; planned: boolean } | null {
-	const planned = day.shift;
-	if (planned && fits(resolveRow(row, planned, timeZone), row.date, planned, timeZone))
-		return { shift: planned, planned: true };
-	const others = shifts.filter((s) => s.id !== planned?.id);
-	const hit = attributeEvent(
-		wallClock(row.date, row.checkIn, timeZone),
-		'check_in',
-		[offDay(day)],
-		others
-	);
-	const best = hit ? others.find((s) => s.id === hit.shiftId) : undefined;
-	if (best && (!planned || fits(resolveRow(row, best, timeZone), row.date, best, timeZone)))
-		return { shift: best, planned: false };
-	return planned ? { shift: planned, planned: true } : null;
-}
-
 const key = (staffId: string, type: string, at: Date) => `${staffId} ${type} ${at.getTime()}`;
 
 /**
  * What to insert. Per row, in order: scope and range; already stored by an earlier run (same
- * person, type, instant and source); a duplicate of another punch within 60 s; the shift; the
- * entry sheet's checks (errors reject, warnings keep the pair with `reason`).
+ * person, type, instant and source); a duplicate of another punch within 60 s; the entry sheet's
+ * checks against the planned shift (errors reject, warnings keep the pair with `reason`).
  */
 export function planPunchImport(input: ImportInput): ImportPlan {
 	const timeZone = input.timeZone ?? AIRPORT_TIME_ZONE;
@@ -326,12 +330,7 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 			continue;
 		}
 		const withIn = { ...row, checkIn: row.checkIn };
-		const choice = chooseShift(withIn, day, input.shifts, timeZone);
-		if (!choice) {
-			reject(row.line, 'no_shift_fits');
-			continue;
-		}
-		const pair = resolveRow(withIn, choice.shift, timeZone);
+		const pair = resolveRow(withIn, day.shift, timeZone);
 		const ends = [
 			{ type: 'check_in' as const, at: pair.checkIn },
 			...(pair.checkOut ? [{ type: 'check_out' as const, at: pair.checkOut }] : [])
@@ -361,8 +360,7 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 		];
 		const { errors, warnings } = validatePair(pair, {
 			shiftDate: row.date,
-			shift: choice.shift,
-			planned: choice.planned,
+			shift: day.shift,
 			others,
 			now: input.now,
 			timeZone
@@ -377,8 +375,7 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 			line: row.line,
 			staffId,
 			shiftDate: row.date,
-			shiftId: choice.shift.id,
-			planned: choice.planned,
+			plannedShiftId: day.shift?.id ?? null,
 			warnings,
 			events: ends
 				.filter((_, i) => !isStored[i])
@@ -387,7 +384,6 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 					type: end.type,
 					occurredAt: end.at,
 					shiftDate: row.date,
-					shiftId: choice.shift.id,
 					teamId: day.teamId,
 					reason
 				}))

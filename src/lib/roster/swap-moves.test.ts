@@ -48,6 +48,7 @@ const plan = (over: Partial<SwapPlan>): SwapPlan => ({
 	firstDate: '2026-11-03',
 	secondDate: '2026-11-07',
 	scope: 'week',
+	shiftId: null,
 	...over
 });
 

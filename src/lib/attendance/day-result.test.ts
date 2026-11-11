@@ -81,7 +81,6 @@ const ev = (
 	id: `e${++nextId}`,
 	type,
 	occurredAt: at(local),
-	shiftId: 'D',
 	correctsEventId,
 	isVoid: false,
 	source
@@ -385,6 +384,21 @@ describe('swaps and off-day work (PR28)', () => {
 			swapRole: 'swap_on',
 			requiredMinutes: 720,
 			overtimeMinutes: 0
+		});
+	});
+
+	it('work on a day off that a swap made is day-off work, never "without a swap"', () => {
+		// The swap moved Tuesday off, yet the person worked it (the database refuses a day that
+		// has a swap and the "without a swap" flag together).
+		const tue = result(swapped, '2026-11-03', pair('2026-11-03', '07:00', '17:00'), {
+			swap: { id: 'sw1', payAsOt: false }
+		});
+		expect(tue).toMatchObject({
+			kind: 'off_work',
+			swapRole: 'swap_off',
+			swapRequestId: 'sw1',
+			overtimeMinutes: 600,
+			unauthSwap: false
 		});
 	});
 

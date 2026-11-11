@@ -16,7 +16,9 @@ const ISSUE: Record<Exclude<SwapIssue, 'scope'>, () => string> = {
 	absence: m.swap_issue_absence,
 	override: m.swap_issue_override,
 	holiday: m.swap_issue_holiday,
-	inactive: m.swap_issue_inactive
+	inactive: m.swap_issue_inactive,
+	missing_shift: m.swap_issue_missing_shift,
+	same_shift: m.swap_issue_same_shift
 };
 
 /** Why a swap can't apply, in words. */
@@ -28,7 +30,8 @@ export function swapIssueText(issue: SwapIssue, scope: SwapScope): string {
 
 export const SWAP_KIND_LABEL: Record<SwapKind, () => string> = {
 	self_swap: m.swap_kind_self,
-	emp_swap: m.swap_kind_emp
+	emp_swap: m.swap_kind_emp,
+	shift_change: m.swap_kind_shift_change
 };
 
 export const SWAP_SCOPE_LABEL: Record<SwapScope, () => string> = {

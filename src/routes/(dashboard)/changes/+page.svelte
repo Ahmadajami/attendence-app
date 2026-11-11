@@ -68,6 +68,8 @@
 
 	/** A request's two dates with what each one is (SW1). */
 	function datesOf(row: (typeof data.rows)[number]) {
+		if (row.kind === 'shift_change')
+			return [{ label: m.swap_date_shift_change(), date: row.firstDate }];
 		const self = row.kind === 'self_swap';
 		return [
 			{ label: self ? m.swap_date_self_first() : m.swap_date_emp_first(), date: row.firstDate },

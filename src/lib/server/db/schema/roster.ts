@@ -347,7 +347,8 @@ export const swapState = pgEnum('swap_state', SWAP_STATES);
  * the days and creates `roster_override` rows whose `swap_group_id` is this id; cancelling an
  * approved swap cancels them together. Self swap: `first_date` = the work day that becomes off,
  * `second_date` = the off day that becomes work. Employee swap: `first_date` = the date A works and
- * B is off, `second_date` = the optional return date. Never deleted.
+ * B is off, `second_date` = the optional return date. Shift change: `first_date` = the work day A
+ * works `shift_id` instead of the planned shift (no second date). Never deleted.
  */
 export const swapRequest = pgTable(
 	'swap_request',
@@ -361,6 +362,8 @@ export const swapRequest = pgTable(
 		otherStaffId: uuid('other_staff_id').references(() => staff.id, { onDelete: 'restrict' }),
 		firstDate: date('first_date', { mode: 'string' }).notNull(),
 		secondDate: date('second_date', { mode: 'string' }),
+		/** Shift change only: the shift A works on `first_date` instead of the planned one. */
+		shiftId: uuid('shift_id').references(() => shift.id, { onDelete: 'restrict' }),
 		scope: swapScope('scope').notNull(),
 		/** The moved work day is paid at the off-day rate (PR28). */
 		payAsOt: boolean('pay_as_ot').notNull().default(false),
@@ -391,6 +394,11 @@ export const swapRequest = pgTable(
 		check(
 			'swap_request_dates',
 			sql`(${t.kind} <> 'self_swap' OR ${t.secondDate} IS NOT NULL) AND (${t.secondDate} IS NULL OR ${t.secondDate} <> ${t.firstDate})`
+		),
+		// `::text`: the new enum value can't be compared as an enum in the migration that adds it.
+		check(
+			'swap_request_shift_change',
+			sql`(${t.kind}::text = 'shift_change') = (${t.shiftId} IS NOT NULL) AND (${t.kind}::text <> 'shift_change' OR (${t.secondDate} IS NULL AND NOT ${t.payAsOt}))`
 		),
 		check('swap_request_reason_present', sql`length(trim(${t.reason})) > 0`),
 		check(

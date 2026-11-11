@@ -3,6 +3,7 @@ import { message, superValidate, type Infer } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 import { m } from '#lib/paraglide/messages.js';
+import { SWAP_KINDS } from '#lib/schemas/enums.js';
 import { swapFormSchema, type SwapMessage } from '#lib/schemas/swap.schema.js';
 import { failForm } from '#lib/server/errors.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
@@ -14,7 +15,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 // New swap (swaps plan SW2, SW3, SW9): the form, A and B's roster for a month (tap a day to set a
 // date) and the live preview. `?staff=…&date=…` fills person A and the first date (the employee
-// day panel). Needs `attendance.record`; Save and approve needs `roster.manage` (the service
+// day panel); `?kind=shift_change` opens a shift change (plan 2026-11-11-shift-change-request). Needs `attendance.record`; Save and approve needs `roster.manage` (the service
 // checks).
 
 function actorFrom(locals: App.Locals): Actor {
@@ -25,12 +26,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const actor = actorFrom(locals);
 	const staff = url.searchParams.get('staff');
 	const date = url.searchParams.get('date');
+	const kind = z.enum(SWAP_KINDS).safeParse(url.searchParams.get('kind'));
 	const [person, shifts] = await Promise.all([
 		z.uuid().safeParse(staff).success ? getSwapPerson(actor, staff as string) : null,
 		loadShifts()
 	]);
 	const form = await superValidate(
 		{
+			...(kind.success ? { kind: kind.data } : {}),
 			staffId: person?.staffId ?? '',
 			firstDate: z.iso.date().safeParse(date).success ? (date as string) : ''
 		},

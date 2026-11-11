@@ -127,7 +127,9 @@
 										)}
 										<li class="flex flex-wrap items-center gap-x-2">
 											<bdi>
-												{#if swap.kind === 'self_swap'}
+												{#if swap.kind === 'shift_change'}
+													{m.schedule_history_shift_change({ date: first })}
+												{:else if swap.kind === 'self_swap'}
 													{m.schedule_history_swap_self({ date: first, other: second ?? '—' })}
 												{:else if second}
 													{m.schedule_history_swap_emp_return({ date: first, other: second })}

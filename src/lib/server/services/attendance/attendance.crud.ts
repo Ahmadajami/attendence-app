@@ -9,7 +9,6 @@ export const eventColumns = {
 	type: attendanceEvent.type,
 	occurredAt: attendanceEvent.occurredAt,
 	shiftDate: attendanceEvent.shiftDate,
-	shiftId: attendanceEvent.shiftId,
 	teamId: attendanceEvent.teamId,
 	correctsEventId: attendanceEvent.correctsEventId,
 	reason: attendanceEvent.reason,

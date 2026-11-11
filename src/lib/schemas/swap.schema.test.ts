@@ -19,6 +19,12 @@ const pathsOf = (result: { error?: { issues: { path: PropertyKey[] }[] } }) =>
 	result.error?.issues.map((i) => i.path[0]) ?? [];
 
 describe('swapFormSchema (SW2, mirrors the swap_request checks)', () => {
+	it('needs the new shift on a shift change (SC1)', () => {
+		const change = { ...selfSwap, kind: 'shift_change', secondDate: '' };
+		expect(pathsOf(swapFormSchema.safeParse(change))).toEqual(['shiftId']);
+		expect(swapFormSchema.safeParse({ ...change, shiftId: ID }).success).toBe(true);
+	});
+
 	it('accepts a self swap and an employee swap without a return date', () => {
 		expect(swapFormSchema.safeParse(selfSwap).success).toBe(true);
 		const parsed = swapFormSchema.parse(empSwap);

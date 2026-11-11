@@ -1,14 +1,15 @@
 /**
- * One-time punch history import from the filled Operations sheet
- * (plans/2026-11-09-operations-october-punch-import.md, OI13–OI17):
+ * Punch history import for one team (plan 2026-11-11-punches-without-shifts, task 4):
  *
  *   pnpm exec tsx --env-file=.env scripts/import-october-punches.ts \
- *     --file ~/secure/syravia/imports/punches/2026-10/operations_punches_2026-10.xlsx \
+ *     --file ~/secure/syravia/imports/punches/2026-10/operations_attendance_october_2026.md \
  *     --database attendance_app --team <team id> --from 2026-10-01 --to 2026-10-31 [--commit]
  *
- * Reads sheet `Punches` (Employee No, Date, Check in, Check out; one row per person and date,
- * Damascus `HH:mm`). People in scope are the team's members over `--from`–`--to`; anyone else is
- * rejected. Each row's shift comes from the person's stored day (OI6) and the entry sheet's rules
+ * Reads a Markdown table (`.md`: ID, Date, Check In, Check Out; `—` = no punch) or the template's
+ * sheet `Punches` (`.xlsx`: Employee No, Date, Check in, Check out). One row per person and date,
+ * Damascus `HH:mm`. People in scope are the team's members over `--from`–`--to`; anyone else is
+ * rejected. A punch has no shift: each row is read and checked against the person's stored day
+ * (the roster's planned shift, or a day off) with the entry sheet's rules
  * (`#lib/attendance/punch-import`). Events get `source = import` and a team from the stored day.
  *
  * Without `--commit` it is a dry run: every insert runs inside a transaction that is rolled back.
@@ -18,7 +19,7 @@
  * (CLAUDE.md §1). Stored days are not recomputed: run "Recompute these days" on the daily page for
  * the team and dates afterwards (OI10).
  */
-import { realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,6 +29,7 @@ import { readSheet } from 'read-excel-file/node';
 import {
 	MissingHeaderError,
 	planPunchImport,
+	readPunchMarkdown,
 	readPunchSheet,
 	type ExistingEvent,
 	type ScopeDay
@@ -41,7 +43,8 @@ import { connect, fail, schema } from './lib.js';
 const SOURCE = 'import' as const;
 const SHEET = 'Punches';
 const CHUNK = 200;
-const REASON = 'October 2026 punch import: not on the planned shift';
+/** Statuses in the Markdown file that mean a full-day state HR records in the day editor. */
+const STATE_STATUSES = new Set(['sick', 'leave', 'mission']);
 
 /** The only scope allowed on the real-data DB (plan §0). */
 const REAL_DB = 'attendance_app';
@@ -69,7 +72,7 @@ const { values: args } = parseArgs({
 });
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-if (!args.file) fail('--file <path to the filled .xlsx> is required.');
+if (!args.file) fail('--file <path to the .md or .xlsx file> is required.');
 if (!args.database) fail('--database <name> is required (it must equal the connected DB).');
 if (!args.team) fail('--team <team id> is required.');
 if (!args.from || !DATE.test(args.from) || !args.to || !DATE.test(args.to) || args.from > args.to)
@@ -190,13 +193,6 @@ try {
 		])
 	);
 
-	// Candidates: active shifts, the ones these people's days use first (a tie goes to them).
-	const used = new Map<string, number>();
-	for (const d of stored) if (d.shiftId) used.set(d.shiftId, (used.get(d.shiftId) ?? 0) + 1);
-	const shifts = [...shiftById.values()]
-		.filter((s) => s.active)
-		.sort((a, b) => (used.get(b.id) ?? 0) - (used.get(a.id) ?? 0) || a.code.localeCompare(b.code));
-
 	const existing: ExistingEvent[] = await db
 		.select({
 			id: schema.attendanceEvent.id,
@@ -216,9 +212,12 @@ try {
 			)
 		);
 
+	const markdown = file.toLowerCase().endsWith('.md');
 	let sheet: ReturnType<typeof readPunchSheet>;
 	try {
-		sheet = readPunchSheet((await readSheet(file, SHEET)) as unknown as SheetCell[][]);
+		sheet = markdown
+			? readPunchMarkdown(readFileSync(file, 'utf8'))
+			: readPunchSheet((await readSheet(file, SHEET)) as unknown as SheetCell[][]);
 	} catch (error) {
 		if (error instanceof MissingHeaderError) fail(`${error.message} Nothing done.`);
 		throw error;
@@ -228,19 +227,47 @@ try {
 		rows: sheet.rows,
 		people,
 		days,
-		shifts,
 		existing,
 		from,
 		to,
 		now: new Date(),
-		reason: REASON,
+		reason: null,
 		source: SOURCE
 	});
 	const events = plan.pairs.flatMap((p) => p.events);
+	// Full-day states the file names (Markdown "Status" column): not imported, listed for the
+	// day editor (ids and dates only; the kind of state may be health data, so only a count).
+	const stateDays: string[] = [];
+	if (markdown) {
+		const rows = readFileSync(file, 'utf8')
+			.split(/\r?\n/)
+			.filter((l) => l.trim().startsWith('|'))
+			.map((l) =>
+				l
+					.trim()
+					.replace(/^\|/, '')
+					.replace(/\|$/, '')
+					.split('|')
+					.map((c) => c.trim())
+			);
+		const header = rows.find((r) => r.includes('ID') && r.includes('Status')) ?? [];
+		const [idAt, dateAt, statusAt] = ['ID', 'Date', 'Status'].map((h) => header.indexOf(h));
+		for (const r of rows) {
+			const staffId = people.get(r[idAt] ?? '');
+			const date = r[dateAt] ?? '';
+			if (
+				staffId &&
+				date >= from &&
+				date <= to &&
+				STATE_STATUSES.has((r[statusAt] ?? '').toLowerCase())
+			)
+				stateDays.push(`${short(staffId)} ${date}`);
+		}
+	}
 	const code = (id: string) => shiftById.get(id)?.code ?? short(id);
 
 	console.log(`database: ${database}; team ${short(team)}; ${from} → ${to}; source ${SOURCE}`);
-	console.log(`file: ${path.basename(file)}, sheet ${SHEET}`);
+	console.log(`file: ${path.basename(file)}${markdown ? ' (Markdown table)' : `, sheet ${SHEET}`}`);
 	console.log(
 		`people in scope: ${staffIds.length}; matched in the file: ${new Set(sheet.rows.map((r) => people.get(r.employeeNo)).filter(Boolean)).size}`
 	);
@@ -270,18 +297,24 @@ try {
 		plan.pairs.map((p) => p.shiftDate)
 	);
 	line(
-		'pairs per shift',
-		plan.pairs.map((p) => code(p.shiftId))
+		'pairs per planned day',
+		plan.pairs.map((p) => (p.plannedShiftId ? code(p.plannedShiftId) : 'day off'))
 	);
 	line(
-		'pairs not on the planned shift (person date shift)',
+		'pairs with a warning (person date planned warning)',
 		plan.pairs
-			.filter((p) => !p.planned)
-			.map((p) => `${short(p.staffId)} ${p.shiftDate} ${code(p.shiftId)}`)
+			.filter((p) => p.warnings.length > 0)
+			.map(
+				(p) =>
+					`${short(p.staffId)} ${p.shiftDate} ${p.plannedShiftId ? code(p.plannedShiftId) : 'off'} ${p.warnings.join('+')}`
+			)
 	);
 	line(
 		'warnings',
 		plan.pairs.flatMap((p) => p.warnings)
+	);
+	console.log(
+		`full-day states in the file (enter them in the day editor): ${stateDays.length}${stateDays.length ? ` — ${stateDays.join(', ')}` : ''}`
 	);
 	line(
 		'open pairs (no check-out)',
@@ -300,7 +333,6 @@ try {
 					type: e.type,
 					occurredAt: e.occurredAt,
 					shiftDate: e.shiftDate,
-					shiftId: e.shiftId,
 					teamId: e.teamId,
 					recordedBy: admin.id,
 					source: SOURCE,
@@ -326,12 +358,13 @@ try {
 					people: new Set(events.map((e) => e.staffId)).size,
 					pairs: plan.pairs.length,
 					events: events.length,
-					unplanned: plan.pairs.filter((p) => !p.planned).length,
+					dayOff: plan.pairs.filter((p) => p.plannedShiftId === null).length,
+					warned: plan.pairs.filter((p) => p.warnings.length > 0).length,
 					rejected: rejectedBy,
 					alreadyImported: plan.alreadyImported,
 					duplicates: plan.duplicates
 				},
-				reason: 'One-time punch history import (plan 2026-11-09-operations-october-punch-import)'
+				reason: 'Punch history import (plan 2026-11-11-punches-without-shifts)'
 			})
 		);
 

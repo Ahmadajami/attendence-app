@@ -9,6 +9,7 @@
 	let { data }: PageProps = $props();
 
 	const shifts = $derived(new Map(data.shifts.map((s) => [s.id, s])));
+	const shiftOptions = $derived(data.shifts.filter((s) => s.active));
 </script>
 
 <svelte:head>
@@ -28,6 +29,7 @@
 	<SwapForm
 		data={data.form}
 		{shifts}
+		{shiftOptions}
 		canApprove={data.canApprove}
 		person={data.person}
 		today={data.today}

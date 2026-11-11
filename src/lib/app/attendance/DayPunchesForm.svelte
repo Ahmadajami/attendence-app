@@ -8,7 +8,6 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import * as Select from '#lib/components/ui/select/index.js';
 	import { Textarea } from '#lib/components/ui/textarea/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import {
@@ -21,8 +20,9 @@
 	import { lookupName } from '#lib/utils/locale.js';
 
 	// The day editor's check-in / out (pay plan PR46–PR48): starts from the day's recorded pair (or
-	// empty), "Fill shift times" writes the shift's start and end into the boxes, every box stays
-	// editable, and a reason is required. The service adds or corrects; the originals stay.
+	// empty), "Fill shift times" writes the planned shift's start and end into the boxes, every box
+	// stays editable, and a reason is required. A punch has no shift: the roster's plan for the day
+	// is shown, not picked (plan PS1). The service adds or corrects; the originals stay.
 
 	type Props = {
 		/** The day's punches, loaded when the sheet opened on it (one pair at most). */
@@ -46,8 +46,6 @@
 				{
 					staffId,
 					shiftDate: date,
-					shiftId:
-						recorded?.shiftId ?? day.plannedShiftId ?? day.shifts.find((s) => s.active)?.id ?? '',
 					checkIn: recorded?.checkIn ?? '',
 					checkOut: recorded?.checkOut ?? '',
 					reason: ''
@@ -60,17 +58,8 @@
 	);
 	const { form: formData, enhance, delayed } = form;
 
-	const shiftOf = (id: string) => day.shifts.find((s) => s.id === id);
 	const clock = (time: string) => time.slice(0, 5);
-	const shiftLabel = (id: string) => {
-		const shift = shiftOf(id);
-		return shift
-			? `${shift.code} · ${lookupName(shift)} · ${clock(shift.startTime)}–${clock(shift.endTime)}`
-			: m.attendance_pick_shift();
-	};
-	/** New shifts only from the active ones; the planned one even when inactive. */
-	const choices = $derived(day.shifts.filter((s) => s.active || s.id === day.plannedShiftId));
-	const fillable = $derived(shiftOf($formData.shiftId));
+	const fillable = $derived(day.plannedShift);
 
 	/** The shift's start and end into the boxes; both stay editable. */
 	function fill() {
@@ -97,32 +86,18 @@
 		{/if}
 	</p>
 
-	{#if pair}
-		<!-- A recorded pair keeps its shift: corrections never move it. -->
-		<input type="hidden" name="shiftId" value={$formData.shiftId} />
-		<p class="text-sm text-muted-foreground">
-			{m.day_punches_shift_fixed({ shift: shiftLabel($formData.shiftId) })}
-		</p>
-	{:else}
-		<Form.Field {form} name="shiftId">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>{m.attendance_col_shift()}</Form.Label>
-					<Select.Root type="single" name={props.name} bind:value={$formData.shiftId}>
-						<Select.Trigger {...props} class="w-full">
-							{shiftLabel($formData.shiftId)}
-						</Select.Trigger>
-						<Select.Content>
-							{#each choices as option (option.id)}
-								<Select.Item value={option.id} label={shiftLabel(option.id)} />
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Field>
-	{/if}
+	<!-- The roster's plan for the day: what the punches are compared with (PS3). -->
+	<p class="text-sm text-muted-foreground">
+		{#if day.plannedShift}
+			<bdi>
+				{m.day_punches_planned({
+					shift: `${day.plannedShift.code} · ${lookupName(day.plannedShift)} · ${clock(day.plannedShift.startTime)}–${clock(day.plannedShift.endTime)}`
+				})}
+			</bdi>
+		{:else}
+			{m.day_punches_planned_off()}
+		{/if}
+	</p>
 
 	<div class="flex flex-wrap items-start gap-3">
 		<Form.Field {form} name="checkIn">

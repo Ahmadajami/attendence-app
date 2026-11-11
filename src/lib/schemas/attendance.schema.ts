@@ -15,15 +15,13 @@ export const ENTRY_ABSENCES = ['no_show', 'leave', 'sick'] as const;
 export type EntryAbsence = (typeof ENTRY_ABSENCES)[number];
 
 /**
- * One person on the entry sheet. Rows with no times and no absence are skipped. `reason` is
- * required by the service for a punch on an unplanned day; for an absence it is optional and may
- * hold health details, so it is never logged.
+ * One person on the entry sheet: the date's check-in and check-out, no shift (the roster decides,
+ * plan PS1–PS3). Rows with no times and no absence are skipped. `reason` is an optional note (PS4);
+ * for an absence it may hold health details, so it is never logged.
  */
 export const entryRowSchema = z
 	.object({
 		staffId: z.uuid(),
-		/** '' on a day with no planned shift until one is picked (required once the row has times). */
-		shiftId: z.union([z.literal(''), z.uuid({ error: () => m.attendance_shift_required() })]),
 		checkIn: optionalClock.default(''),
 		checkOut: optionalClock.default(''),
 		absence: z.union([z.literal(''), z.enum(ENTRY_ABSENCES)]).default(''),
@@ -57,7 +55,6 @@ export type EntrySheetInput = z.infer<EntrySheetSchema>;
 export const addPairSchema = z.object({
 	staffId: z.uuid(),
 	shiftDate: isoDate,
-	shiftId: z.uuid({ error: () => m.attendance_shift_required() }),
 	checkIn: clock,
 	checkOut: optionalClock.default(''),
 	reason: z.string().trim().max(500).default('')
@@ -88,13 +85,12 @@ export type CorrectionInput = z.infer<typeof correctionSchema>;
 
 /**
  * The day editor's check-in / check-out of one person and shift date (pay plan PR46–PR48). With no
- * punches yet it adds a pair on `shiftId`; with one pair it corrects what changed (the pair keeps
- * its shift). The reason is required and saved on every event written.
+ * punches yet it adds a pair; with one pair it corrects what changed. No shift: the roster decides
+ * (plan PS1). The reason is required and saved on every event written.
  */
 export const dayPunchesSchema = z.object({
 	staffId: z.uuid(),
 	shiftDate: isoDate,
-	shiftId: z.uuid({ error: () => m.attendance_shift_required() }),
 	checkIn: clock,
 	checkOut: optionalClock.default(''),
 	reason: z

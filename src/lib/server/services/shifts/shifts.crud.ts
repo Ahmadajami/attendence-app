@@ -1,6 +1,6 @@
 import { arrayContains, asc, count, eq, isNotNull } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
-import { attendanceEvent, pattern, rosterOverride, shift } from '#lib/server/db/schema/index.js';
+import { dayResult, pattern, rosterOverride, shift } from '#lib/server/db/schema/index.js';
 import type { BatchQuery } from '../common.js';
 
 export const shiftColumns = {
@@ -44,16 +44,12 @@ export async function isShiftUsed(id: string): Promise<boolean> {
 			.from(rosterOverride)
 			.where(eq(rosterOverride.shiftId, id))
 			.limit(1),
-		db
-			.select({ id: attendanceEvent.id })
-			.from(attendanceEvent)
-			.where(eq(attendanceEvent.shiftId, id))
-			.limit(1)
+		db.select({ id: dayResult.id }).from(dayResult).where(eq(dayResult.shiftId, id)).limit(1)
 	]);
 	return found.some((rows) => rows.length > 0);
 }
 
-/** Per shift: library patterns with a slot on it, overrides and punches that point at it. */
+/** Per shift: library patterns with a slot on it, overrides, and stored days planned on it. */
 export async function countShiftUsage(): Promise<
 	Map<string, { patterns: number; overrides: number; events: number }>
 > {
@@ -64,10 +60,12 @@ export async function countShiftUsage(): Promise<
 			.from(rosterOverride)
 			.where(isNotNull(rosterOverride.shiftId))
 			.groupBy(rosterOverride.shiftId),
+		// Punches carry no shift (plan PS1): the stored days planned on the shift count instead.
 		db
-			.select({ shiftId: attendanceEvent.shiftId, n: count() })
-			.from(attendanceEvent)
-			.groupBy(attendanceEvent.shiftId)
+			.select({ shiftId: dayResult.shiftId, n: count() })
+			.from(dayResult)
+			.where(isNotNull(dayResult.shiftId))
+			.groupBy(dayResult.shiftId)
 	]);
 	const usage = new Map<string, { patterns: number; overrides: number; events: number }>();
 	const entry = (id: string) => {
@@ -79,7 +77,7 @@ export async function countShiftUsage(): Promise<
 	for (const { slots } of patterns)
 		for (const id of new Set(slots)) if (id !== null) entry(id).patterns += 1;
 	for (const { shiftId, n } of overrides) if (shiftId) entry(shiftId).overrides = n;
-	for (const { shiftId, n } of events) entry(shiftId).events = n;
+	for (const { shiftId, n } of events) if (shiftId) entry(shiftId).events = n;
 	return usage;
 }
 

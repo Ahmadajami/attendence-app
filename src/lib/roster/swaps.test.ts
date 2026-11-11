@@ -46,7 +46,8 @@ const selfSwap = (first: string, second: string, scope: 'week' | 'month' = 'week
 	otherStaffId: null,
 	firstDate: first,
 	secondDate: second,
-	scope
+	scope,
+	shiftId: null
 });
 
 const empSwap = (first: string, second: string | null = null): SwapPlan => ({
@@ -55,7 +56,19 @@ const empSwap = (first: string, second: string | null = null): SwapPlan => ({
 	otherStaffId: 'B',
 	firstDate: first,
 	secondDate: second,
-	scope: 'week'
+	scope: 'week',
+	shiftId: null
+});
+
+/** A shift change (plan 2026-11-11-shift-change-request): A works `shiftId` on `date`. */
+const shiftChange = (date: string, shiftId: string | null): SwapPlan => ({
+	kind: 'shift_change',
+	staffId: 'A',
+	otherStaffId: null,
+	firstDate: date,
+	secondDate: null,
+	scope: 'week',
+	shiftId
 });
 
 describe('scope (Sun–Sat week, calendar month)', () => {
@@ -181,5 +194,25 @@ describe('conflicts', () => {
 		const plan = selfSwap('2026-11-03', '2026-11-07');
 		expect(checkSwap(plan, appliedDay, ACTIVE, 'sw2')).toContain('override');
 		expect(checkSwap(plan, appliedDay, ACTIVE, 'sw1')).not.toContain('override');
+	});
+});
+
+describe('shift change', () => {
+	it('moves a planned work day to another shift: one override on that date (SC1–SC3)', () => {
+		const plan = shiftChange('2026-11-03', 'N'); // A: D on Tuesday
+		expect(checkSwap(plan, dayOf, ACTIVE)).toEqual([]);
+		expect(swapOverrides(plan, dayOf)).toEqual([
+			{ staffId: 'A', shiftDate: '2026-11-03', shiftId: 'N' }
+		]);
+	});
+
+	it('is refused on a day off, without a shift, or to the planned shift (SC2)', () => {
+		expect(checkSwap(shiftChange('2026-11-01', 'N'), dayOf, ACTIVE)).toEqual(['a_not_working']);
+		expect(checkSwap(shiftChange('2026-11-03', null), dayOf, ACTIVE)).toEqual(['missing_shift']);
+		expect(checkSwap(shiftChange('2026-11-03', 'D'), dayOf, ACTIVE)).toEqual(['same_shift']);
+	});
+
+	it('is refused for an inactive person', () => {
+		expect(checkSwap(shiftChange('2026-11-03', 'N'), dayOf, new Set(['B']))).toContain('inactive');
 	});
 });

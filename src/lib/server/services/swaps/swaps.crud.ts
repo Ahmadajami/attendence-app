@@ -31,6 +31,7 @@ const swapColumns = {
 	otherStaffId: swapRequest.otherStaffId,
 	firstDate: swapRequest.firstDate,
 	secondDate: swapRequest.secondDate,
+	shiftId: swapRequest.shiftId,
 	scope: swapRequest.scope,
 	payAsOt: swapRequest.payAsOt,
 	reason: swapRequest.reason,
@@ -110,6 +111,7 @@ export async function listPendingTouching(staffIds: readonly string[], dates: re
 			otherStaffId: swapRequest.otherStaffId,
 			firstDate: swapRequest.firstDate,
 			secondDate: swapRequest.secondDate,
+			shiftId: swapRequest.shiftId,
 			scope: swapRequest.scope
 		})
 		.from(swapRequest)

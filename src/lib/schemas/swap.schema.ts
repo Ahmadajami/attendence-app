@@ -19,7 +19,9 @@ const reason = z
 /**
  * New swap. Self swap: `firstDate` = the work day W that becomes off, `secondDate` = the off day O
  * that becomes work (required). Employee swap: `firstDate` = D (A works, B is off), `secondDate` =
- * the optional return date D2. `approve`: save and approve in one step (SW3).
+ * the optional return date D2. Shift change: `firstDate` = the work day, `shiftId` = the shift A
+ * works instead (required; no second date, never pay as overtime). `approve`: save and approve in
+ * one step (SW3).
  */
 export const swapFormSchema = z
 	.object({
@@ -28,6 +30,7 @@ export const swapFormSchema = z
 		otherStaffId: z.union([z.literal(''), person]).default(''),
 		firstDate: isoDate,
 		secondDate: optionalDate.default(''),
+		shiftId: z.union([z.literal(''), z.uuid()]).default(''),
 		scope: z.enum(SWAP_SCOPES).default('week'),
 		payAsOt: z.boolean().default(false),
 		reason,
@@ -43,6 +46,8 @@ export const swapFormSchema = z
 		}
 		if (value.kind === 'self_swap' && !value.secondDate)
 			issue('secondDate', m.swap_error_second_required());
+		if (value.kind === 'shift_change' && !value.shiftId)
+			issue('shiftId', m.swap_error_shift_required());
 		if (value.secondDate && value.secondDate === value.firstDate)
 			issue('secondDate', m.swap_issue_same_date());
 	});
@@ -75,6 +80,7 @@ export const swapPreviewSchema = z.object({
 	otherStaffId: z.union([z.literal(''), z.uuid()]),
 	firstDate: optionalDate,
 	secondDate: optionalDate,
+	shiftId: z.union([z.literal(''), z.uuid()]).default(''),
 	scope: z.enum(SWAP_SCOPES)
 });
 export type SwapPreviewInput = z.infer<typeof swapPreviewSchema>;

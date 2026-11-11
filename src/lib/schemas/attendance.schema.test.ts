@@ -4,7 +4,6 @@ import { dayPunchesSchema } from './attendance.schema.js';
 const valid = {
 	staffId: '00000000-0000-4000-8000-000000000001',
 	shiftDate: '2026-10-05',
-	shiftId: '00000000-0000-4000-8000-000000000002',
 	checkIn: '07:00',
 	checkOut: '15:00',
 	reason: 'Forgot to punch'
@@ -38,7 +37,7 @@ describe('dayPunchesSchema (PR46–PR48)', () => {
 		fails({ reason: '   ' }, 'reason');
 	});
 
-	it('requires a shift', () => {
-		fails({ shiftId: '' }, 'shiftId');
+	it('carries no shift: the roster decides (plan PS1)', () => {
+		expect(Object.keys(dayPunchesSchema.parse(valid))).not.toContain('shiftId');
 	});
 });

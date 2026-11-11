@@ -96,8 +96,10 @@ export function dayResultOf(input: DayResultInput): DayResultValues {
 		otEligible: input.otEligible,
 		holidayOtEligible: day.holiday?.otEligible
 	});
-	// Worked a planned off day with no override behind it (R12): shown, not penalised.
-	const unauthSwap = kind === 'off_work' && day.shiftId === null && day.holiday === null;
+	// Worked a planned off day with no override behind it (R12): shown, not penalised. A day off
+	// that an approved swap made (`swapRole`) has a swap behind it, so it is never "without a swap".
+	const unauthSwap =
+		kind === 'off_work' && day.shiftId === null && day.holiday === null && day.swapRole === null;
 	const swapRequestId = day.swapRole !== null ? (input.swap?.id ?? day.swapGroupId) : null;
 
 	return {

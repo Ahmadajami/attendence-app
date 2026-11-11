@@ -65,13 +65,11 @@ let nextId = 0;
 const ev = (
 	type: AttendanceEventType,
 	local: string,
-	shiftId = 'D',
 	correctsEventId: string | null = null
 ): AttendanceEntry => ({
 	id: `e${++nextId}`,
 	type,
 	occurredAt: at(local),
-	shiftId,
 	correctsEventId,
 	isVoid: false
 });
@@ -171,14 +169,14 @@ describe('effectiveEvents', () => {
 	it('replaces a corrected event and sorts by time', () => {
 		const wrong = ev('check_in', '2026-11-02T07:40');
 		const out = ev('check_out', '2026-11-02T19:00');
-		const fix = ev('check_in', '2026-11-02T07:00', 'D', wrong.id);
+		const fix = ev('check_in', '2026-11-02T07:00', wrong.id);
 		expect(effectiveEvents([out, wrong, fix]).map((e) => e.id)).toEqual([fix.id, out.id]);
 	});
 
 	it('drops an event voided by a correction, and the void itself', () => {
 		const stray = ev('check_in', '2026-11-02T03:00');
 		const keep = ev('check_in', '2026-11-02T07:00');
-		const voided = { ...ev('check_in', '2026-11-02T03:00', 'D', stray.id), isVoid: true };
+		const voided = { ...ev('check_in', '2026-11-02T03:00', stray.id), isVoid: true };
 		expect(effectiveEvents([stray, keep, voided]).map((e) => e.id)).toEqual([keep.id]);
 	});
 });
@@ -262,7 +260,7 @@ describe('shiftSummary', () => {
 	it('counts a night stay past the morning as overtime on the night', () => {
 		const s = shiftSummary(
 			night3,
-			[ev('check_in', '2026-11-03T19:00', 'N'), ev('check_out', '2026-11-04T08:40', 'N')],
+			[ev('check_in', '2026-11-03T19:00'), ev('check_out', '2026-11-04T08:40')],
 			later
 		);
 		expect(s).toMatchObject({ shiftId: 'N', workedMinutes: 820, overtime: { minutes: 105 } });
@@ -286,7 +284,7 @@ describe('shiftSummary', () => {
 		expect(shiftSummary(swapped, events, later)).toMatchObject({ overtime: { minutes: 0 } });
 	});
 
-	it('counts an unscheduled day as overtime', () => {
+	it('counts an unscheduled day as overtime, with no shift (plan PS1, PS3)', () => {
 		const off = rosterDay(input, '2026-11-05');
 		const s = shiftSummary(
 			off,
@@ -295,7 +293,7 @@ describe('shiftSummary', () => {
 		);
 		expect(s).toMatchObject({
 			status: 'unscheduled',
-			shiftId: 'D',
+			shiftId: null,
 			lateMinutes: 0,
 			short: false,
 			overtime: { minutes: 720 }
@@ -328,7 +326,7 @@ describe('shiftSummary', () => {
 		const out = ev('check_out', '2026-11-02T21:10');
 		const events = [ev('check_in', '2026-11-02T07:00'), out];
 		expect(shiftSummary(day2, events, later, { minutes: 135 }).approval).toBe('approved');
-		const fix = ev('check_out', '2026-11-02T21:40', 'D', out.id);
+		const fix = ev('check_out', '2026-11-02T21:40', out.id);
 		const s = shiftSummary(day2, [...events, fix], later, { minutes: 135 });
 		expect(s).toMatchObject({
 			workedMinutes: 880,
@@ -351,13 +349,13 @@ describe('shiftSummary', () => {
 		const evening = rosterDay(evenings, '2026-11-05'); // E: 720 span, 30 break → 690
 		const done = shiftSummary(
 			evening,
-			[ev('check_in', '2026-11-05T16:00', 'E'), ev('check_out', '2026-11-06T04:00', 'E')],
+			[ev('check_in', '2026-11-05T16:00'), ev('check_out', '2026-11-06T04:00')],
 			later
 		);
 		expect(done).toMatchObject({ workedMinutes: 720, short: false, overtime: { minutes: 30 } });
 		const short = shiftSummary(
 			evening,
-			[ev('check_in', '2026-11-05T16:00', 'E'), ev('check_out', '2026-11-06T03:00', 'E')],
+			[ev('check_in', '2026-11-05T16:00'), ev('check_out', '2026-11-06T03:00')],
 			later
 		);
 		expect(short).toMatchObject({ workedMinutes: 660, short: true, overtime: { minutes: 0 } });

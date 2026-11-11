@@ -24,7 +24,6 @@ export type AttendanceEntry = {
 	type: AttendanceEventType;
 	occurredAt: Date;
 	correctsEventId: string | null;
-	shiftId: string;
 	isVoid: boolean;
 	/** Typed (`manual`), a punch reading (`import`) or the Odoo seed (`seed`); absent in old callers. */
 	source?: PunchSource;
@@ -128,7 +127,7 @@ export type ShiftStatus = DayStatus;
 
 export type ShiftSummary = {
 	status: ShiftStatus;
-	/** The shift worked or rostered; `null` on an off day with no events. */
+	/** The roster's shift that day (punches carry none, plan PS1); `null` on a day off. */
 	shiftId: string | null;
 	checkIn: Date | null;
 	checkOut: Date | null;
@@ -159,7 +158,7 @@ export function shiftSummary(
 ): ShiftSummary {
 	const effective = effectiveEvents(events);
 	const scheduled = day.shift !== null && day.start !== null;
-	const shiftId = day.shiftId ?? effective[0]?.shiftId ?? null;
+	const shiftId = day.shiftId;
 	// A holiday requires nothing (R13); work on it is all overtime (PR3).
 	const holiday = day.holiday !== null;
 	const required = day.shift && !holiday ? requiredOf(day.shift) : 0;
@@ -213,10 +212,9 @@ export function shiftSummary(
 	else status = lateMinutes > grace ? 'late' : 'present';
 
 	const allOvertime = day.extra || !scheduled || holiday;
+	// Every closed day gets its overtime, a day off too: it no longer waits for a shift (PS3).
 	const overtime =
-		workedMinutes !== null && shiftId !== null
-			? computeOvertime(workedMinutes, required, allOvertime)
-			: null;
+		workedMinutes !== null ? computeOvertime(workedMinutes, required, allOvertime) : null;
 
 	return {
 		status,

@@ -2,7 +2,8 @@ import type { SwapKind, SwapScope } from '#lib/schemas/enums.js';
 import { addDays, weekdayOf } from './cycle.js';
 import type { RosterDay } from './roster.js';
 
-// Self swaps and employee swaps (pay plan PR25–PR28, BRIEF R12 / §9.6). Pure: the swap service
+// Self swaps, employee swaps (pay plan PR25–PR28, BRIEF R12 / §9.6) and shift changes (plan
+// 2026-11-11-shift-change-request: one person, one work day, another shift). Pure: the swap service
 // loads the people's roster days and calls `checkSwap` when the request is made and again when it is
 // approved, then writes the `swapOverrides` rows with `swap_group_id` = the request id.
 
@@ -17,6 +18,8 @@ export type SwapPlan = {
 	/** Self: the off day O that becomes work (required). Employee: the optional return date D2. */
 	secondDate: string | null;
 	scope: SwapScope;
+	/** Shift change: the shift A works on `firstDate` instead of the planned one. */
+	shiftId: string | null;
 };
 
 /** What the check needs of a roster day. */
@@ -34,7 +37,9 @@ export type SwapIssue =
 	| 'absence'
 	| 'override'
 	| 'holiday'
-	| 'inactive';
+	| 'inactive'
+	| 'missing_shift'
+	| 'same_shift';
 
 /** Sunday of the week (Sun–Sat, plan Q-A8) that holds `date`. */
 export function weekStart(date: string): string {
@@ -74,7 +79,13 @@ export function checkSwap(
 		issues.add('inactive');
 
 	const works = (who: string, date: string) => (dayOf(who, date)?.shiftId ?? null) !== null;
-	if (kind === 'self_swap') {
+	if (kind === 'shift_change') {
+		// SC2: a planned work day, to another shift.
+		if (plan.shiftId === null) issues.add('missing_shift');
+		if (!works(a, firstDate)) issues.add('a_not_working');
+		else if (plan.shiftId !== null && dayOf(a, firstDate)?.shiftId === plan.shiftId)
+			issues.add('same_shift');
+	} else if (kind === 'self_swap') {
 		if (!works(a, firstDate)) issues.add('a_not_working');
 		if (secondDate !== null && works(a, secondDate)) issues.add('o_not_off');
 	} else if (b !== null) {
@@ -101,8 +112,8 @@ export type SwapOverride = { staffId: string; shiftDate: string; shiftId: string
 
 /**
  * The one-off shifts an approved swap creates (R12). Self: W off, O works W's shift. Employee: on D
- * A is off and B works A's shift; on D2 B is off and A works B's shift. Call only when `checkSwap`
- * found nothing.
+ * A is off and B works A's shift; on D2 B is off and A works B's shift. Shift change: A works the
+ * new shift on the date (SC3). Call only when `checkSwap` found nothing.
  */
 export function swapOverrides(
 	plan: SwapPlan,
@@ -110,6 +121,10 @@ export function swapOverrides(
 ): SwapOverride[] {
 	const shiftOf = (who: string, date: string) => dayOf(who, date)?.shiftId ?? null;
 	const { staffId: a, otherStaffId: b, firstDate, secondDate } = plan;
+	if (plan.kind === 'shift_change')
+		return plan.shiftId === null
+			? []
+			: [{ staffId: a, shiftDate: firstDate, shiftId: plan.shiftId }];
 	if (plan.kind === 'self_swap') {
 		if (secondDate === null) return [];
 		return [

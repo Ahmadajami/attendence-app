@@ -32,13 +32,15 @@
 		type SwapMessage
 	} from '#lib/schemas/swap.schema.js';
 	import { statusToasts } from '#lib/utils/form-toasts.js';
-	import { personName } from '#lib/utils/locale.js';
+	import { lookupName, personName } from '#lib/utils/locale.js';
 	import PersonPicker from './PersonPicker.svelte';
 	import SwapEffect from './SwapEffect.svelte';
 
 	// New swap (swaps plan SW2, SW3, SW9): the kind, the people, the dates, the scope, "pay as
-	// overtime" and a reason. A and B's roster for a month shows who works and who is off; tapping a
-	// day sets the picked date. A live preview shows what the swap does. Each read asks only about
+	// overtime" and a reason. A shift change (plan 2026-11-11-shift-change-request) is one person,
+	// one work day and the new shift: no second date, no scope, never "pay as overtime". A and B's
+	// roster for a month shows who works and who is off; tapping a day sets the picked date. A live
+	// preview shows what the swap does. Each read asks only about
 	// the fields it needs, and keeps its last answer on screen while the next one loads. Save
 	// request leaves it pending; Save and approve (`roster.manage`) applies it at once; either
 	// opens the saved swap on `/changes`.
@@ -46,13 +48,18 @@
 	type Props = {
 		data: SuperValidated<SwapFormInput, SwapMessage>;
 		shifts: ReadonlyMap<string, Pick<RosterShift, 'code' | 'colour'>>;
+		/** The active shifts a shift change can move to. */
+		shiftOptions: Pick<
+			RosterShift,
+			'id' | 'code' | 'nameEn' | 'nameAr' | 'startTime' | 'endTime'
+		>[];
 		canApprove: boolean;
 		/** Person A as loaded (`?staff=`), for the picker's label. */
 		person: PersonOption | null;
 		today: string;
 	};
 
-	let { data, shifts, canApprove, person, today }: Props = $props();
+	let { data, shifts, shiftOptions, canApprove, person, today }: Props = $props();
 
 	const form = superForm(
 		untrack(() => data),
@@ -75,10 +82,12 @@
 	// The fields the reads depend on, one by one: typing the reason asks the server nothing.
 	const kind = $derived($formData.kind);
 	const emp = $derived(kind === 'emp_swap');
+	const change = $derived(kind === 'shift_change');
+	const shiftId = $derived(change ? $formData.shiftId : '');
 	const staffId = $derived($formData.staffId);
 	const otherStaffId = $derived(emp ? $formData.otherStaffId : '');
 	const firstDate = $derived($formData.firstDate);
-	const secondDate = $derived($formData.secondDate);
+	const secondDate = $derived(change ? '' : $formData.secondDate);
 	const scope = $derived($formData.scope);
 
 	/** Drops an answer that arrives after a newer question. */
@@ -88,10 +97,22 @@
 	};
 
 	const effect = resource(
-		[() => kind, () => staffId, () => otherStaffId, () => firstDate, () => secondDate, () => scope],
-		async ([kind, staffId, otherStaffId, firstDate, secondDate, scope], _previous, { signal }) =>
+		[
+			() => kind,
+			() => staffId,
+			() => otherStaffId,
+			() => firstDate,
+			() => secondDate,
+			() => shiftId,
+			() => scope
+		],
+		async (
+			[kind, staffId, otherStaffId, firstDate, secondDate, shiftId, scope],
+			_previous,
+			{ signal }
+		) =>
 			fresh(
-				await previewSwap({ kind, staffId, otherStaffId, firstDate, secondDate, scope }),
+				await previewSwap({ kind, staffId, otherStaffId, firstDate, secondDate, shiftId, scope }),
 				signal
 			),
 		{ debounce: 300 }
@@ -123,6 +144,10 @@
 	/** Which date a tap on the grid sets; it moves on to the other one after a tap. */
 	let pick = $state<DateTarget>('first');
 	function pickDay(date: string) {
+		if (change) {
+			$formData.firstDate = date;
+			return;
+		}
 		if (pick === 'first') {
 			$formData.firstDate = date;
 			pick = 'second';
@@ -131,6 +156,14 @@
 			pick = 'first';
 		}
 	}
+
+	const clock = (time: string) => time.slice(0, 5);
+	const shiftLabel = (id: string) => {
+		const shift = shiftOptions.find((s) => s.id === id);
+		return shift
+			? `${shift.code} · ${lookupName(shift)} · ${clock(shift.startTime)}–${clock(shift.endTime)}`
+			: m.swap_field_shift();
+	};
 </script>
 
 <form method="POST" class="flex flex-col gap-4" use:enhance>
@@ -158,24 +191,29 @@
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
-				<Form.Field {form} name="scope">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Form.Label>{m.swap_field_scope()}</Form.Label>
-							<Select.Root type="single" name={props.name} bind:value={$formData.scope}>
-								<Select.Trigger {...props} class="w-full">
-									{SWAP_SCOPE_LABEL[$formData.scope]()}
-								</Select.Trigger>
-								<Select.Content>
-									{#each SWAP_SCOPES as option (option)}
-										<Select.Item value={option} label={SWAP_SCOPE_LABEL[option as SwapScope]()} />
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						{/snippet}
-					</Form.Control>
-					<Form.FieldErrors />
-				</Form.Field>
+				{#if change}
+					<!-- A shift change has no second date, so no scope; the hidden field keeps its value. -->
+					<input type="hidden" name="scope" value={$formData.scope} />
+				{:else}
+					<Form.Field {form} name="scope">
+						<Form.Control>
+							{#snippet children({ props })}
+								<Form.Label>{m.swap_field_scope()}</Form.Label>
+								<Select.Root type="single" name={props.name} bind:value={$formData.scope}>
+									<Select.Trigger {...props} class="w-full">
+										{SWAP_SCOPE_LABEL[$formData.scope]()}
+									</Select.Trigger>
+									<Select.Content>
+										{#each SWAP_SCOPES as option (option)}
+											<Select.Item value={option} label={SWAP_SCOPE_LABEL[option as SwapScope]()} />
+										{/each}
+									</Select.Content>
+								</Select.Root>
+							{/snippet}
+						</Form.Control>
+						<Form.FieldErrors />
+					</Form.Field>
+				{/if}
 				<Form.Field {form} name="staffId">
 					<Form.Control>
 						{#snippet children({ props })}
@@ -202,24 +240,49 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<Form.Label>
-								{emp ? m.swap_field_emp_first() : m.swap_field_self_first()}
+								{change
+									? m.swap_field_change_date()
+									: emp
+										? m.swap_field_emp_first()
+										: m.swap_field_self_first()}
 							</Form.Label>
 							<Input {...props} type="date" bind:value={$formData.firstDate} />
 						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
-				<Form.Field {form} name="secondDate">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Form.Label>
-								{emp ? m.swap_field_emp_second() : m.swap_field_self_second()}
-							</Form.Label>
-							<Input {...props} type="date" bind:value={$formData.secondDate} />
-						{/snippet}
-					</Form.Control>
-					<Form.FieldErrors />
-				</Form.Field>
+				{#if change}
+					<Form.Field {form} name="shiftId">
+						<Form.Control>
+							{#snippet children({ props })}
+								<Form.Label>{m.swap_field_shift()}</Form.Label>
+								<Select.Root type="single" name={props.name} bind:value={$formData.shiftId}>
+									<Select.Trigger {...props} class="w-full">
+										{shiftLabel($formData.shiftId)}
+									</Select.Trigger>
+									<Select.Content>
+										{#each shiftOptions as option (option.id)}
+											<Select.Item value={option.id} label={shiftLabel(option.id)} />
+										{/each}
+									</Select.Content>
+								</Select.Root>
+							{/snippet}
+						</Form.Control>
+						<Form.FieldErrors />
+					</Form.Field>
+				{:else}
+					<Form.Field {form} name="secondDate">
+						<Form.Control>
+							{#snippet children({ props })}
+								<Form.Label>
+									{emp ? m.swap_field_emp_second() : m.swap_field_self_second()}
+								</Form.Label>
+								<Input {...props} type="date" bind:value={$formData.secondDate} />
+							{/snippet}
+						</Form.Control>
+						<Form.FieldErrors />
+					</Form.Field>
+				{/if}
 			</div>
 		</Card.Content>
 	</Card.Root>
@@ -263,19 +326,23 @@
 			{:else}
 				<div class="flex flex-wrap items-center gap-2 text-sm">
 					<span class="text-muted-foreground">{m.swap_roster_pick()}</span>
-					<ToggleGroup.Root
-						type="single"
-						variant="outline"
-						size="sm"
-						bind:value={() => pick, (value) => value && (pick = value as DateTarget)}
-					>
-						<ToggleGroup.Item value="first">
-							{emp ? m.swap_pick_emp_first() : m.swap_pick_self_first()}
-						</ToggleGroup.Item>
-						<ToggleGroup.Item value="second">
-							{emp ? m.swap_pick_emp_second() : m.swap_pick_self_second()}
-						</ToggleGroup.Item>
-					</ToggleGroup.Root>
+					{#if change}
+						<span class="font-medium">{m.swap_pick_change_date()}</span>
+					{:else}
+						<ToggleGroup.Root
+							type="single"
+							variant="outline"
+							size="sm"
+							bind:value={() => pick, (value) => value && (pick = value as DateTarget)}
+						>
+							<ToggleGroup.Item value="first">
+								{emp ? m.swap_pick_emp_first() : m.swap_pick_self_first()}
+							</ToggleGroup.Item>
+							<ToggleGroup.Item value="second">
+								{emp ? m.swap_pick_emp_second() : m.swap_pick_self_second()}
+							</ToggleGroup.Item>
+						</ToggleGroup.Root>
+					{/if}
 					{#if roster.loading}
 						<SpinnerGapIcon class="size-4 animate-spin text-muted-foreground" />
 					{/if}
@@ -315,17 +382,20 @@
 			<Card.Title>{m.swap_section_save()}</Card.Title>
 		</Card.Header>
 		<Card.Content class="flex flex-col gap-4">
-			<Form.Field {form} name="payAsOt" class="flex flex-col gap-1">
-				<Form.Control>
-					{#snippet children({ props })}
-						<div class="flex items-center gap-2">
-							<Checkbox {...props} bind:checked={$formData.payAsOt} />
-							<Form.Label>{m.swap_field_pay_as_ot()}</Form.Label>
-						</div>
-					{/snippet}
-				</Form.Control>
-				<Form.Description>{m.swap_pay_as_ot_hint()}</Form.Description>
-			</Form.Field>
+			{#if !change}
+				<!-- A shift change is a normal work day on the new shift, never off-day pay (SC4). -->
+				<Form.Field {form} name="payAsOt" class="flex flex-col gap-1">
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center gap-2">
+								<Checkbox {...props} bind:checked={$formData.payAsOt} />
+								<Form.Label>{m.swap_field_pay_as_ot()}</Form.Label>
+							</div>
+						{/snippet}
+					</Form.Control>
+					<Form.Description>{m.swap_pay_as_ot_hint()}</Form.Description>
+				</Form.Field>
+			{/if}
 			<Form.Field {form} name="reason">
 				<Form.Control>
 					{#snippet children({ props })}

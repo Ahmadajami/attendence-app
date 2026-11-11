@@ -1,0 +1,4 @@
+ALTER TYPE "public"."swap_kind" ADD VALUE 'shift_change';--> statement-breakpoint
+ALTER TABLE "swap_request" ADD COLUMN "shift_id" uuid;--> statement-breakpoint
+ALTER TABLE "swap_request" ADD CONSTRAINT "swap_request_shift_id_shift_id_fk" FOREIGN KEY ("shift_id") REFERENCES "public"."shift"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "swap_request" ADD CONSTRAINT "swap_request_shift_change" CHECK (("swap_request"."kind"::text = 'shift_change') = ("swap_request"."shift_id" IS NOT NULL) AND ("swap_request"."kind"::text <> 'shift_change' OR ("swap_request"."second_date" IS NULL AND NOT "swap_request"."pay_as_ot")));

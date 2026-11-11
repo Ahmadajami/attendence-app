@@ -34,7 +34,7 @@
 		day: RosterDay;
 		/** The person's events on this shift date, corrections and corrected ones included. */
 		events: EventRow[];
-		/** Every shift (events may point at an inactive one); new pairs offer the active ones. */
+		/** Every shift, for the day's History (punches themselves carry none, plan PS1). */
 		shifts: RosterShift[];
 		/** May add and correct punches (`attendance.record`). */
 		canRecord: boolean;
@@ -54,9 +54,6 @@
 	let editOpen = $state(false);
 	let historyOpen = $state(false);
 	const target = $derived({ staffId, name, date: day.date, state: day.absenceType });
-
-	const byId = $derived(new Map(shifts.map((s) => [s.id, s])));
-	const activeShifts = $derived(shifts.filter((s) => s.active));
 
 	/** The event that corrects each corrected event. */
 	const correctionOf = $derived(
@@ -122,6 +119,17 @@
 				<ArrowsLeftRightIcon data-icon="inline-start" />
 				{m.swaps_new()}
 			</Button>
+			{#if day.shift && day.source !== 'absence'}
+				<!-- Worked another shift this day: change the roster, not the punches (plan SC5). -->
+				<Button
+					variant="outline"
+					size="sm"
+					href={`${localizedHref('/changes/new')}?kind=shift_change&staff=${staffId}&date=${day.date}`}
+				>
+					<ArrowsLeftRightIcon data-icon="inline-start" />
+					{m.shift_change_new()}
+				</Button>
+			{/if}
 		{/if}
 		<Button type="button" variant="outline" size="sm" onclick={() => (historyOpen = true)}>
 			<ClockCounterClockwiseIcon data-icon="inline-start" />
@@ -142,7 +150,6 @@
 		<ul class="flex flex-col gap-2">
 			{#each listed as event (event.id)}
 				{const correction = $derived(correctionOf.get(event.id))}
-				{const shift = $derived(byId.get(event.shiftId))}
 				<li class="flex flex-col gap-2 rounded-md border p-2">
 					<div class="flex flex-wrap items-center gap-2 text-sm">
 						<span class={correction ? 'text-muted-foreground line-through' : 'font-medium'}>
@@ -152,7 +159,6 @@
 						{#if calendarDate(event.occurredAt) !== day.date}
 							<Badge variant="secondary">{m.attendance_next_day()}</Badge>
 						{/if}
-						{#if shift}<ShiftChip {shift} />{/if}
 						{#if event.correctsEventId}
 							<Badge variant="outline">{m.attendance_correction()}</Badge>
 						{/if}
@@ -194,8 +200,6 @@
 			<AddPairForm
 				{staffId}
 				shiftDate={day.date}
-				plannedShiftId={day.shiftId}
-				shifts={activeShifts}
 				onSaved={() => (adding = false)}
 				onCancel={() => (adding = false)}
 			/>

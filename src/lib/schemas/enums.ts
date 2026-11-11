@@ -130,7 +130,8 @@ export type LogCause = (typeof LOG_CAUSES)[number];
  * Self swap: a person's work day becomes off and their off day works that shift. Employee swap: on
  * a date A works and B is off, then B works A's shift; an optional return date reverses it (PR26).
  */
-export const SWAP_KINDS = ['self_swap', 'emp_swap'] as const;
+/** `shift_change`: one person, one date, another shift (plan 2026-11-11-shift-change-request). */
+export const SWAP_KINDS = ['self_swap', 'emp_swap', 'shift_change'] as const;
 export type SwapKind = (typeof SWAP_KINDS)[number];
 
 /** Both days of a swap lie in the same Sunday–Saturday week, or the same calendar month. */

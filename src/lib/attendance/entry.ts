@@ -17,7 +17,7 @@ import { AIRPORT_TIME_ZONE } from '#lib/utils/datetime.js';
 /** A check-in and its check-out; `null` while the check-out is missing (never invented). */
 export type Pair = { checkIn: Date; checkOut: Date | null };
 
-/** What resolving and checking a typed pair needs from its shift. */
+/** What resolving and checking a typed pair needs from the roster's planned shift (plan PS2). */
 export type EntryShift = Pick<
 	RosterShift,
 	'startTime' | 'endTime' | 'windowBeforeMinutes' | 'windowAfterMinutes'
@@ -57,18 +57,19 @@ export function clockOf(at: Date, timeZone: string = AIRPORT_TIME_ZONE): string 
 }
 
 /**
- * A typed check-in on a shift date: that wall-clock time on the shift date, except on a shift that
- * ends the next day, where a time before the shift's window opens (`start − window_before`) is the
- * next morning (02:00 typed for a 19:00 night is 02:00 the day after).
+ * A typed check-in on a shift date: that wall-clock time on the shift date. Only when the roster
+ * plans a shift that ends the next day is a time before that shift's window opens
+ * (`start − window_before`) the next morning (02:00 typed on a 19:00 night is 02:00 the day after).
+ * `shift` is the roster's planned shift, `null` on a day off (punches carry no shift, plan PS1).
  */
 export function resolveCheckIn(
 	shiftDate: string,
-	shift: EntryShift,
+	shift: EntryShift | null,
 	time: string,
 	timeZone: string = AIRPORT_TIME_ZONE
 ): Date {
-	const opens = parseClock(shift.startTime) - shift.windowBeforeMinutes;
-	const nextDay = endsNextDay(shift) && parseClock(time) < opens;
+	const opens = shift ? parseClock(shift.startTime) - shift.windowBeforeMinutes : 0;
+	const nextDay = shift !== null && endsNextDay(shift) && parseClock(time) < opens;
 	return wallClock(nextDay ? addDays(shiftDate, 1) : shiftDate, time, timeZone);
 }
 
@@ -89,7 +90,7 @@ export function resolveCheckOut(
  */
 export function resolvePair(
 	shiftDate: string,
-	shift: EntryShift,
+	shift: EntryShift | null,
 	checkIn: string,
 	checkOut: string | null,
 	timeZone: string = AIRPORT_TIME_ZONE
@@ -115,9 +116,8 @@ export type PairIssue = 'span_too_long' | 'overlap' | 'future' | 'outside_window
 
 export type PairContext = {
 	shiftDate: string;
-	shift: EntryShift;
-	/** The person is rostered on this shift that day. */
-	planned: boolean;
+	/** The roster's planned shift that day; `null` on a day off. */
+	shift: EntryShift | null;
 	/** The person's other effective pairs, on any shift date. */
 	others: readonly Pair[];
 	now: Date;
@@ -126,8 +126,8 @@ export type PairContext = {
 
 /**
  * Errors refuse the pair: longer than 16 h, overlapping another pair, or in the future. Warnings
- * don't: a time outside the shift's attribution window, or a punch on an unplanned day (the
- * service then requires a reason).
+ * never refuse (plan PS4, PS5): times that don't fit the planned shift's attribution window, or a
+ * punch on a day off (the roster plans no shift).
  */
 export function validatePair(
 	pair: Pair,
@@ -143,11 +143,12 @@ export function validatePair(
 	if (pair.checkIn.getTime() > now || (pair.checkOut && pair.checkOut.getTime() > now))
 		errors.push('future');
 
-	const window = attributionWindow(ctx.shiftDate, ctx.shift, ctx.timeZone);
-	const inside = (at: Date) => at >= window.start && at <= window.end;
-	if (!inside(pair.checkIn) || (pair.checkOut && !inside(pair.checkOut)))
-		warnings.push('outside_window');
-	if (!ctx.planned) warnings.push('unplanned');
+	if (ctx.shift) {
+		const window = attributionWindow(ctx.shiftDate, ctx.shift, ctx.timeZone);
+		const inside = (at: Date) => at >= window.start && at <= window.end;
+		if (!inside(pair.checkIn) || (pair.checkOut && !inside(pair.checkOut)))
+			warnings.push('outside_window');
+	} else warnings.push('unplanned');
 
 	return { errors, warnings };
 }

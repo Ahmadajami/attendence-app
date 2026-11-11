@@ -225,7 +225,6 @@ try {
 		const base = {
 			staffId: staffIds[p.person],
 			shiftDate: p.shiftDate,
-			shiftId: shiftIds[p.shift],
 			teamId,
 			recordedBy: actor,
 			source: 'seed' as const,

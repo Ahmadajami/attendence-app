@@ -28,7 +28,6 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import * as Select from '#lib/components/ui/select/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -42,7 +41,7 @@
 	import type { EntrySheet } from '#lib/server/services/attendance/attendance.bl.js';
 	import type { EventRow } from '#lib/server/services/attendance/attendance.crud.js';
 	import { statusToasts } from '#lib/utils/form-toasts.js';
-	import { lookupName, personName } from '#lib/utils/locale.js';
+	import { personName } from '#lib/utils/locale.js';
 
 	type Props = {
 		data: SuperValidated<Infer<typeof entrySheetSchema>, AttendanceMessage>;
@@ -67,7 +66,7 @@
 		day: RosterDay;
 		events: EventRow[];
 		others: Pair[];
-		/** Added with "+ add person": not planned on this shift. */
+		/** Added with "+ add person" (not planned that day). */
 		added: boolean;
 		/** The stored daily record (pay plan 5.3); `null` until the day is computed. */
 		figures: DayFigures | null;
@@ -77,8 +76,10 @@
 	let available = $state(untrack(() => sheet.others));
 
 	const shiftsById = $derived(new Map(sheet.shifts.map((s) => [s.id, s])));
-	const activeShifts = $derived(sheet.shifts.filter((s) => s.active));
 	const now = new Date();
+
+	/** The roster's planned shift that day; `null` on a day off (punches carry no shift, PS1). */
+	const plannedOf = (day: RosterDay) => (day.shift && day.start ? day.shift : null);
 
 	const CLOCK = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
@@ -86,14 +87,13 @@
 	function check(index: number) {
 		const row = $formData.rows[index];
 		const v = view[index];
-		const shift = shiftsById.get(row.shiftId);
-		if (!shift || row.absence || !CLOCK.test(row.checkIn)) return null;
+		if (row.absence || !CLOCK.test(row.checkIn)) return null;
 		if (row.checkOut && !CLOCK.test(row.checkOut)) return null;
+		const shift = plannedOf(v.day);
 		const pair = resolvePair(sheet.shiftDate, shift, row.checkIn, row.checkOut || null);
 		const result = validatePair(pair, {
 			shiftDate: sheet.shiftDate,
 			shift,
-			planned: v.day.shiftId === row.shiftId,
 			others: [...v.others, ...toPairs(pairsOf(v.events))],
 			now
 		});
@@ -134,26 +134,19 @@
 				: { ...row, absence, checkIn: '', checkOut: '' };
 	}
 
-	const shiftLabel = (id: string) => {
-		const shift = shiftsById.get(id);
-		return shift ? `${shift.code} · ${lookupName(shift)}` : m.attendance_pick_shift();
-	};
-
 	let addStaffId = $state('');
-	let addShiftId = $state(untrack(() => sheet.shifts.find((s) => s.active)?.id ?? ''));
 	/** The people not on the sheet yet, as the add picker lists them. */
 	const availablePeople = $derived(available.map((o) => o.person));
 
 	function addPerson() {
 		const picked = available.find((o) => o.person.staffId === addStaffId);
-		if (!picked || !addShiftId) return;
+		if (!picked) return;
 		view = [...view, { ...picked, events: [], added: true, figures: null }];
 		available = available.filter((o) => o !== picked);
 		$formData.rows = [
 			...$formData.rows,
 			{
 				staffId: picked.person.staffId,
-				shiftId: addShiftId,
 				checkIn: '',
 				checkOut: '',
 				absence: '',
@@ -258,7 +251,7 @@
 					{const row = $derived($formData.rows[index])}
 					{const result = $derived(checks[index])}
 					{const existing = $derived(pairsOf(v.events))}
-					{const planned = $derived(shiftsById.get(v.day.shiftId ?? ''))}
+					{const planned = $derived(plannedOf(v.day))}
 					{const name = $derived(personName(v.person))}
 					<Table.Row class="align-top">
 						<Table.Cell>
@@ -279,38 +272,16 @@
 											: m.roster_preview_absent()}
 									</Badge>
 								{/if}
-								{#if v.added || !planned}
-									<Form.Field {form} name={`rows[${index}].shiftId`}>
-										<Form.Control>
-											{#snippet children({ props })}
-												<Form.Label class="sr-only">
-													{m.attendance_shift_for({ name })}
-												</Form.Label>
-												<Select.Root
-													type="single"
-													value={$formData.rows[index].shiftId}
-													onValueChange={(value) => ($formData.rows[index].shiftId = value)}
-												>
-													<Select.Trigger {...props} class="w-44" tabindex={-1}>
-														{shiftLabel($formData.rows[index].shiftId)}
-													</Select.Trigger>
-													<Select.Content>
-														{#each activeShifts as option (option.id)}
-															<Select.Item value={option.id} label={shiftLabel(option.id)} />
-														{/each}
-													</Select.Content>
-												</Select.Root>
-											{/snippet}
-										</Form.Control>
-										<Form.FieldErrors />
-									</Form.Field>
-								{:else}
+								<!-- The roster decides; nobody picks a shift for a punch (PS1–PS3). -->
+								{#if planned}
 									<span class="inline-flex items-center gap-2">
 										<ShiftChip shift={planned} />
 										<bdi class="text-sm text-muted-foreground" dir="ltr">
 											{planned.startTime.slice(0, 5)} → {planned.endTime.slice(0, 5)}
 										</bdi>
 									</span>
+								{:else if v.day.source !== 'absence'}
+									<Badge variant="secondary">{m.attendance_planned_off()}</Badge>
 								{/if}
 								{#if existing.length > 0}
 									<ul class="flex flex-col gap-0.5 text-xs text-muted-foreground">
@@ -378,7 +349,7 @@
 						</Table.Cell>
 						<Table.Cell class="min-w-56">
 							<div class="flex flex-col gap-1">
-								{#if v.added || !planned || row.absence}
+								{#if !planned || row.absence}
 									<Form.Field {form} name={`rows[${index}].reason`}>
 										<Form.Control>
 											{#snippet children({ props })}
@@ -387,9 +358,7 @@
 													{...props}
 													bind:value={$formData.rows[index].reason}
 													class="h-8"
-													placeholder={row.absence
-														? m.attendance_reason_optional()
-														: m.attendance_reason_required()}
+													placeholder={m.attendance_reason_optional()}
 												/>
 											{/snippet}
 										</Form.Control>
@@ -402,6 +371,17 @@
 								{/if}
 								{#if result && result.warnings.length > 0}
 									<p class="text-xs text-warning">{issuesText(result.warnings)}</p>
+									{#if planned && result.warnings.includes('outside_window')}
+										<!-- Another shift than planned: fix the roster with a shift change (SC5). -->
+										<Button
+											variant="link"
+											size="sm"
+											class="h-auto self-start p-0 text-xs"
+											href={`${localizedHref('/changes/new')}?kind=shift_change&staff=${v.person.staffId}&date=${sheet.shiftDate}`}
+										>
+											{m.attendance_shift_change_link()}
+										</Button>
+									{/if}
 								{/if}
 							</div>
 						</Table.Cell>
@@ -434,16 +414,6 @@
 				aria-label={m.attendance_add_person()}
 				class="w-64"
 			/>
-			<Select.Root type="single" bind:value={addShiftId}>
-				<Select.Trigger class="w-44" aria-label={m.attendance_col_shift()}>
-					{shiftLabel(addShiftId)}
-				</Select.Trigger>
-				<Select.Content>
-					{#each activeShifts as option (option.id)}
-						<Select.Item value={option.id} label={shiftLabel(option.id)} />
-					{/each}
-				</Select.Content>
-			</Select.Root>
 			<Button type="button" variant="outline" disabled={!addStaffId} onclick={addPerson}>
 				<PlusIcon data-icon="inline-start" />
 				{m.attendance_add_person()}

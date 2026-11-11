@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { D, E, N } from '#lib/roster/test-shifts.js';
+import { D, N } from '#lib/roster/test-shifts.js';
 import type { RosterShift } from '#lib/roster/shift.js';
 import {
 	MissingHeaderError,
 	planPunchImport,
+	readPunchMarkdown,
 	readPunchSheet,
 	type ExistingEvent,
 	type ImportInput,
@@ -39,7 +40,6 @@ function input(rows: PunchRow[], patch: Partial<ImportInput> = {}): ImportInput 
 			['9002', BOB]
 		]),
 		days: new Map(plan.map(([s, d, shift]) => [`${s} ${d}`, day(s, d, shift)])),
-		shifts: [D, N, E],
 		existing: [],
 		from: '2026-10-01',
 		to: '2026-10-31',
@@ -111,8 +111,34 @@ describe('readPunchSheet', () => {
 	});
 });
 
+describe('readPunchMarkdown', () => {
+	it('reads the October table: ID, Date, Check In, Check Out, a dash for no punch', () => {
+		const text = [
+			'# Made-up team',
+			'',
+			'| ID | Name | Date | Day | Check In | Check Out | Status |',
+			'|---|---|---|---|---|---|---|',
+			'| 9001 | Test A | 2026-10-05 | Mon | 07:00 | 19:00 | ontime |',
+			'| 9001 | Test A | 2026-10-06 | Tue | 19:36 | 09:00 | overtime |',
+			'| 9002 | Test B | 2026-10-05 | Mon | — | — | off |',
+			'| 9002 | Test B | 2026-10-06 | Tue | 25:00 | — | delay |'
+		].join('\n');
+		const { rows, issues, empty } = readPunchMarkdown(text);
+		expect(rows).toEqual([
+			row(5, '9001', '2026-10-05', '07:00', '19:00'),
+			row(6, '9001', '2026-10-06', '19:36', '09:00')
+		]);
+		expect(empty).toBe(1);
+		expect(issues).toEqual([{ line: 8, issue: 'bad_time' }]);
+	});
+
+	it('refuses a table without the needed columns', () => {
+		expect(() => readPunchMarkdown('| ID | Date |\n|---|---|')).toThrow(MissingHeaderError);
+	});
+});
+
 describe('planPunchImport', () => {
-	it('puts a planned day pair on the planned shift with no reason', () => {
+	it('reads a planned day pair against the planned shift, with no warning', () => {
 		const plan = planPunchImport(input([row(2, '9001', '2026-10-05', '06:55', '19:05')]));
 		expect(plan.rejected).toEqual([]);
 		expect(plan.pairs).toHaveLength(1);
@@ -120,8 +146,7 @@ describe('planPunchImport', () => {
 		expect(pair).toMatchObject({
 			staffId: ALICE,
 			shiftDate: '2026-10-05',
-			shiftId: 'D',
-			planned: true,
+			plannedShiftId: 'D',
 			warnings: []
 		});
 		expect(pair.events.map((e) => [e.type, iso(e.occurredAt), e.teamId, e.reason])).toEqual([
@@ -133,7 +158,7 @@ describe('planPunchImport', () => {
 	it('reads a night row like the entry sheet: an earlier check-out is the next morning', () => {
 		const plan = planPunchImport(input([row(2, '9001', '2026-10-06', '18:50', '07:10')]));
 		const [pair] = plan.pairs;
-		expect(pair).toMatchObject({ shiftDate: '2026-10-06', shiftId: 'N', planned: true });
+		expect(pair).toMatchObject({ shiftDate: '2026-10-06', plannedShiftId: 'N' });
 		expect(pair.events.map((e) => iso(e.occurredAt))).toEqual([
 			iso(at('2026-10-06T18:50')),
 			iso(at('2026-10-07T07:10'))
@@ -158,36 +183,27 @@ describe('planPunchImport', () => {
 		]);
 	});
 
-	it('counts work on an off day for the best-fitting shift, unplanned, with the reason', () => {
+	it('keeps work on a day off with no shift, a warning and the note', () => {
 		const plan = planPunchImport(input([row(2, '9001', '2026-10-07', '07:05', '19:00')]));
 		const [pair] = plan.pairs;
+		expect(plan.rejected).toEqual([]);
 		expect(pair).toMatchObject({
 			shiftDate: '2026-10-07',
-			shiftId: 'D',
-			planned: false,
+			plannedShiftId: null,
 			warnings: ['unplanned']
 		});
 		expect(pair.events.every((e) => e.reason === 'test reason')).toBe(true);
 	});
 
-	it('moves night times on a planned day shift to the night shift of that date', () => {
+	it('keeps night times on a planned day shift on that date, with a warning (fix the roster)', () => {
 		const plan = planPunchImport(input([row(2, '9001', '2026-10-05', '19:00', '07:00')]));
 		const [pair] = plan.pairs;
 		expect(pair).toMatchObject({
 			shiftDate: '2026-10-05',
-			shiftId: 'N',
-			planned: false,
-			warnings: ['unplanned']
+			plannedShiftId: 'D',
+			warnings: ['outside_window']
 		});
 		expect(iso(pair.events[1].occurredAt)).toBe(iso(at('2026-10-06T07:00')));
-	});
-
-	it('gives a tie to the shift listed first', () => {
-		const N2: RosterShift = { ...N, id: 'N2', code: 'N2' };
-		const plan = planPunchImport(
-			input([row(2, '9001', '2026-10-07', '19:00', '07:00')], { shifts: [N2, D, N, E] })
-		);
-		expect(plan.pairs[0].shiftId).toBe('N2');
 	});
 
 	it('keeps a check-in without a check-out as an open pair', () => {

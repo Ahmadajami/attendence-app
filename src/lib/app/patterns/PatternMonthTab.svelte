@@ -252,7 +252,9 @@
 						{const second = $derived(swap.secondDate ? formatCalendarDate(swap.secondDate) : null)}
 						<li class="flex flex-wrap items-center gap-x-2">
 							<bdi>
-								{#if swap.kind === 'self_swap'}
+								{#if swap.kind === 'shift_change'}
+									{m.patterns_month_swap_shift_change({ date: first, a })}
+								{:else if swap.kind === 'self_swap'}
 									{m.patterns_month_swap_self({ date: first, second: second ?? '—', a })}
 								{:else if second}
 									{m.patterns_month_swap_return({

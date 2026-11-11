@@ -155,6 +155,20 @@
       "when": 1794145368854,
       "tag": "0021_staff_legacy_badge_no",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794398252000,
+      "tag": "0022_punches_without_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794403467811,
+      "tag": "0023_shift_change_request",
+      "breakpoints": true
     }
   ]
 }

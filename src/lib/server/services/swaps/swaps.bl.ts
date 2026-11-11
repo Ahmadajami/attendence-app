@@ -102,14 +102,17 @@ const planOf = (row: {
 	otherStaffId: string | null | '';
 	firstDate: string;
 	secondDate: string | null | '';
+	shiftId?: string | null | '';
 	scope: SwapPlan['scope'];
 }): SwapPlan => ({
 	kind: row.kind,
 	staffId: row.staffId,
 	otherStaffId: row.kind === 'emp_swap' && row.otherStaffId ? row.otherStaffId : null,
 	firstDate: row.firstDate,
-	secondDate: row.secondDate || null,
-	scope: row.scope
+	// A shift change is one date and one shift (SC1); the others carry no shift.
+	secondDate: row.kind === 'shift_change' ? null : row.secondDate || null,
+	scope: row.scope,
+	shiftId: row.kind === 'shift_change' && row.shiftId ? row.shiftId : null
 });
 
 /** The first and last date of a swap. */
@@ -225,6 +228,7 @@ const auditAfter = (plan: SwapPlan, payAsOt: boolean, state: SwapState) => ({
 	otherStaffId: plan.otherStaffId,
 	firstDate: plan.firstDate,
 	secondDate: plan.secondDate,
+	shiftId: plan.shiftId,
 	scope: plan.scope,
 	payAsOt,
 	state
@@ -287,6 +291,8 @@ export async function createSwap(
 		throw new NotFoundError(m.attendance_error_person());
 	const issues = checkSwap(plan, loaded.dayOf, loaded.active);
 	if (issues.length > 0) throw blocked(issues, plan.scope);
+	// A shift change is never paid as overtime (SC1, SC4).
+	const payAsOt = plan.kind === 'shift_change' ? false : input.payAsOt;
 
 	const id = randomUUID();
 	const now = new Date();
@@ -298,8 +304,9 @@ export async function createSwap(
 		otherStaffId: plan.otherStaffId,
 		firstDate: plan.firstDate,
 		secondDate: plan.secondDate,
+		shiftId: plan.shiftId,
 		scope: plan.scope,
-		payAsOt: input.payAsOt,
+		payAsOt,
 		reason: input.reason,
 		requestedBy: actor.user.id
 	};
@@ -308,7 +315,7 @@ export async function createSwap(
 		action: 'swap.request',
 		entityType: 'swap_request',
 		entityId: id,
-		after: auditAfter(plan, input.payAsOt, 'pending')
+		after: auditAfter(plan, payAsOt, 'pending')
 	});
 	if (!input.approve) {
 		await batch([insertSwap(request), requested]);
@@ -325,7 +332,7 @@ export async function createSwap(
 				entityType: 'swap_request',
 				entityId: id,
 				before: { state: 'pending' },
-				after: auditAfter(plan, input.payAsOt, state)
+				after: auditAfter(plan, payAsOt, state)
 			})
 		])
 	);

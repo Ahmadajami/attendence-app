@@ -36,9 +36,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		form: await superValidate(
 			{
 				shiftDate: sheet.shiftDate,
-				rows: sheet.rows.map(({ person, day }) => ({
+				rows: sheet.rows.map(({ person }) => ({
 					staffId: person.staffId,
-					shiftId: day.shiftId ?? '',
 					checkIn: '',
 					checkOut: '',
 					absence: '' as const,

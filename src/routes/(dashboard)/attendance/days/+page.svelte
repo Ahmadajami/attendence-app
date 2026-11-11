@@ -2,6 +2,7 @@
 	import { tick } from 'svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
+	import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
@@ -332,6 +333,17 @@
 												<PencilSimpleIcon data-icon="inline-start" />
 												{m.daily_edit_day()}
 											</Button>
+											{#if f.kind === 'work' && f.shiftId && !f.swapRequestId}
+												<!-- Worked another shift on a planned work day: fix the roster (shift change SC5). -->
+												<Button
+													variant="ghost"
+													size="sm"
+													href={`${localizedHref('/changes/new')}?kind=shift_change&staff=${row.person.staffId}&date=${f.shiftDate}`}
+												>
+													<ArrowsLeftRightIcon data-icon="inline-start" />
+													{m.shift_change_new()}
+												</Button>
+											{/if}
 										{/if}
 										<Button
 											variant="ghost"

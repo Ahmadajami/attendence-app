@@ -222,6 +222,11 @@ export type ImportInput = {
 	reason: string | null;
 	source: PunchSource;
 	timeZone?: string;
+	/**
+	 * A pair over 16 hours is kept with a `span_too_long` warning instead of refused: a file brings
+	 * what the source recorded (Odoo paid these days, OC1); typed entry keeps refusing them.
+	 */
+	longSpanIsWarning?: boolean;
 };
 
 export type ImportRejection =
@@ -384,10 +389,13 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 			now: input.now,
 			timeZone
 		});
-		if (errors.length > 0) {
-			reject(row.line, errors[0] as ImportRejection);
+		const longOk = (input.longSpanIsWarning ?? false) && errors.includes('span_too_long');
+		const blocking = longOk ? errors.filter((e) => e !== 'span_too_long') : errors;
+		if (blocking.length > 0) {
+			reject(row.line, blocking[0] as ImportRejection);
 			continue;
 		}
+		if (longOk) warnings.push('span_too_long');
 
 		const reason = warnings.length > 0 ? input.reason : null;
 		plan.pairs.push({

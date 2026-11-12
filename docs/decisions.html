@@ -2607,6 +2607,182 @@
       ]
     },
     {
+      id: 'IM17', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §4 (6.1 note)',
+      title: {en: "A file import keeps a pair over 16 hours, with a warning", ar: "استيراد الملف يُبقي الزوج الأطول من 16 ساعة مع تنبيه"},
+      decision: {en: "The punch file import no longer refuses a check-in to check-out over 16 hours: it imports it with the warning span_too_long, shown in the preview. Typed entry and the day editor keep refusing it. Overlaps and future punches are still refused.", ar: "لم يعد استيراد ملف البصمات يرفض الدخول إلى الخروج الأطول من 16 ساعة: يستورده مع التنبيه span_too_long الظاهر في المعاينة. ويبقى الإدخال اليدوي ومحرر اليوم يرفضانه. ويبقى التداخل والبصمات المستقبلية مرفوضة."},
+      why: {en: "User, 2026-11-12: keep the three October days as Odoo recorded and paid them (OC1).", ar: "المستخدم، 2026-11-12: إبقاء أيام تشرين الأول الثلاثة كما سجلها أودو ودفعها (OC1)."},
+      alts: [
+        {en: "Refuse and fix by hand after the import: not chosen by the user — the values are real.", ar: "الرفض ثم التصحيح يدوياً بعد الاستيراد: لم يختره المستخدم — القيم حقيقية."},
+        {en: "Drop the 16-hour limit everywhere: not chosen — typed entry still needs it against forgotten check-outs.", ar: "إلغاء حد 16 ساعة في كل مكان: لم يُختر — الإدخال اليدوي ما زال يحتاجه ضد نسيان الخروج."}
+      ]
+    },
+    {
+      id: 'RI1', group: 'roster', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Rosters of imported history come in through /imports", ar: "استيراد جداول الأشهر السابقة عبر /imports"},
+      decision: {en: "Rosters of imported history (October 2026 for the 25 teams without one) are created by an import on /imports: preview, save as one batch, undo. Typing in the forms stays for day-to-day changes. Replaces RO7 for history.", ar: "تُنشأ جداول الأشهر السابقة (تشرين الأول 2026 للفرق الـ25 التي ليس لها جدول) باستيراد في /imports: معاينة، حفظ كدفعة واحدة، تراجع. ويبقى الإدخال في النماذج للتغييرات اليومية. يحل محل RO7 للتاريخ السابق."},
+      why: {en: "User, 2026-11-12: typing 25 teams is hundreds of form entries; the preview keeps every change visible before it is written.", ar: "المستخدم، 2026-11-12: إدخال 25 فريقاً يدوياً مئات الإدخالات؛ والمعاينة تُبقي كل تغيير ظاهراً قبل كتابته."},
+      alts: [
+        {en: "Keep RO7 (typing in the forms): not chosen by the user — too slow for a whole month of every team.", ar: "إبقاء RO7 (الإدخال في النماذج): لم يختره المستخدم — بطيء جداً لشهر كامل لكل الفرق."},
+        {en: "A script that writes the roster: not chosen — no preview or undo for HR.", ar: "سكربت يكتب الجدول: لم يُختر — لا معاينة ولا تراجع للموارد البشرية."}
+      ]
+    },
+    {
+      id: 'RI2', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Two import kinds: Shifts, then Roster", ar: "نوعا استيراد: المناوبات ثم الجدول"},
+      decision: {en: "A Shifts file (code, names, start, end, required and break minutes, colour) is imported first; a roster cell may only name an existing active shift.", ar: "يُستورد ملف المناوبات أولاً (الرمز، الأسماء، البداية، النهاية، الدقائق المطلوبة والاستراحة، اللون)؛ ولا يذكر الجدول إلا مناوبة نشطة موجودة."},
+      why: {en: "A shift is shared by many teams and created once.", ar: "المناوبة تشترك فيها فرق كثيرة وتُنشأ مرة واحدة."},
+      alts: [
+        {en: "Shift definitions inside the roster file: not chosen — mixes two tables in one sheet.", ar: "تعريف المناوبات داخل ملف الجدول: لم يُختر — يخلط جدولين في ورقة واحدة."}
+      ]
+    },
+    {
+      id: 'RI3', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "The roster file is HR’s month grid", ar: "ملف الجدول هو شبكة الشهر لدى الموارد البشرية"},
+      decision: {en: "Columns Employee No, Team, then one column per date (YYYY-MM-DD); each cell a shift code or O (off); an empty cell means no plan that day. One month per file.", ar: "الأعمدة: الرقم الوظيفي، الفريق، ثم عمود لكل تاريخ (YYYY-MM-DD)؛ كل خلية رمز مناوبة أو O (راحة)؛ الخلية الفارغة تعني لا خطة ذلك اليوم. شهر واحد لكل ملف."},
+      why: {en: "The shape HR already sends; the Odoo tool writes the same, so HR's workbooks can replace Odoo's plan later.", ar: "الشكل الذي ترسله الموارد البشرية أصلاً؛ وأداة أودو تكتب الشكل نفسه، فتحل ملفات الموارد البشرية محل خطة أودو لاحقاً."},
+      alts: [
+        {en: "Upload patterns, rules and day changes as separate tables: not chosen — HR thinks in day grids.", ar: "رفع الأنماط والقواعد وتغييرات الأيام كجداول منفصلة: لم يُختر — الموارد البشرية تفكر بشبكة الأيام."}
+      ]
+    },
+    {
+      id: 'RI4', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "The app fits the grid and replays it", ar: "التطبيق يحوّل الشبكة إلى جدول ويعيد تشغيلها"},
+      decision: {en: "Per team: the main shift and a weekly pattern with the team's most common off days; per person: a weekday off on more than half of their planned days on it (and at least twice) is an off day, and their off days become an own rule when they differ; another main shift gets a personal pattern (shared by people with the same shift and off days); every remaining day is a day change. Before save, the result is replayed through rosterDay and must give the file on every day.", ar: "لكل فريق: المناوبة الرئيسية ونمط أسبوعي بأيام الراحة الأكثر شيوعاً؛ لكل شخص: اليوم الذي يكون راحة في أكثر من نصف أيامه المخططة (ومرتين على الأقل) يوم راحة، وتصبح أيام راحته قاعدة خاصة إن اختلفت؛ ومن له مناوبة رئيسية أخرى يأخذ نمطاً شخصياً (يتشاركه من لهم المناوبة وأيام الراحة نفسها)؛ وكل يوم متبقٍ تغيير يوم. قبل الحفظ يُعاد تشغيل النتيجة عبر rosterDay ويجب أن تطابق الملف في كل يوم."},
+      why: {en: "The structure HR would have typed; the replay proves it gives exactly the file.", ar: "البنية التي كانت الموارد البشرية ستكتبها؛ والإعادة تثبت أنها تعطي الملف بالضبط."},
+      alts: [
+        {en: "One personal pattern per person: not chosen — 235 patterns nobody can read.", ar: "نمط شخصي لكل شخص: لم يُختر — 235 نمطاً لا يقرؤها أحد."},
+        {en: "Day changes for every difference from one team pattern: not chosen — hundreds of day edits instead of own rules.", ar: "تغييرات أيام لكل اختلاف عن نمط واحد: لم يُختر — مئات تعديلات الأيام بدل القواعد الخاصة."}
+      ]
+    },
+    {
+      id: 'RI5', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "One month, bounded; never overwrite", ar: "شهر واحد محدود؛ لا كتابة فوق الموجود"},
+      decision: {en: "Assignments and own rules run from the 1st to the next month's 1st. A team, person or day that already has an assignment, own rule or day change in that month is refused with the reason (e.g. Operations).", ar: "الإسنادات والقواعد الخاصة من أول الشهر إلى أول الشهر التالي. الفريق أو الشخص أو اليوم الذي له إسناد أو قاعدة خاصة أو تغيير يوم في ذلك الشهر يُرفض مع السبب (مثل العمليات)."},
+      why: {en: "Never overwrite a roster someone entered.", ar: "لا كتابة فوق جدول أدخله أحد."},
+      alts: [
+        {en: "Replace what exists: not chosen — silently loses typed work.", ar: "استبدال الموجود: لم يُختر — يضيع العمل المدخل بصمت."}
+      ]
+    },
+    {
+      id: 'RI6', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Day changes are day edits", ar: "تغييرات الأيام تعديلات أيام"},
+      decision: {en: "Odoo's swap-marked days become approved app self swaps (same person; first date work to off, second date off to work; same week, else same month; normal pay). A swap-marked day without a partner, and every other difference, is a day edit: a usual work day off becomes an off override; a usual off day worked becomes an override with that shift (counted as extra work). Unmarked worked days: Q-RI3.", ar: "الأيام المعلّمة بتبديل في أودو تصبح تبديلات ذاتية معتمدة في التطبيق (الشخص نفسه؛ التاريخ الأول عمل إلى راحة والثاني راحة إلى عمل؛ في الأسبوع نفسه وإلا الشهر نفسه؛ دفع عادي). اليوم المعلّم بلا شريك وكل اختلاف آخر تعديل يوم: يوم عمل معتاد صار راحة تعديل راحة؛ ويوم راحة معتاد عُمل فيه تعديل بتلك المناوبة (يُحسب عملاً إضافياً). أيام العمل غير المعلّمة: Q-RI3."},
+      why: {en: "Checked 2026-11-12: every Odoo swap mark in October points to the same person, so they are self swaps; the app pays a self swap's moved day normally, a plain extra day all as overtime.", ar: "فُحص 2026-11-12: كل علامات التبديل في أودو لتشرين الأول تشير إلى الشخص نفسه، فهي تبديلات ذاتية؛ والتطبيق يدفع اليوم المنقول في التبديل الذاتي عادياً، واليوم الإضافي العادي كله إضافياً."},
+      alts: [
+        {en: "Plain day changes for the swap days: not chosen — the 11 worked days would be paid as overtime.", ar: "تغييرات يوم عادية لأيام التبديل: لم يُختر — تُدفع أيام العمل الـ11 إضافياً."},
+        {en: "App employee swaps: not chosen — nobody swapped with a colleague in October.", ar: "تبديلات بين موظفين في التطبيق: لم يُختر — لم يبدّل أحد مع زميل في تشرين الأول."}
+      ]
+    },
+    {
+      id: 'RI7', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Batch id on roster rows; undo", ar: "رقم الدفعة على أسطر الجدول؛ التراجع"},
+      decision: {en: "shift, pattern, pattern_assignment, staff_schedule and roster_override get import_batch_id. Undoing a roster batch cancels its day changes, removes its assignments and own rules, deactivates its patterns, audited with the rows before, and recomputes; refused once a punch import was saved on those days. Undoing a shifts batch deactivates its shifts while no pattern uses them.", ar: "تحصل shift وpattern وpattern_assignment وstaff_schedule وroster_override على import_batch_id. التراجع عن دفعة جدول يلغي تغييرات الأيام ويزيل الإسنادات والقواعد الخاصة ويعطّل الأنماط، مع تدقيق بالأسطر السابقة وإعادة حساب؛ ويُرفض إن حُفظ استيراد بصمات على تلك الأيام. والتراجع عن دفعة مناوبات يعطّلها ما دام لا نمط يستخدمها."},
+      why: {en: "Same promise as the punch import: a mistake can be taken back.", ar: "الوعد نفسه في استيراد البصمات: يمكن التراجع عن الخطأ."},
+      alts: [
+        {en: "No undo for rosters: not chosen — a wrong month would have to be removed by hand.", ar: "بلا تراجع للجداول: لم يُختر — يُزال الشهر الخاطئ يدوياً."}
+      ]
+    },
+    {
+      id: 'RI8', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Pattern names and reasons", ar: "أسماء الأنماط والأسباب"},
+      decision: {en: "Team pattern <Team>/<Mon>/<YYYY> (as Operations); personal <Team> <code> <off days>/<Mon>/<YYYY>; reason on every row: Roster import <file>.", ar: "نمط الفريق <الفريق>/<الشهر>/<السنة> (كالعمليات)؛ والشخصي <الفريق> <الرمز> <أيام الراحة>/<الشهر>/<السنة>؛ والسبب على كل سطر: Roster import <الملف>."},
+      why: {en: "Findable on the pattern pages.", ar: "يسهل إيجادها في صفحات الأنماط."},
+      alts: [
+        {en: "Generated ids as names: not chosen — unreadable.", ar: "معرّفات مولدة كأسماء: لم يُختر — غير مقروءة."}
+      ]
+    },
+    {
+      id: 'RI9', group: 'roster', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Odoo roster extraction tool", ar: "أداة استخراج الجدول من أودو"},
+      decision: {en: "tools/odoo/extract_roster.py (read-only) writes the shifts file and the month grid from Odoo's day plan, people matched by badge, excluded people left out (IM14).", ar: "tools/odoo/extract_roster.py (قراءة فقط) يكتب ملف المناوبات وشبكة الشهر من خطة أودو اليومية، مطابقة الأشخاص بالبطاقة، والمستبعدون خارجها (IM14)."},
+      why: {en: "Repeatable; the data stays in ~/secure.", ar: "قابلة للتكرار؛ البيانات تبقى في ~/secure."},
+      alts: [
+        {en: "Hand-made files: not chosen — not repeatable.", ar: "ملفات يدوية: لم يُختر — غير قابلة للتكرار."}
+      ]
+    },
+    {
+      id: 'RI10', group: 'roster', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "Rosters follow Odoo: one per department; drivers in DAM Porters && Drivers", ar: "الجداول تتبع أودو: جدول لكل قسم؛ والسائقون في DAM Porters && Drivers"},
+      decision: {en: "The roster grid carries a Department column; the import fits and assigns the plan per department (Aleppo: one pattern on Station Aleppo, inherited by its 7 departments); people without a department fall back to their team. A department pattern reaches its people with or without a team, so 31 of the 32 people without a team are covered. All drivers belong to DAM Porters && Drivers: the 3 drivers in the Admin team without a department get it; their 480-minute day becomes a personal pattern. RI3 and RI4 read 'group' (department, else team) where they say team. A person's department group is the nearest department of their chain that carries a roster (the app plans by the nearest). People without a department are grouped by team but planned person by person (personal patterns, no team pattern): a team pattern would also reach team members a department plans, because a team pattern comes first.", ar: "يحمل ملف الجدول عمود القسم؛ ويحوّل الاستيراد الخطة ويسندها لكل قسم (حلب: نمط واحد على Station Aleppo ترثه أقسامها السبعة)؛ ومن ليس له قسم يرجع إلى فريقه. نمط القسم يصل إلى أفراده بفريق أو بدونه، فيُغطى 31 من الـ32 بلا فريق. كل السائقين يتبعون DAM Porters && Drivers: السائقون الثلاثة في فريق Admin بلا قسم يأخذونه؛ ويومهم ذو 480 دقيقة يصبح نمطاً شخصياً. وفي RI3 وRI4 تُقرأ المجموعة (القسم، وإلا الفريق) مكان الفريق. ومجموعة الشخص هي أقرب قسم في سلسلته يحمل جدولاً (فالتطبيق يخطط بالأقرب). ومن ليس له قسم يُجمع بفريقه لكن يُخطط شخصاً شخصاً (أنماط شخصية، بلا نمط فريق): لأن نمط الفريق يصل أيضاً إلى أعضاء الفريق الذين يخططهم قسم، ونمط الفريق مقدَّم."},
+      why: {en: "User, 2026-11-12: in Odoo a department follows a roster (Aleppo has one roster for the whole station); app departments match Odoo's one-to-one.", ar: "المستخدم، 2026-11-12: في أودو يتبع القسم جدولاً (لحلب جدول واحد للمحطة كلها)؛ وأقسام التطبيق تطابق أقسام أودو واحداً لواحد."},
+      alts: [
+        {en: "One pattern per app team: not chosen — people without a team get no plan, and teams mix several Odoo rosters.", ar: "نمط لكل فريق في التطبيق: لم يُختر — من ليس له فريق لا يحصل على خطة، والفرق تخلط عدة جداول من أودو."},
+        {en: "Put the 32 people in teams first: not needed — their department already carries Odoo's roster.", ar: "وضع الـ32 في فرق أولاً: غير لازم — قسمهم يحمل جدول أودو أصلاً."}
+      ]
+    },
+    {
+      id: 'OC1', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "October = Odoo, proven by the check page", ar: "تشرين الأول = أودو، مثبتاً بصفحة التحقق"},
+      decision: {en: "For each person and day, the app is compared with Odoo on required, worked, overtime, shortage and state; a difference needs a named cause. October is done at 0 unexplained days. Decided by the agent on the user’s instruction (2026-11-12).", ar: "لكل شخص ويوم يُقارن التطبيق بأودو في المطلوب والمعمول والإضافي والنقص والحالة؛ وكل فرق يحتاج سبباً مسمّى. ينتهي تشرين الأول عند 0 أيام غير مفسّرة. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "One finish line the user can see.", ar: "خط نهاية واحد يراه المستخدم."},
+      alts: [
+        {en: "Trust the import without a comparison: not chosen — differences would only show in pay.", ar: "الثقة بالاستيراد دون مقارنة: لم يُختر — الفروق ستظهر في الرواتب فقط."}
+      ]
+    },
+    {
+      id: 'OC2', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "Roster = Odoo’s day plan with its required minutes", ar: "الجدول = خطة أودو اليومية بدقائقها المطلوبة"},
+      decision: {en: "Per department (RI10); a day with another required length is a day with another shift. Decided by the agent on the user’s instruction (2026-11-12).", ar: "لكل قسم (RI10)؛ واليوم ذو المدة المطلوبة المختلفة يوم بمناوبة أخرى. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "Required decides overtime and shortage in Odoo.", ar: "المطلوب يحدد الإضافي والنقص في أودو."},
+      alts: [
+        {en: "One length per person for the month: not chosen — days with 720 instead of 660 would differ.", ar: "مدة واحدة لكل شخص في الشهر: لم يُختر — تختلف أيام 720 بدل 660."}
+      ]
+    },
+    {
+      id: 'OC3', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "Shifts: Odoo’s length, start from the median check-in", ar: "المناوبات: مدة أودو، والبداية من وسيط الدخول"},
+      decision: {en: "The 19 proposed shifts. Lateness stays information only, as in Odoo, where it was never charged. Decided by the agent on the user’s instruction (2026-11-12).", ar: "المناوبات الـ19 المقترحة. يبقى التأخير معلومة فقط كما في أودو حيث لم يُخصم أبداً. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "Odoo's start hours are placeholders; worked, overtime and shortage do not depend on them.", ar: "ساعات البدء في أودو غير حقيقية؛ والمعمول والإضافي والنقص لا تعتمد عليها."},
+      alts: [
+        {en: "Odoo's 10:00 starts: not chosen — real check-ins (04:00–09:30) would fall outside the shift windows.", ar: "بدايات أودو 10:00: لم يُختر — تقع البصمات الحقيقية (04:00–09:30) خارج نوافذ المناوبات."}
+      ]
+    },
+    {
+      id: 'OC4', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "Day changes: pairs become self swaps; 5 lone worked days stay visible", ar: "تغييرات الأيام: الأزواج تصبح تبديلات ذاتية؛ والأيام الخمسة المنفردة تبقى ظاهرة"},
+      decision: {en: "Odoo-marked swap days and unmarked off/work pairs of one person become self swaps (same week, else same month; normal pay). A lone extra day off is a day-off edit. The 5 lone worked days (2 with punches) are day edits counted as extra work; the check page shows them as cause \"plan differs\". Answers Q-RI3. Decided by the agent on the user’s instruction (2026-11-12).", ar: "أيام التبديل المعلّمة في أودو وأزواج الراحة/العمل غير المعلّمة لشخص واحد تصبح تبديلات ذاتية (الأسبوع نفسه وإلا الشهر نفسه؛ دفع عادي). الراحة الإضافية المنفردة تعديل راحة. أيام العمل المنفردة الخمسة (اثنان فيهما بصمات) تعديلات أيام تُحسب عملاً إضافياً، وتظهرها صفحة التحقق بسبب \"الخطة مختلفة\". يجيب Q-RI3. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "Matches Odoo wherever a pair exists; the 2 punched days are visible, not hidden.", ar: "يطابق أودو حيث يوجد زوج؛ واليومان ذوا البصمات ظاهران لا مخفيان."},
+      alts: [
+        {en: "All differences as plain day edits: not chosen — paired moved days would be paid as overtime.", ar: "كل الفروق تعديلات أيام عادية: لم يُختر — تُدفع الأيام المنقولة المزدوجة إضافياً."}
+      ]
+    },
+    {
+      id: 'OC5', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "Punches 1–20 October from Odoo", ar: "بصمات 1–20 تشرين الأول من أودو"},
+      decision: {en: "The ready punch file: breaks as two parts (Odoo takes the break off), leave / sick / mission as full-day states. Decided by the agent on the user’s instruction (2026-11-12).", ar: "ملف البصمات الجاهز: الاستراحة جزءان (أودو يطرح الاستراحة)، والإجازة/المرض/المهمة حالات يومية كاملة. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "What Odoo paid.", ar: "ما دفعه أودو."},
+      alts: [
+        {en: "First in and last out only: not chosen — Odoo takes the break off on 18 of 23 break days.", ar: "أول دخول وآخر خروج فقط: لم يُختر — أودو يطرح الاستراحة في 18 من 23 يوماً."}
+      ]
+    },
+    {
+      id: 'OC6', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "21–31 October entered in the app", ar: "21–31 تشرين الأول تُدخل في التطبيق"},
+      decision: {en: "Planned by the same imported October roster; typed on the entry sheet or day editor now, device files when a sample exists. Decided by the agent on the user’s instruction (2026-11-12).", ar: "تُخطط بجدول تشرين الأول المستورد نفسه؛ وتُكتب في ورقة الإدخال أو محرر اليوم الآن، وملفات الأجهزة عند وجود عينة. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "Odoo has no punches after the 20th.", ar: "لا بصمات في أودو بعد يوم 20."},
+      alts: [
+        {en: "Wait for device files: not chosen — October could not close.", ar: "انتظار ملفات الأجهزة: لم يُختر — لا يمكن إغلاق تشرين الأول."}
+      ]
+    },
+    {
+      id: 'OC7', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "Parity settings, October set to Odoo’s values", ar: "إعدادات المطابقة، وتشرين الأول على قيم أودو"},
+      decision: {en: "Overtime rounding becomes a setting (Odoo: none; the app had 15) and the Friday prayer +60 on a work day with a break (FP1) a rule with a switch; October uses Odoo values. Built as the first piece of engine v2, nothing else of it before October closes. Decided by the agent on the user’s instruction (2026-11-12).", ar: "يصبح تقريب الإضافي إعداداً (أودو: بلا؛ وكان التطبيق 15) وتصبح صلاة الجمعة +60 في يوم عمل فيه استراحة (FP1) قاعدة بمفتاح؛ ويستخدم تشرين الأول قيم أودو. تُبنى كأول جزء من المحرك 2، ولا شيء غيره قبل إغلاق تشرين الأول. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "Still configurable: the rule is a setting, October uses Odoo’s.", ar: "قابلة للضبط: القاعدة إعداد، وتشرين الأول يستخدم قيمة أودو."},
+      alts: [
+        {en: "Hard-code Odoo’s rules: not chosen — November will change them.", ar: "تثبيت قواعد أودو في الكود: لم يُختر — تشرين الثاني سيغيّرها."}
+      ]
+    },
+    {
+      id: 'OC8', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "No payroll output for October before the check is clean; November gets a new flow", ar: "لا مخرجات رواتب لتشرين الأول قبل نظافة التحقق؛ وتشرين الثاني بتدفق جديد"},
+      decision: {en: "The check page and the Daily page are October’s output. November’s flow (roster, device files, payroll page and export) is planned after October closes. Decided by the agent on the user’s instruction (2026-11-12).", ar: "صفحة التحقق والصفحة اليومية هما مخرجات تشرين الأول. ويُخطط تدفق تشرين الثاني (الجدول، ملفات الأجهزة، صفحة الرواتب والتصدير) بعد إغلاق تشرين الأول. قرره الوكيل بتكليف من المستخدم (2026-11-12)."},
+      why: {en: "One month at a time; nothing paid from unchecked figures.", ar: "شهر واحد في كل مرة؛ لا دفع من أرقام غير متحقق منها."},
+      alts: [
+        {en: "Build the payroll export now: not chosen — it would export unchecked figures.", ar: "بناء تصدير الرواتب الآن: لم يُختر — سيصدّر أرقاماً غير متحقق منها."}
+      ]
+    },
+    {
       id: 'PS1', group: 'rules', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
       title: {en: "A punch has no shift", ar: "البصمة بلا وردية"},
       decision: {en: "attendance_event.shift_id is removed. A punch is person + date + check-in + check-out, whether typed, imported or from a device.", ar: "يُحذف attendance_event.shift_id. البصمة = الموظف + التاريخ + الدخول + الخروج، سواء كُتبت أو استوردت أو جاءت من جهاز."},
@@ -3274,7 +3450,9 @@
     ["Q-IM4", "Odoo credit minutes: reference now, hourly leave later?", "yes (IM7)", "أرصدة دقائق Odoo: مرجع الآن وإجازة ساعية لاحقاً؟", "نعم (IM7)"],
     ["Q-IM5", "Which device software, and one sample export?", "needed for Phase 5", "أي برنامج للأجهزة، وملف عينة واحد؟", "مطلوب للمرحلة 5"],
     ["Q-IM6", "Import the pilot before engine v2 (balance checked later)?", "yes (IM11)", "استيراد التجربة قبل المحرك 2 (مطابقة الرصيد لاحقاً)؟", "نعم (IM11)"],
-    ["Q-IM7", "Who may undo an import batch?", "attendance.record", "من يستطيع التراجع عن دفعة استيراد؟", "attendance.record"]
+    ["Q-IM7", "Who may undo an import batch?", "attendance.record", "من يستطيع التراجع عن دفعة استيراد؟", "attendance.record"],
+    ["Q-RI3", "The 16 unmarked worked usual off days: pair with an unmarked extra day off in the same week as self swaps?", "answered 2026-11-12 (OC4): yes, same week else same month; 5 lone worked days stay day edits, shown on the check page", "أيام العمل الـ16 غير المعلّمة في أيام الراحة: تُزاوج مع راحة إضافية غير معلّمة في الأسبوع نفسه كتبديلات ذاتية؟", "نعم؛ والباقي تغييرات يوم مع تنبيه (RI6)"],
+    ["Q-RI2", "Pattern names <Team>/<Mon>/<YYYY>?", "yes (RI8)", "أسماء الأنماط <الفريق>/<الشهر>/<السنة>؟", "نعم (RI8)"],
   ];
 
   function el(tag, attrs, children) {

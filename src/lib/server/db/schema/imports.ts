@@ -10,11 +10,14 @@ import {
 	uniqueIndex,
 	uuid
 } from 'drizzle-orm/pg-core';
-import type { ImportIssue, ImportRowData, PunchBatchSummary } from '#lib/types/imports.js';
+import type { ImportBatchSummary, ImportIssue, ImportRowData } from '#lib/types/imports.js';
 import { user } from './auth.js';
 
-/** `punches`: punch parts and full-day states from a file (plan 2026-11-11 attendance import, IM3). */
-export const importKind = pgEnum('import_kind', ['staff', 'punches']);
+/**
+ * `punches`: punch parts and full-day states (plan 2026-11-11 attendance import, IM3); `shifts` and
+ * `roster`: a month's shifts and roster grid (plan 2026-11-12-roster-import).
+ */
+export const importKind = pgEnum('import_kind', ['staff', 'punches', 'shifts', 'roster']);
 
 /** `undone`: a committed punch batch whose events were voided and absences cancelled. */
 export const importStatus = pgEnum('import_status', ['previewed', 'committed', 'failed', 'undone']);
@@ -38,7 +41,7 @@ export const importBatch = pgTable(
 		updateCount: integer('update_count').notNull().default(0),
 		skipCount: integer('skip_count').notNull().default(0),
 		errorCount: integer('error_count').notNull().default(0),
-		summary: jsonb('summary').$type<PunchBatchSummary>(),
+		summary: jsonb('summary').$type<ImportBatchSummary>(),
 		undoneBy: uuid('undone_by').references(() => user.id, { onDelete: 'set null' }),
 		undoneAt: timestamp('undone_at', { withTimezone: true }),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

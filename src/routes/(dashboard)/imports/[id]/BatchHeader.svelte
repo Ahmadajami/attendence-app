@@ -17,7 +17,7 @@
 	}: {
 		batch: {
 			fileName: string;
-			kind: 'staff' | 'punches';
+			kind: 'staff' | 'punches' | 'shifts' | 'roster';
 			status: 'previewed' | 'committed' | 'failed' | 'undone';
 			createdAt: Date;
 			createdByUser: Person;

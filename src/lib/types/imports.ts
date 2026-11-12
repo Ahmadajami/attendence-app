@@ -38,8 +38,99 @@ export type PunchImportData = {
 	events: { type: 'check_in' | 'check_out'; at: string }[];
 };
 
+/** A shifts file line (plan 2026-11-12-roster-import, RI2). */
+export type ShiftImportData = {
+	line: 'shift';
+	code: string;
+	nameEn: string;
+	nameAr: string;
+	colour: string;
+	startTime: string;
+	endTime: string;
+	breakMinutes: number;
+	requiredMinutes: number | null;
+	/** `same_as_app`: the app already has this code with these times. */
+	skipReason: string | null;
+};
+
+/** A roster grid line: one person's month (plan 2026-11-12-roster-import, RI3, RI4). */
+export type RosterImportData = {
+	line: 'roster';
+	employeeNo: string;
+	staffId: string | null;
+	/** The group's label (department, else team) and key. */
+	group: string;
+	groupKey: string;
+	plannedDays: number;
+	/** Own off days (0 = Sunday) when they differ from the group's; `null`: the group's. */
+	ownOffWeekdays: number[] | null;
+	/** The personal pattern's name when the person is on another shift. */
+	personalPattern: string | null;
+	swaps: number;
+	dayEdits: number;
+	/** Days whose replay through the roster doesn't give the file (must be 0 to save). */
+	mismatches: number;
+};
+
 /** `import_row.parsed`. */
-export type ImportRowData = StaffImportData | PunchImportData;
+export type ImportRowData = StaffImportData | PunchImportData | ShiftImportData | RosterImportData;
+
+/** A shifts batch's counts. */
+export type ShiftBatchSummary = {
+	kind: 'shifts';
+	create: number;
+	same: number;
+	refused: Record<string, number>;
+	/** After an undo. */
+	deactivated?: number;
+};
+
+/** One group of a roster batch: what the save creates for it. */
+export type RosterGroupSummary = {
+	key: string;
+	label: string;
+	kind: 'department' | 'team';
+	targetId: string | null;
+	people: number;
+	/** People of the department (or team) the file doesn't list: the pattern plans them too. */
+	unlisted: number;
+	patternName: string | null;
+	/** Weekly slots, Sunday first: shift codes or `O`. */
+	slots: string[];
+	ownRules: number;
+	personal: { name: string; slots: string[]; people: number }[];
+	swaps: number;
+	dayEdits: number;
+	mismatches: number;
+	/** Why the whole group is refused (it already has a roster in the month, a name is taken…). */
+	refused: string | null;
+};
+
+/** A roster batch's preview (counts and record ids only). */
+export type RosterBatchSummary = {
+	kind: 'roster';
+	from: string;
+	to: string;
+	people: number;
+	groups: RosterGroupSummary[];
+	patterns: number;
+	ownRules: number;
+	swaps: number;
+	dayEdits: number;
+	mismatches: number;
+	refused: Record<string, number>;
+	/** After an undo. */
+	undone?: {
+		patterns: number;
+		assignments: number;
+		rules: number;
+		dayEdits: number;
+		swaps: number;
+	};
+};
+
+/** `import_batch.summary`: a punch, shifts or roster batch's counts. */
+export type ImportBatchSummary = PunchBatchSummary | ShiftBatchSummary | RosterBatchSummary;
 
 /** A punch batch's preview counts (`import_batch.summary`); counts and dates only. */
 export type PunchBatchSummary = {

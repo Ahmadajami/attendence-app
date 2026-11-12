@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { enhance, type SubmitFunction } from '$app/forms';
-	import ArrowCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowCounterClockwiseIcon';
+	import { enhance } from '$app/forms';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import { Badge } from '#lib/components/ui/badge/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
-	import * as Dialog from '#lib/components/ui/dialog/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
@@ -20,6 +18,7 @@
 	import { toastNotice } from '#lib/utils/notice-toasts.js';
 	import { punchReasonLabel, punchWarningLabel } from '../labels.js';
 	import BatchHeader from './BatchHeader.svelte';
+	import UndoImportDialog from './UndoImportDialog.svelte';
 
 	type View = Awaited<ReturnType<typeof getPunchBatchPage>>;
 	type Line = View['lines'][number];
@@ -75,7 +74,6 @@
 	let filterForm = $state<HTMLFormElement>();
 	let show = $derived<string>(view.filter);
 	let employee = $derived(view.employee);
-	let undoOpen = $state(false);
 
 	async function apply() {
 		await tick();
@@ -110,15 +108,6 @@
 		if (line.skipReason) return [punchReasonLabel(line.skipReason)];
 		return line.warnings.map(punchWarningLabel);
 	}
-
-	const submitUndo: SubmitFunction = (input) => {
-		const after = toastNotice(input);
-		return async (options) => {
-			undoOpen = false;
-			if (typeof after === 'function') await after(options);
-			else await options.update();
-		};
-	};
 </script>
 
 <BatchHeader {batch}>
@@ -132,30 +121,7 @@
 			</form>
 		{/if}
 		{#if batch.status === 'committed'}
-			<Dialog.Root bind:open={undoOpen}>
-				<Dialog.Trigger>
-					{#snippet child({ props })}
-						<Button {...props} variant="outline">
-							<ArrowCounterClockwiseIcon data-icon="inline-start" />
-							{m.imports_undo()}
-						</Button>
-					{/snippet}
-				</Dialog.Trigger>
-				<Dialog.Content>
-					<Dialog.Header>
-						<Dialog.Title>{m.imports_undo_title()}</Dialog.Title>
-						<Dialog.Description>{m.imports_undo_description()}</Dialog.Description>
-					</Dialog.Header>
-					<Dialog.Footer>
-						<Button variant="outline" onclick={() => (undoOpen = false)}>
-							{m.imports_undo_cancel()}
-						</Button>
-						<form method="POST" action="?/undo" use:enhance={submitUndo}>
-							<Button type="submit" variant="destructive">{m.imports_undo()}</Button>
-						</form>
-					</Dialog.Footer>
-				</Dialog.Content>
-			</Dialog.Root>
+			<UndoImportDialog />
 		{/if}
 	</div>
 </BatchHeader>

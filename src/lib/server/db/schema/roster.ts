@@ -17,6 +17,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { PATTERN_TYPES, SWAP_KINDS, SWAP_SCOPES, SWAP_STATES } from '#lib/schemas/enums.js';
 import { user } from './auth.js';
+import { importBatch } from './imports.js';
 import { department, staff, team } from './workforce.js';
 
 export const patternType = pgEnum('pattern_type', PATTERN_TYPES);
@@ -54,6 +55,10 @@ export const shift = pgTable(
 		graceMinutes: integer('grace_minutes').notNull().default(0),
 		active: boolean('active').notNull().default(true),
 		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		/** The roster or shifts import batch that created this row (undo removes them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -100,6 +105,10 @@ export const pattern = pgTable(
 		}),
 		active: boolean('active').notNull().default(true),
 		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		/** The roster or shifts import batch that created this row (undo removes them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -145,6 +154,10 @@ export const patternAssignment = pgTable(
 		effectiveTo: date('effective_to', { mode: 'string' }),
 		reason: text('reason').notNull(),
 		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		/** The roster or shifts import batch that created this row (undo removes them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -187,6 +200,10 @@ export const staffSchedule = pgTable(
 		effectiveTo: date('effective_to', { mode: 'string' }),
 		reason: text('reason').notNull(),
 		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
+		/** The roster or shifts import batch that created this row (undo removes them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -377,6 +394,10 @@ export const swapRequest = pgTable(
 		cancelledBy: uuid('cancelled_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
 		cancelReason: text('cancel_reason'),
+		/** The roster or shifts import batch that created this row (undo removes them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -462,6 +483,10 @@ export const rosterOverride = pgTable(
 		createdBy: uuid('created_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledBy: uuid('cancelled_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+		/** The roster or shifts import batch that created this row (undo removes them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()

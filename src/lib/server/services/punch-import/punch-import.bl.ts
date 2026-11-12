@@ -155,7 +155,8 @@ export async function planPunchFile(table: RawTable, now: Date): Promise<PunchFi
 		to: to ?? '',
 		now,
 		reason: null,
-		source: SOURCE
+		source: SOURCE,
+		longSpanIsWarning: true
 	});
 	const statePlan = planStateImport({
 		states: read.states,
@@ -443,7 +444,7 @@ export async function undoPunchBatch(actor: Actor, batch: ImportBatch): Promise<
 		reason
 	}));
 	const touched = [...new Set([...live, ...absences].map((r) => r.staffId))];
-	const summary = batch.summary;
+	const summary = batch.summary as PunchBatchSummary | null;
 	const from = summary?.from ?? null;
 	const to = summary?.to ?? null;
 

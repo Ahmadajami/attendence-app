@@ -5,6 +5,8 @@ import { m } from '#lib/paraglide/messages.js';
 export function kindLabel(kind: string): string {
 	if (kind === 'staff') return m.imports_kind_staff();
 	if (kind === 'punches') return m.imports_kind_punches();
+	if (kind === 'shifts') return m.imports_kind_shifts();
+	if (kind === 'roster') return m.imports_kind_roster();
 	return kind;
 }
 
@@ -32,11 +34,24 @@ const REASON: Record<string, () => string> = {
 	bad_state: m.imports_punch_reason_bad_state,
 	state_with_times: m.imports_punch_reason_state_with_times,
 	already_imported: m.imports_punch_reason_already_imported,
-	duplicate: m.imports_punch_reason_duplicate
+	duplicate: m.imports_punch_reason_duplicate,
+	same_as_app: m.imports_reason_same_as_app,
+	code_taken: m.imports_reason_code_taken,
+	duplicate_in_file: m.imports_reason_duplicate_in_file,
+	unknown_group: m.imports_reason_unknown_group,
+	no_group: m.imports_reason_no_group,
+	not_in_department: m.imports_reason_not_in_department,
+	not_in_team: m.imports_reason_not_in_team,
+	unknown_shift: m.imports_reason_unknown_shift,
+	group_has_roster: m.imports_reason_group_has_roster,
+	person_has_roster: m.imports_reason_person_has_roster,
+	team_has_roster: m.imports_reason_team_has_roster,
+	pattern_name_taken: m.imports_reason_pattern_name_taken
 };
 
-/** A punch line's skip or refusal reason. */
-export function punchReasonLabel(code: string): string {
+/** A line's skip or refusal reason (punches, shifts, roster); `field` names a bad shift value. */
+export function punchReasonLabel(code: string, field?: string): string {
+	if (code === 'invalid') return m.imports_reason_invalid({ field: field ?? '' });
 	return (REASON[code] ?? (() => code))();
 }
 

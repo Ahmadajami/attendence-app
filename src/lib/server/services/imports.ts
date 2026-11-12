@@ -13,7 +13,14 @@ import {
 import { auditLog, importBatch, importRow, staff } from '#lib/server/db/schema/index.js';
 import { buildStaffRows } from '#lib/server/imports/staff-import.js';
 import { parseUpload, type RawTable } from '#lib/server/imports/parse.js';
-import type { ImportIssue, ImportRowDraft, PunchImportData } from '#lib/types/imports.js';
+import type {
+	ImportIssue,
+	ImportRowDraft,
+	PunchBatchSummary,
+	PunchImportData,
+	RosterBatchSummary,
+	ShiftBatchSummary
+} from '#lib/types/imports.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from './common.js';
 import { membershipChange } from './membership.js';
 import {
@@ -24,15 +31,31 @@ import {
 	undoPunchBatch
 } from './punch-import/punch-import.bl.js';
 import { listPeopleNames } from './roster/roster.crud.js';
+import {
+	commitRosterBatch,
+	planRosterFile,
+	undoRosterBatch
+} from './roster-import/roster-import.bl.js';
+import {
+	ROSTER_WRITE_PERMISSION,
+	commitShiftBatch,
+	planShiftFile,
+	undoShiftBatch
+} from './roster-import/shift-import.bl.js';
 
-export const IMPORT_KINDS = ['staff', 'punches'] as const;
+export const IMPORT_KINDS = ['staff', 'punches', 'shifts', 'roster'] as const;
 export type ImportKind = (typeof IMPORT_KINDS)[number];
 
 /**
  * `import.run` lets someone upload; what an import writes also needs that domain's write
  * permission, so `import.run` alone never changes staff or punches.
  */
-const WRITE_PERMISSION = { staff: 'staff.write', punches: PUNCH_WRITE_PERMISSION } as const;
+const WRITE_PERMISSION = {
+	staff: 'staff.write',
+	punches: PUNCH_WRITE_PERMISSION,
+	shifts: ROSTER_WRITE_PERMISSION,
+	roster: ROSTER_WRITE_PERMISSION
+} as const;
 
 /** Rows per insert statement when a preview is stored. */
 const ROW_CHUNK = 1_000;
@@ -70,6 +93,11 @@ function counts(rows: ImportRowDraft[]) {
 async function buildRows(kind: ImportKind, table: RawTable) {
 	if (kind === 'punches') {
 		const plan = await planPunchFile(table, new Date());
+		return { rows: plan.rows, summary: plan.summary };
+	}
+	if (kind === 'shifts') return planShiftFile(table);
+	if (kind === 'roster') {
+		const plan = await planRosterFile(table);
 		return { rows: plan.rows, summary: plan.summary };
 	}
 	return { rows: await buildStaffRows(table), summary: null };
@@ -251,6 +279,14 @@ export async function commitImport(actor: Actor, batchId: string) {
 		const written = await commitPunchBatch(actor, batch);
 		return { kind: 'punches' as const, ...written };
 	}
+	if (batch.kind === 'shifts') {
+		const written = await commitShiftBatch(actor, batch);
+		return { kind: 'shifts' as const, ...written };
+	}
+	if (batch.kind === 'roster') {
+		const written = await commitRosterBatch(actor, batch);
+		return { kind: 'roster' as const, ...written };
+	}
 	const statements: [BatchQuery, ...BatchQuery[]] = [
 		db.update(importBatch).set({ status: 'committed' }).where(eq(importBatch.id, batchId)),
 		db.insert(auditLog).values({
@@ -287,6 +323,29 @@ export async function commitImport(actor: Actor, batchId: string) {
 	};
 }
 
+/** A shifts or roster batch with its rows, and the names of the people a roster lists. */
+export async function getRosterBatchView(actor: Actor, id: string) {
+	const batch = await getImportBatch(actor, id);
+	if (batch.kind !== 'shifts' && batch.kind !== 'roster')
+		throw new NotFoundError(m.imports_error_not_found());
+	const staffIds = batch.rows
+		.map((r) => (r.parsed && 'staffId' in r.parsed ? r.parsed.staffId : null))
+		.filter((x): x is string => !!x);
+	const names = Object.fromEntries(
+		(await listPeopleNames([...new Set(staffIds)])).map((p) => [
+			p.staffId,
+			{ fullName: p.fullName, fullNameAr: p.fullNameAr }
+		])
+	);
+	return {
+		batch: {
+			...batch,
+			summary: batch.summary as ShiftBatchSummary | RosterBatchSummary | null
+		},
+		names
+	};
+}
+
 /** A batch's kind, so its page can pick the staff view or the paged punch view. */
 export async function getImportBatchKind(actor: Actor, id: string): Promise<ImportKind> {
 	requireImportRun(actor);
@@ -299,13 +358,17 @@ export async function getImportBatchKind(actor: Actor, id: string): Promise<Impo
 	return row.kind;
 }
 
-/** Undo a committed punch batch (its events voided, its absences cancelled). */
+/** Undo a committed punch, shifts or roster batch. */
 export async function undoImport(actor: Actor, batchId: string) {
 	requireImportRun(actor);
 	requireBatchId(batchId);
 	const batch = await db.query.importBatch.findFirst({ where: eq(importBatch.id, batchId) });
 	if (!batch) throw new NotFoundError(m.imports_error_not_found());
-	await undoPunchBatch(actor, batch);
+	requireActorPermission(actor, WRITE_PERMISSION[batch.kind]);
+	if (batch.kind === 'punches') await undoPunchBatch(actor, batch);
+	else if (batch.kind === 'shifts') await undoShiftBatch(actor, batch);
+	else if (batch.kind === 'roster') await undoRosterBatch(actor, batch);
+	else throw new ConflictError('not_undoable', m.imports_error_not_undoable());
 }
 
 /** Which lines of a punch batch to show. */
@@ -368,7 +431,7 @@ export async function getPunchBatchPage(
 	] as string[];
 	const names = new Map((await listPeopleNames(staffIds)).map((p) => [p.staffId, p]));
 	return {
-		batch: rest,
+		batch: { ...rest, summary: rest.summary as PunchBatchSummary | null },
 		filter,
 		employee: wanted,
 		page: current,

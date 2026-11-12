@@ -7,6 +7,7 @@ import {
 	getImportBatch,
 	getImportBatchKind,
 	getPunchBatchPage,
+	getRosterBatchView,
 	undoImport,
 	type PunchFilter
 } from '#lib/server/services/imports.js';
@@ -39,6 +40,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			)
 		};
 	}
+	if (kind === 'shifts' || kind === 'roster')
+		return { kind, roster: await getRosterBatchView(actor, params.id) };
 	return { kind, batch: await getImportBatch(actor, params.id) };
 };
 
@@ -50,7 +53,11 @@ export const actions: Actions = {
 				notice:
 					result.kind === 'punches'
 						? m.imports_punch_commit_success(result)
-						: m.imports_commit_success(result)
+						: result.kind === 'shifts'
+							? m.imports_shift_commit_success(result)
+							: result.kind === 'roster'
+								? m.imports_roster_commit_success(result)
+								: m.imports_commit_success(result)
 			};
 		} catch (cause) {
 			return failNotice(cause);

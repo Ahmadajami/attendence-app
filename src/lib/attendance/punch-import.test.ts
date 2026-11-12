@@ -346,6 +346,27 @@ describe('planPunchImport', () => {
 	});
 });
 
+describe('planPunchImport, long days', () => {
+	it('keeps a pair over 16 hours with a warning when the file import asks for it', () => {
+		const long = [row(2, '9001', '2026-10-05', '04:00', '21:00')];
+		expect(planPunchImport(input(long)).rejected).toEqual([{ line: 2, reason: 'span_too_long' }]);
+		const kept = planPunchImport(input(long, { longSpanIsWarning: true }));
+		expect(kept.rejected).toEqual([]);
+		expect(kept.pairs[0].warnings).toContain('span_too_long');
+		expect(kept.pairs[0].events.map((e) => e.type)).toEqual(['check_in', 'check_out']);
+	});
+
+	it('still refuses an overlap or a future pair', () => {
+		const plan = planPunchImport(
+			input([row(2, '9001', '2026-10-06', '19:00', '07:00')], {
+				longSpanIsWarning: true,
+				now: at('2026-10-06T20:00')
+			})
+		);
+		expect(plan.rejected).toEqual([{ line: 2, reason: 'future' }]);
+	});
+});
+
 describe('readPunchFile', () => {
 	const table = (rows: string[][]) => ({
 		headers: ['Employee No', 'Date', 'Check in', 'Check out', 'state'],

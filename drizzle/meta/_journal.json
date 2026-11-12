@@ -176,6 +176,13 @@
       "when": 1794468977319,
       "tag": "0024_punch_import_batch",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794475928313,
+      "tag": "0025_roster_import_batch",
+      "breakpoints": true
     }
   ]
 }

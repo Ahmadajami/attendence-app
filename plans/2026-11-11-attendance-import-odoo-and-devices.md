@@ -178,6 +178,28 @@ count and the user's OK.
       > reasons, once each (duplicate skipped; refused: bad time, bad state, over 16 h, check-out only,
       > state conflict, unknown person, state with times). Same day: save and undo work (user).
       > Re-upload after undo, `/ar` and the old staff batch not yet reported.
+      > note: 2026-11-12, before the real punch import (user asked for the refused ids first): the
+      > preview predicted offline with the import's own planner on `attendance_app` (October roster
+      > saved): 4 643 lines = 4 258 to import (3 912 pairs, 346 states; 534 pairs with a warning) +
+      > 53 skipped (already imported, Operations) + 332 refused + 0 empty. Refused: 329 unknown
+      > person (22 employee numbers Odoo has and the app doesn't), 3 longer than 16 h (3 people).
+      > List with names for the user: `~/secure/syravia/imports/odoo/2026-10/punch-refusals-2026-10.html`.
+      > note: 2026-11-12, the user's answer: keep the 3 long days (IM17: a file import keeps a pair
+      > over 16 h with a warning; typed entry still refuses; 2 new tests) and give one of them the HR
+      > employee number 2026783 (staff 12761a44; Odoo badge stays 1600; audit row). Punch file
+      > regenerated (19 lines carry the new number). Predicted again: 4 643 = 4 261 to import + 53
+      > skipped + 329 refused (all unknown person, 22 employee numbers); the 3 long days import with
+      > a warning.
+      > note: 2026-11-12, imported on `attendance_app` by the user and checked against Odoo: batch
+      > committed, 4 261 lines (3 915 pairs = 7 818 events, 346 states = 229 absences), 53 skipped,
+      > 329 refused; no day left to recompute. Punches: 3 945 / 3 945 Odoo person-days equal to the
+      > minute (23 break days as two parts), 0 app punch days without an Odoo row; states 346 / 346.
+      > Day figures 1–20 Oct, 3 632 punched work days: worked 3 632 equal; required 3 627 (4 of the 5
+      > others are Operations, whose roster follows HR's workbook); overtime 2 960 equal + 661 only the
+      > app's 15-min rounding (OC7) + 11 other (7 Operations); shortage 3 498 equal, 134 other: ~120 days
+      > with an Odoo credit (hourly leave / mission / sick minutes, IM7), ~10 Friday break days (prayer
+      > +60, OC7), 14 where the app is 3–13 min higher (1 is 60) with no lateness: an Odoo rule to find.
+      > 261 punched Odoo off days not compared yet (day-off work, check page).
 - [ ] 6.2 Check page for Operations October (e2e, then real).
 - [ ] 6.3 Device import with the sample file.
 

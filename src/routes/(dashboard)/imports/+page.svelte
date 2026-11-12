@@ -17,7 +17,7 @@
 
 	let { data, form }: PageProps = $props();
 
-	const KINDS = ['staff', 'punches'] as const;
+	const KINDS = ['staff', 'shifts', 'roster', 'punches'] as const;
 	let kind = $state<string>('staff');
 </script>
 
@@ -102,6 +102,22 @@
 				>
 					<FileArrowDownIcon data-icon="inline-start" />
 					{m.imports_template_punches()}
+				</Button>
+				<Button
+					variant="outline"
+					href={localizedHref('/imports/template/[kind]', { kind: 'shifts' })}
+					download
+				>
+					<FileArrowDownIcon data-icon="inline-start" />
+					{m.imports_template_shifts()}
+				</Button>
+				<Button
+					variant="outline"
+					href={localizedHref('/imports/template/[kind]', { kind: 'roster' })}
+					download
+				>
+					<FileArrowDownIcon data-icon="inline-start" />
+					{m.imports_template_roster()}
 				</Button>
 			</Card.Content>
 		</Card.Root>

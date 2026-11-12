@@ -1,3 +1,4 @@
+import { catchUpRanges } from '#lib/attendance/catch-up.js';
 import { dayResultOf, type DayResultValues } from '#lib/attendance/day-result.js';
 import {
 	dayKey,
@@ -7,6 +8,7 @@ import {
 	type RecomputeCause
 } from '#lib/attendance/recompute.js';
 import { resolvePayRule, type PayRuleVersion } from '#lib/payroll/pay-rule.js';
+import { attendanceRulesOn } from '#lib/roster/attendance-rules.js';
 import { MAX_BACKFILL_DAYS } from '#lib/roster/backdate.js';
 import { addDays, daysBetween } from '#lib/roster/cycle.js';
 import { rosterInputOf } from '#lib/roster/input.js';
@@ -25,6 +27,7 @@ import {
 } from '../pattern-pay/pattern-pay.crud.js';
 import { loadRosterData } from '../roster/roster.bl.js';
 import { listApprovedSwaps } from '../swaps/swaps.crud.js';
+import { listAttendanceRuleVersions } from '../attendance-rules/attendance-rules.crud.js';
 import {
 	insertLogLines,
 	listFlaggedDays,
@@ -103,10 +106,11 @@ async function recomputeGroup(
 	const swapIds = [
 		...new Set(roster.overrides.flatMap((o) => (o.swapGroupId ? [o.swapGroupId] : [])))
 	];
-	const [versions, companyVersions, swaps] = await Promise.all([
+	const [versions, companyVersions, swaps, attendanceVersions] = await Promise.all([
 		listPayRuleVersions(patternIds),
 		listCompanyPayRuleVersions(),
-		listApprovedSwaps(swapIds)
+		listApprovedSwaps(swapIds),
+		listAttendanceRuleVersions()
 	]);
 	const versionsOf = new Map<string, PayRuleVersion[]>();
 	for (const v of versions)
@@ -136,6 +140,7 @@ async function recomputeGroup(
 						companyVersions
 					),
 					swap: day.swapGroupId ? (swapOf.get(day.swapGroupId) ?? null) : null,
+					rules: attendanceRulesOn(attendanceVersions, date),
 					now
 				})
 			);
@@ -201,21 +206,17 @@ export async function recomputeAfter(
 	}
 }
 
-/** Repair flagged rows (oldest first, at most `limit`), as the system. Pages call it on load. */
+/**
+ * Repair flagged rows (oldest first, at most `limit`), as the system. Pages call it on load: with
+ * nothing flagged it is one index lookup. People flagged over the same dates are recomputed
+ * together (`catchUpRanges`).
+ */
 export async function catchUpFlagged(limit = 2_000): Promise<RecomputeResult> {
 	const flagged = await listFlaggedDays(limit);
 	if (flagged.length === 0) return ZERO;
-	const byStaff = new Map<string, { from: string; to: string }>();
-	for (const { staffId, shiftDate } of flagged) {
-		const range = byStaff.get(staffId);
-		byStaff.set(staffId, {
-			from: range && range.from < shiftDate ? range.from : shiftDate,
-			to: range && range.to > shiftDate ? range.to : shiftDate
-		});
-	}
 	let result = ZERO;
-	for (const [staffId, { from, to }] of byStaff)
-		result = add(result, await recomputeDays([staffId], from, to, SYSTEM_CAUSE));
+	for (const { staffIds, from, to } of catchUpRanges(flagged))
+		result = add(result, await recomputeDays(staffIds, from, to, SYSTEM_CAUSE));
 	return result;
 }
 

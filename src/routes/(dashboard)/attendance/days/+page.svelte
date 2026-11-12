@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
@@ -23,6 +26,7 @@
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
+	import * as Pagination from '#lib/components/ui/pagination/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { localizedHref } from '#lib/i18n.js';
@@ -85,6 +89,33 @@
 	}
 
 	const shiftsById = $derived(new Map(page.shifts.map((s) => [s.id, s])));
+
+	/**
+	 * Another page of the same filters. The filter form has no `page` field, so changing a filter
+	 * goes back to page 1.
+	 */
+	function pageHref(number: number) {
+		const query = [
+			['from', page.from],
+			['to', page.to],
+			['scope', scopeValue === ALL ? '' : scopeValue],
+			['staff', page.staffId ?? ''],
+			['q', page.q ?? ''],
+			['status', page.status ?? ''],
+			['source', page.source ?? ''],
+			['page', number > 1 ? String(number) : '']
+		]
+			.filter(([, value]) => value !== '')
+			.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+			.join('&');
+		return `${localizedHref('/attendance/days')}?${query}`;
+	}
+
+	/** Pagination's page change: a navigation to `pageHref`, which is already a localized path. */
+	function goToPage(next: number) {
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- pageHref is localizedHref(...) plus the filter query
+		void goto(pageHref(next));
+	}
 
 	type Target = { staffId: string; name: string; date: string; state: AbsenceType | null };
 	let editing = $state<Target | null>(null);
@@ -219,7 +250,7 @@
 
 	<Card.Root>
 		<Card.Header>
-			<Card.Title>{m.daily_rows_title({ count: page.rows.length, total: page.total })}</Card.Title>
+			<Card.Title>{m.daily_rows_title({ count: page.matching, total: page.total })}</Card.Title>
 			<Card.Description>
 				{page.missing > 0 ? m.daily_missing({ count: page.missing }) : m.daily_rows_description()}
 			</Card.Description>
@@ -375,6 +406,60 @@
 				</Table.Root>
 			</DayTagPopover>
 		</Card.Content>
+		{#if page.window.pages > 1}
+			{const w = $derived(page.window)}
+			<!-- The rows are paged on the server (DS2); the counts above cover every page. -->
+			<Card.Footer class="flex flex-wrap items-center justify-between gap-2">
+				<p class="text-sm text-muted-foreground">
+					{m.daily_page_summary({
+						first: w.first,
+						last: w.last,
+						count: page.matching,
+						page: w.page,
+						pages: w.pages
+					})}
+				</p>
+				<!-- Page links go to the URL (pageHref), so the page survives a reload and Back. -->
+				<Pagination.Root
+					count={page.matching}
+					perPage={w.size}
+					page={w.page}
+					aria-label={m.daily_pagination_label()}
+					onPageChange={goToPage}
+					class="mx-0 w-auto"
+				>
+					{#snippet children({ pages, currentPage })}
+						<Pagination.Content>
+							<Pagination.Item>
+								<Pagination.PrevButton aria-label={m.daily_page_prev()}>
+									<CaretLeftIcon data-icon="inline-start" class="rtl:rotate-180" />
+									{m.daily_page_prev()}
+								</Pagination.PrevButton>
+							</Pagination.Item>
+							{#each pages as pg (pg.key)}
+								{#if pg.type === 'ellipsis'}
+									<Pagination.Item>
+										<Pagination.Ellipsis />
+									</Pagination.Item>
+								{:else}
+									<Pagination.Item>
+										<Pagination.Link page={pg} isActive={currentPage === pg.value}>
+											{pg.value}
+										</Pagination.Link>
+									</Pagination.Item>
+								{/if}
+							{/each}
+							<Pagination.Item>
+								<Pagination.NextButton aria-label={m.daily_page_next()}>
+									{m.daily_page_next()}
+									<CaretRightIcon data-icon="inline-end" class="rtl:rotate-180" />
+								</Pagination.NextButton>
+							</Pagination.Item>
+						</Pagination.Content>
+					{/snippet}
+				</Pagination.Root>
+			</Card.Footer>
+		{/if}
 	</Card.Root>
 
 	{#if data.recomputeForm}

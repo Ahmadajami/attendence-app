@@ -21,6 +21,12 @@ export type DailySource = (typeof DAILY_SOURCES)[number];
 /** The daily page's range (PR41, PR44): the last 7 days by default; any range the user picks. */
 export const DEFAULT_DAILY_DAYS = 7;
 
+/**
+ * Rows on one page of the daily page (plan 2026-11-12-daily-page-speed, DS2). The rows are paged in
+ * SQL; the counts above the table cover every page.
+ */
+export const DAILY_PAGE_SIZE = 100;
+
 /** Recompute the daily page's shown range, scope and person search (pay plan task 5.2, PR42). */
 export const recomputeDaysSchema = z.object({
 	from: z.iso.date({ error: () => m.roster_date_invalid() }),

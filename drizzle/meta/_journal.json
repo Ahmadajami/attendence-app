@@ -183,6 +183,20 @@
       "when": 1794475928313,
       "tag": "0025_roster_import_batch",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794485648672,
+      "tag": "0026_left_lenny_balinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794485773211,
+      "tag": "0027_attendance_rule_before_october",
+      "breakpoints": true
     }
   ]
 }

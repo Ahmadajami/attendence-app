@@ -50,12 +50,16 @@ export const SOURCE_TAGS = [
 
 export const OVERTIME_TAGS = ['ot.paid', 'ot.unpaid'] as const;
 
+/** Paid credit minutes that are not overtime (FP1): the Friday Prayer credit. */
+export const CREDIT_TAGS = ['credit.friday_prayer'] as const;
+
 export type DayTagId =
 	| (typeof STATUS_TAGS)[number]
 	| (typeof STATE_TAGS)[number]
 	| (typeof MARK_TAGS)[number]
 	| (typeof SOURCE_TAGS)[number]
-	| (typeof OVERTIME_TAGS)[number];
+	| (typeof OVERTIME_TAGS)[number]
+	| (typeof CREDIT_TAGS)[number];
 
 /** The colour guide's groups, in order (DT9). */
 export const DAY_TAG_GROUPS = [
@@ -63,7 +67,8 @@ export const DAY_TAG_GROUPS = [
 	{ group: 'state', tags: STATE_TAGS },
 	{ group: 'mark', tags: MARK_TAGS },
 	{ group: 'source', tags: SOURCE_TAGS },
-	{ group: 'overtime', tags: OVERTIME_TAGS }
+	{ group: 'overtime', tags: OVERTIME_TAGS },
+	{ group: 'credit', tags: CREDIT_TAGS }
 ] as const;
 
 export type DayTagGroup = (typeof DAY_TAG_GROUPS)[number]['group'];
@@ -98,13 +103,14 @@ export const DAY_TAG_TONE: Record<DayTagId, DayTagTone> = {
 	'source.odoo_seed': 'neutral',
 	'source.next_day': 'neutral',
 	'ot.paid': 'ok',
-	'ot.unpaid': 'neutral'
+	'ot.unpaid': 'neutral',
+	'credit.friday_prayer': 'info'
 };
 
 /** One tag as shown: its id and, for some, the figures its label and explanation need. */
 export type DayTag = {
 	id: DayTagId;
-	/** Late minutes (`mark.late`) or overtime minutes (`ot.*`). */
+	/** Late minutes (`mark.late`), overtime minutes (`ot.*`) or credit minutes (`credit.*`). */
 	minutes?: number;
 	/** The paid overtime rate (`ot.paid`). */
 	rate?: number | null;
@@ -146,6 +152,7 @@ export type DayTagFigures = Pick<
 	| 'unauthSwap'
 	| 'corrected'
 	| 'lateMinutes'
+	| 'creditMinutes'
 >;
 
 /**
@@ -160,7 +167,8 @@ export function statusTag(figures: Pick<DayFigures, 'status' | 'absenceType'>): 
 /**
  * The tags of a stored day's Status column, in a fixed order: status (or state), the day state
  * when the status is not `absent`, Late on a finished day beyond `graceMinutes` (DT8), Holiday,
- * Swap, Unauthorised swap, Corrected, and Waiting for recompute when `flagged`.
+ * Swap, Unauthorised swap, Corrected, the Friday Prayer credit, and Waiting for recompute when
+ * `flagged`.
  */
 export function dayTags(figures: DayTagFigures, graceMinutes: number, flagged = false): DayTag[] {
 	const tags: DayTag[] = [statusTag(figures)];
@@ -179,6 +187,8 @@ export function dayTags(figures: DayTagFigures, graceMinutes: number, flagged = 
 	if (figures.unauthSwap) tags.push({ id: 'mark.unauth_swap' });
 	if (figures.corrected) tags.push({ id: 'mark.corrected' });
 	if (flagged) tags.push({ id: 'mark.flagged' });
+	if (figures.creditMinutes > 0)
+		tags.push({ id: 'credit.friday_prayer', minutes: figures.creditMinutes });
 	return tags;
 }
 

@@ -10,8 +10,5 @@ export const MAX_CYCLE_DAYS = 28;
  */
 export const LATE_GRACE_MINUTES = 15;
 
-/** Overtime is rounded to the nearest quarter hour (half up). */
-export const OVERTIME_ROUNDING_MINUTES = 15;
-
 /** More than this worked on one shift date shows a warning (12 h + a half shift). */
 export const LONG_DAY_WARNING_MINUTES = 18 * 60;

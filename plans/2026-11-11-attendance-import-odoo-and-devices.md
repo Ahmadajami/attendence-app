@@ -186,7 +186,7 @@ count and the user's OK.
       > List with names for the user: `~/secure/syravia/imports/odoo/2026-10/punch-refusals-2026-10.html`.
       > note: 2026-11-12, the user's answer: keep the 3 long days (IM17: a file import keeps a pair
       > over 16 h with a warning; typed entry still refuses; 2 new tests) and give one of them the HR
-      > employee number 2026783 (staff 12761a44; Odoo badge stays 1600; audit row). Punch file
+      > employee number HR gave (staff 12761a44; the Odoo badge stays as legacy badge; audit row). Punch file
       > regenerated (19 lines carry the new number). Predicted again: 4 643 = 4 261 to import + 53
       > skipped + 329 refused (all unknown person, 22 employee numbers); the 3 long days import with
       > a warning.
@@ -214,6 +214,8 @@ count and the user's OK.
 | Q-IM5 | Which device software, and can you give one sample export (one day, any team)? | needed for Phase 5 |
 | Q-IM6 | Import the pilot before engine v2 (check worked / late / OT now, balance later)? | **yes** |
 | Q-IM7 | Who may undo an import batch? | **the same permission that imports (`attendance.record`)** |
+> note: 2026-11-12 answered by the user: Odoo was updated and is current again, so **the Odoo database is the source** (IM1). Checked read-only the same day: punches from 2026-05-21; October complete for 1–20 (about 290 people a day), nothing after 22 October. `hr_attendance` holds one row per person per day (first in → last out); breaks are only on `roster_line`. For Operations 1–20 Oct: 58 days, the same 58 already imported.
+
 > note: 2026-11-12 answered by the user: **Q-IM2** every team, **October only** from Odoo (1–20); 21–31 from the device files; earlier months stay in Odoo. **Q-IM3** yes. The import goes through the **in-app import page** (IM3, IM6 approved), not an extended script. Q-IM4, Q-IM6, Q-IM7 still open.
 
 ## 6. Open items carried from the 2026-11-10 discussion pages (deleted 2026-11-11)

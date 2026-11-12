@@ -1,4 +1,9 @@
 import { overtimePay, type ResolvedPayRule } from '#lib/payroll/pay-rule.js';
+import {
+	DEFAULT_RESOLVED,
+	roundingOf,
+	type ResolvedAttendanceRules
+} from '#lib/roster/attendance-rules.js';
 import { shiftSummary, type AttendanceEntry } from '#lib/roster/attendance.js';
 import { computeOvertime } from '#lib/roster/overtime.js';
 import { payDayKind, type RosterDay } from '#lib/roster/roster.js';
@@ -22,7 +27,7 @@ import type {
  * Bump when the rules below change what a day's figures are, so every stored row is rewritten on
  * the next recompute (it is part of the hash).
  */
-export const DAY_RESULT_ENGINE = 1;
+export const DAY_RESULT_ENGINE = 2;
 
 /** The computed columns of a `day_result` row (ids, timestamps and flags of the store excluded). */
 export type DayResultValues = {
@@ -44,6 +49,12 @@ export type DayResultValues = {
 	corrected: boolean;
 	requiredMinutes: number;
 	workedMinutes: number | null;
+	/** Friday Prayer credit (FP1): paid, counts toward the required time, never overtime. */
+	creditMinutes: number;
+	/** Required minutes not covered by worked time and credit. */
+	shortageMinutes: number;
+	/** Credit left over after the shortage: paid as extra time. */
+	creditExtraMinutes: number;
 	lateMinutes: number;
 	overtimeMinutes: number;
 	otRate: number | null;
@@ -77,20 +88,23 @@ export type DayResultInput = {
 	swap: { id: string; payAsOt: boolean } | null;
 	/** `false`: the person earns no overtime (S3.6, later). */
 	otEligible?: boolean;
+	/** The attendance rules on this date (`attendanceRulesOn`); the defaults when omitted. */
+	rules?: ResolvedAttendanceRules;
 	now: Date;
 };
 
 /** The day's stored figures. */
 export function dayResultOf(input: DayResultInput): DayResultValues {
 	const { day, pay } = input;
-	const summary = shiftSummary(day, input.events, input.now);
+	const resolved = input.rules ?? DEFAULT_RESOLVED;
+	const summary = shiftSummary(day, input.events, input.now, null, resolved.rules);
 	const worked = summary.checkIn !== null;
 	const kind = payDayKind(day, worked, input.swap?.payAsOt ?? false);
 	// A "pay as overtime" swap day (PR28) is off-day work: every minute counts, not only the excess.
 	const swapAsOt = kind === 'off_work' && day.swapRole === 'swap_on';
 	const extra =
 		swapAsOt && summary.workedMinutes !== null
-			? computeOvertime(summary.workedMinutes, 0, true).minutes
+			? computeOvertime(summary.workedMinutes, 0, true, roundingOf(resolved.rules)).minutes
 			: (summary.overtime?.minutes ?? 0);
 	const paid = overtimePay(kind, extra, pay.rule, {
 		otEligible: input.otEligible,
@@ -120,6 +134,9 @@ export function dayResultOf(input: DayResultInput): DayResultValues {
 		corrected: summary.corrected,
 		requiredMinutes: kind === 'work' && day.shift ? requiredOf(day.shift) : 0,
 		workedMinutes: summary.workedMinutes,
+		creditMinutes: summary.creditMinutes,
+		shortageMinutes: summary.shortageMinutes,
+		creditExtraMinutes: summary.creditExtraMinutes,
 		lateMinutes: kind === 'work' ? summary.lateMinutes : 0,
 		overtimeMinutes: extra,
 		otRate: paid.rate,
@@ -136,6 +153,11 @@ export function dayResultOf(input: DayResultInput): DayResultValues {
 			adjustment: day.adjustment,
 			extra: day.extra,
 			paySources: pay.sources,
+			attendanceRules: {
+				versionId: resolved.versionId,
+				source: resolved.source,
+				rules: resolved.rules
+			},
 			eventIds: input.events.map((e) => e.id)
 		}
 	};

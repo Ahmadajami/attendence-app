@@ -53,7 +53,8 @@ only orders and closes the work of three plans: `2026-11-12-roster-import.md`,
       > comparison in the attendance import plan (task 6.1 note): the remaining differences are
       > rounding and Friday prayer (step 4), Odoo credits (hourly leave), Operations' HR roster, and a
       > small shortage rule to find (step 5).
-- [ ] 4. Settings OC7 (rounding, Friday prayer) with October set to Odoo's values; recompute October.
+- [ ] 4. Settings OC7 (rounding, Friday prayer) with October set to Odoo's values (`2026-11-12-attendance-rules-settings.md`); recompute October after the user's OK.
+      > note: 2026-11-12 built and tested (547 tests); migrations 0026/0027 on e2e and test; the recompute on `attendance_app` waits for the user's OK.
 - [ ] 5. Odoo reference and check page (attendance import plan Phase 3); October reaches 0 unexplained.
 - [ ] 6. 21–31 Oct entered (entry sheet / day editor, or device files).
 - [ ] 7. November flow: a new plan.

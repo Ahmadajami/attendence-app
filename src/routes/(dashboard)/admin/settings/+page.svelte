@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import AttendanceRulesCard from '#lib/app/attendance/AttendanceRulesCard.svelte';
 	import HolidayCard from '#lib/app/patterns/HolidayCard.svelte';
 	import PayRuleCard from '#lib/app/patterns/PayRuleCard.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
@@ -61,5 +62,13 @@
 		title={m.company_holiday_title()}
 		description={m.company_holiday_description()}
 		today={data.today}
+	/>
+
+	<!-- Attendance rules from a date (OC7): overtime rounding and the Friday Prayer credit. -->
+	<AttendanceRulesCard
+		versions={data.attendance.versions}
+		today={data.attendance.today}
+		todayDate={data.today}
+		form={data.attendanceForm}
 	/>
 </section>

@@ -47,6 +47,10 @@
 				{figures.workedMinutes === null ? '—' : formatHoursMinutes(figures.workedMinutes)}
 			</bdi>
 		</dd>
+		{#if figures.shortageMinutes > 0}
+			<dt class="text-muted-foreground">{m.daily_col_shortage()}</dt>
+			<dd><bdi class="font-mono" dir="ltr">{formatHoursMinutes(figures.shortageMinutes)}</bdi></dd>
+		{/if}
 		{#if figures.lateMinutes > 0}
 			<dt class="text-muted-foreground">{m.daily_col_late()}</dt>
 			<dd><bdi class="font-mono" dir="ltr">{formatHoursMinutes(figures.lateMinutes)}</bdi></dd>

@@ -180,7 +180,8 @@
     roster: { en: 'Monthly rosters', ar: 'الجداول الشهرية' },
     jobs: { en: 'Jobs page', ar: 'صفحة الوظائف' },
     hourly: { en: 'Hourly leave', ar: 'الإجازة الساعية' },
-    balances: { en: 'Leave & sick balances', ar: 'أرصدة الإجازة والمرض' }
+    balances: { en: 'Leave & sick balances', ar: 'أرصدة الإجازة والمرض' },
+    speed: { en: 'Speed', ar: 'السرعة' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -3301,6 +3302,134 @@
       decision: { en: "Paid hourly leave (HL9) is part of taken/booked of the annual balance as day fractions, after the start date; never the sick balance. Whichever plan is built second merges into the first one's balance().", ar: "الإجازة الساعية المدفوعة (HL9) جزء من المأخوذ/المحجوز في الرصيد السنوي ككسور أيام، بعد تاريخ البدء؛ ولا تمس الرصيد المرضي. والخطة المنفذة ثانياً تندمج في balance() الخاصة بالأولى." },
       why: { en: "One balance function, one number on every screen.", ar: "دالة رصيد واحدة ورقم واحد في كل شاشة." },
       alts: []
+    },
+    // ---------------- Speed ----------------
+    {
+      id: 'DS1', group: 'speed', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-daily-page-speed.md §1',
+      title: { en: "No new database index for the daily page", ar: "لا فهرس جديد في قاعدة البيانات للصفحة اليومية" },
+      decision: { en: "No index is added and there is no migration. Every query of /attendance/days already uses an index, or reads a table of at most 310 rows.", ar: "لا يُضاف أي فهرس ولا يوجد ترحيل. كل استعلام في ‎/attendance/days‎ يستخدم فهرساً موجوداً، أو يقرأ جدولاً لا يزيد على 310 صفوف." },
+      why: { en: "Measured on the test database at the real size (310 people, 22,377 stored days): each query takes under 2 ms, except reading a whole month of everyone (40 ms), where the time is reading and sorting 9,424 rows, which no index removes. The real database shows the same plans.", ar: "قيس على قاعدة الاختبار بالحجم الحقيقي (310 أشخاص، 22,377 يوماً محفوظاً): كل استعلام يأخذ أقل من 2 مللي ثانية، عدا قراءة شهر كامل للجميع (40 مللي ثانية)، والوقت هناك لقراءة وترتيب 9,424 صفاً، ولا يزيله أي فهرس. والقاعدة الحقيقية تُظهر الخطط نفسها." },
+      alts: [
+        { en: "An index on day_result (shift_date, team_id): not chosen — the page never filters stored days by team; a scope becomes a list of people, served by the existing unique index (staff_id, shift_date).", ar: "فهرس على day_result (shift_date, team_id): لم يُختر — الصفحة لا ترشّح الأيام المحفوظة بالفريق؛ النطاق يصير قائمة أشخاص يخدمها الفهرس الفريد الموجود (staff_id, shift_date)." },
+        { en: "An index on staff (active) or on names: not chosen — the table has 310 rows on 6 pages; reading it whole is faster than an index.", ar: "فهرس على staff (active) أو على الأسماء: لم يُختر — في الجدول 310 صفوف على 6 صفحات؛ قراءته كاملاً أسرع من الفهرس." },
+        { en: "A covering index for the page order (shift_date, then name): not chosen — the name is in another table, and the first page already takes 1.4 ms.", ar: "فهرس شامل لترتيب الصفحة (التاريخ ثم الاسم): لم يُختر — الاسم في جدول آخر، والصفحة الأولى تأخذ 1.4 مللي ثانية أصلاً." }
+      ]
+    },
+    {
+      id: 'DS2', group: 'speed', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-daily-page-speed.md §1',
+      title: { en: "The daily page shows 100 rows a page, paged in the database", ar: "الصفحة اليومية تعرض 100 صف في الصفحة، والتقسيم في قاعدة البيانات" },
+      decision: { en: "The rows of /attendance/days are paged in SQL (LIMIT / OFFSET): 100 rows a page, ?page=<n> in the URL, Previous and Next under the table. Same order as before (newest date first, then name); employee number and id break ties so pages never overlap. Changing a filter goes back to page 1; a page past the end shows the last page.", ar: "تُقسَّم صفوف ‎/attendance/days‎ في SQL ‏(LIMIT / OFFSET): 100 صف في الصفحة، ‎?page=<n>‎ في الرابط، وزرّا «السابقة» و«التالية» تحت الجدول. الترتيب نفسه كما كان (الأحدث تاريخاً أولاً ثم الاسم)؛ ويفصل رقم الموظف والمعرّف بين المتساوين كي لا تتداخل الصفحات. تغيير أي مرشح يعيد إلى الصفحة 1؛ وصفحة بعد النهاية تعرض الصفحة الأخيرة." },
+      why: { en: "The server was not slow; the page sent every row at once. The default week of everyone was 2,128 rows (1.5 MB of page data) and a month 9,424 rows (6.8 MB), each row about 10 components to draw. With 100 rows the page data is 79 KB and the load takes about 10 ms for any range.", ar: "الخادم لم يكن بطيئاً؛ الصفحة كانت ترسل كل الصفوف دفعة واحدة. الأسبوع الافتراضي للجميع 2,128 صفاً (1.5 ميغابايت من بيانات الصفحة) والشهر 9,424 صفاً (6.8 ميغابايت)، وفي كل صف نحو 10 مكوّنات تُرسم. مع 100 صف تصير بيانات الصفحة 79 كيلوبايت ويأخذ التحميل نحو 10 مللي ثانية لأي مدى." },
+      alts: [
+        { en: "50 rows a page: not chosen — one day of one team or department should fit on one page where possible, and 100 rows are still only 79 KB.", ar: "50 صفاً في الصفحة: لم يُختر — يوم واحد لفريق أو قسم يُفضّل أن يكون في صفحة واحدة، و100 صف ما زالت 79 كيلوبايت فقط." },
+        { en: "Paging by person (50 people a page): not chosen — the page is ordered by date first, so a page of people would change the order of the rows.", ar: "التقسيم بالأشخاص (50 شخصاً في الصفحة): لم يُختر — الصفحة مرتبة بالتاريخ أولاً، فصفحة من الأشخاص تغيّر ترتيب الصفوف." },
+        { en: "Keyset paging (a cursor instead of a page number): not chosen — it cannot jump to a page or show \"page x of y\" simply, and the deepest page of a month (offset 9,400) takes 48 ms.", ar: "التقسيم بالمفتاح (مؤشر بدل رقم الصفحة): لم يُختر — لا يقفز إلى صفحة ولا يعرض «صفحة س من ص» ببساطة، وأعمق صفحة في شهر (إزاحة 9,400) تأخذ 48 مللي ثانية." },
+        { en: "Paging in JavaScript after reading every row: not chosen — the read and the sort of 9,424 rows (147 ms) would stay.", ar: "التقسيم في JavaScript بعد قراءة كل الصفوف: لم يُختر — تبقى قراءة وترتيب 9,424 صفاً (147 مللي ثانية)." },
+        { en: "Drawing only the visible rows in the browser (virtual list): not chosen — the 6.8 MB of data would still be sent, and it needs a new package.", ar: "رسم الصفوف الظاهرة فقط في المتصفح (قائمة افتراضية): لم يُختر — ستُرسل 6.8 ميغابايت من البيانات على أي حال، ويحتاج حزمة جديدة." }
+      ]
+    },
+    {
+      id: 'DS3', group: 'speed', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-daily-page-speed.md §1',
+      title: { en: "The daily page's totals count every page", ar: "مجاميع الصفحة اليومية تعدّ كل الصفحات" },
+      decision: { en: "The card title (\"N of M days\") and the \"no stored record yet\" count come from one separate count query over the whole range and scope. The Status and Source filters moved from JavaScript into SQL, with the same meaning.", ar: "عنوان البطاقة («ن من م يوماً») وعدد «لا سجل محفوظ بعد» يأتيان من استعلام عدّ واحد منفصل على كامل المدى والنطاق. وانتقل مرشّحا الحالة والمصدر من JavaScript إلى SQL بالمعنى نفسه." },
+      why: { en: "The numbers must stay what they were when only 100 rows are shown. Checked on the test database for a month of everyone: all 30 Status × Source combinations give the same rows, order and counts as before. The count query takes 1.4 to 3.6 ms.", ar: "يجب أن تبقى الأرقام كما كانت حين تُعرض 100 صف فقط. تُحقق منه على قاعدة الاختبار لشهر للجميع: كل تركيبات الحالة × المصدر الثلاثين تعطي الصفوف والترتيب والأعداد نفسها. واستعلام العدّ يأخذ من 1.4 إلى 3.6 مللي ثانية." },
+      alts: [
+        { en: "Count only the shown page: not chosen — the title would say 100 instead of the real number.", ar: "عدّ الصفحة المعروضة فقط: لم يُختر — سيقول العنوان 100 بدل العدد الحقيقي." },
+        { en: "Three separate count queries: not chosen — one query with filtered counts reads the range once.", ar: "ثلاثة استعلامات عدّ منفصلة: لم يُختر — استعلام واحد بعدّ مرشَّح يقرأ المدى مرة واحدة." }
+      ]
+    },
+    {
+      id: 'DS4', group: 'speed', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-daily-page-speed.md §1',
+      title: { en: "The catch-up stays in the page load, before the rows", ar: "الاستدراك يبقى في تحميل الصفحة، قبل الصفوف" },
+      decision: { en: "Repairing flagged days still runs first in the load of /attendance/days, awaited. With nothing flagged it is one lookup in the partial index (about 1 ms). The query now names the bare column (WHERE needs_recompute) so that index is usable under any plan.", ar: "إصلاح الأيام المعلَّمة ما زال يعمل أولاً في تحميل ‎/attendance/days‎، مع انتظاره. وحين لا يوجد شيء معلَّم فهو بحث واحد في الفهرس الجزئي (نحو 1 مللي ثانية). والاستعلام يذكر الآن العمود وحده (WHERE needs_recompute) ليبقى الفهرس صالحاً مع أي خطة." },
+      why: { en: "The rows shown must already be repaired, and the count query must count the repaired rows. The catch-up already does work only when flagged rows exist. With a generic prepared plan the old form (needs_recompute = $1) could not use the partial index: 22,385 buffers and 8.4 ms instead of 0.03 ms.", ar: "يجب أن تكون الصفوف المعروضة مُصلَحة، وأن يعدّ استعلام العدّ الصفوف المُصلَحة. والاستدراك أصلاً لا يعمل إلا عند وجود صفوف معلَّمة. ومع خطة عامة محضَّرة لم يكن الشكل القديم (needs_recompute = $1) يستخدم الفهرس الجزئي: 22,385 صفحة ذاكرة و8.4 مللي ثانية بدل 0.03." },
+      alts: [
+        { en: "Stream the catch-up (an un-awaited promise) and show the rows at once: not chosen — the page would show unrepaired rows and then need a second load.", ar: "بثّ الاستدراك (وعد بلا انتظار) وعرض الصفوف فوراً: لم يُختر — ستعرض الصفحة صفوفاً غير مُصلَحة ثم تحتاج تحميلاً ثانياً." },
+        { en: "Run it on a timer in the background: not chosen — a new moving part for work that is rare and now short (DS5).", ar: "تشغيله بمؤقت في الخلفية: لم يُختر — جزء متحرك جديد لعمل نادر وصار قصيراً (DS5)." },
+        { en: "A new index on needs_recompute: not chosen — the partial index exists; only the query's wording kept it from being used.", ar: "فهرس جديد على needs_recompute: لم يُختر — الفهرس الجزئي موجود؛ صياغة الاستعلام وحدها منعت استخدامه." }
+      ]
+    },
+    {
+      id: 'DS5', group: 'speed', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-daily-page-speed.md §1',
+      title: { en: "The catch-up recomputes people with the same dates together", ar: "الاستدراك يعيد حساب أصحاب التواريخ نفسها معاً" },
+      decision: { en: "Each flagged person's range still runs from their first to their last flagged date. People with the same range are recomputed in one call (100 people per roster load) instead of one call per person.", ar: "مدى كل شخص معلَّم ما زال من أول تاريخ معلَّم له إلى آخره. والأشخاص ذوو المدى نفسه يُعاد حسابهم في نداء واحد (100 شخص في كل تحميل للجدول) بدل نداء لكل شخص." },
+      why: { en: "After a failed recompute of an import, hundreds of people are flagged on the same days, and the next page load waited for all of them. 304 people flagged on one day: 3,260 ms one by one, 135 ms together, the same 304 rows written.", ar: "بعد فشل إعادة حساب استيراد يُعلَّم مئات الأشخاص في الأيام نفسها، وكان تحميل الصفحة التالي ينتظرهم جميعاً. 304 أشخاص معلَّمين في يوم واحد: 3,260 مللي ثانية واحداً واحداً، و135 مللي ثانية معاً، والصفوف الـ304 المكتوبة نفسها." },
+      alts: [
+        { en: "One range for everyone (earliest to latest flagged date): not chosen — it would recompute days nobody flagged.", ar: "مدى واحد للجميع (من أقدم تاريخ معلَّم إلى أحدثه): لم يُختر — سيعيد حساب أيام لم يعلّمها أحد." },
+        { en: "Leave it one by one: not chosen — about 11 ms a person on the page load.", ar: "تركه واحداً واحداً: لم يُختر — نحو 11 مللي ثانية للشخص في تحميل الصفحة." }
+      ]
+    },
+    {
+      id: 'DS6', group: 'speed', status: 'default', date: '2026-11-12', src: 'plans/2026-11-12-daily-page-speed.md §1',
+      title: { en: "No streaming on the daily page", ar: "لا بثّ في الصفحة اليومية" },
+      decision: { en: "The load of /attendance/days returns everything awaited; the page has no {#await} block and no skeleton.", ar: "تحميل ‎/attendance/days‎ يعيد كل شيء بعد انتظاره؛ لا توجد في الصفحة كتلة ‎{#await}‎ ولا هيكل تحميل." },
+      why: { en: "After paging (DS2) the whole load takes about 10 ms, so the filters and the rows already appear together at once. Streaming would only add a flash of a skeleton, a second way for errors to arrive, and rows missing from the first HTML.", ar: "بعد التقسيم (DS2) يأخذ التحميل كله نحو 10 مللي ثانية، فتظهر المرشحات والصفوف معاً فوراً. والبثّ لن يضيف إلا وميض هيكل تحميل، وطريقاً ثانياً لوصول الأخطاء، وصفوفاً غائبة عن HTML الأول." },
+      alts: [
+        { en: "Stream the rows and show the filters first: not chosen — nothing left to wait for; before paging it would also not have helped, because the slow part was drawing 9,424 rows, not waiting for them.", ar: "بثّ الصفوف وعرض المرشحات أولاً: لم يُختر — لم يبق ما يُنتظر؛ وقبل التقسيم لم يكن ليفيد أيضاً، لأن البطء كان في رسم 9,424 صفاً لا في انتظارها." },
+        { en: "Stream only the counts: not chosen — the count query takes 1.4 to 3.6 ms.", ar: "بثّ الأعداد فقط: لم يُختر — استعلام العدّ يأخذ من 1.4 إلى 3.6 مللي ثانية." }
+      ]
+    },
+    {
+      id: 'AR1', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §1',
+      title: {en: "Attendance rules are dated versions (one company level now)", ar: "قواعد الحضور نسخ مؤرخة (مستوى الشركة الآن)"},
+      decision: {en: "Overtime rounding and the Friday Prayer credit are rows of table attendance_rule: one row per company version, with effective_from and effective_to (exclusive) and a reason, audited. A day takes the version in force on its shift date; with none, the built-in defaults, which are Odoo's values. The department and pattern levels of EN1 come later as more rows, not now.", ar: "تقريب الوقت الإضافي ورصيد صلاة الجمعة صفوف في جدول attendance_rule: صف لكل نسخة للشركة، مع effective_from وeffective_to (غير شاملة) وسبب، ومدقَّقة. يأخذ اليوم النسخة السارية في تاريخ ورديته؛ وإن لم توجد فالافتراضات المدمجة، وهي قيم أودو. مستويا القسم والنمط في EN1 يأتيان لاحقاً كصفوف إضافية، لا الآن."},
+      why: {en: "A dated version means a change never rewrites past months silently, and October keeps Odoo's figures when November changes them (OC7).", ar: "النسخة المؤرخة تعني ألا يُعاد كتابة الأشهر الماضية بصمت، ويحتفظ تشرين الأول بأرقام أودو عندما يغيّر تشرين الثاني القواعد (OC7)."},
+      alts: [
+        {en: "Constants in the code: not chosen — they could not differ by month.", ar: "ثوابت في الكود: لم يُختر — لا يمكن أن تختلف حسب الشهر."},
+        {en: "The app_setting table (one row per key): not chosen — it has no history and no dates.", ar: "جدول app_setting (صف لكل مفتاح): لم يُختر — لا تاريخ فيه ولا سجل."},
+        {en: "All three levels of EN1 now: not chosen — OC7 asks for the two settings only.", ar: "المستويات الثلاثة في EN1 الآن: لم يُختر — يطلب OC7 الإعدادين فقط."},
+        {en: "Delete the later versions when a new one starts earlier (as the pattern pay rules do): not chosen — no row is hard-deleted (CLAUDE.md §6.6); see AR5.", ar: "حذف النسخ اللاحقة عند بدء نسخة أسبق (كما في قواعد أجر النمط): لم يُختر — لا يُحذف أي صف نهائياً (CLAUDE.md §6.6)؛ انظر AR5."}
+      ]
+    },
+    {
+      id: 'AR2', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §1; plans/2026-11-12-october-odoo-parity.md §1 (OC7)',
+      title: {en: "Overtime rounding is a step and a direction; none is the default", ar: "تقريب الوقت الإضافي خطوة واتجاه؛ و«بلا» هو الافتراضي"},
+      decision: {en: "Step 0 (none), 5, 10, 15 or 30 minutes, with direction nearest (half up), up or down. Odoo's October value is none. Rounding applies to overtime only, per day; credit minutes are never rounded.", ar: "خطوة 0 (بلا) أو 5 أو 10 أو 15 أو 30 دقيقة، واتجاه الأقرب (نصفه للأعلى) أو للأعلى أو للأدنى. قيمة أودو لتشرين الأول: بلا. يطبَّق التقريب على الوقت الإضافي فقط، لكل يوم؛ ولا تُقرَّب دقائق الرصيد أبداً."},
+      why: {en: "Odoo rounds nothing. The app's 15 minutes moved 661 October days' overtime by up to 7 minutes each (the check of 2026-11-12).", ar: "أودو لا يقرّب شيئاً. وكانت دقائق التطبيق الـ15 تغيّر الإضافي في 661 يوماً من تشرين الأول بما يصل إلى 7 دقائق لكل يوم (فحص 2026-11-12)."},
+      alts: [
+        {en: "Keep 15 for everyone: not chosen — Q-EN2 wanted the setting so November can differ.", ar: "إبقاء 15 للجميع: لم يُختر — طلب Q-EN2 أن تكون إعداداً ليختلف تشرين الثاني."},
+        {en: "Any number of minutes: not chosen — HR rounds to steps; a free value has no meaning on a payslip.", ar: "أي عدد دقائق: لم يُختر — يُقرَّب الوقت بخطوات؛ والقيمة الحرة لا معنى لها في كشف الراتب."}
+      ]
+    },
+    {
+      id: 'AR3', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §1; plans/2026-11-11-engine-v2-hourly-leave-carry.md (FP1, EN3, EN5)',
+      title: {en: "Friday Prayer credit: three computed columns on the day, not a credit row", ar: "رصيد صلاة الجمعة: ثلاثة أعمدة محسوبة في اليوم، لا صف رصيد"},
+      decision: {en: "The engine computes credit_minutes on a day: the setting's minutes (60) on a planned work day that is a Friday with exactly the setting's punch segments (two). shortage_minutes = required − worked − credit, not below 0. credit_extra_minutes = credit left after the shortage: paid as extra time, never overtime. The rule and its version go in the day's explanation. Setting: on or off, minutes, segments. EN5 is kept in spirit: no separate credit row, so re-imports cannot stack it.", ar: "يحسب المحرك credit_minutes لليوم: دقائق الإعداد (60) في يوم عمل مخطط يوم جمعة فيه عدد فترات الحضور المحدد بالضبط (فترتان). shortage_minutes = المطلوب − المعمول − الرصيد، ولا تنزل عن 0. credit_extra_minutes = الرصيد المتبقي بعد النقص: يُدفع كوقت إضافي، لا كعمل إضافي أبداً. القاعدة ونسختها في تفسير اليوم. الإعداد: تشغيل أو إيقاف، والدقائق، والفترات. ويبقى EN5 بروحه: لا صف رصيد منفصل، فلا تتراكم الصلاة عند إعادة الاستيراد."},
+      why: {en: "FP1's example: 07:30–12:10 and 13:25–20:15 gives 690 worked + 60 credit = 750 against 720 required: overtime 0, extra +30. A column recomputed with the engine cannot be stacked or lost, and every screen reads the same figure.", ar: "مثال FP1: 07:30–12:10 و13:25–20:15 تعطي 690 معمولة + 60 رصيداً = 750 مقابل 720 مطلوبة: إضافي 0، وزيادة +30. عمود يُعاد حسابه بالمحرك لا يمكن أن يتراكم أو يضيع، وتقرأ كل شاشة الرقم نفسه."},
+      alts: [
+        {en: "A separate credit row (EN5 as first written): not chosen — rows can duplicate on re-import; the columns are recomputed instead.", ar: "صف رصيد منفصل (EN5 كما كُتب أولاً): لم يُختر — الصفوف قد تتكرر عند إعادة الاستيراد؛ والأعمدة تُعاد حسابها بدلاً منها."},
+        {en: "Credit as overtime: not chosen — FP1 says it is never overtime.", ar: "الرصيد كعمل إضافي: لم يُختر — ينص FP1 على أنه ليس إضافياً أبداً."},
+        {en: "Credit on any day, also an off day: not chosen — Q-EN7: work days only.", ar: "الرصيد في أي يوم، ومنه يوم العطلة: لم يُختر — Q-EN7: أيام العمل فقط."},
+        {en: "The 'No prayer credit' day action (EN5, EN6): not built now — it is part of engine v2 after October closes.", ar: "إجراء «بلا رصيد صلاة» لليوم (EN5 وEN6): لم يُبنَ الآن — هو جزء من المحرك 2 بعد إغلاق تشرين الأول."}
+      ]
+    },
+    {
+      id: 'AR4', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §2; migrations 0026 and 0027',
+      title: {en: "October uses Odoo's values from 1 October; earlier months keep the app's old rules", ar: "يستخدم تشرين الأول قيم أودو من 1 تشرين الأول؛ وتبقى الأشهر السابقة على قواعد التطبيق القديمة"},
+      decision: {en: "Two company versions are seeded by migration: from 2026-01-01 to 2026-10-01 the app's former rules (nearest 15 minutes, no Friday Prayer credit); from 2026-10-01, open, Odoo's rules (no rounding, Friday Prayer on, 60 minutes, two segments). The built-in defaults are Odoo's values.", ar: "تُزرع نسختان للشركة بالترحيل: من 2026-01-01 حتى 2026-10-01 قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة الجمعة)؛ ومن 2026-10-01 مفتوحة، قواعد أودو (بلا تقريب، وصلاة الجمعة مفعّلة، 60 دقيقة، فترتان). والافتراضات المدمجة هي قيم أودو."},
+      why: {en: "9,270 stored days are before October (from 1 September). Under the new default they would change at their next recompute; the old-rules version keeps their figures.", ar: "هناك 9270 يوماً مخزّناً قبل تشرين الأول (منذ 1 أيلول). وبالافتراضي الجديد كانت ستتغيّر عند إعادة حسابها التالية؛ ونسخة القواعد القديمة تحفظ أرقامها."},
+      alts: [
+        {en: "Seed October only: not chosen — September would change silently on its next recompute.", ar: "زرع تشرين الأول وحده: لم يُختر — كان أيلول سيتغيّر بصمت عند إعادة حسابه التالية."},
+        {en: "Flag the old days so the page rewrites them now: not chosen — a recompute needs the user's OK (CLAUDE.md §1).", ar: "تعليم الأيام القديمة لتُكتب من جديد الآن: لم يُختر — إعادة الحساب تحتاج موافقة المستخدم (CLAUDE.md §1)."}
+      ]
+    },
+    {
+      id: 'AR5', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §1',
+      title: {en: "A new version may not start on or before a later one; no version is deleted", ar: "لا تبدأ نسخة جديدة في تاريخ نسخة لاحقة أو قبلها؛ ولا تُحذف نسخة"},
+      decision: {en: "Adding a version from a date closes the version in force on that date (its end becomes the new start). It is refused when a version already starts on that date or a later one exists. The start date is within the backdate limit (B7b).", ar: "إضافة نسخة من تاريخ تغلق النسخة السارية في ذلك التاريخ (تصبح نهايتها بداية الجديدة). وتُرفض إذا كانت نسخة تبدأ في ذلك التاريخ أو توجد نسخة لاحقة. وتاريخ البداية ضمن حد الرجوع (B7b)."},
+      why: {en: "The history stays as it was: nothing is hard-deleted (CLAUDE.md §6.6), and a later change is made by a new version, not by removing an old one.", ar: "يبقى السجل كما كان: لا يُحذف شيء نهائياً (CLAUDE.md §6.6)، والتغيير اللاحق يكون بنسخة جديدة لا بحذف قديمة."},
+      alts: [
+        {en: "Remove later versions, as the pattern pay rules do: not chosen (see AR1).", ar: "حذف النسخ اللاحقة كما في قواعد أجر النمط: لم يُختر (انظر AR1)."}
+      ]
+    },
+    {
+      id: 'AR6', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §3',
+      title: {en: "Engine 2: stored days are recomputed from 1 October, after the user's OK", ar: "المحرك 2: تُعاد حساب الأيام المخزّنة من 1 تشرين الأول، بعد موافقة المستخدم"},
+      decision: {en: "DAY_RESULT_ENGINE becomes 2, so every stored row's hash changes. October is recomputed with the existing 'Recompute from a date' action on attendance_app after the user's OK. A later change to a rule flags and recomputes its days from its date, as the pay rules do. The edit log does not yet track credit or shortage: the explanation keeps the rule.", ar: "يصبح DAY_RESULT_ENGINE = 2، فيتغير تجزئة كل صف مخزّن. يُعاد حساب تشرين الأول بإجراء «إعادة الحساب من تاريخ» الموجود على attendance_app بعد موافقة المستخدم. ويعلِّم أي تغيير لاحق في قاعدة الأيام ويعيد حسابها من تاريخها، كما في قواعد الأجر. ولا يسجل سجل التعديل الرصيد أو النقص بعد: التفسير يحفظ القاعدة."},
+      why: {en: "The engine version is part of the hash, so an old row is rewritten on the next recompute; no data changes without the user's OK.", ar: "إصدار المحرك جزء من التجزئة، فيُعاد كتابة الصف القديم عند إعادة الحساب التالية؛ ولا تتغير البيانات دون موافقة المستخدم."},
+      alts: [
+        {en: "Flag every stored day in the migration: not chosen — about 22,000 rows would rewrite on page loads without a decision.", ar: "تعليم كل يوم مخزّن في الترحيل: لم يُختر — نحو 22,000 صف كانت ستُكتب من جديد عند تحميل الصفحات دون قرار."}
+      ]
     }
   ];
 
@@ -3444,7 +3573,7 @@
     ["Q-EN8", "Pay period: calendar month or 21st → 20th?", "calendar month", "فترة الرواتب: شهر ميلادي أم من 21 إلى 20؟", "شهر ميلادي"],
     ["Q-EN9", "Time balance: netting? what carries? cap? positive at close?", "netting on; carry only a negative balance; no cap; positive paid", "رصيد الوقت: التسوية؟ ماذا يُرحَّل؟ السقف؟ الموجب عند الإغلاق؟", "التسوية مفعّلة؛ يُرحَّل السالب فقط؛ بلا سقف؛ الموجب يُدفع"],
     ["Q-EN10", "One Balances page with Time / Annual / Sick tabs instead of /leave?", "yes (EN13)", "صفحة أرصدة واحدة بتبويبات بدلاً من /leave؟", "نعم (EN13)"],
-    ["Q-IM1", "Import source: the Odoo database or the October report?", "Odoo database, report as a cross-check (IM1)", "مصدر الاستيراد: قاعدة Odoo أم تقرير تشرين الأول؟", "قاعدة Odoo، والتقرير للمطابقة (IM1)"],
+    ["Q-IM1", "Import source: the Odoo database or the October report?", "answered 2026-11-12: the Odoo database (updated by the user; October complete for 1–20), report as a cross-check (IM1)", "مصدر الاستيراد: قاعدة Odoo أم تقرير تشرين الأول؟", "أُجيب 2026-11-12: قاعدة Odoo (حدّثها المستخدم؛ تشرين الأول كامل من 1 إلى 20)، والتقرير للمطابقة (IM1)"],
     ["Q-IM2", "After the Operations pilot: which teams and months?", "answered 2026-11-12: every team, October only from Odoo (1–20); 21–31 from the device files; earlier months stay in Odoo (IM2)", "بعد تجربة العمليات: أي فرق وأشهر؟", "أُجيب 2026-11-12: كل الفرق، تشرين الأول فقط من Odoo (1–20)؛ 21–31 من ملفات الأجهزة؛ الأشهر السابقة تبقى في Odoo (IM2)"],
     ["Q-IM3", "Import Odoo's full-day leave / sick / mission days as absences?", "answered 2026-11-12: yes, in the same import page batch as the punches (IM3, IM6)", "استيراد أيام الإجازة/المرض/المهمة الكاملة من Odoo كغيابات؟", "أُجيب 2026-11-12: نعم، في دفعة صفحة الاستيراد نفسها مع البصمات (IM3، IM6)"],
     ["Q-IM4", "Odoo credit minutes: reference now, hourly leave later?", "yes (IM7)", "أرصدة دقائق Odoo: مرجع الآن وإجازة ساعية لاحقاً؟", "نعم (IM7)"],
@@ -3453,6 +3582,9 @@
     ["Q-IM7", "Who may undo an import batch?", "attendance.record", "من يستطيع التراجع عن دفعة استيراد؟", "attendance.record"],
     ["Q-RI3", "The 16 unmarked worked usual off days: pair with an unmarked extra day off in the same week as self swaps?", "answered 2026-11-12 (OC4): yes, same week else same month; 5 lone worked days stay day edits, shown on the check page", "أيام العمل الـ16 غير المعلّمة في أيام الراحة: تُزاوج مع راحة إضافية غير معلّمة في الأسبوع نفسه كتبديلات ذاتية؟", "نعم؛ والباقي تغييرات يوم مع تنبيه (RI6)"],
     ["Q-RI2", "Pattern names <Team>/<Mon>/<YYYY>?", "yes (RI8)", "أسماء الأنماط <الفريق>/<الشهر>/<السنة>؟", "نعم (RI8)"],
+    ["Q-DS1", "Daily page: how many rows on one page?", "100 (DS2)", "الصفحة اليومية: كم صفاً في الصفحة الواحدة؟", "100 (DS2)"],
+    ['Q-AR1', 'Friday Prayer credit: exactly two punch segments, or two or more?', 'exactly two (BRIEF R15 wording; setting: segments)', 'رصيد صلاة الجمعة: فترتا حضور بالضبط، أم فترتان أو أكثر؟', 'بالضبط فترتان (نص BRIEF R15؛ الإعداد: الفترات)'],
+    ['Q-AR2', 'Months before October 2026: keep the app\'s old rules (nearest 15 minutes, no prayer credit)?', 'yes, from a second company version (AR4)', 'الأشهر قبل تشرين الأول 2026: إبقاء قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة)؟', 'نعم، من نسخة شركة ثانية (AR4)']
   ];
 
   function el(tag, attrs, children) {

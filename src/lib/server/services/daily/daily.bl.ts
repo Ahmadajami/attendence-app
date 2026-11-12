@@ -3,12 +3,13 @@ import { m } from '#lib/paraglide/messages.js';
 import { dayFiguresOf, type DayFigures } from '#lib/attendance/day-result.js';
 import { dailyRange, pastDays } from '#lib/attendance/daily-range.js';
 import { personSearch, type PersonOption } from '#lib/attendance/person-search.js';
-import type { DailySource } from '#lib/schemas/day-results.schema.js';
+import { DAILY_PAGE_SIZE, type DailySource } from '#lib/schemas/day-results.schema.js';
 import type { DayStatus, LogCause, LogField, LogSource } from '#lib/schemas/enums.js';
 import { auditInsert } from '#lib/server/audit.js';
 import { batch } from '#lib/server/db/index.js';
 import { InvalidInputError } from '#lib/server/errors.js';
 import { todayInDamascus } from '#lib/server/time.js';
+import { pageWindow, type PageWindow } from '#lib/utils/pagination.js';
 import { requireActorPermission, type Actor } from '../common.js';
 import {
 	scopeOptions,
@@ -25,6 +26,7 @@ import {
 import { listStaffToRecompute, listStoredDays } from '../day-results/day-results.crud.js';
 import { listShiftRows, type ShiftRow } from '../shifts/shifts.crud.js';
 import {
+	countDailyRows,
 	getPerson,
 	listDailyRows,
 	listDayLog,
@@ -70,6 +72,8 @@ export type DailyFilter = PersonFilter & {
 	scope: EntryScope;
 	status: DayStatus | null;
 	source: DailySource | null;
+	/** The asked page of rows, from 1 (`parsePage`). */
+	page: number;
 };
 
 export type DailyRow = {
@@ -93,20 +97,20 @@ export type DailyPage = ScopeOptions & {
 	/** The picked person (PR45), for the combobox's label; `null` when none (or unknown). */
 	person: PersonOption | null;
 	shifts: ShiftRow[];
-	/** One stored row per person and date, newest date first, matching status and source. */
+	/**
+	 * One page (`DAILY_PAGE_SIZE` rows) of the stored rows matching status and source: one per
+	 * person and date, newest date first, then by name.
+	 */
 	rows: DailyRow[];
+	/** Every row matching status and source, on all pages. */
+	matching: number;
+	/** The shown page of `matching`. */
+	window: PageWindow;
 	/** Stored rows of the range, scope and search before the status and source filters. */
 	total: number;
 	/** Person-days in scope (and matching the search) with no stored row yet ("Recompute these days" creates them). */
 	missing: number;
 };
-
-/** Does a day match the "Source" filter: either counted time from there, or corrected. */
-function matchesSource(figures: DayFigures, source: DailySource): boolean {
-	if (source === 'corrected') return figures.corrected;
-	const punch = source === 'typed' ? 'manual' : source === 'punch_reading' ? 'import' : 'seed';
-	return figures.checkInSource === punch || figures.checkOutSource === punch;
-}
 
 const isDate = (value: string | null): value is string =>
 	value !== null && z.iso.date().safeParse(value).success;
@@ -162,24 +166,26 @@ export async function getDailyAttendance(actor: Actor, filter: DailyFilter): Pro
 	]);
 	const people = narrowed(scoped, matching);
 	// Everyone: every stored row (inactive people's too), or those of the people matching the search.
-	const stored = await listDailyRows(
-		from,
-		to,
-		filter.scope ? people : matching ? [...matching] : null
-	);
-	const inScope = new Set(people);
-	const storedInScope = stored.filter((r) => inScope.has(r.person.staffId)).length;
-	const rows = stored
-		.map((r) => ({
-			person: r.person,
-			figures: dayFiguresOf(r.values),
-			needsRecompute: r.needsRecompute
-		}))
-		.filter(
-			(r) =>
-				(!filter.status || r.figures.status === filter.status) &&
-				(!filter.source || matchesSource(r.figures, filter.source))
-		);
+	const shown = filter.scope ? people : matching ? [...matching] : null;
+	const rowFilter = { status: filter.status, source: filter.source };
+	// The counts cover the whole range; only the rows are paged. Both run together: the asked page
+	// is nearly always a real one.
+	const [counts, asked] = await Promise.all([
+		countDailyRows(from, to, shown, people, rowFilter),
+		listDailyRows(from, to, shown, rowFilter, {
+			limit: DAILY_PAGE_SIZE,
+			offset: (filter.page - 1) * DAILY_PAGE_SIZE
+		})
+	]);
+	const window = pageWindow(counts.matching, filter.page, DAILY_PAGE_SIZE);
+	// A page past the end (rows were filtered away, or a hand-typed number) shows the last page.
+	const stored =
+		window.page === filter.page
+			? asked
+			: await listDailyRows(from, to, shown, rowFilter, {
+					limit: DAILY_PAGE_SIZE,
+					offset: window.offset
+				});
 	return {
 		...options,
 		from,
@@ -192,10 +198,16 @@ export async function getDailyAttendance(actor: Actor, filter: DailyFilter): Pro
 		staffId: search.staffId,
 		person: person ?? null,
 		shifts,
-		rows,
-		total: stored.length,
+		rows: stored.map((r) => ({
+			person: r.person,
+			figures: dayFiguresOf(r.values),
+			needsRecompute: r.needsRecompute
+		})),
+		matching: counts.matching,
+		window,
+		total: counts.total,
 		// Only dates up to today can be stored (PR18).
-		missing: Math.max(0, people.length * pastDays(from, to, today) - storedInScope)
+		missing: Math.max(0, people.length * pastDays(from, to, today) - counts.inScope)
 	};
 }
 

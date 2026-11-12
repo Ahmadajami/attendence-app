@@ -18,6 +18,7 @@ const day = (over: Partial<DayTagFigures> = {}): DayTagFigures => ({
 	unauthSwap: false,
 	corrected: false,
 	lateMinutes: 0,
+	creditMinutes: 0,
 	...over
 });
 
@@ -136,5 +137,20 @@ describe('the catalogue', () => {
 		const listed = DAY_TAG_GROUPS.flatMap((g) => [...g.tags]);
 		expect(new Set(listed).size).toBe(listed.length);
 		expect(listed.sort()).toEqual(Object.keys(DAY_TAG_TONE).sort());
+	});
+});
+
+describe('the Friday Prayer credit tag (FP1)', () => {
+	it('shows with its minutes when the day has credit, and not otherwise', () => {
+		expect(dayTags(day({ creditMinutes: 60 }), 0)).toContainEqual({
+			id: 'credit.friday_prayer',
+			minutes: 60
+		});
+		expect(ids(day())).not.toContain('credit.friday_prayer');
+	});
+
+	it('has its own group and tone', () => {
+		expect(DAY_TAG_GROUPS.map((g) => g.group)).toContain('credit');
+		expect(DAY_TAG_TONE['credit.friday_prayer']).toBe('info');
 	});
 });

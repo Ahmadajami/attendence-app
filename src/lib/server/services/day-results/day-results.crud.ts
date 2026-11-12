@@ -39,6 +39,9 @@ export function toValues(row: DayResultRow): DayResultValues {
 		corrected: row.corrected,
 		requiredMinutes: row.requiredMinutes,
 		workedMinutes: row.workedMinutes,
+		creditMinutes: row.creditMinutes,
+		shortageMinutes: row.shortageMinutes,
+		creditExtraMinutes: row.creditExtraMinutes,
 		lateMinutes: row.lateMinutes,
 		overtimeMinutes: row.overtimeMinutes,
 		otRate: row.otRate,
@@ -150,12 +153,16 @@ export function markNeedsRecompute(
 	];
 }
 
-/** Flagged rows, oldest first. */
+/**
+ * Flagged rows, oldest first. The condition is the bare column, exactly the predicate of the
+ * partial index `day_result_recompute_idx`: `needs_recompute = $1` cannot use that index once
+ * PostgreSQL plans the prepared statement without its parameter.
+ */
 export async function listFlaggedDays(limit: number) {
 	return db
 		.select({ staffId: dayResult.staffId, shiftDate: dayResult.shiftDate })
 		.from(dayResult)
-		.where(eq(dayResult.needsRecompute, true))
+		.where(sql`${dayResult.needsRecompute}`)
 		.orderBy(asc(dayResult.shiftDate))
 		.limit(limit);
 }

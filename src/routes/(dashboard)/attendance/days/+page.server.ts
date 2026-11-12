@@ -26,6 +26,7 @@ import {
 	MAX_BACKFILL_DAYS,
 	recomputeFrom
 } from '#lib/server/services/day-results/day-results.bl.js';
+import { parsePage } from '#lib/utils/pagination.js';
 import type { Actions, PageServerLoad } from './$types';
 
 // The daily attendance page (pay plan PR20, task 5.2): the stored records of one date and scope,
@@ -41,7 +42,8 @@ const oneOf = <T extends string>(values: readonly T[], value: string | null): T 
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const actor = actorFrom(locals);
-	// Flagged rows (a recompute that failed after its write) are repaired before they are shown.
+	// Flagged rows (a recompute that failed after its write) are repaired before they are shown:
+	// one index lookup when there are none (plan 2026-11-12-daily-page-speed, DS4).
 	await catchUpFlagged();
 	const page = await getDailyAttendance(actor, {
 		from: url.searchParams.get('from'),
@@ -50,7 +52,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		status: oneOf<DayStatus>(DAY_STATUSES, url.searchParams.get('status')),
 		source: oneOf<DailySource>(DAILY_SOURCES, url.searchParams.get('source')),
 		q: personSearch(url.searchParams.get('q')),
-		staffId: parseStaffId(url.searchParams.get('staff'))
+		staffId: parseStaffId(url.searchParams.get('staff')),
+		page: parsePage(url.searchParams.get('page'))
 	});
 	const canRecord = actor.permissions.has('attendance.record');
 	const canBackfill = actor.permissions.has('roster.manage');

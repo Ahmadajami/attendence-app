@@ -1,5 +1,11 @@
 import type { AttendanceEventType, DayStatus, PunchSource } from '#lib/schemas/enums.js';
 import {
+	ATTENDANCE_RULE_DEFAULTS,
+	fridayPrayerCredit,
+	roundingOf,
+	type AttendanceRules
+} from './attendance-rules.js';
+import {
 	approvalState,
 	computeOvertime,
 	type ApprovalState,
@@ -135,8 +141,16 @@ export type ShiftSummary = {
 	lateMinutes: number;
 	/** Check-in → check-out, breaks included (they are paid); `null` until checked out. */
 	workedMinutes: number | null;
-	/** Under the shift's required minutes on a rostered shift. */
+	/** Under the shift's required minutes on a rostered shift (after the credit). */
 	short: boolean;
+	/** Closed punch segments (check-in → check-out pairs) counted for the day. */
+	segments: number;
+	/** Friday Prayer credit (FP1): paid, counts toward the required time, never overtime. */
+	creditMinutes: number;
+	/** Required minutes not covered by worked time and credit (0 when none is short). */
+	shortageMinutes: number;
+	/** Credit left after covering the shortage: paid as extra time, not overtime. */
+	creditExtraMinutes: number;
 	overtime: Overtime | null;
 	approval: ApprovalState;
 	/** Where the counted check-in / check-out came from (pay plan PR24); `null` when unknown. */
@@ -154,7 +168,8 @@ export function shiftSummary(
 	day: RosterDay,
 	events: readonly AttendanceEntry[],
 	now: Date,
-	approval: ApprovedOvertime | null = null
+	approval: ApprovedOvertime | null = null,
+	rules: AttendanceRules = ATTENDANCE_RULE_DEFAULTS
 ): ShiftSummary {
 	const effective = effectiveEvents(events);
 	const scheduled = day.shift !== null && day.start !== null;
@@ -171,6 +186,7 @@ export function shiftSummary(
 	let checkInSource: PunchSource | null = null;
 	let checkOutSource: PunchSource | null = null;
 	let onBreak = false;
+	let segments = 0;
 	for (const e of effective) {
 		if (e.type === 'check_in' && openSince === null) {
 			openSince = e.occurredAt;
@@ -181,6 +197,7 @@ export function shiftSummary(
 			onBreak = false;
 		} else if (e.type === 'check_out' && openSince !== null) {
 			worked += Math.floor((e.occurredAt.getTime() - openSince.getTime()) / MINUTE);
+			segments += 1;
 			openSince = null;
 			checkOut = e.occurredAt;
 			checkOutSource = e.source ?? null;
@@ -214,7 +231,20 @@ export function shiftSummary(
 	const allOvertime = day.extra || !scheduled || holiday;
 	// Every closed day gets its overtime, a day off too: it no longer waits for a shift (PS3).
 	const overtime =
-		workedMinutes !== null ? computeOvertime(workedMinutes, required, allOvertime) : null;
+		workedMinutes !== null
+			? computeOvertime(workedMinutes, required, allOvertime, roundingOf(rules))
+			: null;
+
+	// The credit and the shortage apply to a planned work day only (FP1, Q-EN7): not a day off, a
+	// holiday, an extra shift or a full-day state.
+	const workDay = scheduled && !day.extra && !holiday && day.source !== 'absence';
+	const creditMinutes =
+		workDay && workedMinutes !== null
+			? fridayPrayerCredit({ shiftDate: day.date, workDay, segments, rules })
+			: 0;
+	const shortfall = workDay && workedMinutes !== null ? Math.max(0, required - workedMinutes) : 0;
+	const shortageMinutes = Math.max(0, shortfall - creditMinutes);
+	const creditExtraMinutes = creditMinutes - Math.min(creditMinutes, shortfall);
 
 	return {
 		status,
@@ -223,8 +253,11 @@ export function shiftSummary(
 		checkOut: closed ? checkOut : null,
 		lateMinutes,
 		workedMinutes,
-		short:
-			scheduled && !day.extra && !holiday && workedMinutes !== null && workedMinutes < required,
+		short: shortageMinutes > 0,
+		segments,
+		creditMinutes,
+		shortageMinutes,
+		creditExtraMinutes,
 		overtime,
 		approval: approvalState(overtime?.minutes ?? 0, approval),
 		checkInSource,

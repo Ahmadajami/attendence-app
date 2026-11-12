@@ -70,7 +70,8 @@ const NAME: Record<DayTagId, () => string> = {
 	'source.odoo_seed': m.daily_source_odoo_seed,
 	'source.next_day': m.attendance_next_day,
 	'ot.paid': m.day_tag_ot_paid_name,
-	'ot.unpaid': m.day_tag_ot_unpaid_name
+	'ot.unpaid': m.day_tag_ot_unpaid_name,
+	'credit.friday_prayer': m.day_tag_credit_friday_prayer_name
 };
 
 const HELP: Record<DayTagId, () => string> = {
@@ -99,7 +100,8 @@ const HELP: Record<DayTagId, () => string> = {
 	'source.odoo_seed': m.day_tag_source_odoo_seed_help,
 	'source.next_day': m.day_tag_source_next_day_help,
 	'ot.paid': m.day_tag_ot_paid_help,
-	'ot.unpaid': m.day_tag_ot_unpaid_help
+	'ot.unpaid': m.day_tag_ot_unpaid_help,
+	'credit.friday_prayer': m.day_tag_credit_friday_prayer_help
 };
 
 /** "What to do", for the tags that ask for something (DT6). */
@@ -115,7 +117,8 @@ export const GROUP_LABEL: Record<DayTagGroup, () => string> = {
 	state: m.day_tag_group_state,
 	mark: m.day_tag_group_mark,
 	source: m.day_tag_group_source,
-	overtime: m.day_tag_group_overtime
+	overtime: m.day_tag_group_overtime,
+	credit: m.day_tag_group_credit
 };
 
 export const dayTagName = (id: DayTagId): string => NAME[id]();
@@ -136,6 +139,8 @@ export function dayTagLabel(tag: DayTag): string {
 			return tag.rate == null ? time : `${time} ${formatRate(tag.rate)}`;
 		case 'ot.unpaid':
 			return m.daily_not_paid({ time });
+		case 'credit.friday_prayer':
+			return m.day_tag_credit_friday_prayer_label({ minutes: tag.minutes });
 		default:
 			return dayTagName(tag.id);
 	}

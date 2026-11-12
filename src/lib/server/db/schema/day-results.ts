@@ -73,6 +73,12 @@ export const dayResult = pgTable(
 		requiredMinutes: integer('required_minutes').notNull().default(0),
 		/** `null` until checked out. */
 		workedMinutes: integer('worked_minutes'),
+		/** Friday Prayer credit (FP1): paid, counts toward the required time, never overtime. */
+		creditMinutes: integer('credit_minutes').notNull().default(0),
+		/** Required minutes not covered by worked time and credit. */
+		shortageMinutes: integer('shortage_minutes').notNull().default(0),
+		/** Credit left over after the shortage: paid as extra time, not overtime. */
+		creditExtraMinutes: integer('credit_extra_minutes').notNull().default(0),
 		lateMinutes: integer('late_minutes').notNull().default(0),
 		/** Rounded to the quarter hour, before the pay rule. */
 		overtimeMinutes: integer('overtime_minutes').notNull().default(0),
@@ -102,7 +108,7 @@ export const dayResult = pgTable(
 			.where(sql`${t.needsRecompute}`),
 		check(
 			'day_result_minutes',
-			sql`${t.requiredMinutes} >= 0 AND (${t.workedMinutes} IS NULL OR ${t.workedMinutes} >= 0) AND ${t.lateMinutes} >= 0 AND ${t.overtimeMinutes} >= 0 AND ${t.paidOtMinutes} >= 0 AND ${t.unpaidExtraMinutes} >= 0`
+			sql`${t.requiredMinutes} >= 0 AND (${t.workedMinutes} IS NULL OR ${t.workedMinutes} >= 0) AND ${t.lateMinutes} >= 0 AND ${t.overtimeMinutes} >= 0 AND ${t.paidOtMinutes} >= 0 AND ${t.unpaidExtraMinutes} >= 0 AND ${t.creditMinutes} >= 0 AND ${t.shortageMinutes} >= 0 AND ${t.creditExtraMinutes} >= 0`
 		),
 		check(
 			'day_result_swap',

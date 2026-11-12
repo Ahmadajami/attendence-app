@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AttendanceEventType } from '#lib/schemas/enums.js';
+import { ATTENDANCE_RULE_DEFAULTS, type AttendanceRules } from './attendance-rules.js';
 import {
 	attributeEvent,
 	effectiveEvents,
@@ -14,6 +15,9 @@ import { D, E, N, SHIFTS, slots } from './test-shifts.js';
 
 /** Damascus wall-clock time as an instant (UTC+3). */
 const at = (local: string) => new Date(`${local}:00+03:00`);
+
+/** The app's former rule: overtime to the nearest 15 minutes. Tests that check rounding pass it. */
+const STEP_15: AttendanceRules = { ...ATTENDANCE_RULE_DEFAULTS, overtimeStep: 15 };
 
 /** The active shifts an unscheduled event may be counted for. */
 const ACTIVE: RosterShift[] = [D, N, E];
@@ -195,7 +199,9 @@ describe('shiftSummary', () => {
 				ev('break_end', '2026-11-02T13:00'),
 				ev('check_out', '2026-11-02T21:10')
 			],
-			later
+			later,
+			null,
+			STEP_15
 		);
 		expect(s).toMatchObject({
 			status: 'done',
@@ -261,7 +267,9 @@ describe('shiftSummary', () => {
 		const s = shiftSummary(
 			night3,
 			[ev('check_in', '2026-11-03T19:00'), ev('check_out', '2026-11-04T08:40')],
-			later
+			later,
+			null,
+			STEP_15
 		);
 		expect(s).toMatchObject({ shiftId: 'N', workedMinutes: 820, overtime: { minutes: 105 } });
 	});
@@ -325,9 +333,9 @@ describe('shiftSummary', () => {
 	it('shows an approval as changed after a correction', () => {
 		const out = ev('check_out', '2026-11-02T21:10');
 		const events = [ev('check_in', '2026-11-02T07:00'), out];
-		expect(shiftSummary(day2, events, later, { minutes: 135 }).approval).toBe('approved');
+		expect(shiftSummary(day2, events, later, { minutes: 135 }, STEP_15).approval).toBe('approved');
 		const fix = ev('check_out', '2026-11-02T21:40', out.id);
-		const s = shiftSummary(day2, [...events, fix], later, { minutes: 135 });
+		const s = shiftSummary(day2, [...events, fix], later, { minutes: 135 }, STEP_15);
 		expect(s).toMatchObject({
 			workedMinutes: 880,
 			overtime: { minutes: 165 },

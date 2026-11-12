@@ -1,21 +1,26 @@
 /**
- * Check a team's monthly roster workbook against a cycle pattern
+ * Check a team's monthly roster workbook against the app's roster
  * (plans/2026-11-09-operations-roster-nov-2026.md Phase 2). Read-only: it never writes.
  *
- *   pnpm exec tsx --env-file=.env scripts/check-team-roster.ts plan|verify \
+ *   pnpm exec tsx --env-file=.env scripts/check-team-roster.ts plan \
  *     --file ~/secure/syravia/imports/rosters/2026-10/<file>.xlsx --month 2026-10 \
- *     --team <id> --pattern <id> --anchor 2026-10-31 --code D=D8 --code N=N8 [--sheet <name>]
+ *     --team <id> --pattern <cycle id> --anchor 2026-10-31 --code D=D8 --code N=N8 [--sheet <name>]
+ *   pnpm exec tsx --env-file=.env scripts/check-team-roster.ts verify \
+ *     --file … --month 2026-10 --team <id> --pattern <id> [--pattern <id> …] --code A=908 …
  *
  * The workbook: column A the employee number, column B the name (never read), column C day 1 and
  * so on by position (the header is not trusted). `O` is an off day; `--code` maps the other codes to
  * shift codes. Rows with an unknown, inactive or non-member number refuse the run; a repeated number
  * keeps the fuller row and reports the other.
  *
- * - `plan`: per row the staff record ID, the crew start that fits (and the form's choice), the
- *   employee page, the days that don't fit, and the employee swaps that explain them.
- * - `verify`: the app's roster (assignments, anchors, memberships, own rules, swaps, day edits,
- *   absences, holidays) for every member and day, through `rosterDay`; each day must be planned by
- *   `--pattern` and give the file's shift. Prints the match count and each mismatch.
+ * - `plan` (one cycle pattern, needs `--anchor`): per row the staff record ID, the crew start that
+ *   fits (and the form's choice), the employee page, the days that don't fit, and the employee
+ *   swaps that explain them.
+ * - `verify` (cycle or weekly patterns; `--pattern` may repeat, e.g. the team's weekly pattern plus
+ *   the personal patterns of people on another shift): the app's roster (assignments, anchors,
+ *   memberships, own rules, swaps, day edits, absences, holidays) for every member and day, through
+ *   `rosterDay`; each day must be planned by one of the `--pattern`s and give the file's shift.
+ *   Prints the match count and each mismatch.
  *
  * Output: workbook row numbers, record IDs, dates and shift codes only (CLAUDE.md §1).
  */
@@ -53,7 +58,7 @@ const {
 		sheet: { type: 'string' },
 		month: { type: 'string' },
 		team: { type: 'string' },
-		pattern: { type: 'string' },
+		pattern: { type: 'string', multiple: true, default: [] },
 		anchor: { type: 'string' },
 		code: { type: 'string', multiple: true, default: [] }
 	}
@@ -64,8 +69,11 @@ const expandHome = (value: string) =>
 	value === '~' || value.startsWith('~/') ? path.join(homedir(), value.slice(1)) : value;
 
 if (mode !== 'plan' && mode !== 'verify') fail('First argument: plan or verify.');
-for (const key of ['file', 'month', 'team', 'pattern', 'anchor'] as const)
-	if (!args[key]) fail(`--${key} is required.`);
+for (const key of ['file', 'month', 'team'] as const) if (!args[key]) fail(`--${key} is required.`);
+const patternIds = [...new Set(args.pattern!)];
+if (patternIds.length === 0) fail('--pattern is required.');
+if (mode === 'plan' && patternIds.length > 1) fail('plan takes one --pattern.');
+if (mode === 'plan' && !args.anchor) fail('--anchor is required for plan.');
 
 const file = path.resolve(expandHome(args.file!));
 if (!existsSync(file)) fail('--file does not exist.');
@@ -78,12 +86,13 @@ if (!/^\d{4}-\d{2}$/.test(month)) fail('--month must be YYYY-MM.');
 const first = `${month}-01`;
 const days = daysBetween(first, parseDate(first).add({ months: 1 }).toString());
 const dates = Array.from({ length: days }, (_, i) => addDays(first, i));
-const anchorDate = args.anchor!;
-try {
-	if (parseDate(anchorDate).toString() !== anchorDate) throw new Error();
-} catch {
-	fail('--anchor must be a real YYYY-MM-DD date.');
-}
+const anchorDate = args.anchor;
+if (anchorDate !== undefined)
+	try {
+		if (parseDate(anchorDate).toString() !== anchorDate) throw new Error();
+	} catch {
+		fail('--anchor must be a real YYYY-MM-DD date.');
+	}
 
 /** Workbook code (upper case) → shift code; `O` is off. */
 const fileCodes = new Map<string, string>();
@@ -123,16 +132,13 @@ try {
 	for (const code of fileCodes.values())
 		if (!knownCodes.has(code)) fail(`--code: no shift with code "${code}".`);
 
-	const [pattern] = await db
+	const patterns = await db
 		.select({ id: schema.pattern.id, type: schema.pattern.type, slots: schema.pattern.slots })
 		.from(schema.pattern)
-		.where(eq(schema.pattern.id, args.pattern!));
-	if (!pattern) fail('--pattern: no such pattern.');
-	if (pattern.type !== 'cycle') fail('--pattern must be a cycle pattern.');
-	const cycle: CycleCodes = {
-		slots: normalizeSlots(pattern.slots).map((id) => (id === null ? null : codeOf.get(id)!)),
-		anchorDate
-	};
+		.where(inArray(schema.pattern.id, patternIds));
+	for (const id of patternIds)
+		if (!patterns.some((p) => p.id === id)) fail(`--pattern: no such pattern ${id}.`);
+	const checked = new Set(patternIds);
 
 	const [team] = await db
 		.select({ id: schema.team.id })
@@ -223,6 +229,12 @@ try {
 	const rows = people.map((p) => p!);
 
 	if (mode === 'plan') {
+		const [pattern] = patterns;
+		if (pattern.type !== 'cycle') fail('plan needs a cycle pattern (verify takes weekly ones).');
+		const cycle: CycleCodes = {
+			slots: normalizeSlots(pattern.slots).map((id) => (id === null ? null : codeOf.get(id)!)),
+			anchorDate: anchorDate!
+		};
 		console.log(`\npattern ${pattern.id}, anchor ${anchorDate}, ${cycle.slots.length}-day cycle`);
 		const fitted = rows.map((row) => {
 			const fit = fitRow(cycle, dates, row.cells);
@@ -319,7 +331,7 @@ try {
 				? assignments(inArray(schema.patternAssignment.departmentId, departmentIds))
 				: []
 		]);
-		const patternIds = [
+		const usedPatternIds = [
 			...new Set(
 				[...personal, ...teamAssignments, ...departmentAssignments].map((a) => a.patternId)
 			)
@@ -336,10 +348,10 @@ try {
 				.from(schema.patternHoliday)
 				.where(
 					and(
-						patternIds.length
+						usedPatternIds.length
 							? or(
 									isNull(schema.patternHoliday.patternId),
-									inArray(schema.patternHoliday.patternId, patternIds)
+									inArray(schema.patternHoliday.patternId, usedPatternIds)
 								)
 							: isNull(schema.patternHoliday.patternId),
 						isNull(schema.patternHoliday.cancelledAt),
@@ -347,7 +359,7 @@ try {
 						gte(schema.patternHoliday.endsOn, first)
 					)
 				),
-			patternIds.length
+			usedPatternIds.length
 				? db
 						.select({
 							patternId: schema.patternHolidayException.patternId,
@@ -356,7 +368,7 @@ try {
 							otEligible: schema.patternHolidayException.otEligible
 						})
 						.from(schema.patternHolidayException)
-						.where(inArray(schema.patternHolidayException.patternId, patternIds))
+						.where(inArray(schema.patternHolidayException.patternId, usedPatternIds))
 				: []
 		]);
 
@@ -375,7 +387,8 @@ try {
 		};
 
 		console.log(
-			`\npattern ${pattern.id}; app data: ${overrides.length} day edits/swap days, ` +
+			`\npatterns ${patterns.map((p) => `${p.id} (${p.type})`).join(', ')}; ` +
+				`app data: ${overrides.length} day edits/swap days, ` +
 				`${schedules.length} own-rule versions, ${absences.length} absences`
 		);
 		let compared = 0;
@@ -389,7 +402,7 @@ try {
 				compared++;
 				const day = rosterDay(input, date);
 				const got = day.shift?.code ?? null;
-				const onPattern = day.patternId === pattern.id;
+				const onPattern = day.patternId !== null && checked.has(day.patternId);
 				if (got === want && onPattern) {
 					matched++;
 					return;

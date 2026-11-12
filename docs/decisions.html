@@ -2784,6 +2784,36 @@
       ]
     },
     {
+      id: 'RI11', group: 'roster', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-roster-import.md §1',
+      title: {en: "A later roster file joins a department pattern already saved for the month", ar: "ملف جدول لاحق ينضم إلى نمط القسم المحفوظ للشهر"},
+      decision: {en: "A department that already has its month's pattern is no longer refused when that pattern is one weekly pattern with one shift, covering the whole month: the file's people are fitted against it (own off days, a personal pattern for another shift, self swaps, day edits), no group pattern is made, and the department's other members keep their plan. A personal pattern with the same name and the same weekly slots is reused. A cycle, two shifts, or a change inside the month is still refused (RI5). `extract_roster.py --only-new` writes such a file for people who were in no saved roster batch of the month, with the departments the app already plans by and the shift starts of the earlier batch.", ar: "لا يُرفض القسم الذي له نمط الشهر إذا كان نمطاً أسبوعياً واحداً بوردية واحدة يغطي الشهر كله: يُطابَق أشخاص الملف عليه (أيام عطلة خاصة، نمط شخصي لوردية أخرى، تبديلات ذاتية، تعديلات أيام)، ولا يُنشأ نمط للمجموعة، ويبقى باقي أعضاء القسم على خطتهم. ويُعاد استخدام نمط شخصي بالاسم نفسه والخانات الأسبوعية نفسها. أما الدورة أو الورديتان أو التغيير داخل الشهر فما زال يُرفض (RI5). و`extract_roster.py --only-new` يكتب ملفاً كهذا للأشخاص غير الموجودين في أي دفعة جدول محفوظة للشهر، بالأقسام التي يخطط بها التطبيق وبأوقات بدء الدفعة السابقة."},
+      why: {en: "People added after the month's roster was saved (OC9) must get Odoo's plan without touching the 7 976 planned days already checked; undoing the first batch is refused once punches exist.", ar: "الأشخاص المضافون بعد حفظ جدول الشهر (OC9) يجب أن يأخذوا خطة Odoo دون المساس بـ 7 976 يوماً مخططاً تم التحقق منها؛ والتراجع عن الدفعة الأولى مرفوض بعد وجود البصمات."},
+      alts: [
+        {en: "Undo the punches and the roster, then import both again with the new people: not chosen — it rewrites every checked day and refits every group.", ar: "التراجع عن البصمات والجدول ثم استيرادهما مع الأشخاص الجدد: لم يُختر — يعيد كتابة كل يوم تم التحقق منه ويعيد مطابقة كل مجموعة."},
+        {en: "Type each new person's plan in the day editor: not chosen — slow and unchecked; the import replays the plan before saving.", ar: "كتابة خطة كل شخص جديد في محرر اليوم: لم يُختر — بطيء وبلا تحقق؛ والاستيراد يعيد تشغيل الخطة قبل الحفظ."},
+        {en: "Always a new personal pattern, never reuse: not chosen — duplicate patterns with the same content. Known limit: undoing the first batch would deactivate a pattern the later batch reuses (undo is refused while punches exist).", ar: "نمط شخصي جديد دائماً بلا إعادة استخدام: لم يُختر — أنماط مكررة بالمحتوى نفسه. حد معروف: التراجع عن الدفعة الأولى يعطّل نمطاً تعيد الدفعة اللاحقة استخدامه (والتراجع مرفوض ما دامت البصمات موجودة)."}
+      ]
+    },
+    {
+      id: 'OC9', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "People Odoo has for October and the app didn't: added for October, moved out for November", ar: "أشخاص لدى Odoo في تشرين الأول وليسوا في التطبيق: يُضافون لتشرين الأول ويُخرجون في تشرين الثاني"},
+      decision: {en: "The 22 people with an Odoo badge and October punches who were not in the app are added with the employee import (employee number = old badge = the Odoo badge, Odoo's department and job, no team, active), then get Odoo's October plan (RI11) and their punches from the same October file. From November they are moved out (how: to be designed). Left out for now: 1 person with punches but no badge, 9 planned without punches.", ar: "يُضاف الـ 22 شخصاً الذين لهم بطاقة في Odoo وبصمات في تشرين الأول وليسوا في التطبيق عبر استيراد الموظفين (الرقم الوظيفي = البطاقة القديمة = بطاقة Odoo، قسم Odoo ووظيفته، بلا فريق، نشط)، ثم يأخذون خطة Odoo لتشرين الأول (RI11) وبصماتهم من ملف تشرين الأول نفسه. ومن تشرين الثاني يُخرجون (الطريقة: تُصمم لاحقاً). مستبعدون الآن: شخص له بصمات بلا بطاقة، و9 مخططون بلا بصمات."},
+      why: {en: "User (2026-11-12): add them to get all of October's data, then move them out for November.", ar: "المستخدم (2026-11-12): أضفهم لتكتمل بيانات تشرين الأول، ثم أخرجهم في تشرين الثاني."},
+      alts: [
+        {en: "Leave them out (329 punch lines refused): not chosen — October would be incomplete.", ar: "تركهم خارجاً (رفض 329 سطر بصمة): لم يُختر — يبقى تشرين الأول ناقصاً."},
+        {en: "Add them inactive: not chosen — the roster and punch imports refuse inactive people.", ar: "إضافتهم غير نشطين: لم يُختر — استيراد الجدول والبصمات يرفض غير النشطين."}
+      ]
+    },
+    {
+      id: 'OC10', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-october-odoo-parity.md §1',
+      title: {en: "Operations follows HR's roster, not Odoo's plan", ar: "العمليات تتبع جدول الموارد البشرية لا خطة Odoo"},
+      decision: {en: "Operations keeps the roster from HR's workbook. Its days that differ from Odoo (about 4 required and 7 overtime days in 1–20 October) are cause \"plan differs\" on the check page; the user handles them after everything else is fine.", ar: "تبقى العمليات على جدول دفتر الموارد البشرية. وأيامها المختلفة عن Odoo (نحو 4 أيام في المطلوب و7 في الإضافي في 1–20 تشرين الأول) سببها \"الخطة مختلفة\" في صفحة التحقق؛ ويعالجها المستخدم بعد أن يصبح كل شيء آخر سليماً."},
+      why: {en: "User (2026-11-12): \"for the Operation follow HR roster not system, I will handle them later\".", ar: "المستخدم (2026-11-12): \"العمليات تتبع جدول الموارد البشرية لا النظام، سأعالجها لاحقاً\"."},
+      alts: [
+        {en: "Replace Operations' roster with Odoo's plan: not chosen — the user wants HR's roster.", ar: "استبدال جدول العمليات بخطة Odoo: لم يُختر — المستخدم يريد جدول الموارد البشرية."}
+      ]
+    },
+    {
       id: 'PS1', group: 'rules', status: 'approved', date: '2026-11-11', src: 'plans/2026-11-11-punches-without-shifts.md §1',
       title: {en: "A punch has no shift", ar: "البصمة بلا وردية"},
       decision: {en: "attendance_event.shift_id is removed. A punch is person + date + check-in + check-out, whether typed, imported or from a device.", ar: "يُحذف attendance_event.shift_id. البصمة = الموظف + التاريخ + الدخول + الخروج، سواء كُتبت أو استوردت أو جاءت من جهاز."},

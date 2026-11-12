@@ -1599,6 +1599,7 @@
 	"imports_roster_unlisted": "+{count} not in the file, planned by the pattern too",
 	"imports_roster_kind_department": "department",
 	"imports_roster_kind_team": "team",
+	"imports_roster_group_joined": "Joins the pattern already saved for this month: {name}",
 	"imports_roster_group_refused": "Not saved",
 	"imports_roster_people_title": "People",
 	"imports_roster_col_planned": "Planned days",

@@ -95,6 +95,8 @@ export type RosterGroupSummary = {
 	/** People of the department (or team) the file doesn't list: the pattern plans them too. */
 	unlisted: number;
 	patternName: string | null;
+	/** The group joins the pattern it already has in the month (RI11): `patternName` is that one. */
+	joined?: boolean;
 	/** Weekly slots, Sunday first: shift codes or `O`. */
 	slots: string[];
 	ownRules: number;

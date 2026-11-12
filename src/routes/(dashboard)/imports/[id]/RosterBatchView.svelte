@@ -130,6 +130,11 @@
 										? m.imports_roster_kind_department()
 										: m.imports_roster_kind_team()}
 								</span>
+								{#if group.joined}
+									<span class="text-xs text-muted-foreground">
+										{m.imports_roster_group_joined({ name: group.patternName ?? '' })}
+									</span>
+								{/if}
 								{#if group.refused}
 									<span class="text-xs text-destructive">
 										{m.imports_roster_group_refused()}: {punchReasonLabel(group.refused)}

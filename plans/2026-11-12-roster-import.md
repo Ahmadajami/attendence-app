@@ -31,6 +31,7 @@ The same file shape takes HR's monthly workbooks later.
 | RI7 | **Batch id** on `pattern`, `pattern_assignment`, `staff_schedule`, `roster_override`, `shift`. **Undo** of a roster batch: its day changes cancelled, its assignments and own rules removed, its patterns deactivated; audited with the rows before; days recomputed. Refused once a punch import was saved on top of those days (undo that first). Shifts batch: undo deactivates its shifts while no pattern uses them | Same promise as the punch import: a mistake can be taken back |
 | RI8 | **Names:** team pattern `<Team>/<Mon>/<YYYY>` (as Operations), personal `<Team> <code> <off days>/<Mon>/<YYYY>`; reason on every row `Roster import <file>` | Findable on the pattern pages |
 | RI10 | **Follow Odoo's structure: a roster belongs to a department** (user, 2026-11-12). The grid has a `Department` column: the plan is fitted per department and assigned to it (Aleppo: one pattern on "Station Aleppo", which its 7 departments inherit); a person without a department falls back to their `Team`. The app plans personal → team → department, so a department pattern reaches its people with or without a team: 31 of the 32 people without a team are covered (30 in DAM Porters && Drivers, the Aleppo Lost & Found supervisor under Station Aleppo). **Drivers belong to DAM Porters && Drivers:** the 3 drivers in the Admin team without a department get that department (the user sets it on the employee page); their own 480-minute day becomes a personal pattern | Odoo HR plans by department; no team decision is needed for people Odoo already rosters |
+| RI11 | **A later file joins a department pattern already saved for the month** (2026-11-12, for OC9): a department whose month pattern is one weekly pattern with one shift over the whole month is not refused; the file's people are fitted against it (own off days, personal pattern, self swaps, day edits), no group pattern is made, the other members keep their plan; a personal pattern with the same name and slots is reused. `extract_roster.py --only-new` writes the file for people in no saved batch of the month | People added after the save get Odoo's plan without touching the checked days |
 | RI9 | **Tool** `tools/odoo/extract_roster.py` (read-only) writes the shifts file and the month grid from Odoo's day plan, matched by badge, excluded people left out (IM14) | Repeatable; no personal data in the repo |
 
 ## 2. Questions for the user (defaults in **bold**)
@@ -134,6 +135,14 @@ counts and the user's OK.
       > day results: 7 976 / 7 976 equal, none missing, none still flagged. 2 department members not
       > in the file (HR & Admin 1, Station Damascus 1; no Odoo plan) are planned by their department's
       > pattern: 43 work days, 28 of them on 1–20 Oct without a punch.
+
+- [ ] 5.3 Join a saved month (RI11): `joinableAssignment` and `fitTeams` `joined` in
+      `src/lib/roster/fit-weekly.ts`, the import reuses same-name patterns, `extract_roster.py --only-new`;
+      the 22 people of OC9 imported by the user as a second October batch.
+      > note: 2026-11-12 built: 3 new tests (550 in all), `pnpm check` 0 errors. File for the 22:
+      > `~/secure/syravia/imports/rosters/2026-10/odoo-new/roster_2026-10.md`: 22 people, 8 groups
+      > (7 join a saved department pattern; Human Resources gets a new one that reaches only its 1
+      > person), 8 shifts all already in the app. Waits for the user's upload on `attendance_app`.
 
 ### Phase 6 · Manual checks by the user
 - [ ] 6.1 Shifts and roster preview, save, undo on `http://127.0.0.1:5174/imports` (e2e).

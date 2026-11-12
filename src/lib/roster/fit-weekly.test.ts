@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { fitTeams, readPerson, replayFit, type FitInput, type GridCell } from './fit-weekly.js';
+import {
+	fitTeams,
+	joinableAssignment,
+	readPerson,
+	replayFit,
+	type FitInput,
+	type GridCell
+} from './fit-weekly.js';
 import type { RosterData } from './input.js';
 import { D, E, N } from './test-shifts.js';
 
@@ -213,6 +220,51 @@ describe('replayFit', () => {
 		expect(replayFit(grid, [fit], { ...base(grid), memberships: [] })).toEqual([]);
 	});
 
+	it('RI11: people joining a department pattern already saved get only their own rows', () => {
+		// The department already has D, Friday and Saturday off, for the month (an earlier batch).
+		const grid: FitInput = {
+			dates: DATES,
+			people: [
+				{ staffId: 'p1', teamId: 'dept-a', cells: cells('D', FRI_SAT) },
+				{ staffId: 'p2', teamId: 'dept-a', cells: cells('D', [0, 1], { 7: 'N' }) },
+				{ staffId: 'p3', teamId: 'dept-a', cells: cells('E', [3]) },
+				{ staffId: 'p4', teamId: 'dept-a', cells: cells('E', [3]) }
+			],
+			joined: new Map([['dept-a', { mainShiftId: 'D', offWeekdays: FRI_SAT }]])
+		};
+		const [fit] = fitTeams(grid);
+		// E is the most common shift of the file, but the saved pattern's D stays the group's.
+		expect([fit.joined, fit.mainShiftId, fit.offWeekdays]).toEqual([true, 'D', FRI_SAT]);
+		expect(fit.ownRules).toEqual([{ staffId: 'p2', offWeekdays: [0, 1] }]);
+		expect(fit.personal.map((p) => [p.shiftId, p.staffIds])).toEqual([['E', ['p3', 'p4']]]);
+		expect(fit.changes).toEqual([{ staffId: 'p2', date: '2026-10-07', shiftId: 'N' }]);
+		const saved: RosterData = {
+			...base(grid),
+			memberships: [],
+			departmentChains: { p1: ['dept-a'], p2: ['dept-a'], p3: ['dept-a'], p4: ['dept-a'] },
+			departmentAssignments: [
+				{
+					id: 'saved',
+					patternId: 'saved-pattern',
+					teamId: null,
+					departmentId: 'dept-a',
+					type: 'weekly',
+					slots: ['D', 'D', 'D', 'D', 'D', null, null],
+					defaultWorkShiftId: 'D',
+					anchorDate: null,
+					effectiveFrom: '2026-10-01',
+					effectiveTo: '2026-11-01'
+				}
+			]
+		};
+		const asDepartment = (id: string) => ({ teamId: null, departmentId: id });
+		expect(replayFit(grid, [fit], saved, undefined, asDepartment)).toEqual([]);
+		// Without the saved pattern nothing plans p1: the replay adds no group pattern of its own.
+		expect(
+			replayFit(grid, [fit], { ...saved, departmentAssignments: [] }, undefined, asDepartment)
+		).not.toEqual([]);
+	});
+
 	it('reports a day the stored roster plans differently (here: no membership on the 1st)', () => {
 		const grid = input([['p1', cells('D', FRI_SAT)]]);
 		const stored = base(grid);
@@ -223,5 +275,46 @@ describe('replayFit', () => {
 		expect(replayFit(grid, fitTeams(grid), late)).toEqual([
 			{ staffId: 'p1', date: '2026-10-01', want: 'D', got: null }
 		]);
+	});
+});
+
+describe('joinableAssignment (RI11)', () => {
+	const WEEK = ['D', 'D', 'D', 'D', 'D', null, null];
+	const saved = (over: Partial<Parameters<typeof joinableAssignment>[0][number]> = {}) => ({
+		patternId: 'pat',
+		type: 'weekly' as const,
+		slots: WEEK,
+		effectiveFrom: '2026-10-01',
+		effectiveTo: '2026-11-01' as string | null,
+		...over
+	});
+
+	it('gives the shift and off weekdays of one weekly pattern covering the month', () => {
+		expect(joinableAssignment([saved()], '2026-10-01', '2026-11-01')).toEqual({
+			patternId: 'pat',
+			mainShiftId: 'D',
+			offWeekdays: [5, 6]
+		});
+		expect(
+			joinableAssignment([saved({ effectiveTo: null })], '2026-10-01', '2026-11-01')
+		).not.toBeNull();
+	});
+
+	it('refuses a cycle, two shifts, two assignments, or one that changes inside the month', () => {
+		const month = ['2026-10-01', '2026-11-01'] as const;
+		expect(joinableAssignment([saved({ type: 'cycle' })], ...month)).toBeNull();
+		expect(
+			joinableAssignment([saved({ slots: ['D', 'E', 'D', 'D', 'D', null, null] })], ...month)
+		).toBeNull();
+		expect(joinableAssignment([saved(), saved({ patternId: 'other' })], ...month)).toBeNull();
+		expect(joinableAssignment([saved({ effectiveFrom: '2026-10-10' })], ...month)).toBeNull();
+		expect(joinableAssignment([saved({ effectiveTo: '2026-10-20' })], ...month)).toBeNull();
+		// One that ended before the month doesn't count.
+		expect(
+			joinableAssignment(
+				[saved({ effectiveFrom: '2026-09-01', effectiveTo: '2026-10-01' })],
+				...month
+			)
+		).toBeNull();
 	});
 });

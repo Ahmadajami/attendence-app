@@ -36,6 +36,8 @@ only orders and closes the work of three plans: `2026-11-12-roster-import.md`,
 | OC6 | **21–31 Oct is entered in the app**, planned by the same imported October roster: typed on the entry sheet or day editor now; device files when a sample exists (Q-IM5). The 9 Odoo states after the 20th come with the punch file | Odoo has no punches after the 20th |
 | OC7 | **Settings for parity, set to Odoo's value for October:** overtime rounding (Odoo: none; the app's 15 becomes a setting, Q-EN2), Friday prayer +60 on a work day with a break (FP1, EN5). Built as the first piece of engine v2, nothing else of it before October closes | "Still configurable": the rule is a setting, October uses Odoo's |
 | OC8 | **No payroll page or export for October before the check is clean**; the check page and the Daily page are October's output. November's flow (roster from HR's workbooks or the app, device files daily, payroll page and export) is planned after October closes | One month at a time; nothing paid from unchecked figures |
+| OC9 | **People Odoo has and the app didn't** (user, 2026-11-12): the 22 with an Odoo badge and October punches are added (employee import; number = old badge = Odoo badge; Odoo's department and job; no team; active), get Odoo's October plan as a second roster batch (RI11) and their punches from the same October file; moved out from November (to be designed). Left out: 1 with punches and no badge, 9 planned without punches | October complete; they leave after it |
+| OC10 | **Operations follows HR's roster, not Odoo's** (user, 2026-11-12): its differing days are cause "plan differs" on the check page; the user handles them after everything else | The user's call |
 
 ## 2. Order of work
 
@@ -55,6 +57,13 @@ only orders and closes the work of three plans: `2026-11-12-roster-import.md`,
       > small shortage rule to find (step 5).
 - [ ] 4. Settings OC7 (rounding, Friday prayer) with October set to Odoo's values (`2026-11-12-attendance-rules-settings.md`); recompute October after the user's OK.
       > note: 2026-11-12 built and tested (547 tests); migrations 0026/0027 on e2e and test; the recompute on `attendance_app` waits for the user's OK.
+- [ ] 4b. The 22 people of OC9: added, October roster (RI11), punches; recompute; compare again.
+      > note: 2026-11-12 migrations 0026/0027 applied to `attendance_app` on the user's OK (28
+      > migrations; 2 rule versions; 22 248 stored days unchanged). 22 people created with
+      > `scripts/import-employees.ts` (dry run first): 22 active, 0 updated, 0 departments created,
+      > 2 job titles created, 24 audit rows (`tools/odoo/extract_new_staff.py` → workbook in
+      > `~/secure/syravia/imports/odoo/2026-10/`). Waiting for the user: roster upload (RI11 file),
+      > the same punch file again (about 329 lines for them; saved lines skip), recompute from 2026-10-01.
 - [ ] 5. Odoo reference and check page (attendance import plan Phase 3); October reaches 0 unexplained.
 - [ ] 6. 21–31 Oct entered (entry sheet / day editor, or device files).
 - [ ] 7. November flow: a new plan.

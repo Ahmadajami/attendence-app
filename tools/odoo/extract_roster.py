@@ -16,12 +16,19 @@ Rules (RI10, OC2, OC3):
   A shift is (required minutes of the day, start = median check-in of that group and length, to
   30 min). Code: length (8, 9, T = 10 h, E = 11 h, W = 12 h) + start hour, `H<h>` for :30.
 
+--only-new (RI11, OC9): only people who were in no saved roster batch of the month (e.g. people
+added after it). Their group is the department the app already plans them by (a department with a
+pattern in the month counts as a group), and shift starts are computed from the people of the earlier
+batch, so the codes are the ones already saved. Upload it as a second roster batch: its people join
+the saved department patterns.
+
 Prints counts only. Usage:
-  python3 -I tools/odoo/extract_roster.py 2026-10 ~/secure/syravia/imports/rosters/2026-10/odoo
+  python3 -I tools/odoo/extract_roster.py 2026-10 ~/secure/syravia/imports/rosters/2026-10/odoo [--only-new]
 """
 import collections, csv, datetime as dt, io, json, os, subprocess, sys
 
 MONTH, OUT = sys.argv[1], os.path.abspath(os.path.expanduser(sys.argv[2]))
+ONLY_NEW = '--only-new' in sys.argv[3:]
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if OUT.startswith(REPO + os.sep):
     sys.exit('Refusing to write inside the repo (real data stays in ~/secure/syravia/).')
@@ -48,6 +55,13 @@ staff = psql(*APP, f"""select s.id::text, s.employee_no, coalesce(nullif(s.legac
   from staff s left join team t on t.id = s.team_id where s.active""")
 by_badge = {s['badge']: s for s in staff if s['id'] not in excl and s['team_rostered'] != 't'}
 existing_codes = {r['code']: r for r in psql(*APP, 'select code, start_time::text st, end_time::text et, required_minutes::text req from shift')}
+# People of a saved roster batch of the month, and the departments that have a pattern in it.
+done = {r['s'] for r in psql(*APP, f"""select distinct r.parsed->>'staffId' s from import_row r
+  join import_batch b on b.id = r.batch_id where b.kind = 'roster' and b.status = 'committed'
+  and b.summary->>'from' >= '{first}' and b.summary->>'from' < '{nxt}' and r.action = 'create'""")}
+planned_depts = {r['d'] for r in psql(*APP, f"""select distinct department_id::text d from pattern_assignment
+  where department_id is not null and effective_from < '{nxt}' and (effective_to is null or effective_to > '{first}')""")}
+new = {b for b, s in by_badge.items() if s['id'] not in done}
 
 L = "at time zone 'UTC' at time zone 'Asia/Damascus'"
 lines = psql('odoo-db', 'odoo', 'syravia_dev', f"""
@@ -94,7 +108,9 @@ for roster, people in members.items():
 # The app plans a person by the NEAREST department of their chain that has a pattern, so a person's
 # group is the first department in their chain that is some roster's department; someone whose
 # chain has none uses their own department; no department: their team.
-targets = set(roster_dept.values())
+# With --only-new the groups are exactly the departments the app plans by (never a new one, whose
+# pattern would also reach people already planned).
+targets = planned_depts if ONLY_NEW else set(roster_dept.values())
 
 
 def group_of(b):
@@ -110,15 +126,19 @@ def group_of(b):
 groups = {b: group_of(b) for b in per}
 # Shift starts: median check-in per (group, required), to 30 minutes.
 ins = collections.defaultdict(list)
+old_ins = collections.defaultdict(list)  # people of the earlier batch: the starts it saved
 for b, days in per.items():
     for r in days.values():
         req = int(r['req']) or int(r['pat_req'])
         if r['off'] == 'f' and r['cin']:
             ins[(groups[b], req)].append(float(r['cin']))
+            if b not in new:
+                old_ins[(groups[b], req)].append(float(r['cin']))
 
 
 def start_of(group, req):
-    xs = sorted(ins.get((group, req)) or [x for (g, q), v in ins.items() if q == req for x in v] or [480])
+    source = old_ins if ONLY_NEW and (group, req) in old_ins else ins
+    xs = sorted(source.get((group, req)) or [x for (g, q), v in source.items() if q == req for x in v] or [480])
     return int(round(xs[len(xs) // 2] / 30) * 30) % 1440
 
 
@@ -140,6 +160,8 @@ def code_of(start, req):
 
 rows = []
 for b, days in sorted(per.items(), key=lambda kv: (groups[kv[0]], by_badge[kv[0]]['employee_no'])):
+    if ONLY_NEW and b not in new:
+        continue
     dept, team = groups[b]
     cells = []
     for d in DAYS:
@@ -174,7 +196,7 @@ for i, ((start, req), code) in enumerate(sorted(shifts.items(), key=lambda kv: k
 write(f'shifts_{MONTH}.md', ['Code', 'Name EN', 'Name AR', 'Start', 'End', 'Required minutes', 'Break minutes', 'Colour'], shift_rows)
 write(f'roster_{MONTH}.md', ['Employee No', 'Department', 'Team'] + DAYS, rows)
 
-g = collections.Counter(dept or f'team: {team}' for dept, team in groups.values())
+g = collections.Counter(dept or f'team: {team}' for b, (dept, team) in groups.items() if not ONLY_NEW or b in new)
 print(f'people {len(rows)}; groups {len(g)} (departments {sum(1 for k in g if not k.startswith("team: "))}); shifts {len(shift_rows)}'
       f' (already in the app: {sum(1 for c in shifts.values() if c in existing_codes)})')
 print('people per group:', dict(sorted(g.items(), key=lambda kv: -kv[1])))

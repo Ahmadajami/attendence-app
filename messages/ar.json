@@ -1599,6 +1599,7 @@
 	"imports_roster_unlisted": "+{count} غير موجودين في الملف، يخططهم النمط أيضًا",
 	"imports_roster_kind_department": "قسم",
 	"imports_roster_kind_team": "فريق",
+	"imports_roster_group_joined": "ينضم إلى النمط المحفوظ لهذا الشهر: {name}",
 	"imports_roster_group_refused": "لن يُحفظ",
 	"imports_roster_people_title": "الأشخاص",
 	"imports_roster_col_planned": "الأيام المخططة",

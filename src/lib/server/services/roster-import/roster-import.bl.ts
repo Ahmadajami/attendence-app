@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { m } from '#lib/paraglide/messages.js';
 import {
 	fitTeams,
+	joinableAssignment,
 	replayFit,
 	type FitInput,
 	type GridCell,
@@ -50,7 +51,7 @@ import { listShiftRows } from '../shifts/shifts.crud.js';
 import { listTeams } from '../teams/teams.crud.js';
 import {
 	hasCommittedPunchesBetween,
-	listPatternNames,
+	listPatternsByName,
 	listRosterBatchRows,
 	listSwapsBetween,
 	setImportBatchStatus,
@@ -86,7 +87,13 @@ type Group = {
 export type RosterBuild = {
 	from: string;
 	next: string;
-	fits: (TeamFit & { group: Group; patternName: string | null; personalNames: string[] })[];
+	fits: (TeamFit & {
+		group: Group;
+		patternName: string | null;
+		personalNames: string[];
+		/** Per personal pattern: the id of the same pattern already saved (RI11), else `null`. */
+		personalReuse: (string | null)[];
+	})[];
 	/** People whose days the save changes: the listed people and the unlisted members of a group. */
 	touched: string[];
 };
@@ -127,13 +134,14 @@ export async function planRosterFile(table: RawTable): Promise<RosterFilePlan> {
 	const next = addDays(to, 1);
 	const month = monthLabel(from);
 
-	const [shifts, departments, teams, people, patternNames] = await Promise.all([
+	const [shifts, departments, teams, people, patternsByName] = await Promise.all([
 		listShiftRows(),
 		listDepartmentRows(),
 		listTeams(),
 		listStaffByEmployeeNo(read.lines.map((l) => l.employeeNo)),
-		listPatternNames()
+		listPatternsByName()
 	]);
+	const patternNameOf = new Map([...patternsByName.values()].map((p) => [p.id, p.nameEn]));
 	const shiftByCode = new Map(shifts.filter((s) => s.active).map((s) => [s.code, s]));
 	const codeOf = new Map(shifts.map((s) => [s.id, s.code]));
 	const byNo = new Map(people.map((p) => [p.employeeNo, p]));
@@ -239,12 +247,21 @@ export async function planRosterFile(table: RawTable): Promise<RosterFilePlan> {
 		from,
 		to
 	);
+	// A department that already has its month's pattern (an earlier batch): the people of this file
+	// join it (RI11) when it is one weekly pattern for the whole month; else the group is refused.
+	const joined = new Map<
+		string,
+		{ patternId: string; mainShiftId: string; offWeekdays: number[] }
+	>();
 	for (const group of groups.values()) {
 		const own =
-			group.kind === 'department'
+			(group.kind === 'department'
 				? roster?.departmentAssignments.filter((a) => a.departmentId === group.targetId)
-				: roster?.teamAssignments.filter((a) => a.teamId === group.targetId);
-		if ((own ?? []).some((a) => overlaps(a, from, next))) group.refused = 'group_has_roster';
+				: roster?.teamAssignments.filter((a) => a.teamId === group.targetId)) ?? [];
+		if (!own.some((a) => overlaps(a, from, next))) continue;
+		const join = group.kind === 'department' ? joinableAssignment(own, from, next) : null;
+		if (join) joined.set(group.key, join);
+		else group.refused = 'group_has_roster';
 	}
 	const monthStart = startOfDamascusDay(from);
 	const monthEnd = startOfDamascusDay(next);
@@ -290,21 +307,34 @@ export async function planRosterFile(table: RawTable): Promise<RosterFilePlan> {
 	const input: FitInput = {
 		dates,
 		people: accepted.map((c) => ({ staffId: c.staffId, teamId: c.group.key, cells: c.cells })),
-		personalGroups
+		personalGroups,
+		joined
 	};
 	const fits = fitTeams(input);
 	const slotCodes = (slots: (string | null)[]) =>
 		slots.map((id) => (id ? (codeOf.get(id) ?? '?') : OFF_CODE));
 	const named = fits.map((fit) => {
 		const group = groups.get(fit.teamId)!;
-		const patternName = fit.mainShiftId ? `${group.label}/${month}` : null;
+		const patternName = fit.mainShiftId && !fit.joined ? `${group.label}/${month}` : null;
 		const personalNames = fit.personal.map(
 			(p) =>
 				`${group.label} ${codeOf.get(p.shiftId)} off ${p.offWeekdays.map((w) => WEEKDAYS[w]).join(' ') || 'none'}/${month}`
 		);
-		if ([patternName, ...personalNames].some((n) => n !== null && patternNames.has(n)))
+		// The same weekly pattern saved under that name (an earlier batch of the month) is reused.
+		const personalReuse = personalNames.map((name, i) => {
+			const saved = patternsByName.get(name);
+			return saved?.active &&
+				saved.type === 'weekly' &&
+				canonicalJson(saved.slots) === canonicalJson(fit.personal[i].slots)
+				? saved.id
+				: null;
+		});
+		if (
+			(patternName !== null && patternsByName.has(patternName)) ||
+			personalNames.some((n, i) => patternsByName.has(n) && personalReuse[i] === null)
+		)
 			group.refused = 'pattern_name_taken';
-		return { ...fit, group, patternName, personalNames };
+		return { ...fit, group, patternName, personalNames, personalReuse };
 	});
 	// A group refused for its names: its people are refused too, and it isn't saved.
 	for (const fit of named)
@@ -343,8 +373,9 @@ export async function planRosterFile(table: RawTable): Promise<RosterFilePlan> {
 	const unlistedOf = new Map<string, string[]>();
 	for (const fit of kept) {
 		const g = fit.group;
-		// A team group is planned person by person: nobody else in the team is reached.
-		if (g.kind === 'team') {
+		// A team group is planned person by person: nobody else in the team is reached. A joined
+		// group (RI11) keeps its saved pattern: its other members' plan doesn't change.
+		if (g.kind === 'team' || fit.joined) {
 			unlistedOf.set(g.key, []);
 			continue;
 		}
@@ -413,7 +444,10 @@ export async function planRosterFile(table: RawTable): Promise<RosterFilePlan> {
 			targetId: g.targetId,
 			people: fit ? peopleIn.length : 0,
 			unlisted: unlistedOf.get(g.key)?.length ?? 0,
-			patternName: fitted?.patternName ?? null,
+			patternName: fitted?.joined
+				? (patternNameOf.get(joined.get(g.key)?.patternId ?? '') ?? null)
+				: (fitted?.patternName ?? null),
+			joined: fitted?.joined ?? false,
 			slots: fitted?.mainShiftId ? slotCodes(fitted.slots) : [],
 			ownRules: fit?.ownRules.length ?? 0,
 			personal: (fitted?.personal ?? []).map((p, i) => ({
@@ -433,7 +467,13 @@ export async function planRosterFile(table: RawTable): Promise<RosterFilePlan> {
 		to,
 		people: rows.filter((r) => r.action === 'create').length,
 		groups: groupSummaries,
-		patterns: kept.reduce((n, f) => n + (f.mainShiftId ? 1 : 0) + f.personal.length, 0),
+		patterns: kept.reduce(
+			(n, f) =>
+				n +
+				(f.mainShiftId && !f.joined ? 1 : 0) +
+				f.personalReuse.filter((id) => id === null).length,
+			0
+		),
 		ownRules: kept.reduce((n, f) => n + f.ownRules.length, 0),
 		swaps: kept.reduce((n, f) => n + f.swaps.length, 0),
 		dayEdits: kept.reduce((n, f) => n + f.changes.length, 0),
@@ -560,7 +600,7 @@ export async function commitRosterBatch(
 			);
 		}
 		fit.personal.forEach((p, i) => {
-			const id = pattern(fit.personalNames[i], p.slots, p.shiftId);
+			const id = fit.personalReuse[i] ?? pattern(fit.personalNames[i], p.slots, p.shiftId);
 			for (const staffId of p.staffIds) assignment(id, { staffId });
 		});
 		for (const rule of fit.ownRules)

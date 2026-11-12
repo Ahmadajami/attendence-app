@@ -32,10 +32,21 @@ export async function listSwapsBetween(staffIds: readonly string[], from: string
 		);
 }
 
-/** Every pattern name (unique), to refuse a clash before the save. */
-export async function listPatternNames(): Promise<Set<string>> {
-	const rows = await db.select({ nameEn: pattern.nameEn }).from(pattern);
-	return new Set(rows.map((r) => r.nameEn));
+/**
+ * Every pattern by name (names are unique): a clash is refused before the save, unless it is the same
+ * weekly pattern, which is reused (RI11).
+ */
+export async function listPatternsByName() {
+	const rows = await db
+		.select({
+			id: pattern.id,
+			nameEn: pattern.nameEn,
+			type: pattern.type,
+			slots: pattern.slots,
+			active: pattern.active
+		})
+		.from(pattern);
+	return new Map(rows.map((r) => [r.nameEn, r]));
 }
 
 /** A committed punch import whose dates overlap `[from, to]`: a roster undo would change its days. */

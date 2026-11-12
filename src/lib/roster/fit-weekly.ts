@@ -25,6 +25,11 @@ export type FitInput = {
 	 * pattern would also reach team members planned by a department (plan RI10).
 	 */
 	personalGroups?: ReadonlySet<string>;
+	/**
+	 * Groups that join the pattern the app already has for them in the month (RI11): its shift and
+	 * off weekdays are given, no group pattern is made, and each person is fitted against it.
+	 */
+	joined?: ReadonlyMap<string, { mainShiftId: string; offWeekdays: readonly number[] }>;
 };
 
 /** Weekly slots, Sunday first: the shift on a work weekday, `null` on an off weekday. */
@@ -56,6 +61,8 @@ export type TeamFit = {
 	teamId: string;
 	/** `null` when nobody of the team works in the grid (no pattern is made). */
 	mainShiftId: string | null;
+	/** The group follows a pattern already in the app (RI11): nothing is made for the group. */
+	joined: boolean;
 	offWeekdays: number[];
 	slots: WeeklySlots;
 	ownRules: { staffId: string; offWeekdays: number[] }[];
@@ -121,22 +128,27 @@ export function fitTeams(input: FitInput): TeamFit[] {
 	return [...teams].map(([teamId, people]) => {
 		const read = people.map((p) => ({ person: p, ...readPerson(input.dates, p.cells) }));
 		const working = read.filter((r) => r.mainShiftId !== null);
-		const personalOnly = input.personalGroups?.has(teamId) ?? false;
-		const mainShiftId = personalOnly
-			? null
-			: (mostCommon(
-					working.map((r) => r.mainShiftId as string),
-					(s) => s
-				) ?? null);
+		const joined = input.joined?.get(teamId);
+		const personalOnly = !joined && (input.personalGroups?.has(teamId) ?? false);
+		const mainShiftId = joined
+			? joined.mainShiftId
+			: personalOnly
+				? null
+				: (mostCommon(
+						working.map((r) => r.mainShiftId as string),
+						(s) => s
+					) ?? null);
 		const onMain = read.filter((r) => r.mainShiftId === mainShiftId || r.mainShiftId === null);
-		const offWeekdays =
-			mostCommon(
-				onMain.filter((r) => r.planned).map((r) => r.offWeekdays),
-				key
-			) ?? [];
+		const offWeekdays = joined
+			? [...joined.offWeekdays]
+			: (mostCommon(
+					onMain.filter((r) => r.planned).map((r) => r.offWeekdays),
+					key
+				) ?? []);
 		const fit: TeamFit = {
 			teamId,
 			mainShiftId,
+			joined: joined !== undefined,
 			offWeekdays,
 			slots: slotsOf(mainShiftId, offWeekdays),
 			ownRules: [],
@@ -183,6 +195,35 @@ export function fitTeams(input: FitInput): TeamFit[] {
 		}
 		return fit;
 	});
+}
+
+/**
+ * The saved pattern a group can join for `[from, next)` (RI11): exactly one assignment runs in the
+ * month, it covers the whole month, and it is a weekly pattern with one shift on every work weekday.
+ * Anything else (a cycle, two shifts, a change inside the month) stays refused.
+ */
+export function joinableAssignment(
+	assignments: readonly Pick<
+		RosterAssignment,
+		'patternId' | 'type' | 'slots' | 'effectiveFrom' | 'effectiveTo'
+	>[],
+	from: string,
+	next: string
+): { patternId: string; mainShiftId: string; offWeekdays: number[] } | null {
+	const running = assignments.filter(
+		(a) => a.effectiveFrom < next && (a.effectiveTo === null || a.effectiveTo > from)
+	);
+	if (running.length !== 1) return null;
+	const [a] = running;
+	if (a.type !== 'weekly' || a.slots.length !== 7) return null;
+	if (a.effectiveFrom > from || (a.effectiveTo !== null && a.effectiveTo < next)) return null;
+	const shifts = new Set(a.slots.filter((s): s is string => s !== null));
+	if (shifts.size !== 1) return null;
+	return {
+		patternId: a.patternId,
+		mainShiftId: [...shifts][0],
+		offWeekdays: [0, 1, 2, 3, 4, 5, 6].filter((w) => a.slots[w] === null)
+	};
 }
 
 /** Sunday of the week that holds `date`. */
@@ -289,8 +330,9 @@ export function replayFit(
 		effectiveTo: to
 	});
 
+	// A joined group's pattern is already in `base` (RI11).
 	const groupAssignments = fits
-		.filter((f) => f.mainShiftId !== null)
+		.filter((f) => f.mainShiftId !== null && !f.joined)
 		.map((f) => {
 			const target = targetOf(f.teamId);
 			return {

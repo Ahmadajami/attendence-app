@@ -27,7 +27,16 @@ function cellText(value: unknown): string {
 	return toAsciiDigits(String(value)).trim();
 }
 
-function buildTable(headers: string[], rows: { rowNo: number; values: string[] }[]): RawTable {
+/** Per-kind caps: the staff file stays small; a month of punches for every team is larger. */
+export type UploadLimits = { maxBytes: number; maxRows: number };
+
+const DEFAULT_LIMITS: UploadLimits = { maxBytes: MAX_IMPORT_BYTES, maxRows: MAX_IMPORT_ROWS };
+
+function buildTable(
+	headers: string[],
+	rows: { rowNo: number; values: string[] }[],
+	maxRows: number
+): RawTable {
 	const cleanHeaders = headers.map((header) => header.trim());
 	if (cleanHeaders.every((header) => !header))
 		throw new InvalidInputError('empty', m.imports_error_empty());
@@ -36,7 +45,7 @@ function buildTable(headers: string[], rows: { rowNo: number; values: string[] }
 		.map((row) => ({ ...row, values: row.values.map(cellText) }))
 		.filter((row) => row.values.some((value) => value !== ''));
 
-	if (kept.length > MAX_IMPORT_ROWS) {
+	if (kept.length > maxRows) {
 		throw new InvalidInputError('too_many_rows', m.imports_error_too_many_rows());
 	}
 
@@ -54,7 +63,7 @@ function buildTable(headers: string[], rows: { rowNo: number; values: string[] }
 	};
 }
 
-function fromSheetData(data: unknown[][]): RawTable {
+function fromSheetData(data: unknown[][], maxRows: number): RawTable {
 	const cells = data.map((row) => (row ?? []).map(cellText));
 	const headerIndex = cells.findIndex((row) => row.some((cell) => cell !== ''));
 	if (headerIndex < 0) throw new InvalidInputError('empty', m.imports_error_empty());
@@ -65,7 +74,8 @@ function fromSheetData(data: unknown[][]): RawTable {
 		cells.slice(headerIndex + 1).map((values, index) => ({
 			rowNo: headerIndex + index + 2,
 			values
-		}))
+		})),
+		maxRows
 	);
 }
 
@@ -78,7 +88,7 @@ function splitRow(line: string): string[] {
 
 const SEPARATOR_CELL = /^:?-{3,}:?$/;
 
-export function parseMarkdownTable(text: string): RawTable {
+export function parseMarkdownTable(text: string, maxRows = MAX_IMPORT_ROWS): RawTable {
 	const lines = text.split(/\r?\n/);
 
 	for (let start = 0; start < lines.length - 1; start++) {
@@ -98,15 +108,18 @@ export function parseMarkdownTable(text: string): RawTable {
 			if (!line.includes('|')) break;
 			rows.push({ rowNo: index + 1, values: splitRow(line) });
 		}
-		return buildTable(headers, rows);
+		return buildTable(headers, rows, maxRows);
 	}
 
 	throw new InvalidInputError('empty', m.imports_error_empty());
 }
 
 /** Pick `.xlsx` or Markdown by extension, enforce the byte cap and return a normalised table. */
-export async function parseUpload(file: File): Promise<RawTable> {
-	if (file.size > MAX_IMPORT_BYTES) {
+export async function parseUpload(
+	file: File,
+	limits: UploadLimits = DEFAULT_LIMITS
+): Promise<RawTable> {
+	if (file.size > limits.maxBytes) {
 		throw new AppError(413, 'file_too_large', m.imports_error_too_large());
 	}
 
@@ -114,12 +127,12 @@ export async function parseUpload(file: File): Promise<RawTable> {
 	const buffer = Buffer.from(await file.arrayBuffer());
 
 	if (name.endsWith('.md') || name.endsWith('.markdown')) {
-		return parseMarkdownTable(buffer.toString('utf8'));
+		return parseMarkdownTable(buffer.toString('utf8'), limits.maxRows);
 	}
 	if (name.endsWith('.xlsx')) {
 		try {
 			const data = await readSheet(buffer);
-			return fromSheetData(data as unknown[][]);
+			return fromSheetData(data as unknown[][], limits.maxRows);
 		} catch (error) {
 			if (error instanceof AppError) throw error;
 			throw new InvalidInputError('unreadable', m.imports_error_unreadable(), { cause: error });

@@ -89,10 +89,46 @@ count and the user's OK.
 ### Phase 1 · Extract from Odoo (read-only)
 - [ ] 1.1 Start `odoo-db` (user), count `hr_attendance` and `roster_line` per month and team
       (counts only, in a note).
+      > note: 2026-11-12, October (read-only): `roster_line` 9 185 rows for 306 people (source
+      > roster 271, fixed 29, cycle 6 = Operations); `hr_attendance` 4 450 rows for 291 people,
+      > 2026-09-30 to 2026-10-22. People are matched by Odoo `barcode` = the app's
+      > `staff.legacy_badge_no` (it differs from `employee_no` for 58 of the 302 with a badge; a first
+      > count on `employee_no` alone was wrong and is replaced by this note). 274 of the 306 match;
+      > 32 are not in the app (306 October punches). Of the 274, 33 have no team in the app (31 in
+      > department DAM Porters && Drivers; 261 October punches), so they can't be rostered by team.
+      > App side: 25 teams besides Operations with an Odoo plan, 235 people; 15 team members have
+      > none (8 without a badge and not in Odoo, 1 badge not in Odoo, 6 in Odoo but never rostered
+      > or punched).
+      > note: 2026-11-12, roster source decided (IM13): Odoo's day plan for the other teams until HR's
+      > workbooks arrive; entry through the forms (RO7). Odoo's shift hours are placeholders (all
+      > "morning", start 10:00 while median check-ins are 04:00–09:30), so 19 shifts are proposed from
+      > median check-ins. Entry sheet + one verify workbook per team (column A = `employee_no`) in
+      > `~/secure/syravia/imports/rosters/2026-10/odoo/`: 124 own rules, 26 personal patterns (34
+      > people), 67 day changes. `check-team-roster.ts verify` now takes weekly patterns and a
+      > repeated `--pattern` (team + personal); `plan` stays cycle-only. Tested on
+      > `attendance_app_e2e` with a made-up August case (test rows removed after): 186/186; one wrong
+      > cell → 1 mismatch; personal pattern left out → its days flagged; Operations October cycle
+      > unchanged (184/186, the 2 = the shift changes of 10-13/10-14). Punch files for these teams
+      > must carry `employee_no` (the import matches on it), found through `legacy_badge_no`.
+      > note: 2026-11-12, app vs Odoo people (by badge): 280 in both; 30 only in the app; 67 only in
+      > Odoo (32 active, 21 with 306 October punches); 5 same badge with a different name (81 October
+      > punches, user to check); 32 in both with no team (261 October punches); 1 active difference
+      > (staff 5d58a7f0, archived in the app) excluded from everything (IM14,
+      > `~/secure/syravia/imports/exclude.json`). Still to import for October 1–20: 4 450 punched
+      > days (23 with a break, 2 without check-out, 3 over 16 h, 33 without an Odoo plan line) and
+      > 369 leave / sick / mission days in 243 stretches. 21–31 October is in no Odoo table
+      > (`raw_attendance_log` is empty).
 - [ ] 1.2 Extraction script in the Roster repo (`tools/`, under that repo's CLAUDE.md): month +
       department / team filter → the three CSV files in `~/secure/syravia/imports/odoo/<YYYY-MM>/`
       (mode 600). **Done when** the October Operations files hold the counts of 1.1 and match the
       October report on first in / last out for every day.
+      > note: 2026-11-12, done differently: `tools/odoo/extract_punches.py` in **this** repo (the import
+      > reads its format), one Markdown file instead of three CSVs, all teams. October:
+      > `~/secure/syravia/imports/odoo/2026-10/punches_2026-10.md`, 4 643 lines = 4 251 Odoo rows
+      > (3 945 matched by badge + 306 of people not in the app, kept so the preview refuses them
+      > visibly) + 23 extra parts from break days + 369 state lines (346 + 23); 2 without a check-out;
+      > the excluded person left out; read by `readPunchFile` with 0 issues. Not ticked: the
+      > comparison with the October report is not done.
 
 ### Phase 2 · Punch import in the app
 - [ ] 2.1 Migration (§2), `import_kind` values, `import_batch_id`.
@@ -100,6 +136,24 @@ count and the user's OK.
       preview decisions of IM3; tests I1–I7.
 - [ ] 2.3 `/imports` Punches kind: upload, preview table (filters by decision), commit, undo.
 - [ ] 2.4 Full-day states (IM6) in the same preview and commit.
+      > note: 2026-11-12, built (not yet ticked: I5 and I7 have no unit test, and 6.1 is the user's).
+      > **2.1** migration `0024_punch_import_batch`: `import_kind` += `punches`, `import_status` +=
+      > `undone`, `import_batch.summary` / `undone_by` / `undone_at`, `import_batch_id` on
+      > `attendance_event` **and** `absence`; applied to `_e2e` and `_test`; on `attendance_app`
+      > 2026-11-12 after the user's OK (before and after: 116 events, 0 absences, 0 batches, 310 staff;
+      > migrations 24 → 25). **2.2** `#lib/attendance/punch-import`: `readPunchFile`
+      > (columns Employee No, Date, Check in, Check out, State; one line = one punch part or one state,
+      > never both; Excel cells read), `planPunchImport` lists skipped lines and no longer counts a
+      > voided event as stored (re-import after undo), `planStateImport`, `stateRanges`; 6 new tests
+      > (I1 two parts, I6 duplicate line, re-import after undo, states, ranges); 492/492.
+      > **2.3** `/imports` kind "Punches and full-day states", template, batch page with the
+      > one-outcome equation, reasons by count, filter (show / employee number) in the URL, 100 lines
+      > per page, commit, undo with a confirm dialog; service `punch-import.bl.ts`: the planned day comes
+      > from the live roster (`rosterDay`), commit plans the file again and refuses a stale preview,
+      > undo refuses when a punch of the batch was corrected since; writes audited, days recomputed
+      > (`punch_reading`). Upload caps for punches: 4 MB, 20 000 lines, 62 days. **2.4** states become
+      > absences (consecutive days joined) in the same batch; the kind is never shown in the preview.
+      > Q-IM7 default used: undo needs `import.run` + `attendance.record`.
 
 ### Phase 3 · Odoo reference and the check page
 - [ ] 3.1 `days.csv` → `odoo_day_reference` (kind `odoo_reference`, same preview/commit/undo).
@@ -120,6 +174,10 @@ count and the user's OK.
 
 ### Phase 6 · Manual checks by the user
 - [ ] 6.1 Punch import preview, commit and undo on `http://127.0.0.1:5174/imports` (e2e).
+      > note: 2026-11-12 the user reported the preview of the made-up sample file: the 8 expected
+      > reasons, once each (duplicate skipped; refused: bad time, bad state, over 16 h, check-out only,
+      > state conflict, unknown person, state with times). Same day: save and undo work (user).
+      > Re-upload after undo, `/ar` and the old staff batch not yet reported.
 - [ ] 6.2 Check page for Operations October (e2e, then real).
 - [ ] 6.3 Device import with the sample file.
 
@@ -134,6 +192,7 @@ count and the user's OK.
 | Q-IM5 | Which device software, and can you give one sample export (one day, any team)? | needed for Phase 5 |
 | Q-IM6 | Import the pilot before engine v2 (check worked / late / OT now, balance later)? | **yes** |
 | Q-IM7 | Who may undo an import batch? | **the same permission that imports (`attendance.record`)** |
+> note: 2026-11-12 answered by the user: **Q-IM2** every team, **October only** from Odoo (1–20); 21–31 from the device files; earlier months stay in Odoo. **Q-IM3** yes. The import goes through the **in-app import page** (IM3, IM6 approved), not an extended script. Q-IM4, Q-IM6, Q-IM7 still open.
 
 ## 6. Open items carried from the 2026-11-10 discussion pages (deleted 2026-11-11)
 

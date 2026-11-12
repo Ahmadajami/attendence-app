@@ -253,6 +253,8 @@ export type ImportPair = {
 	events: ImportEvent[];
 };
 
+export type ImportSkip = 'already_imported' | 'duplicate';
+
 export type ImportPlan = {
 	pairs: ImportPair[];
 	rejected: { line: number; reason: ImportRejection }[];
@@ -260,7 +262,16 @@ export type ImportPlan = {
 	alreadyImported: number;
 	/** Rows within `DUPLICATE_SECONDS` of another punch of the person (in the file or stored). */
 	duplicates: number;
+	/** The skipped rows by line (`alreadyImported` + `duplicates` of them). */
+	skipped: { line: number; reason: ImportSkip }[];
 };
+
+/** Ids of events a void correction removed: they no longer count as stored or seen. */
+function voidedIds(events: readonly ExistingEvent[]): Set<string> {
+	return new Set(
+		events.filter((e) => e.isVoid && e.correctsEventId).map((e) => e.correctsEventId as string)
+	);
+}
 
 /** The row's instants, read like the entry sheet reads typed times on the planned shift. */
 function resolveRow(
@@ -284,17 +295,23 @@ const key = (staffId: string, type: string, at: Date) => `${staffId} ${type} ${a
  */
 export function planPunchImport(input: ImportInput): ImportPlan {
 	const timeZone = input.timeZone ?? AIRPORT_TIME_ZONE;
-	const plan: ImportPlan = { pairs: [], rejected: [], alreadyImported: 0, duplicates: 0 };
+	const plan: ImportPlan = {
+		pairs: [],
+		rejected: [],
+		alreadyImported: 0,
+		duplicates: 0,
+		skipped: []
+	};
 	const reject = (line: number, reason: ImportRejection) => plan.rejected.push({ line, reason });
+	// An event an undo (or any void correction) removed is gone: a new import may bring it back.
+	const voided = voidedIds(input.existing);
+	const live = (e: ExistingEvent) => !e.isVoid && !voided.has(e.id);
 
 	const stored = new Set(
 		input.existing
 			.filter(
 				(e) =>
-					e.source === input.source &&
-					!e.isVoid &&
-					e.type !== 'break_start' &&
-					e.type !== 'break_end'
+					e.source === input.source && live(e) && e.type !== 'break_start' && e.type !== 'break_end'
 			)
 			.map((e) => key(e.staffId, e.type, e.occurredAt))
 	);
@@ -303,7 +320,7 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 	/** Punches seen so far per person (stored, then accepted), for the 60 s rule. */
 	const seen = new Map<string, { type: string; at: number }[]>();
 	for (const e of input.existing)
-		if (!e.isVoid)
+		if (live(e))
 			seen.set(e.staffId, [
 				...(seen.get(e.staffId) ?? []),
 				{ type: e.type, at: e.occurredAt.getTime() }
@@ -339,6 +356,7 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 		const isStored = ends.map((end) => stored.has(key(staffId, end.type, end.at)));
 		if (isStored.every(Boolean)) {
 			plan.alreadyImported++;
+			plan.skipped.push({ line: row.line, reason: 'already_imported' });
 			continue;
 		}
 		const near = (end: (typeof ends)[number]) =>
@@ -347,6 +365,7 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 			);
 		if (ends.some((end, i) => !isStored[i] && near(end))) {
 			plan.duplicates++;
+			plan.skipped.push({ line: row.line, reason: 'duplicate' });
 			continue;
 		}
 
@@ -393,4 +412,191 @@ export function planPunchImport(input: ImportInput): ImportPlan {
 			seen.set(staffId, [...(seen.get(staffId) ?? []), { type: end.type, at: end.at.getTime() }]);
 	}
 	return plan;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The in-app punch import (plan 2026-11-11-attendance-import-odoo-and-devices, IM3, IM6): one file
+// with punch parts and full-day states. Every line of the file ends in exactly one outcome.
+
+/** A full-day state a punch file may name (IM6), stored as an absence of the same type. */
+export const FILE_STATES = ['sick', 'leave', 'mission'] as const;
+export type FileState = (typeof FILE_STATES)[number];
+
+/** The upload's column headers (case does not matter); other columns are ignored. */
+export const PUNCH_FILE_HEADERS = { ...PUNCH_SHEET_HEADERS, state: 'State' } as const;
+
+/** A full-day state row. */
+export type StateRow = { line: number; employeeNo: string; date: string; state: FileState };
+
+export type FileIssue = {
+	line: number;
+	issue: RowIssue['issue'] | 'bad_state' | 'state_with_times';
+};
+
+/** The uploaded table: header names and each row's cells as text (`#lib/server/imports/parse`). */
+export type PunchTable = {
+	headers: readonly string[];
+	rows: readonly { rowNo: number; values: readonly string[] }[];
+};
+
+/** `YYYY-MM-DD`, or an Excel date cell turned into `YYYY-MM-DDTHH:mm:ss` text. */
+function fileDate(text: string): string | null {
+	const value = text.slice(0, 10);
+	return DATE.test(value) && (text.length === 10 || text[10] === 'T') ? value : null;
+}
+
+/** `HH:mm` (or shorthand), or an Excel time turned into `1899-12-30THH:mm:ss` text. */
+function fileClock(text: string): string | null {
+	const excel = /^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})/.exec(text);
+	if (excel) return `${excel[1]}:${excel[2]}`;
+	const cell = text === '—' || text === '-' ? '' : text;
+	return clockOf(cell);
+}
+
+/**
+ * The upload's rows. A row holds times (one part of a day) or a state, never both: a mission day
+ * with punches is two rows, so each line has one outcome. A row with neither is `empty`; an
+ * unreadable employee number, date, time or state is an issue.
+ */
+export function readPunchFile(table: PunchTable): {
+	rows: PunchRow[];
+	states: StateRow[];
+	issues: FileIssue[];
+	empty: number;
+} {
+	const header = table.headers.map((h) => h.trim().toLowerCase());
+	const column = (name: string, required = true) => {
+		const index = header.indexOf(name.toLowerCase());
+		if (index < 0 && required) throw new MissingHeaderError(name);
+		return index;
+	};
+	const at = {
+		employeeNo: column(PUNCH_FILE_HEADERS.employeeNo),
+		date: column(PUNCH_FILE_HEADERS.date),
+		checkIn: column(PUNCH_FILE_HEADERS.checkIn),
+		checkOut: column(PUNCH_FILE_HEADERS.checkOut),
+		state: column(PUNCH_FILE_HEADERS.state, false)
+	};
+	const cell = (values: readonly string[], index: number) =>
+		index < 0 ? '' : (values[index] ?? '').trim();
+
+	const rows: PunchRow[] = [];
+	const states: StateRow[] = [];
+	const issues: FileIssue[] = [];
+	let empty = 0;
+	for (const { rowNo: line, values } of table.rows) {
+		const checkIn = fileClock(cell(values, at.checkIn));
+		const checkOut = fileClock(cell(values, at.checkOut));
+		const stateText = cell(values, at.state).toLowerCase();
+		const hasTimes = checkIn !== '' || checkOut !== '';
+		if (!hasTimes && stateText === '') {
+			empty++;
+			continue;
+		}
+		const employeeNo = cell(values, at.employeeNo);
+		const date = fileDate(cell(values, at.date));
+		if (employeeNo === '') issues.push({ line, issue: 'no_employee' });
+		else if (date === null) issues.push({ line, issue: 'bad_date' });
+		else if (hasTimes && (checkIn === null || checkOut === null))
+			issues.push({ line, issue: 'bad_time' });
+		else if (stateText !== '' && !(FILE_STATES as readonly string[]).includes(stateText))
+			issues.push({ line, issue: 'bad_state' });
+		else if (stateText !== '' && hasTimes) issues.push({ line, issue: 'state_with_times' });
+		else if (hasTimes)
+			rows.push({ line, employeeNo, date, checkIn: checkIn || null, checkOut: checkOut || null });
+		else states.push({ line, employeeNo, date, state: stateText as FileState });
+	}
+	return { rows, states, issues, empty };
+}
+
+export type StateRejection = 'not_in_scope' | 'out_of_range' | 'already_absent' | 'state_conflict';
+
+export type StatePlan = {
+	accepted: (StateRow & { staffId: string; withPunches: boolean })[];
+	rejected: { line: number; reason: StateRejection }[];
+	/** The same person, date and state again in the file. */
+	skipped: { line: number; reason: 'duplicate' }[];
+};
+
+/**
+ * Which full-day states to store: the person must be in scope and the date in range; a day that
+ * already has an absence in the app is refused (absences never overlap), and so is a second,
+ * different state on the same day. `punchDays` (`${staffId} ${date}`) marks a state on a day the
+ * file also punches (a mission worked on site): kept, with a flag for the preview.
+ */
+export function planStateImport(input: {
+	states: readonly StateRow[];
+	people: ReadonlyMap<string, string>;
+	/** `${staffId} ${date}` of days that already have an active absence. */
+	absentDays: ReadonlySet<string>;
+	punchDays: ReadonlySet<string>;
+	from: string;
+	to: string;
+}): StatePlan {
+	const plan: StatePlan = { accepted: [], rejected: [], skipped: [] };
+	const taken = new Map<string, FileState>();
+	for (const row of input.states) {
+		const staffId = input.people.get(row.employeeNo);
+		if (!staffId) {
+			plan.rejected.push({ line: row.line, reason: 'not_in_scope' });
+			continue;
+		}
+		if (row.date < input.from || row.date > input.to) {
+			plan.rejected.push({ line: row.line, reason: 'out_of_range' });
+			continue;
+		}
+		const dayKey = `${staffId} ${row.date}`;
+		if (input.absentDays.has(dayKey)) {
+			plan.rejected.push({ line: row.line, reason: 'already_absent' });
+			continue;
+		}
+		const earlier = taken.get(dayKey);
+		if (earlier !== undefined) {
+			if (earlier === row.state) plan.skipped.push({ line: row.line, reason: 'duplicate' });
+			else plan.rejected.push({ line: row.line, reason: 'state_conflict' });
+			continue;
+		}
+		taken.set(dayKey, row.state);
+		plan.accepted.push({ ...row, staffId, withPunches: input.punchDays.has(dayKey) });
+	}
+	return plan;
+}
+
+/** Consecutive days of one person and state become one absence (`startsOn`–`endsOn`, inclusive). */
+export function stateRanges(
+	states: readonly { staffId: string; date: string; state: FileState; line: number }[]
+): { staffId: string; state: FileState; startsOn: string; endsOn: string; lines: number[] }[] {
+	const sorted = [...states].sort(
+		(a, b) =>
+			a.staffId.localeCompare(b.staffId) ||
+			a.state.localeCompare(b.state) ||
+			a.date.localeCompare(b.date)
+	);
+	const ranges: ReturnType<typeof stateRanges> = [];
+	for (const s of sorted) {
+		const last = ranges.at(-1);
+		if (
+			last &&
+			last.staffId === s.staffId &&
+			last.state === s.state &&
+			nextDate(last.endsOn) === s.date
+		) {
+			last.endsOn = s.date;
+			last.lines.push(s.line);
+		} else
+			ranges.push({
+				staffId: s.staffId,
+				state: s.state,
+				startsOn: s.date,
+				endsOn: s.date,
+				lines: [s.line]
+			});
+	}
+	return ranges;
+}
+
+function nextDate(date: string): string {
+	const d = new Date(`${date}T00:00:00Z`);
+	d.setUTCDate(d.getUTCDate() + 1);
+	return d.toISOString().slice(0, 10);
 }

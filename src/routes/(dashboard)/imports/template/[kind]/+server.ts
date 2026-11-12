@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import writeXlsxFile from 'write-excel-file/node';
 import { m } from '#lib/paraglide/messages.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
+import { PUNCH_FILE_HEADERS } from '#lib/attendance/punch-import.js';
 import { STAFF_COLUMNS, templateHeaders } from '#lib/server/imports/columns.js';
 import type { RequestHandler } from './$types';
 
@@ -9,11 +10,21 @@ export const GET: RequestHandler = async ({ locals, params, url, setHeaders }) =
 	requirePermission(locals, 'import.run');
 
 	const kind = params.kind;
-	if (kind !== 'staff') {
+	if (kind !== 'staff' && kind !== 'punches') {
 		error(404, m.imports_error_invalid_kind(), { code: 'invalid_kind' });
 	}
 
-	const headers = templateHeaders(STAFF_COLUMNS);
+	// Punches: one line per punch part (a day with a break is two lines) or per full-day state.
+	const headers =
+		kind === 'punches'
+			? [
+					PUNCH_FILE_HEADERS.employeeNo,
+					PUNCH_FILE_HEADERS.date,
+					PUNCH_FILE_HEADERS.checkIn,
+					PUNCH_FILE_HEADERS.checkOut,
+					PUNCH_FILE_HEADERS.state
+				]
+			: templateHeaders(STAFF_COLUMNS);
 	const base = `${kind}-import-template`;
 
 	if (url.searchParams.get('format') === 'md') {

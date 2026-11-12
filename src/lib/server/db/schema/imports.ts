@@ -10,16 +10,21 @@ import {
 	uniqueIndex,
 	uuid
 } from 'drizzle-orm/pg-core';
-import type { ImportIssue, ImportRowData } from '#lib/types/imports.js';
+import type { ImportIssue, ImportRowData, PunchBatchSummary } from '#lib/types/imports.js';
 import { user } from './auth.js';
 
-export const importKind = pgEnum('import_kind', ['staff']);
+/** `punches`: punch parts and full-day states from a file (plan 2026-11-11 attendance import, IM3). */
+export const importKind = pgEnum('import_kind', ['staff', 'punches']);
 
-export const importStatus = pgEnum('import_status', ['previewed', 'committed', 'failed']);
+/** `undone`: a committed punch batch whose events were voided and absences cancelled. */
+export const importStatus = pgEnum('import_status', ['previewed', 'committed', 'failed', 'undone']);
 
 export const importAction = pgEnum('import_action', ['create', 'update', 'skip']);
 
-/** One uploaded file. Commit applies every `create` / `update` row in a single batch. */
+/**
+ * One uploaded file. Commit applies every `create` / `update` row in a single batch. A punch batch
+ * keeps its preview counts in `summary`, and records who undid it.
+ */
 export const importBatch = pgTable(
 	'import_batch',
 	{
@@ -33,6 +38,9 @@ export const importBatch = pgTable(
 		updateCount: integer('update_count').notNull().default(0),
 		skipCount: integer('skip_count').notNull().default(0),
 		errorCount: integer('error_count').notNull().default(0),
+		summary: jsonb('summary').$type<PunchBatchSummary>(),
+		undoneBy: uuid('undone_by').references(() => user.id, { onDelete: 'set null' }),
+		undoneAt: timestamp('undone_at', { withTimezone: true }),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true })
 			.notNull()
@@ -65,7 +73,16 @@ export const importRow = pgTable(
 );
 
 export const importBatchRelations = relations(importBatch, ({ one, many }) => ({
-	createdByUser: one(user, { fields: [importBatch.createdBy], references: [user.id] }),
+	createdByUser: one(user, {
+		fields: [importBatch.createdBy],
+		references: [user.id],
+		relationName: 'import_batch_created_by'
+	}),
+	undoneByUser: one(user, {
+		fields: [importBatch.undoneBy],
+		references: [user.id],
+		relationName: 'import_batch_undone_by'
+	}),
 	rows: many(importRow)
 }));
 

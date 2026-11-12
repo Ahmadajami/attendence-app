@@ -2476,7 +2476,7 @@
       ]
     },
     {
-      id: 'IM3', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      id: 'IM3', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
       title: {en: "Punch import inside the app: preview, commit, undo", ar: "استيراد البصمات داخل التطبيق: معاينة، اعتماد، تراجع"},
       decision: {en: "/imports gets a Punches kind: upload → preview per person and date (planned / day-off work / needs a shift change / joins the previous night / refused) → commit as one batch → undo batch (voids its events, audited, recompute).", ar: "صفحة /imports تأخذ نوع «البصمات»: رفع ← معاينة لكل شخص وتاريخ (مخطط / عمل يوم راحة / يحتاج تغيير وردية / يُضم لليلة السابقة / مرفوض) ← اعتماد كدفعة واحدة ← تراجع عن الدفعة (يلغي أحداثها، مع تدقيق وإعادة حساب)."},
       why: {en: "HR sees every decision before anything is written; same flow as the employee import.", ar: "ترى الموارد البشرية كل قرار قبل كتابة أي شيء؛ نفس مسار استيراد الموظفين."},
@@ -2503,7 +2503,7 @@
       ]
     },
     {
-      id: 'IM6', group: 'payroll', status: 'proposed', date: '2026-11-11', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
+      id: 'IM6', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §1',
       title: {en: "Odoo's full-day leave, sick and mission days become absences", ar: "أيام الإجازة والمرض والمهمة الكاملة من Odoo تصبح غيابات"},
       decision: {en: "Listed in the same preview, audited; sick details never shown outside the day editor.", ar: "تظهر في المعاينة نفسها، مع تدقيق؛ وتفاصيل المرض لا تظهر خارج محرر اليوم."},
       why: {en: "Otherwise those days show as missing.", ar: "وإلا ستظهر تلك الأيام غياباً."},
@@ -2563,6 +2563,47 @@
       why: {en: "One path for typed, imported and device punches.", ar: "مسار واحد للبصمات المكتوبة والمستوردة وبصمات الأجهزة."},
       alts: [
         {en: "Scripts writing the DB directly: not chosen — duplicates the BL outside SvelteKit.", ar: "سكربتات تكتب في القاعدة مباشرة: لم يُختر — تكرار للمنطق خارج SvelteKit."}
+      ]
+    },
+    {
+      id: 'IM13', group: 'roster', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §4 (1.1 note)',
+      title: {en: "October roster of the other teams: Odoo's day plan now, HR's workbook later", ar: "جدول تشرين الأول لباقي الفرق: خطة أودو اليومية الآن، وملف الموارد البشرية لاحقاً"},
+      decision: {en: "Only Operations has an HR roster workbook for October. For the other teams, Odoo's day plan (roster_line: which days are off, required minutes) is the October roster until HR sends each team's workbook, which then replaces it. Odoo's shift hours are placeholders, so each shift's start is proposed from the median check-in of its group. Entry stays through the app's forms (RO7), from an entry sheet kept in ~/secure.", ar: "فريق العمليات وحده لديه ملف جدول من الموارد البشرية لتشرين الأول. لباقي الفرق تُعتمد خطة أودو اليومية (roster_line: أيام العطلة والدقائق المطلوبة) جدولاً لتشرين الأول إلى أن ترسل الموارد البشرية ملف كل فريق فيحلّ محلها. ساعات المناوبات في أودو غير حقيقية، لذا يُقترح وقت بدء كل مناوبة من وسيط وقت الدخول لمجموعتها. يبقى الإدخال عبر نماذج التطبيق (RO7)، من ورقة إدخال محفوظة في ~/secure."},
+      why: {en: "User's choice (2026-11-12): punches carry no shift (PS1), so without a roster every punched day would count as unplanned; Odoo has a plan for 235 of the 250 people in those teams (matched by badge: Odoo barcode = legacy_badge_no).", ar: "اختيار المستخدم (2026-11-12): البصمات بلا وردية (PS1)، فبلا جدول يُحسب كل يوم فيه بصمة يوماً غير مخطط؛ ولأودو خطة لـ235 من أصل 250 شخصاً في تلك الفرق (المطابقة برقم البطاقة: barcode في أودو = legacy_badge_no)."},
+      alts: [
+        {en: "Wait for HR's workbooks only: not chosen — teams would stay without a roster until each file arrives.", ar: "انتظار ملفات الموارد البشرية فقط: لم يُختر — تبقى الفرق بلا جدول حتى يصل كل ملف."},
+        {en: "Odoo's plan as final, no HR check: not chosen — Odoo's plan is coarse (all 'morning', 614 evening/night check-ins, 256 punched planned days off on 1–20 October).", ar: "خطة أودو نهائية بلا تحقق من الموارد البشرية: لم يُختر — خطة أودو تقريبية (كلها صباحية، و614 دخولاً مسائياً أو ليلياً، و256 بصمة في أيام عطلة مخططة بين 1 و20 تشرين الأول)."},
+        {en: "A script that writes the roster (replacing RO7): not chosen — the user keeps entry through the forms.", ar: "سكربت يكتب الجدول (بدل RO7): لم يُختر — المستخدم يُبقي الإدخال عبر النماذج."}
+      ]
+    },
+    {
+      id: 'IM14', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §4 (1.1 note)',
+      title: {en: "An exclusion list: people whose Odoo data is never imported", ar: "قائمة استبعاد: أشخاص لا تُستورد بياناتهم من أودو أبداً"},
+      decision: {en: "A list in ~/secure/syravia/imports/exclude.json (staff record ID + Odoo employee ID) that every extraction and import reads and skips. First entry: staff 5d58a7f0, archived in the app but active in Odoo (31 October plan days, 0 punches).", ar: "قائمة في ~/secure/syravia/imports/exclude.json (معرّف سجل الموظف + معرّف موظف أودو) تقرؤها كل عملية استخراج واستيراد وتتخطاها. أول مدخل: الموظف 5d58a7f0، مؤرشف في التطبيق ونشط في أودو (31 يوم خطة في تشرين الأول، 0 بصمة)."},
+      why: {en: "User (2026-11-12): insert nothing about the person whose active status differs. A file outside the repo keeps the rule in one place without writing personal data into code.", ar: "المستخدم (2026-11-12): لا يُدخل شيء عن الشخص الذي تختلف حالة نشاطه. ملف خارج المستودع يُبقي القاعدة في مكان واحد دون كتابة بيانات شخصية في الكود."},
+      alts: [
+        {en: "Reactivate the person in the app: not chosen — the user wants nothing inserted.", ar: "إعادة تفعيل الشخص في التطبيق: لم يُختر — المستخدم لا يريد إدخال أي شيء."},
+        {en: "Rely on 'inactive people are skipped': not chosen — an explicit list also covers the reverse case and later exclusions.", ar: "الاعتماد على تخطي غير النشطين: لم يُختر — القائمة الصريحة تغطي الحالة المعاكسة والاستبعادات اللاحقة أيضاً."}
+      ]
+    },
+    {
+      id: 'IM15', group: 'payroll', status: 'default', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §4 (2.4 note)',
+      title: {en: "One punch file; every line has exactly one outcome", ar: "ملف بصمات واحد؛ لكل سطر نتيجة واحدة بالضبط"},
+      decision: {en: "The import reads one Markdown or Excel file (Employee No, Date, Check in, Check out, State). A line is one punch part (a day with a break is two lines) or one full-day state (sick / leave / mission), never both. Each line ends as import, skipped (already imported, duplicate) or refused (with the reason); the page shows lines = import + skipped + refused + empty. People Odoo has but the app doesn't stay in the file under their Odoo badge, so they appear as refused instead of disappearing.", ar: "يقرأ الاستيراد ملفاً واحداً بصيغة Markdown أو Excel (الرقم، التاريخ، الدخول، الخروج، الحالة). السطر جزء بصمة واحد (اليوم الذي فيه استراحة سطران) أو حالة يومية كاملة واحدة (مرض/إجازة/مهمة)، لا الاثنان معاً. ينتهي كل سطر إلى استيراد أو تخطٍّ (مستورد سابقاً، مكرر) أو رفض (مع السبب)؛ وتعرض الصفحة: الأسطر = استيراد + تخطٍّ + رفض + فارغ. الأشخاص الموجودون في أودو وغير الموجودين في التطبيق يبقون في الملف برقم بطاقة أودو، فيظهرون مرفوضين بدل أن يختفوا."},
+      why: {en: "The user asked for an import with nothing missing: a count that must add up makes a lost line visible.", ar: "طلب المستخدم استيراداً لا يضيع فيه شيء: عدّ يجب أن يتطابق يجعل أي سطر ضائع ظاهراً."},
+      alts: [
+        {en: "Three CSV files (punches, days, states) as IM1 first said: not chosen for now — the reference figures (days.csv) belong to the check page, Phase 3.", ar: "ثلاثة ملفات CSV (بصمات، أيام، حالات) كما في IM1: لم يُختر حالياً — الأرقام المرجعية تخص صفحة التحقق، المرحلة 3."},
+        {en: "Times and a state on one line: not chosen — one part could be refused while the other is imported, so the line would have two outcomes.", ar: "أوقات وحالة في سطر واحد: لم يُختر — قد يُرفض جزء ويُستورد الآخر فيصبح للسطر نتيجتان."}
+      ]
+    },
+    {
+      id: 'IM16', group: 'payroll', status: 'default', date: '2026-11-12', src: 'plans/2026-11-11-attendance-import-odoo-and-devices.md §4 (2.4 note)',
+      title: {en: "Commit checks the preview is still true; undo refuses corrected punches", ar: "الحفظ يتحقق أن المعاينة ما زالت صحيحة؛ والتراجع يرفض البصمات المصححة"},
+      decision: {en: "The planned day comes from the live roster, not from stored day results. Commit plans the file again and refuses when the result differs from the preview (upload again). Punches and absences carry the batch id; undo writes a void correction for each punch and cancels the absences (append-only, audited, recomputed), and is refused when someone corrected one of the batch's punches since. A voided import can be imported again.", ar: "اليوم المخطط يُؤخذ من الجدول الحي لا من نتائج الأيام المخزنة. الحفظ يخطط الملف من جديد ويرفض إن اختلفت النتيجة عن المعاينة (ارفع الملف مجدداً). البصمات والغيابات تحمل رقم الدفعة؛ والتراجع يكتب تصحيح إلغاء لكل بصمة ويلغي الغيابات (إضافة فقط، مُدقق، يُعاد الحساب)، ويُرفض إن صحّح أحد بصمة من الدفعة منذ ذلك. ويمكن استيراد الدفعة الملغاة مرة أخرى."},
+      why: {en: "Teams without a stored day yet (the roster entered today) still get the right plan; nothing is written that the user did not see; an undo never leaves a correction pointing at a voided punch.", ar: "الفرق التي ليس لها يوم مخزن بعد (الجدول أُدخل اليوم) تحصل على الخطة الصحيحة؛ لا يُكتب شيء لم يره المستخدم؛ ولا يترك التراجع تصحيحاً يشير إلى بصمة ملغاة."},
+      alts: [
+        {en: "Store the preview's events and insert them as they are: not chosen — a roster or punch change between preview and commit would be ignored.", ar: "تخزين أحداث المعاينة وإدخالها كما هي: لم يُختر — يُهمل أي تغيير في الجدول أو البصمات بين المعاينة والحفظ."},
+        {en: "Undo by deleting rows: not chosen — events are append-only and absences are cancelled, never deleted (CLAUDE.md).", ar: "التراجع بحذف الأسطر: لم يُختر — الأحداث إضافة فقط والغيابات تُلغى ولا تُحذف (CLAUDE.md)."}
       ]
     },
     {
@@ -3228,8 +3269,8 @@
     ["Q-EN9", "Time balance: netting? what carries? cap? positive at close?", "netting on; carry only a negative balance; no cap; positive paid", "رصيد الوقت: التسوية؟ ماذا يُرحَّل؟ السقف؟ الموجب عند الإغلاق؟", "التسوية مفعّلة؛ يُرحَّل السالب فقط؛ بلا سقف؛ الموجب يُدفع"],
     ["Q-EN10", "One Balances page with Time / Annual / Sick tabs instead of /leave?", "yes (EN13)", "صفحة أرصدة واحدة بتبويبات بدلاً من /leave؟", "نعم (EN13)"],
     ["Q-IM1", "Import source: the Odoo database or the October report?", "Odoo database, report as a cross-check (IM1)", "مصدر الاستيراد: قاعدة Odoo أم تقرير تشرين الأول؟", "قاعدة Odoo، والتقرير للمطابقة (IM1)"],
-    ["Q-IM2", "After the Operations pilot: which teams and months?", "every team with Odoo badges, 2026-10-01 to go-live (IM2)", "بعد تجربة العمليات: أي فرق وأشهر؟", "كل الفرق التي لها أرقام في Odoo، من 2026-10-01 حتى التشغيل (IM2)"],
-    ["Q-IM3", "Import Odoo's full-day leave / sick / mission days as absences?", "yes (IM6)", "استيراد أيام الإجازة/المرض/المهمة الكاملة من Odoo كغيابات؟", "نعم (IM6)"],
+    ["Q-IM2", "After the Operations pilot: which teams and months?", "answered 2026-11-12: every team, October only from Odoo (1–20); 21–31 from the device files; earlier months stay in Odoo (IM2)", "بعد تجربة العمليات: أي فرق وأشهر؟", "أُجيب 2026-11-12: كل الفرق، تشرين الأول فقط من Odoo (1–20)؛ 21–31 من ملفات الأجهزة؛ الأشهر السابقة تبقى في Odoo (IM2)"],
+    ["Q-IM3", "Import Odoo's full-day leave / sick / mission days as absences?", "answered 2026-11-12: yes, in the same import page batch as the punches (IM3, IM6)", "استيراد أيام الإجازة/المرض/المهمة الكاملة من Odoo كغيابات؟", "أُجيب 2026-11-12: نعم، في دفعة صفحة الاستيراد نفسها مع البصمات (IM3، IM6)"],
     ["Q-IM4", "Odoo credit minutes: reference now, hourly leave later?", "yes (IM7)", "أرصدة دقائق Odoo: مرجع الآن وإجازة ساعية لاحقاً؟", "نعم (IM7)"],
     ["Q-IM5", "Which device software, and one sample export?", "needed for Phase 5", "أي برنامج للأجهزة، وملف عينة واحد؟", "مطلوب للمرحلة 5"],
     ["Q-IM6", "Import the pilot before engine v2 (balance checked later)?", "yes (IM11)", "استيراد التجربة قبل المحرك 2 (مطابقة الرصيد لاحقاً)؟", "نعم (IM11)"],

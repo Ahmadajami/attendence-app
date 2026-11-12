@@ -5,24 +5,20 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
+	import { Label } from '#lib/components/ui/label/index.js';
+	import * as Select from '#lib/components/ui/select/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatDateTime } from '#lib/utils/datetime.js';
 	import { personName } from '#lib/utils/locale.js';
+	import { kindLabel, statusLabel } from './labels.js';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 
-	function kindLabel(kind: string) {
-		return kind === 'staff' ? m.imports_kind_staff() : kind;
-	}
-
-	function statusLabel(status: string) {
-		if (status === 'committed') return m.imports_status_committed();
-		if (status === 'failed') return m.imports_status_failed();
-		return m.imports_status_previewed();
-	}
+	const KINDS = ['staff', 'punches'] as const;
+	let kind = $state<string>('staff');
 </script>
 
 <svelte:head>
@@ -30,7 +26,7 @@
 </svelte:head>
 
 <section class="flex flex-col gap-6">
-	<div class="space-y-1">
+	<div class="flex flex-col gap-1">
 		<h2 class="text-2xl font-semibold tracking-tight">{m.imports_title()}</h2>
 		<p class="max-w-prose text-muted-foreground">{m.imports_description()}</p>
 	</div>
@@ -42,20 +38,26 @@
 				<Card.Description>{m.imports_upload_description()}</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				<form method="POST" action="?/preview" enctype="multipart/form-data" class="space-y-4">
-					<div class="space-y-1.5">
-						<label for="kind" class="text-sm font-medium">{m.imports_kind()}</label>
-						<select
-							id="kind"
-							name="kind"
-							class="h-8 w-full rounded-none border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 dark:bg-input/30"
-						>
-							<option value="staff">{m.imports_kind_staff()}</option>
-						</select>
+				<form
+					method="POST"
+					action="?/preview"
+					enctype="multipart/form-data"
+					class="flex flex-col gap-4"
+				>
+					<div class="flex flex-col gap-1.5">
+						<Label for="kind">{m.imports_kind()}</Label>
+						<Select.Root type="single" name="kind" bind:value={kind}>
+							<Select.Trigger id="kind" class="w-full">{kindLabel(kind)}</Select.Trigger>
+							<Select.Content>
+								{#each KINDS as option (option)}
+									<Select.Item value={option} label={kindLabel(option)} />
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					</div>
 
-					<div class="space-y-1.5">
-						<label for="file" class="text-sm font-medium">{m.imports_file()}</label>
+					<div class="flex flex-col gap-1.5">
+						<Label for="file">{m.imports_file()}</Label>
 						<Input
 							id="file"
 							name="file"
@@ -93,6 +95,14 @@
 					<FileArrowDownIcon data-icon="inline-start" />
 					{m.imports_template_staff()}
 				</Button>
+				<Button
+					variant="outline"
+					href={localizedHref('/imports/template/[kind]', { kind: 'punches' })}
+					download
+				>
+					<FileArrowDownIcon data-icon="inline-start" />
+					{m.imports_template_punches()}
+				</Button>
 			</Card.Content>
 		</Card.Root>
 	</div>
@@ -127,7 +137,7 @@
 								</Badge>
 							</Table.Cell>
 							<Table.Cell>
-								<div class="space-y-0.5">
+								<div class="flex flex-col gap-0.5">
 									<div><bdi>{formatDateTime(batch.createdAt)}</bdi></div>
 									<div class="text-xs text-muted-foreground">
 										{batch.createdByUser ? personName(batch.createdByUser) : '—'}

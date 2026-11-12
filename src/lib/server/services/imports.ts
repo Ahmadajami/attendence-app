@@ -13,17 +13,29 @@ import {
 import { auditLog, importBatch, importRow, staff } from '#lib/server/db/schema/index.js';
 import { buildStaffRows } from '#lib/server/imports/staff-import.js';
 import { parseUpload, type RawTable } from '#lib/server/imports/parse.js';
-import type { ImportIssue, ImportRowDraft } from '#lib/types/imports.js';
+import type { ImportIssue, ImportRowDraft, PunchImportData } from '#lib/types/imports.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from './common.js';
 import { membershipChange } from './membership.js';
+import {
+	PUNCH_UPLOAD_LIMITS,
+	PUNCH_WRITE_PERMISSION,
+	commitPunchBatch,
+	planPunchFile,
+	undoPunchBatch
+} from './punch-import/punch-import.bl.js';
+import { listPeopleNames } from './roster/roster.crud.js';
 
-export type ImportKind = 'staff';
+export const IMPORT_KINDS = ['staff', 'punches'] as const;
+export type ImportKind = (typeof IMPORT_KINDS)[number];
 
 /**
  * `import.run` lets someone upload; what an import writes also needs that domain's write
- * permission, so `import.run` alone never changes staff.
+ * permission, so `import.run` alone never changes staff or punches.
  */
-const WRITE_PERMISSION = { staff: 'staff.write' } as const;
+const WRITE_PERMISSION = { staff: 'staff.write', punches: PUNCH_WRITE_PERMISSION } as const;
+
+/** Rows per insert statement when a preview is stored. */
+const ROW_CHUNK = 1_000;
 
 function requireImportRun(actor: Actor) {
 	if (!actor.permissions.has('import.run')) throw new ForbiddenError();
@@ -38,7 +50,7 @@ function requireBatchId(id: string): string {
 }
 
 function isKind(value: string): value is ImportKind {
-	return value === 'staff';
+	return (IMPORT_KINDS as readonly string[]).includes(value);
 }
 
 function hasErrors(value: ImportIssue[] | null): boolean {
@@ -56,7 +68,11 @@ function counts(rows: ImportRowDraft[]) {
 }
 
 async function buildRows(kind: ImportKind, table: RawTable) {
-	return buildStaffRows(table);
+	if (kind === 'punches') {
+		const plan = await planPunchFile(table, new Date());
+		return { rows: plan.rows, summary: plan.summary };
+	}
+	return { rows: await buildStaffRows(table), summary: null };
 }
 
 /** Recent uploads, newest first. */
@@ -94,9 +110,12 @@ export async function previewImport(actor: Actor, kind: string, file: File) {
 	if (!isKind(kind)) throw new InvalidInputError('invalid_kind', m.imports_error_invalid_kind());
 	requireActorPermission(actor, WRITE_PERMISSION[kind]);
 
-	const table: RawTable = await parseUpload(file);
+	const table: RawTable = await parseUpload(
+		file,
+		kind === 'punches' ? PUNCH_UPLOAD_LIMITS : undefined
+	);
 
-	const rows = await buildRows(kind, table);
+	const { rows, summary: kindSummary } = await buildRows(kind, table);
 	const summary = counts(rows);
 	const id = randomUUID();
 	const fileName = file.name.slice(0, 200) || 'import';
@@ -111,9 +130,20 @@ export async function previewImport(actor: Actor, kind: string, file: File) {
 		targetId: row.targetId
 	}));
 
+	const rowInserts: BatchQuery[] = [];
+	for (let i = 0; i < rowValues.length; i += ROW_CHUNK)
+		rowInserts.push(db.insert(importRow).values(rowValues.slice(i, i + ROW_CHUNK)));
+
 	await runBatch([
-		db.insert(importBatch).values({ id, kind, fileName, createdBy: actor.user.id, ...summary }),
-		...(rowValues.length > 0 ? [db.insert(importRow).values(rowValues)] : []),
+		db.insert(importBatch).values({
+			id,
+			kind,
+			fileName,
+			createdBy: actor.user.id,
+			summary: kindSummary,
+			...summary
+		}),
+		...rowInserts,
 		auditInsert({
 			actor: actor.user,
 			action: 'import.preview',
@@ -154,7 +184,7 @@ async function commitStaff(
 
 	for (const row of rows) {
 		const data = row.parsed;
-		if (!data || !('employeeNo' in data) || hasErrors(row.errors)) continue;
+		if (!data || !('fullName' in data) || hasErrors(row.errors)) continue;
 		if (row.action !== 'create' && row.action !== 'update') continue;
 		const values = {
 			employeeNo: data.employeeNo,
@@ -217,6 +247,10 @@ export async function commitImport(actor: Actor, batchId: string) {
 
 	const rows = batch.rows;
 	requireActorPermission(actor, WRITE_PERMISSION[batch.kind]);
+	if (batch.kind === 'punches') {
+		const written = await commitPunchBatch(actor, batch);
+		return { kind: 'punches' as const, ...written };
+	}
 	const statements: [BatchQuery, ...BatchQuery[]] = [
 		db.update(importBatch).set({ status: 'committed' }).where(eq(importBatch.id, batchId)),
 		db.insert(auditLog).values({
@@ -245,9 +279,120 @@ export async function commitImport(actor: Actor, batchId: string) {
 	}
 
 	return {
+		kind: 'staff' as const,
 		created: batch.createCount,
 		updated: batch.updateCount,
 		skipped: batch.skipCount,
 		errors: batch.errorCount
+	};
+}
+
+/** A batch's kind, so its page can pick the staff view or the paged punch view. */
+export async function getImportBatchKind(actor: Actor, id: string): Promise<ImportKind> {
+	requireImportRun(actor);
+	const [row] = await db
+		.select({ kind: importBatch.kind })
+		.from(importBatch)
+		.where(eq(importBatch.id, requireBatchId(id)))
+		.limit(1);
+	if (!row) throw new NotFoundError(m.imports_error_not_found());
+	return row.kind;
+}
+
+/** Undo a committed punch batch (its events voided, its absences cancelled). */
+export async function undoImport(actor: Actor, batchId: string) {
+	requireImportRun(actor);
+	requireBatchId(batchId);
+	const batch = await db.query.importBatch.findFirst({ where: eq(importBatch.id, batchId) });
+	if (!batch) throw new NotFoundError(m.imports_error_not_found());
+	await undoPunchBatch(actor, batch);
+}
+
+/** Which lines of a punch batch to show. */
+export const PUNCH_FILTERS = ['all', 'import', 'warning', 'state', 'skipped', 'refused'] as const;
+export type PunchFilter = (typeof PUNCH_FILTERS)[number];
+
+export const PUNCH_PAGE_SIZE = 100;
+
+function matches(filter: PunchFilter, row: typeof importRow.$inferSelect): boolean {
+	const data = row.parsed as PunchImportData | null;
+	const refused = (row.errors?.length ?? 0) > 0;
+	switch (filter) {
+		case 'import':
+			return row.action === 'create';
+		case 'warning':
+			return row.action === 'create' && (data?.warnings.length ?? 0) > 0;
+		case 'state':
+			return data?.line === 'state';
+		case 'skipped':
+			return row.action === 'skip' && !refused;
+		case 'refused':
+			return refused;
+		default:
+			return true;
+	}
+}
+
+/**
+ * A punch batch with one page of its lines (a month is thousands): filtered, with each line's
+ * person name and planned shift code. The state kind is left out (health data, IM6).
+ */
+export async function getPunchBatchPage(
+	actor: Actor,
+	id: string,
+	filter: PunchFilter,
+	page: number,
+	employeeNo: string
+) {
+	requireImportRun(actor);
+	const batch = await db.query.importBatch.findFirst({
+		where: eq(importBatch.id, requireBatchId(id)),
+		with: {
+			rows: true,
+			createdByUser: { columns: { fullName: true, fullNameAr: true } },
+			undoneByUser: { columns: { fullName: true, fullNameAr: true } }
+		}
+	});
+	if (!batch || batch.kind !== 'punches') throw new NotFoundError(m.imports_error_not_found());
+	const { rows: allRows, ...rest } = batch;
+	const wanted = employeeNo.trim();
+	const rows = allRows
+		.filter((r) => matches(filter, r))
+		.filter((r) => !wanted || (r.parsed as PunchImportData | null)?.employeeNo === wanted)
+		.sort((a, b) => a.rowNo - b.rowNo);
+	const pages = Math.max(1, Math.ceil(rows.length / PUNCH_PAGE_SIZE));
+	const current = Math.min(Math.max(1, page), pages);
+	const slice = rows.slice((current - 1) * PUNCH_PAGE_SIZE, current * PUNCH_PAGE_SIZE);
+	const staffIds = [
+		...new Set(slice.map((r) => (r.parsed as PunchImportData | null)?.staffId).filter((x) => !!x))
+	] as string[];
+	const names = new Map((await listPeopleNames(staffIds)).map((p) => [p.staffId, p]));
+	return {
+		batch: rest,
+		filter,
+		employee: wanted,
+		page: current,
+		pages,
+		matching: rows.length,
+		lines: slice.map((r) => {
+			const data = r.parsed as PunchImportData | null;
+			const person = data?.staffId ? names.get(data.staffId) : undefined;
+			return {
+				id: r.id,
+				rowNo: r.rowNo,
+				action: r.action,
+				errors: r.errors ?? [],
+				person: person ? { fullName: person.fullName, fullNameAr: person.fullNameAr } : null,
+				employeeNo: data?.employeeNo ?? r.raw?.['Employee No'] ?? '',
+				date: data?.date ?? '',
+				line: data?.line ?? null,
+				checkIn: data?.checkIn ?? null,
+				checkOut: data?.checkOut ?? null,
+				plannedShiftCode: data?.plannedShiftCode ?? null,
+				dayOff: data?.line === 'punch' && data.staffId !== null && data.plannedShiftId === null,
+				skipReason: data?.skipReason ?? null,
+				warnings: data?.warnings ?? []
+			};
+		})
 	};
 }

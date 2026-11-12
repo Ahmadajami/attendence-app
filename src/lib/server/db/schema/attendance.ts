@@ -13,6 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { ABSENCE_TYPES, ATTENDANCE_EVENT_TYPES, PUNCH_SOURCES } from '#lib/schemas/enums.js';
 import { user } from './auth.js';
+import { importBatch } from './imports.js';
 import { pattern } from './roster.js';
 import { staff, team } from './workforce.js';
 
@@ -52,10 +53,15 @@ export const attendanceEvent = pgTable(
 		/** Required on a correction and on an unscheduled check-in (enforced by the service). */
 		reason: text('reason'),
 		isVoid: boolean('is_void').notNull().default(false),
+		/** The punch import batch that brought this event (undo voids them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(t) => [
 		index('attendance_event_staff_idx').on(t.staffId, t.occurredAt),
+		index('attendance_event_import_batch_idx').on(t.importBatchId),
 		index('attendance_event_staff_date_idx').on(t.staffId, t.shiftDate),
 		index('attendance_event_team_date_idx').on(t.teamId, t.shiftDate),
 		index('attendance_event_date_idx').on(t.shiftDate),
@@ -91,6 +97,10 @@ export const absence = pgTable(
 		groupId: uuid('group_id'),
 		/** The pattern a mission was recorded from (information; the day follows the person). */
 		patternId: uuid('pattern_id').references(() => pattern.id, { onDelete: 'restrict' }),
+		/** The punch import batch that brought this full-day state (undo cancels them together). */
+		importBatchId: uuid('import_batch_id').references(() => importBatch.id, {
+			onDelete: 'restrict'
+		}),
 		recordedBy: uuid('recorded_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledBy: uuid('cancelled_by').references(() => user.id, { onDelete: 'set null' }),
 		cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
@@ -104,6 +114,7 @@ export const absence = pgTable(
 		index('absence_staff_idx').on(t.staffId, t.startsOn),
 		index('absence_dates_idx').on(t.startsOn, t.endsOn),
 		index('absence_group_idx').on(t.groupId),
+		index('absence_import_batch_idx').on(t.importBatchId),
 		check('absence_date_order', sql`${t.endsOn} >= ${t.startsOn}`)
 	]
 );

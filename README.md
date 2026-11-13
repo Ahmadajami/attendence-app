@@ -5,7 +5,7 @@ PostgreSQL), replacing the Odoo `roster_attendance` module for planning and
 calculation. Odoo keeps sending the attendance emails.
 
 - Overview (English/Arabic, diagrams): `docs/architecture-guide.html`
-- Plan and tasks: `plans/2026-10-28-attendance-app.md`
+- Plan and tasks: `plans/2026-11-13-october-odoo-november-new.md`
 - Rules for contributors and agents: `CLAUDE.md`
 
 After cloning: `git config core.hooksPath tools/hooks` (enables the data guard).

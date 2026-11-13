@@ -6,8 +6,8 @@ airport's HR, as a standalone **SvelteKit** app. It replaces the Odoo module
 punches entered by hand now, file import later; new hires get an
 app-generated employee number). Odoo **only sends the attendance emails**.
 
-**Start here:** `plans/2026-10-28-attendance-app.md` (decisions, lanes,
-tasks with "done when"). Plain-language overview with diagrams (EN/AR):
+**Start here:** `plans/2026-11-13-october-odoo-november-new.md` (the one plan:
+decisions, the two rule sets, tasks with "done when"). Plain-language overview with diagrams (EN/AR):
 `docs/architecture-guide.html`. UI reference: `docs/mockup/attendance-builder.html`.
 Every decision with its reasons and the rejected alternatives (EN/AR):
 `docs/decisions.html` (rules in §6).
@@ -201,6 +201,8 @@ Every plan lives in `plans/` (convention in `plans/README.md`). Tick a box
 as soon as its "done when" is true, add `> note:` lines with results
 (counts and IDs only), commit the plan with the work. Never delete a plan;
 a replaced one becomes `**Status:** superseded` with a pointer.
+(One reset on the user's instruction, 2026-11-13: the 30 earlier plans were
+removed; read one with `git show 39b1bc5:plans/<file>.md`.)
 
 ## 6. Decisions log (`docs/decisions.html`)
 

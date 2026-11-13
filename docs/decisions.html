@@ -3460,6 +3460,72 @@
       alts: [
         {en: "Flag every stored day in the migration: not chosen — about 22,000 rows would rewrite on page loads without a decision.", ar: "تعليم كل يوم مخزّن في الترحيل: لم يُختر — نحو 22,000 صف كانت ستُكتب من جديد عند تحميل الصفحات دون قرار."}
       ]
+    },
+    {
+      id: 'RF1', group: 'rules', status: 'approved', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "One plan; the 30 earlier plans are removed from the folder", ar: "خطة واحدة؛ حُذفت الخطط الثلاثون السابقة من المجلد"},
+      decision: {en: "On the user's instruction (2026-11-13) every earlier plan file was reviewed, removed from plans/ and replaced by one plan. Their text stays in git at commit 39b1bc5 and their decisions stay in this log. The rule 'never delete a plan' restarts from the new file.", ar: "بتوجيه من المستخدم (2026-11-13) روجعت كل ملفات الخطط السابقة وحُذفت من plans/ واستُبدلت بخطة واحدة. يبقى نصها في git عند الإيداع 39b1bc5 وتبقى قراراتها في هذا السجل. وقاعدة «لا تُحذف خطة» تبدأ من جديد من الملف الجديد."},
+      why: {en: "Thirty overlapping files could no longer be followed: three described the same October work and two the same engine change.", ar: "لم يعد ممكناً متابعة ثلاثين ملفاً متداخلاً: ثلاثة تصف عمل تشرين الأول نفسه واثنان يصفان تغيير المحرك نفسه."},
+      alts: [
+        {en: "Mark all 30 as superseded and keep the files: not chosen — the user asked for them to be deleted; git keeps the text.", ar: "تعليمها كلها «مستبدلة» مع إبقاء الملفات: لم يُختر — طلب المستخدم حذفها؛ و git يحفظ النص."}
+      ]
+    },
+    {
+      id: 'RF2', group: 'payroll', status: 'approved', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "Two rule sets by date, one engine: October = Odoo add-on, November = new", ar: "مجموعتا قواعد حسب التاريخ ومحرك واحد: تشرين الأول = إضافة أودو، تشرين الثاني = الجديد"},
+      decision: {en: "Days up to 2026-10-31 are calculated with the Odoo add-on's rules; days from 2026-11-01 with the app's new rules. Each set is a dated row of attendance_rule read by the day's shift date. The code has no branch on a date. The user's instruction, 2026-11-13.", ar: "تُحسب الأيام حتى 2026-10-31 بقواعد إضافة أودو، والأيام من 2026-11-01 بقواعد التطبيق الجديدة. كل مجموعة صف مؤرَّخ في attendance_rule يُقرأ حسب تاريخ مناوبة اليوم. لا يوجد في الكود تفرّع على تاريخ. توجيه المستخدم، 2026-11-13."},
+      why: {en: "The switch date and every value stay visible and editable, and October cannot change when November's values do.", ar: "يبقى تاريخ التحويل وكل قيمة ظاهرة وقابلة للتعديل، ولا يتغير تشرين الأول عند تغيير قيم تشرين الثاني."},
+      alts: [
+        {en: "Two engines (an Odoo port and a new one): not chosen — two code paths to test and keep equal on shared rules.", ar: "محركان (نقل لأودو وآخر جديد): لم يُختر — مساران في الكود يجب اختبارهما وإبقاؤهما متساويين في القواعد المشتركة."},
+        {en: "A branch on the month in code: not chosen — the date would be hidden and not editable.", ar: "تفرّع على الشهر في الكود: لم يُختر — يصبح التاريخ مخفياً وغير قابل للتعديل."}
+      ]
+    },
+    {
+      id: 'RF3', group: 'payroll', status: 'proposed', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "A closed month is locked", ar: "الشهر المغلق مقفل"},
+      decision: {en: "When October shows 0 unexplained days the user closes it. A recompute, a rule change or an engine update then skips its days and reports them as locked. Reopening needs a reason and is audited.", ar: "عندما يُظهر تشرين الأول 0 أيام غير مفسّرة يغلقه المستخدم. بعدها تتجاوز إعادة الحساب وتغيير القواعد وتحديث المحرك أيامه وتذكرها كمقفلة. إعادة الفتح تحتاج سبباً وتُسجَّل في التدقيق."},
+      why: {en: "The engine version is part of every stored day's fingerprint, so without a lock the next engine change would rewrite October.", ar: "إصدار المحرك جزء من بصمة كل يوم مخزّن، وبدون قفل يعيد أي تغيير قادم في المحرك كتابة تشرين الأول."},
+      alts: [
+        {en: "Rely on dated rule versions alone: not chosen — they protect against a rule change, not against an engine change or a late roster edit.", ar: "الاعتماد على إصدارات القواعد المؤرَّخة فقط: لم يُختر — تحمي من تغيير القاعدة لا من تغيير المحرك أو تعديل متأخر للجدول."}
+      ]
+    },
+    {
+      id: 'RF4', group: 'payroll', status: 'proposed', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "Odoo's credit minutes are imported now as day credits", ar: "تُستورد دقائق الرصيد من أودو الآن كأرصدة يومية"},
+      decision: {en: "One table of day credits: person, date, kind (annual, sick, mission, training), minutes, an optional time range, source. October rows come from Odoo with minutes only; November's hourly leave (EN8) uses the same table with a time range. A credit reduces the shortage and never creates overtime. Replaces IM7 when approved.", ar: "جدول واحد للأرصدة اليومية: الشخص، التاريخ، النوع (سنوية، مرضية، مهمة، تدريب)، الدقائق، مدى زمني اختياري، المصدر. صفوف تشرين الأول تأتي من أودو بالدقائق فقط؛ والإجازة الساعية في تشرين الثاني (EN8) تستخدم الجدول نفسه مع مدى زمني. الرصيد يقلل النقص ولا ينشئ إضافياً أبداً. يستبدل IM7 عند الاعتماد."},
+      why: {en: "About 120 October days differ from Odoo on shortage only because of these credits; waiting for hourly leave would keep October open.", ar: "نحو 120 يوماً في تشرين الأول تختلف عن أودو في النقص بسبب هذه الأرصدة فقط؛ وانتظار الإجازة الساعية يبقي تشرين الأول مفتوحاً."},
+      alts: [
+        {en: "Keep them as a reference and accept the cause (IM7): not chosen — October's shortage would never equal Odoo's.", ar: "إبقاؤها مرجعاً وقبول السبب (IM7): لم يُختر — لن يساوي نقص تشرين الأول نقص أودو أبداً."},
+        {en: "Guess a time range for each credit: not chosen — Odoo stored minutes only.", ar: "تخمين مدى زمني لكل رصيد: لم يُختر — أودو خزّن الدقائق فقط."}
+      ]
+    },
+    {
+      id: 'RF5', group: 'payroll', status: 'proposed', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "The engine in one folder, one step per rule", ar: "المحرك في مجلد واحد، خطوة لكل قاعدة"},
+      decision: {en: "The day calculation moves to src/lib/engine: punches, rules, one step per figure (required, worked, late, credit, shortage, overtime, pay, balance), each returning its figure and an explanation line. Unused template code is removed. A fixture of made-up days with Odoo's figures is the permanent parity test. Moving code must write 0 days on a full recompute.", ar: "ينتقل حساب اليوم إلى src/lib/engine: البصمات، القواعد، خطوة لكل رقم (المطلوب، المعمول، التأخير، الرصيد، النقص، الإضافي، الأجر، الرصيد النهائي)، وكل خطوة تعيد رقمها وسطر شرح. يُحذف كود القالب غير المستخدم. ومجموعة أيام وهمية بأرقام أودو هي اختبار المطابقة الدائم. نقل الكود يجب ألا يكتب أي يوم عند إعادة حساب كاملة."},
+      why: {en: "The figures of one day are spread over four files in three folders today, so a rule is hard to find and to test alone.", ar: "أرقام اليوم الواحد موزعة اليوم على أربعة ملفات في ثلاثة مجلدات، فيصعب إيجاد القاعدة واختبارها منفردة."},
+      alts: [
+        {en: "Leave the files where they are: not chosen — each new rule would add to the largest function.", ar: "ترك الملفات مكانها: لم يُختر — كل قاعدة جديدة ستزيد أكبر دالة."},
+        {en: "Rewrite the engine: not chosen — 547 tests and the October proof depend on the current figures.", ar: "إعادة كتابة المحرك: لم يُختر — 547 اختباراً وإثبات تشرين الأول تعتمد على الأرقام الحالية."}
+      ]
+    },
+    {
+      id: 'RF6', group: 'payroll', status: 'default', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "November's rule values until the user answers", ar: "قيم قواعد تشرين الثاني حتى يجيب المستخدم"},
+      decision: {en: "Overtime rounded to the nearest 15 minutes; Friday Prayer +60 on a two-part Friday; lateness inside grace forgiven and paid; lateness beyond grace shown and not charged, its surplus is overtime; punches typed until a device sample exists; the switch on 2026-11-01 (Q-RF1 to Q-RF6).", ar: "الإضافي مقرَّب إلى أقرب 15 دقيقة؛ صلاة الجمعة +60 في جمعة بفترتين؛ التأخير ضمن السماح مغفور ومدفوع؛ التأخير بعد السماح يُعرض ولا يُخصم وفائضه إضافي؛ البصمات تُدخل يدوياً حتى توجد عينة من الجهاز؛ التحويل في 2026-11-01 (Q-RF1 إلى Q-RF6)."},
+      why: {en: "The user asked for a new way in November; the values are theirs to set, and work can continue on defaults.", ar: "طلب المستخدم طريقة جديدة في تشرين الثاني؛ القيم قراره، والعمل يستمر على الافتراضات."},
+      alts: [
+        {en: "Copy Odoo's values into November: not chosen — the user asked for November to differ.", ar: "نسخ قيم أودو إلى تشرين الثاني: لم يُختر — طلب المستخدم أن يختلف تشرين الثاني."}
+      ]
+    },
+    {
+      id: 'RF7', group: 'rules', status: 'proposed', date: '2026-11-13', src: 'plans/2026-11-13-october-odoo-november-new.md §2',
+      title: {en: "Order: close October, reorganise, then November", ar: "الترتيب: إغلاق تشرين الأول، إعادة التنظيم، ثم تشرين الثاني"},
+      decision: {en: "Phase A closes October on the Odoo rules, Phase B reorganises the engine without changing a figure, Phase C builds November. A step of B may run before A ends only if it changes no stored figure.", ar: "المرحلة A تغلق تشرين الأول على قواعد أودو، والمرحلة B تعيد تنظيم المحرك دون تغيير أي رقم، والمرحلة C تبني تشرين الثاني. يجوز تنفيذ خطوة من B قبل نهاية A فقط إن لم تغيّر رقماً مخزّناً."},
+      why: {en: "One month at a time; nothing is paid from unchecked figures (OC8).", ar: "شهر واحد في كل مرة؛ ولا يُدفع شيء من أرقام غير مدقَّقة (OC8)."},
+      alts: [
+        {en: "Reorganise first: not chosen — October's open differences would be mixed with moved code.", ar: "إعادة التنظيم أولاً: لم يُختر — تختلط فروق تشرين الأول المفتوحة بالكود المنقول."}
+      ]
     }
   ];
 
@@ -3614,7 +3680,13 @@
     ["Q-RI2", "Pattern names <Team>/<Mon>/<YYYY>?", "yes (RI8)", "أسماء الأنماط <الفريق>/<الشهر>/<السنة>؟", "نعم (RI8)"],
     ["Q-DS1", "Daily page: how many rows on one page?", "100 (DS2)", "الصفحة اليومية: كم صفاً في الصفحة الواحدة؟", "100 (DS2)"],
     ['Q-AR1', 'Friday Prayer credit: exactly two punch segments, or two or more?', 'exactly two (BRIEF R15 wording; setting: segments)', 'رصيد صلاة الجمعة: فترتا حضور بالضبط، أم فترتان أو أكثر؟', 'بالضبط فترتان (نص BRIEF R15؛ الإعداد: الفترات)'],
-    ['Q-AR2', 'Months before October 2026: keep the app\'s old rules (nearest 15 minutes, no prayer credit)?', 'yes, from a second company version (AR4)', 'الأشهر قبل تشرين الأول 2026: إبقاء قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة)؟', 'نعم، من نسخة شركة ثانية (AR4)']
+    ['Q-AR2', 'Months before October 2026: keep the app\'s old rules (nearest 15 minutes, no prayer credit)?', 'yes, from a second company version (AR4)', 'الأشهر قبل تشرين الأول 2026: إبقاء قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة)؟', 'نعم، من نسخة شركة ثانية (AR4)'],
+    ["Q-RF1", "November overtime rounding?", "nearest 15 minutes (RF6)", "تقريب الإضافي في تشرين الثاني؟", "أقرب 15 دقيقة (RF6)"],
+    ["Q-RF2", "Friday Prayer in November: keep +60 on a two-part Friday?", "yes", "صلاة الجمعة في تشرين الثاني: إبقاء +60 في جمعة بفترتين؟", "نعم"],
+    ["Q-RF3", "November: lateness inside the grace time forgiven and paid, as in Odoo?", "yes", "تشرين الثاني: التأخير ضمن السماح مغفور ومدفوع كما في أودو؟", "نعم"],
+    ["Q-RF4", "November: lateness beyond grace — charge anything, and is the surplus overtime?", "nothing charged; surplus is overtime", "تشرين الثاني: التأخير بعد السماح — هل يُخصم شيء، وهل الفائض إضافي؟", "لا خصم؛ الفائض إضافي"],
+    ["Q-RF5", "November punches: which device software, and one sample export?", "typed until a sample exists", "بصمات تشرين الثاني: أي برنامج للأجهزة، وعينة تصدير واحدة؟", "إدخال يدوي حتى توجد عينة"],
+    ["Q-RF6", "Does the new way start on 1 November (calendar months) or on 21 October (Odoo's 21→20 period)?", "1 November; 21–31 October use the Odoo rules", "هل تبدأ الطريقة الجديدة في 1 تشرين الثاني (أشهر تقويمية) أم في 21 تشرين الأول (فترة أودو 21←20)؟", "1 تشرين الثاني؛ و21–31 تشرين الأول بقواعد أودو"]
   ];
 
   function el(tag, attrs, children) {

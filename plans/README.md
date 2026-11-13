@@ -16,7 +16,7 @@ One file per plan: `plans/YYYY-MM-DD-<slug>.md` with this header:
 - Tick a box **as soon as** the task is done. A partly done task stays
   `[ ]` with a note. When every task is ticked, Status becomes `done`.
 - Never delete a plan. A replaced plan gets `**Status:** superseded` and a
-  pointer to its replacement. (One reset, on the user's instruction, 2026-11-13: the 30 plans
+  pointer to its replacement. (One reset, on the user's instruction, 2026-11-13: the 29 plans
   written before that date were removed and replaced by the single plan below. Their text is in
   git: `git show 39b1bc5:plans/<file>.md`. Their decisions stay in `docs/decisions.html`.)
 - Commit the plan file together with the work it describes. If two lanes
@@ -29,4 +29,4 @@ Overview page with every plan, its progress and open tasks: `docs/plans-status.h
 
 | Date | Plan | Status |
 |---|---|---|
-| 2026-11-13 | [One plan: October follows the Odoo add-on, November runs the new way](2026-11-13-october-odoo-november-new.md) (replaces the 30 earlier plans) | in progress (RF1, RF2 from the user; RF3–RF7 proposed) |
+| 2026-11-13 | [One plan: October follows the Odoo add-on, November runs the new way](2026-11-13-october-odoo-november-new.md) (replaces the 29 earlier plans) | in progress (RF1, RF2 from the user; RF3–RF7 proposed) |

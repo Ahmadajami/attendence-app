@@ -5,29 +5,29 @@
 **Goal:** every day up to 2026-10-31 gives the figures of the Odoo add-on `roster_attendance`
 (proven day by day, then locked). Every day from 2026-11-01 is calculated by the app's new rules.
 Both run through **one engine**: the difference is a dated set of rule values, never a second code
-path. This file replaces all 30 earlier plans.
+path. This file replaces all 29 earlier plans.
 
 Real data: CLAUDE.md §1. Counts, dates and record ids only.
 
 ## 0. What happened to the old plans
 
-The 30 plan files were removed from `plans/` on 2026-11-13 (user's instruction). Nothing is lost:
+The 29 plan files were removed from `plans/` on 2026-11-13 (user's instruction). Nothing is lost:
 
 - Their text is in git at commit `39b1bc5`: `git show 39b1bc5:plans/<file>.md`.
 - Every decision they made (ids such as PR16, OC7, RI11, AR4, EN8) is still in
   `docs/decisions.html` with its reasons. A decision stays in force unless §2 below replaces it.
 - Code comments that name an old plan file point to that commit.
 
-## 1. Review of the 30 plans
+## 1. Review of the 29 plans
 
 | Area (old plans) | State on 2026-11-13 | What this plan does with it |
 |---|---|---|
-| Foundation: departments, teams, employees, profile, jobs, management tree, employee import (9 plans) | Built. 310 people + 22 Odoo-only people in `attendance_app`. Open: the user's browser checks, 4 Playwright specs, one clean-up | Kept as built. Checks listed in §7. No new work |
-| Shifts, patterns, builder, pattern editor, Operations roster (5 plans) | Built and used. Open: roster grid export/import by workbook (builder Phase 6) | Kept. The grid import is covered by the roster import (already built) |
-| Daily attendance: stored day, recompute, edit log, day tags, swaps, shift change, punches without shifts, daily page speed (7 plans) | Built. Open: browser checks | Kept. This is the engine §4 reorganises |
+| Foundation: departments, teams, employees, profile, jobs, management tree, employee import (7 plans) | Built. 310 people + 22 Odoo-only people in `attendance_app`. Open: the user's browser checks, 4 Playwright specs, one clean-up | Kept as built. Checks listed in §7. No new work |
+| Shifts, patterns, builder, pattern editor, Operations roster (4 plans) | Built and used. Open: roster grid export/import by workbook (builder Phase 6) | Kept. The grid import is covered by the roster import (already built) |
+| Daily attendance: stored day, recompute, edit log, day tags, swaps, shift change, punches without shifts, daily page speed (6 plans) | Built. Open: browser checks | Kept. This is the engine §4 reorganises |
 | October: roster import, punch import, rules as settings, October parity (4 plans) | Roster 7 976 / 7 976 planned days equal Odoo. Punches 3 945 / 3 945 person-days equal to the minute, states 346 / 346. Worked 3 632 / 3 632 equal. Overtime differs on 661 days by rounding only (fixed in code, recompute not yet run) and 11 others. Shortage differs on 134 days | Phase A finishes it |
 | Engine v2, hourly leave, leave and sick balances (3 plans) | Not built, except rounding and Friday Prayer | Split: what October needs → Phase A; what November needs → Phase C; carry → Later |
-| Main plan: payroll exports, emails, sign-in, deployment | Not started | Exports → Phase C; the rest → Later |
+| Main plan (1 plan): payroll exports, emails, sign-in, deployment | Not started | Exports → Phase C; the rest → Later |
 | Superseded: off-day work, Operations punch import (2 plans) | Replaced earlier | Dropped |
 | Aviation privilege, e2e seed (2 plans) | Privilege not built; seed built | Privilege → Later; seed kept |
 
@@ -44,7 +44,7 @@ Three problems the old plans had, which this one fixes:
 
 | ID | Status | Decision | Why |
 |---|---|---|---|
-| RF1 | approved (user, 2026-11-13) | One plan. The 30 earlier files are removed from the folder and stay in git at `39b1bc5`. The "never delete a plan" rule restarts from this file | 30 overlapping files could no longer be followed |
+| RF1 | approved (user, 2026-11-13) | One plan. The 29 earlier files are removed from the folder and stay in git at `39b1bc5`. The "never delete a plan" rule restarts from this file | 29 overlapping files could no longer be followed |
 | RF2 | approved (user, 2026-11-13) | **Two rule sets, one engine.** Days up to 2026-10-31 use the *Odoo rules* (what the add-on did). Days from 2026-11-01 use the *new rules*. Each is a dated row in `attendance_rule`; the engine reads the row of the day's shift date. No `if (date < …)` anywhere in code | The switch date and every value stay visible and editable; October cannot change when November's values do |
 | RF3 | proposed | **A closed month is locked.** When October shows 0 unexplained days, the user closes it. A recompute, a rule change or an engine update then skips its days and reports them as "locked". Reopening needs a reason and is audited | Otherwise the proof is lost at the next engine change |
 | RF4 | proposed (replaces IM7 when approved) | **Odoo's credit minutes are imported now** as day credits: person, date, kind (annual, sick, mission, training), minutes, no time range, source "Odoo". They reduce the shortage and never create overtime (BRIEF R8). November's hourly leave (EN8) uses the same table with a from/to time | October matches without waiting; one table for both months |

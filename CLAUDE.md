@@ -201,7 +201,7 @@ Every plan lives in `plans/` (convention in `plans/README.md`). Tick a box
 as soon as its "done when" is true, add `> note:` lines with results
 (counts and IDs only), commit the plan with the work. Never delete a plan;
 a replaced one becomes `**Status:** superseded` with a pointer.
-(One reset on the user's instruction, 2026-11-13: the 30 earlier plans were
+(One reset on the user's instruction, 2026-11-13: the 29 earlier plans were
 removed; read one with `git show 39b1bc5:plans/<file>.md`.)
 
 ## 6. Decisions log (`docs/decisions.html`)

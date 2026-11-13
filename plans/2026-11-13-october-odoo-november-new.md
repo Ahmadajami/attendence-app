@@ -1,6 +1,6 @@
 # One plan: October follows the Odoo add-on, November runs the new way
 
-**Status:** in progress (written 2026-11-13 on the user's instruction; RF1 and RF2 are the user's, RF3–RF7 are proposed and wait for the user's "go")
+**Status:** superseded (2026-11-13) by [2026-11-13-follow-odoo-configurable.md](2026-11-13-follow-odoo-configurable.md): the user chose to follow Odoo with every rule a setting, instead of two rule sets split by a date
 **Date:** 2026-11-13
 > note: 2026-11-13 (later the same day) the user reported the app feels as complicated as Odoo and
 > that HR's pay month runs 21 → 20. A simpler route is proposed in `docs/simple-plan.html` (EN/AR):

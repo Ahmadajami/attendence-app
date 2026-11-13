@@ -6,8 +6,8 @@ airport's HR, as a standalone **SvelteKit** app. It replaces the Odoo module
 punches entered by hand now, file import later; new hires get an
 app-generated employee number). Odoo **only sends the attendance emails**.
 
-**Start here:** `plans/2026-11-13-october-odoo-november-new.md` (the one plan:
-decisions, the two rule sets, tasks with "done when"). Plain-language overview with diagrams (EN/AR):
+**Start here:** `plans/2026-11-13-follow-odoo-configurable.md` (the current plan:
+decisions, the settings table, tasks with "done when"). Plain-language overview with diagrams (EN/AR):
 `docs/architecture-guide.html`. UI reference: `docs/mockup/attendance-builder.html`.
 Every decision with its reasons and the rejected alternatives (EN/AR):
 `docs/decisions.html` (rules in §6).

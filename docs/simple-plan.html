@@ -100,7 +100,7 @@
 <main>
 
 <div class="top">
-  <small><span class="en">Attendance app · 13 November 2026 · version 2 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 2 · لا بيانات شخصية في هذه الصفحة</span></small>
+  <small><span class="en">Attendance app · 13 November 2026 · version 3 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 3 · لا بيانات شخصية في هذه الصفحة</span></small>
   <div class="lang" role="group" aria-label="Language">
     <button type="button" data-set="en">English</button>
     <button type="button" data-set="ar">العربية</button>
@@ -108,7 +108,7 @@
 </div>
 
 <h1><span class="en">A fast plan to make the app simple again</span><span class="ar">خطة سريعة ليعود التطبيق بسيطاً</span></h1>
-<p class="lead"><span class="en">Every month calculated the same way, old and new. Reports for any dates you choose. A month roster you fill like Excel. Hour leave.</span><span class="ar">كل شهر يُحسب بالطريقة نفسها، قديماً كان أم جديداً. تقارير لأي تواريخ تختارها. جدول شهري تملؤه مثل إكسل. وإجازة ساعية.</span></p>
+<p class="lead"><span class="en">Every month calculated the same way, old and new. Reports for any dates you choose. One pattern per team for its rules, a month roster for the days. Leave for a day or for hours.</span><span class="ar">كل شهر يُحسب بالطريقة نفسها، قديماً كان أم جديداً. تقارير لأي تواريخ تختارها. نمط واحد لكل فريق لقواعده، وجدول شهري للأيام. وإجازة ليوم أو لساعات.</span></p>
 
 <div class="card answer">
   <h3><span class="en">The short answer</span><span class="ar">الجواب المختصر</span></h3>
@@ -123,12 +123,12 @@
   <ul class="en">
     <li><b>Removed:</b> the fixed pay month 21 → 20, and "old months keep Odoo's numbers, locked".</li>
     <li><b>Instead:</b> one calculation for every day, and a report page with free dates.</li>
-    <li><b>Same as before:</b> the month roster, hour leave, the smaller menu.</li>
+    <li><b>Version 3:</b> the pattern builder stays, one pattern per team for its rules (section 3); leave is explained as kind × length (section 4).</li>
   </ul>
   <ul class="ar">
     <li><b>حُذف:</b> شهر الرواتب الثابت 21 ← 20، و«الأشهر القديمة تحتفظ بأرقام أودو مقفلة».</li>
     <li><b>بدلاً منه:</b> حساب واحد لكل يوم، وصفحة تقارير بتواريخ حرة.</li>
-    <li><b>كما كان:</b> جدول الشهر، الإجازة الساعية، القائمة الأصغر.</li>
+    <li><b>النسخة 3:</b> منشئ الأنماط يبقى، نمط واحد لكل فريق لقواعده (القسم 3)؛ والإجازة مشروحة كنوع × مدة (القسم 4).</li>
   </ul>
 </div>
 
@@ -140,7 +140,7 @@
   <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
     <div><span class="en">A pattern is made for days off that repeat. Your days off change every month, so each month needed a new pattern for each team.</span><span class="ar">النمط مصنوع لأيام عطلة تتكرر. أيام العطلة عندكم تتغير كل شهر، فاحتاج كل شهر نمطاً جديداً لكل فريق.</span></div></div>
   <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
-    <div><span class="en">A <b>month roster</b>: one table, people in rows, days in columns. You type or upload it once a month. No pattern needed. (Section 3)</span><span class="ar"><b>جدول الشهر</b>: جدول واحد، الموظفون في الصفوف والأيام في الأعمدة. تكتبه أو ترفعه مرة كل شهر. لا حاجة لنمط. (القسم 3)</span></div></div>
+    <div><span class="en">The pattern stays, <b>one per team, made once</b>. It holds the team's rules. The days off of each month go in a <b>month roster</b> on top of it, so no new pattern is needed each month. (Section 3)</span><span class="ar">النمط يبقى، <b>واحد لكل فريق ويُنشأ مرة واحدة</b>. يحمل قواعد الفريق. وأيام العطلة لكل شهر توضع في <b>جدول الشهر</b> فوقه، فلا حاجة لنمط جديد كل شهر. (القسم 3)</span></div></div>
 </div>
 
 <div class="card pain">
@@ -148,15 +148,15 @@
   <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
     <div><span class="en">It is a setting for rotating crews. It is hard to read and you do not need it. (Explained in section 3)</span><span class="ar">هو إعداد للأطقم الدوّارة. قراءته صعبة ولا تحتاجه. (الشرح في القسم 3)</span></div></div>
   <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
-    <div><span class="en">It disappears from the normal screens. With a month roster you see the days themselves, not a rule that produces them.</span><span class="ar">يختفي من الشاشات العادية. في جدول الشهر ترى الأيام نفسها لا القاعدة التي تنتجها.</span></div></div>
+    <div><span class="en">It stays only for a team that really rotates, closed by default. Other teams never see it.</span><span class="ar">يبقى فقط للفريق الذي يدور فعلاً، ومغلقاً افتراضياً. والفرق الأخرى لا تراه أبداً.</span></div></div>
 </div>
 
 <div class="card pain">
-  <h3><span class="en">No way to enter hour leave</span><span class="ar">لا طريقة لإدخال إجازة ساعية</span></h3>
+  <h3><span class="en">No way to enter leave for part of a day</span><span class="ar">لا طريقة لإدخال إجازة لجزء من اليوم</span></h3>
   <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
     <div><span class="en">It was planned and never built. Today the app only knows a full day of leave.</span><span class="ar">كانت مخططة ولم تُبنَ. التطبيق اليوم يعرف إجازة اليوم الكامل فقط.</span></div></div>
   <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
-    <div><span class="en">An <b>Hour leave</b> button on every day: from, to, kind. (Section 4)</span><span class="ar">زر <b>إجازة ساعية</b> على كل يوم: من، إلى، النوع. (القسم 4)</span></div></div>
+    <div><span class="en">One <b>Leave</b> button on every day: kind, whole day or hours. (Section 4)</span><span class="ar">زر <b>إجازة</b> واحد على كل يوم: النوع، يوم كامل أو ساعات. (القسم 4)</span></div></div>
 </div>
 
 <div class="card pain">
@@ -255,8 +255,72 @@
 </div>
 
 <!-- 3 -->
-<h2><span class="en">3 · The month roster instead of patterns</span><span class="ar">3 · جدول الشهر بدل الأنماط</span></h2>
+<h2><span class="en">3 · The pattern stays for the team's rules; the month roster holds the days</span><span class="ar">3 · النمط يبقى لقواعد الفريق؛ وجدول الشهر يحمل الأيام</span></h2>
 
+<div class="card">
+  <span class="tag t-warn"><span class="en">Corrected in version 3</span><span class="ar">مصحَّح في النسخة 3</span></span>
+  <p class="en">I was wrong to hide the pattern builder. You need it because each team works under different rules. What was painful was not the pattern itself: it was that one pattern did <b>two jobs</b>, and one of them changes every month.</p>
+  <p class="ar">أخطأتُ حين اقترحتُ إخفاء منشئ الأنماط. أنت تحتاجه لأن كل فريق يعمل بقواعد مختلفة. المتعب لم يكن النمط نفسه، بل أن النمط الواحد كان يؤدي <b>مهمتين</b>، وإحداهما تتغير كل شهر.</p>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <span class="tag t-new"><span class="en">Job 1 · stays in the pattern</span><span class="ar">المهمة 1 · تبقى في النمط</span></span>
+    <h3><span class="en">The team's rules (made once)</span><span class="ar">قواعد الفريق (تُنشأ مرة واحدة)</span></h3>
+    <ul class="en">
+      <li>Overtime: paid or not.</li>
+      <li>Overtime rates: work day, day off, holiday.</li>
+      <li>The team's holidays.</li>
+      <li>The usual shift (for example 08:00–20:00).</li>
+    </ul>
+    <ul class="ar">
+      <li>الإضافي: مدفوع أم لا.</li>
+      <li>نسب الإضافي: يوم عمل، يوم عطلة، عيد.</li>
+      <li>أعياد الفريق.</li>
+      <li>المناوبة المعتادة (مثلاً 08:00–20:00).</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="tag t-old"><span class="en">Job 2 · moves to the month roster</span><span class="ar">المهمة 2 · تنتقل إلى جدول الشهر</span></span>
+    <h3><span class="en">Who is off on which day (every month)</span><span class="ar">من في عطلة في أي يوم (كل شهر)</span></h3>
+    <ul class="en">
+      <li>Typed or uploaded each month.</li>
+      <li>Changing it never touches the team's rules.</li>
+      <li>So: no new pattern per month, and the rules are set once.</li>
+    </ul>
+    <ul class="ar">
+      <li>يُكتب أو يُرفع كل شهر.</li>
+      <li>تغييره لا يمسّ قواعد الفريق أبداً.</li>
+      <li>إذن: لا نمط جديد كل شهر، والقواعد تُضبط مرة واحدة.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card scroll">
+  <h3><span class="en">Your two examples</span><span class="ar">مثالاك</span></h3>
+  <table>
+    <tr><th class="name"><span class="en">Team pattern</span><span class="ar">نمط الفريق</span></th><th><span class="en">Overtime</span><span class="ar">الإضافي</span></th><th><span class="en">Worked 13 h on a 12 h shift</span><span class="ar">عمل 13 ساعة في مناوبة 12</span></th></tr>
+    <tr><td class="name"><span class="en">Agents</span><span class="ar">الموظفون الميدانيون (Agents)</span></td><td><span class="en">off</span><span class="ar">متوقف</span></td><td><span class="en">the extra hour is shown as "not paid"</span><span class="ar">الساعة الزائدة تُعرض «غير مدفوعة»</span></td></tr>
+    <tr><td class="name"><span class="en">Operations</span><span class="ar">العمليات</span></td><td><span class="en">on, with its own rates</span><span class="ar">مفعّل بنسبه الخاصة</span></td><td><span class="en">1 h overtime at the team's rate</span><span class="ar">ساعة إضافي بنسبة الفريق</span></td></tr>
+  </table>
+  <p style="font-size:14px;color:var(--muted)"><span class="en">The overtime switch and the three rates per pattern exist in the app today. If Operations needs more (its own rounding, its own Friday rule), those become fields of the same pattern card (question 3).</span><span class="ar">مفتاح الإضافي والنسب الثلاث لكل نمط موجودة في التطبيق اليوم. وإن احتاجت العمليات أكثر (تقريبها الخاص، قاعدة الجمعة الخاصة) فتصبح حقولاً في بطاقة النمط نفسها (السؤال 3).</span></p>
+</div>
+
+<div class="card">
+  <h3><span class="en">Making the builder easy</span><span class="ar">تسهيل المنشئ</span></h3>
+  <ul class="en">
+    <li>One page per team pattern with three plain cards: <b>Usual shift</b>, <b>Overtime</b>, <b>Holidays</b>.</li>
+    <li>Cycles and "start on day N" stay available under "Rotating crew" for a team that really rotates, closed by default.</li>
+    <li>A new pattern can be copied from another team's, then you change only what differs.</li>
+  </ul>
+  <ul class="ar">
+    <li>صفحة واحدة لنمط كل فريق بثلاث بطاقات واضحة: <b>المناوبة المعتادة</b>، <b>الإضافي</b>، <b>الأعياد</b>.</li>
+    <li>الدورات و«البدء من اليوم N» تبقى متاحة تحت «طاقم دوّار» للفريق الذي يدور فعلاً، ومغلقة افتراضياً.</li>
+    <li>يمكن نسخ نمط جديد من نمط فريق آخر، ثم تغيّر ما يختلف فقط.</li>
+  </ul>
+</div>
+
+<h3 style="margin-top:22px"><span class="en">The month roster</span><span class="ar">جدول الشهر</span></h3>
 <p class="en">One page per calendar month. It looks like the Excel sheet HR already makes. You click a cell to change it, or upload the Excel file (the upload already exists in the app). "Copy last month" gives you a starting point.</p>
 <p class="ar">صفحة واحدة لكل شهر تقويمي، تشبه ورقة إكسل التي يعدّها قسم الموارد البشرية أصلاً. تنقر الخانة لتغييرها، أو ترفع ملف إكسل (الرفع موجود في التطبيق). وزر «نسخ الشهر السابق» يعطيك نقطة بداية.</p>
 
@@ -282,25 +346,42 @@
 </div>
 
 <!-- 4 -->
-<h2><span class="en">4 · Hour leave</span><span class="ar">4 · الإجازة الساعية</span></h2>
-<p class="en">On the daily page, each day gets a button <b>Hour leave</b>. Example: a person on the 08:00–20:00 shift leaves from 10:00 to 12:00.</p>
-<p class="ar">في الصفحة اليومية يحصل كل يوم على زر <b>إجازة ساعية</b>. مثال: موظف في مناوبة 08:00–20:00 يغيب من 10:00 إلى 12:00.</p>
+<h2><span class="en">4 · Leave: full day or hours, same kinds</span><span class="ar">4 · الإجازة: يوم كامل أو ساعات، والأنواع نفسها</span></h2>
+<p class="en">"Hour leave" was a bad name of mine. I did not mean a new kind of leave. I meant: <b>every kind of leave can be taken for a whole day or for some hours</b>. The kind and the length are two separate choices.</p>
+<p class="ar">«الإجازة الساعية» كانت تسمية سيئة مني. لم أقصد نوعاً جديداً من الإجازات. قصدتُ: <b>كل نوع إجازة يمكن أخذه ليوم كامل أو لبضع ساعات</b>. النوع والمدة اختياران منفصلان.</p>
+
+<div class="card scroll">
+  <table>
+    <tr><th class="name"><span class="en">Kind</span><span class="ar">النوع</span></th><th><span class="en">Whole day</span><span class="ar">يوم كامل</span></th><th><span class="en">Some hours</span><span class="ar">بضع ساعات</span></th><th><span class="en">Paid?</span><span class="ar">مدفوعة؟</span></th></tr>
+    <tr><td class="name"><span class="en">Annual leave</span><span class="ar">إجازة سنوية</span></td><td><span class="tag t-ok"><span class="en">in the app</span><span class="ar">موجود</span></span></td><td><span class="tag t-bad"><span class="en">missing</span><span class="ar">ناقص</span></span></td><td><span class="en">yes</span><span class="ar">نعم</span></td></tr>
+    <tr><td class="name"><span class="en">Sick leave</span><span class="ar">إجازة مرضية</span></td><td><span class="tag t-ok"><span class="en">in the app</span><span class="ar">موجود</span></span></td><td><span class="tag t-bad"><span class="en">missing</span><span class="ar">ناقص</span></span></td><td><span class="en">yes</span><span class="ar">نعم</span></td></tr>
+    <tr><td class="name"><span class="en">Mission</span><span class="ar">مهمة</span></td><td><span class="tag t-ok"><span class="en">in the app</span><span class="ar">موجود</span></span></td><td><span class="tag t-bad"><span class="en">missing</span><span class="ar">ناقص</span></span></td><td><span class="en">yes</span><span class="ar">نعم</span></td></tr>
+    <tr><td class="name"><span class="en">Unpaid</span><span class="ar">بلا أجر</span></td><td><span class="tag t-bad"><span class="en">missing</span><span class="ar">ناقص</span></span></td><td><span class="tag t-bad"><span class="en">missing</span><span class="ar">ناقص</span></span></td><td><span class="en">no</span><span class="ar">لا</span></td></tr>
+  </table>
+  <p style="font-size:14px;color:var(--muted)"><span class="en">Today the app can only mark a whole day. The plan fills the "Some hours" column and adds unpaid leave.</span><span class="ar">التطبيق اليوم يعلّم اليوم الكامل فقط. والخطة تملأ عمود «بضع ساعات» وتضيف الإجازة بلا أجر.</span></p>
+</div>
+
+<p class="en">One <b>Leave</b> button on each day opens one small form. Example: a person on the 08:00–20:00 shift goes to the doctor from 10:00 to 12:00. That is <b>sick leave for 2 hours</b>:</p>
+<p class="ar">زر <b>إجازة</b> واحد على كل يوم يفتح نموذجاً صغيراً واحداً. مثال: موظف في مناوبة 08:00–20:00 يذهب إلى الطبيب من 10:00 إلى 12:00. هذه <b>إجازة مرضية لساعتين</b>:</p>
 <div class="card">
   <div class="form">
+    <div class="field"><small><span class="en">Kind</span><span class="ar">النوع</span></small><span class="en">Sick ▾</span><span class="ar">مرضية ▾</span></div>
+    <div class="field"><small><span class="en">Length</span><span class="ar">المدة</span></small><span class="en">◯ Whole day ◉ Hours</span><span class="ar">◯ يوم كامل ◉ ساعات</span></div>
     <div class="field"><small><span class="en">From</span><span class="ar">من</span></small><bdi>10:00</bdi></div>
     <div class="field"><small><span class="en">To</span><span class="ar">إلى</span></small><bdi>12:00</bdi></div>
-    <div class="field"><small><span class="en">Kind</span><span class="ar">النوع</span></small><span class="en">Annual ▾</span><span class="ar">سنوية ▾</span></div>
   </div>
   <span class="btn"><span class="en">Save</span><span class="ar">حفظ</span></span>
   <ul class="en">
-    <li><b>Annual, sick, mission</b>: the two hours are paid and the person is not counted as short.</li>
-    <li><b>Unpaid</b>: the person is excused (not late, not absent) but the two hours are not paid.</li>
-    <li>The day shows a tag "Hour leave 2:00", and the edit log keeps who entered it.</li>
+    <li>The person punched 08:00 → 20:00 minus the two hours, so worked 10 h on a 12 h shift.</li>
+    <li>Without the leave: 2 hours short. With it: the 2 hours count as paid sick leave, <b>shortage 0</b>, not late, not absent.</li>
+    <li>If the kind were <b>Unpaid</b>: still not late or absent, but the 2 hours are not paid.</li>
+    <li>The day shows the tag "Sick leave 2:00". The reason is visible only inside the day editor (health information).</li>
   </ul>
   <ul class="ar">
-    <li><b>سنوية، مرضية، مهمة</b>: الساعتان مدفوعتان ولا يُحسب على الموظف نقص.</li>
-    <li><b>بلا أجر</b>: الموظف معذور (لا تأخير ولا غياب) لكن الساعتين غير مدفوعتين.</li>
-    <li>يظهر على اليوم وسم «إجازة ساعية 2:00»، ويحفظ سجل التعديلات من أدخلها.</li>
+    <li>الموظف بصم 08:00 ← 20:00 ناقص الساعتين، فعمل 10 ساعات في مناوبة 12 ساعة.</li>
+    <li>بدون الإجازة: نقص ساعتين. ومعها: تُحسب الساعتان إجازة مرضية مدفوعة، <b>النقص 0</b>، لا تأخير ولا غياب.</li>
+    <li>لو كان النوع <b>بلا أجر</b>: لا تأخير ولا غياب أيضاً، لكن الساعتين غير مدفوعتين.</li>
+    <li>يظهر على اليوم وسم «إجازة مرضية 2:00». والسبب يظهر داخل محرر اليوم فقط (معلومة صحية).</li>
   </ul>
 </div>
 
@@ -310,42 +391,45 @@
 <div class="menu now">
   <span>Dashboard</span><span>Employees</span><span>Departments</span><span>Teams</span><span>Jobs</span><span>Management</span><span>Shifts</span><span>Patterns</span><span>Entry sheet</span><span>Daily attendance</span><span>Changes</span><span>Imports</span><span>Settings</span><span>Users</span>
 </div>
-<p><span class="en">It becomes 5, in the order HR works during a month:</span><span class="ar">تصبح 5، بترتيب عمل الموارد البشرية خلال الشهر:</span></p>
+<p><span class="en">It becomes 6, in the order HR works during a month:</span><span class="ar">تصبح 6، بترتيب عمل الموارد البشرية خلال الشهر:</span></p>
 <div class="menu next">
   <span><span class="en">1 Employees</span><span class="ar">1 الموظفون</span></span>
-  <span><span class="en">2 Month roster</span><span class="ar">2 جدول الشهر</span></span>
-  <span><span class="en">3 Attendance</span><span class="ar">3 الحضور</span></span>
-  <span><span class="en">4 Reports</span><span class="ar">4 التقارير</span></span>
-  <span><span class="en">5 Settings</span><span class="ar">5 الإعدادات</span></span>
+  <span><span class="en">2 Teams &amp; patterns</span><span class="ar">2 الفرق والأنماط</span></span>
+  <span><span class="en">3 Month roster</span><span class="ar">3 جدول الشهر</span></span>
+  <span><span class="en">4 Attendance</span><span class="ar">4 الحضور</span></span>
+  <span><span class="en">5 Reports</span><span class="ar">5 التقارير</span></span>
+  <span><span class="en">6 Settings</span><span class="ar">6 الإعدادات</span></span>
 </div>
 <ul class="en">
-  <li><b>Attendance</b> = punches, fingerprint upload, full-day leave, hour leave, all on one page.</li>
+  <li><b>Teams &amp; patterns</b> = each team, its people and its one pattern (rules).</li>
+  <li><b>Attendance</b> = punches, fingerprint upload and leave (whole day or hours), all on one page.</li>
   <li><b>Reports</b> = any dates, the people and columns you choose, export Excel.</li>
-  <li><b>Settings</b> holds departments, teams, jobs, shifts, and an <b>Advanced</b> group with patterns, swap requests, imports and rules. Nothing is deleted.</li>
+  <li><b>Settings</b> holds departments, jobs, shifts, and an <b>Advanced</b> group with swap requests, imports and company rules. Nothing is deleted.</li>
 </ul>
 <ul class="ar">
-  <li><b>الحضور</b> = البصمات، رفع ملف البصمة، إجازة اليوم الكامل، الإجازة الساعية، كلها في صفحة واحدة.</li>
+  <li><b>الفرق والأنماط</b> = كل فريق وأفراده ونمطه الواحد (القواعد).</li>
+  <li><b>الحضور</b> = البصمات ورفع ملف البصمة والإجازات (يوم كامل أو ساعات)، كلها في صفحة واحدة.</li>
   <li><b>التقارير</b> = أي تواريخ، والموظفون والأعمدة التي تختارها، وتصدير إكسل.</li>
-  <li><b>الإعدادات</b> تضم الأقسام والفرق والوظائف والمناوبات، ومجموعة <b>متقدم</b> فيها الأنماط وطلبات التبديل والاستيراد والقواعد. لا يُحذف شيء.</li>
+  <li><b>الإعدادات</b> تضم الأقسام والوظائف والمناوبات، ومجموعة <b>متقدم</b> فيها طلبات التبديل والاستيراد وقواعد الشركة. لا يُحذف شيء.</li>
 </ul>
 
 <!-- 6 -->
 <h2><span class="en">6 · The fast plan, in order</span><span class="ar">6 · الخطة السريعة بالترتيب</span></h2>
 <ol class="steps">
   <li><h3><span class="en">Smaller menu</span><span class="ar">قائمة أصغر</span></h3>
-    <span class="en">Five entries; the rest under Settings → Advanced.</span><span class="ar">خمسة مداخل؛ والباقي تحت الإعدادات ← متقدم.</span>
+    <span class="en">Six entries; the rest under Settings → Advanced. The pattern page becomes three plain cards.</span><span class="ar">ستة مداخل؛ والباقي تحت الإعدادات ← متقدم. وصفحة النمط تصبح ثلاث بطاقات واضحة.</span>
     <div class="get"><span class="en">You get: the app looks easy from the first screen.</span><span class="ar">تحصل على: التطبيق يبدو سهلاً من أول شاشة.</span></div></li>
-  <li><h3><span class="en">Hour leave</span><span class="ar">الإجازة الساعية</span></h3>
-    <span class="en">The button, the four kinds, and the calculation.</span><span class="ar">الزر والأنواع الأربعة والحساب.</span>
+  <li><h3><span class="en">Leave by hours, and unpaid leave</span><span class="ar">الإجازة بالساعات والإجازة بلا أجر</span></h3>
+    <span class="en">One Leave button: kind, whole day or hours, and the calculation.</span><span class="ar">زر إجازة واحد: النوع، يوم كامل أو ساعات، والحساب.</span>
     <div class="get"><span class="en">You get: the missing entry you asked for.</span><span class="ar">تحصل على: الإدخال الناقص الذي طلبته.</span></div></li>
   <li><h3><span class="en">Report page</span><span class="ar">صفحة التقارير</span></h3>
     <span class="en">Free dates, people, columns, Excel, saved choices.</span><span class="ar">تواريخ حرة، موظفون، أعمدة، إكسل، اختيارات محفوظة.</span>
     <div class="get"><span class="en">You get: HR makes any report without asking for a change in the app.</span><span class="ar">تحصل على: الموارد البشرية تُصدر أي تقرير دون طلب تغيير في التطبيق.</span></div></li>
   <li><h3><span class="en">Month roster page</span><span class="ar">صفحة جدول الشهر</span></h3>
     <span class="en">The table of section 3: click to edit, upload Excel, copy last month.</span><span class="ar">جدول القسم 3: تعديل بالنقر، رفع إكسل، نسخ الشهر السابق.</span>
-    <div class="get"><span class="en">You get: no more patterns per month.</span><span class="ar">تحصل على: لا أنماط شهرية بعد اليوم.</span></div></li>
+    <div class="get"><span class="en">You get: one pattern per team, kept; the days change in the roster.</span><span class="ar">تحصل على: نمط واحد لكل فريق يبقى؛ والأيام تتغير في الجدول.</span></div></li>
   <li><h3><span class="en">Old months in</span><span class="ar">إدخال الأشهر القديمة</span></h3>
-    <span class="en">Files from Odoo for the months before October, uploaded through the pages that exist. Odoo's partial-leave minutes come in as hour leave (after step 2).</span><span class="ar">ملفات من أودو للأشهر قبل تشرين الأول، تُرفع من الصفحات الموجودة. ودقائق الإجازة الجزئية في أودو تدخل كإجازة ساعية (بعد الخطوة 2).</span>
+    <span class="en">Files from Odoo for the months before October, uploaded through the pages that exist. Odoo's partial-leave minutes come in as leave by hours (after step 2).</span><span class="ar">ملفات من أودو للأشهر قبل تشرين الأول، تُرفع من الصفحات الموجودة. ودقائق الإجازة الجزئية في أودو تدخل كإجازة بالساعات (بعد الخطوة 2).</span>
     <div class="get"><span class="en">You get: old and new data in one app, calculated the same way.</span><span class="ar">تحصل على: القديم والجديد في تطبيق واحد وبالحساب نفسه.</span></div></li>
   <li><h3><span class="en">Fingerprint file upload</span><span class="ar">رفع ملف البصمة</span></h3>
     <span class="en">Needs one sample export from the device software. Until then punches are typed.</span><span class="ar">يحتاج عينة تصدير واحدة من برنامج الأجهزة. وحتى ذلك الحين تُكتب البصمات يدوياً.</span>
@@ -382,11 +466,11 @@
   <span class="en">How far back should the old data go? Odoo has punches from 21 May 2026. <b class="def">My default: from 1 September 2026 first; earlier months when you ask.</b></span>
   <span class="ar">إلى أي تاريخ نرجع في البيانات القديمة؟ في أودو بصمات من 21 أيار 2026. <b class="def">افتراضي: من 1 أيلول 2026 أولاً؛ والأشهر الأسبق عند طلبك.</b></span></div>
 <div class="card q"><b>3.</b>
-  <span class="en">The rules card of section 2: does HR want to change any of the four values? <b class="def">My default: keep them as they are.</b></span>
-  <span class="ar">بطاقة القواعد في القسم 2: هل يريد قسم الموارد البشرية تغيير أي من القيم الأربع؟ <b class="def">افتراضي: تبقى كما هي.</b></span></div>
+  <span class="en">Team rules. Agents: overtime off. Operations: overtime on, but what exactly is different for them (rates, rounding, a minimum before overtime counts, something else)? And which other teams have their own rules?</span>
+  <span class="ar">قواعد الفرق. الـAgents: الإضافي متوقف. العمليات: الإضافي مفعّل، لكن ما المختلف عندهم بالضبط (النسب، التقريب، حدّ أدنى قبل احتساب الإضافي، شيء آخر)؟ وأي فرق أخرى لها قواعدها الخاصة؟</span></div>
 <div class="card q"><b>4.</b>
-  <span class="en">Hour leave kinds: annual, sick, mission (paid) and unpaid. Anything to add or remove? <b class="def">My default: these four.</b></span>
-  <span class="ar">أنواع الإجازة الساعية: سنوية، مرضية، مهمة (مدفوعة) وبلا أجر. هل تضيف أو تحذف شيئاً؟ <b class="def">افتراضي: هذه الأربعة.</b></span></div>
+  <span class="en">Leave kinds: annual, sick, mission (paid) and unpaid, each for a whole day or for hours. Is that the full list HR uses? <b class="def">My default: these four.</b></span>
+  <span class="ar">أنواع الإجازات: سنوية، مرضية، مهمة (مدفوعة) وبلا أجر، وكل منها ليوم كامل أو لساعات. هل هذه القائمة الكاملة التي يستخدمها قسم الموارد البشرية؟ <b class="def">افتراضي: هذه الأربعة.</b></span></div>
 <div class="card q"><b>5.</b>
   <span class="en">Which fingerprint software do you use, and can you put one exported file (one day, any team) in <code>~/secure/syravia/imports/</code>? I only need its column names.</span>
   <span class="ar">ما برنامج البصمة المستخدم، وهل تضع ملف تصدير واحداً (يوم واحد، أي فريق) في <code>~/secure/syravia/imports/</code>؟ أحتاج أسماء الأعمدة فقط.</span></div>

@@ -11,6 +11,10 @@
 > calculate months normally and let HR shape the report freely. Proposed there: calendar months, one
 > rule set for old and new days (no Odoo parity, no lock), a report page with free dates and columns.
 > If confirmed (its question 1), RF2–RF4 and Phases A–B of this plan are replaced.
+> note: 2026-11-13 (version 3) the user: the pattern builder stays, because each team has its own
+> rules (one team earns no overtime, another has its own overtime rules); leave exists as annual, sick
+> and by hours. Page corrected: one pattern per team for its rules, the month roster for the days;
+> leave = kind × length (whole day or hours).
 **Goal:** every day up to 2026-10-31 gives the figures of the Odoo add-on `roster_attendance`
 (proven day by day, then locked). Every day from 2026-11-01 is calculated by the app's new rules.
 Both run through **one engine**: the difference is a dated set of rule values, never a second code

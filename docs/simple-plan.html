@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simple plan · خطة مبسّطة</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --app: #1f6f8b; --app-soft: #e3f1f6;
+    --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5; --plum: #714b67; --plum-soft: #f1e9ef;
+    --off: #eef0f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --app: #6cc3df; --app-soft: #16303a;
+      --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+      --off: #222833;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+    --app: #6cc3df; --app-soft: #16303a;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+    --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+    --off: #222833;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.7 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 16px 16px 64px; }
+  html[data-lang="en"] .ar, html[data-lang="ar"] .en { display: none !important; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .top small { color: var(--muted); }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--card); }
+  .lang button { border: 0; background: transparent; color: var(--ink); font: inherit; padding: 6px 16px; cursor: pointer; }
+  html[data-lang="en"] .lang [data-set="en"], html[data-lang="ar"] .lang [data-set="ar"] { background: var(--app); color: #fff; }
+  h1 { font-size: 30px; line-height: 1.3; margin: 18px 0 6px; text-wrap: balance; }
+  h2 { font-size: 22px; line-height: 1.35; margin: 44px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: 17px; margin: 0 0 4px; }
+  p { margin: 8px 0; }
+  .lead { font-size: 19px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .answer { border-inline-start: 5px solid var(--app); background: var(--app-soft); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .tag { display: inline-block; font-size: 13px; font-weight: 600; padding: 1px 10px; border-radius: 999px; }
+  .t-bad { background: var(--bad-soft); color: var(--bad); }
+  .t-ok { background: var(--ok-soft); color: var(--ok); }
+  .t-old { background: var(--plum-soft); color: var(--plum); }
+  .t-new { background: var(--app-soft); color: var(--app); }
+  .t-warn { background: var(--warn-soft); color: var(--warn); }
+  .pain { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .pain .row { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; }
+  .scroll { overflow-x: auto; }
+  /* timeline */
+  .tl { display: grid; grid-template-columns: 5fr 5fr 3fr; min-width: 560px; gap: 3px; margin: 10px 0 4px; text-align: center; font-size: 14px; }
+  .tl div { padding: 10px 6px; border-radius: 8px; }
+  .tl .old { background: var(--plum-soft); color: var(--plum); }
+  .tl .new { background: var(--app-soft); color: var(--app); }
+  .tl b { display: block; font-size: 15px; }
+  .cal { display: grid; grid-template-columns: 3fr 3fr 3fr 4fr; min-width: 560px; gap: 3px; font-size: 13px; text-align: center; color: var(--muted); }
+  .cal div { border-top: 3px solid var(--line); padding-top: 4px; }
+  /* roster grid */
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; }
+  th { background: var(--off); font-weight: 600; }
+  td.name, th.name { text-align: start; white-space: nowrap; }
+  .D { background: var(--app-soft); color: var(--app); font-weight: 600; }
+  .N { background: var(--plum-soft); color: var(--plum); font-weight: 600; }
+  .O { background: var(--off); color: var(--muted); }
+  .cyc { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+  .cyc span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; }
+  .cyc .here { outline: 3px solid var(--warn); outline-offset: 1px; }
+  /* form mock */
+  .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .field { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--bg); }
+  .field small { display: block; color: var(--muted); font-size: 12px; }
+  .btn { display: inline-block; background: var(--app); color: #fff; border-radius: 8px; padding: 6px 16px; font-weight: 600; margin-top: 10px; }
+  .menu { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .menu span { border: 1px solid var(--line); border-radius: 8px; padding: 3px 12px; background: var(--card); font-size: 15px; }
+  .menu.now span { color: var(--muted); }
+  .menu.next span { border-color: var(--app); color: var(--app); font-weight: 600; }
+  ol.steps { list-style: none; padding: 0; margin: 12px 0; counter-reset: s; display: grid; gap: 10px; }
+  ol.steps > li { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; padding-inline-start: 58px; position: relative; }
+  ol.steps > li::before { content: counter(s); position: absolute; inset-inline-start: 14px; top: 12px; width: 32px; height: 32px; border-radius: 50%; background: var(--app); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  ol.steps .get { color: var(--muted); font-size: 15px; }
+  ul { margin: 6px 0; padding-inline-start: 22px; }
+  .q { border-inline-start: 5px solid var(--warn); }
+  .q b.def { color: var(--ok); }
+  code { background: var(--off); padding: 1px 6px; border-radius: 5px; font-size: 14px; }
+  bdi { unicode-bidi: isolate; }
+</style>
+</head>
+<body>
+<main>
+
+<div class="top">
+  <small><span class="en">Attendance app · 13 November 2026 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · لا بيانات شخصية في هذه الصفحة</span></small>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-set="en">English</button>
+    <button type="button" data-set="ar">العربية</button>
+  </div>
+</div>
+
+<h1><span class="en">A fast plan to make the app simple again</span><span class="ar">خطة سريعة ليعود التطبيق بسيطاً</span></h1>
+<p class="lead"><span class="en">Old data and new data in one app, pay months from the 21st to the 20th, a month roster you fill like Excel, and hour leave.</span><span class="ar">البيانات القديمة والجديدة في تطبيق واحد، وشهر رواتب من 21 إلى 20، وجدول شهري تملؤه مثل إكسل، وإجازة ساعية.</span></p>
+
+<div class="card answer">
+  <h3><span class="en">The short answer</span><span class="ar">الجواب المختصر</span></h3>
+  <p class="en">The app became complicated because I rebuilt Odoo's ideas inside it: patterns, cycles, and a second copy of Odoo's calculation. HR does not work that way. HR works with <b>one sheet per month</b> and <b>one pay month from the 21st to the 20th</b>. The fix is to make the app follow HR: stop recalculating the old months, keep Odoo's own numbers for them, and calculate only the new months. No built feature is deleted; the complicated screens move under "Advanced".</p>
+  <p class="ar">أصبح التطبيق معقداً لأنني أعدت بناء أفكار أودو داخله: الأنماط والدورات ونسخة ثانية من حساب أودو. قسم الموارد البشرية لا يعمل هكذا. هو يعمل <b>بورقة واحدة لكل شهر</b> و<b>بشهر رواتب من 21 إلى 20</b>. الحل أن يتبع التطبيق طريقة الموارد البشرية: نتوقف عن إعادة حساب الأشهر القديمة ونحتفظ بأرقام أودو نفسها لها، ونحسب الأشهر الجديدة فقط. لا تُحذف أي ميزة مبنية؛ والشاشات المعقدة تنتقل إلى «متقدم».</p>
+</div>
+
+<!-- 1 -->
+<h2><span class="en">1 · Your four problems, and the fix for each</span><span class="ar">1 · مشاكلك الأربع وحلّ كل واحدة</span></h2>
+
+<div class="card pain">
+  <h3><span class="en">A new pattern every month</span><span class="ar">نمط جديد كل شهر</span></h3>
+  <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
+    <div><span class="en">A pattern is made for days off that repeat. Your days off change every month, so each month needed a new pattern for each team.</span><span class="ar">النمط مصنوع لأيام عطلة تتكرر. أيام العطلة عندكم تتغير كل شهر، فاحتاج كل شهر نمطاً جديداً لكل فريق.</span></div></div>
+  <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
+    <div><span class="en">A <b>month roster</b>: one table, people in rows, days in columns. You type or upload it once a month. No pattern needed. (Section 3)</span><span class="ar"><b>جدول الشهر</b>: جدول واحد، الموظفون في الصفوف والأيام في الأعمدة. تكتبه أو ترفعه مرة كل شهر. لا حاجة لنمط. (القسم 3)</span></div></div>
+</div>
+
+<div class="card pain">
+  <h3><span class="en">"The employee follows the cycle from day N"</span><span class="ar">«الموظف يتبع الدورة من اليوم N»</span></h3>
+  <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
+    <div><span class="en">It is a setting for rotating crews. It is hard to read and you do not need it. (Explained in section 3)</span><span class="ar">هو إعداد للأطقم الدوّارة. قراءته صعبة ولا تحتاجه. (الشرح في القسم 3)</span></div></div>
+  <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
+    <div><span class="en">It disappears from the normal screens. With a month roster you see the days themselves, not a rule that produces them.</span><span class="ar">يختفي من الشاشات العادية. في جدول الشهر ترى الأيام نفسها لا القاعدة التي تنتجها.</span></div></div>
+</div>
+
+<div class="card pain">
+  <h3><span class="en">No way to enter hour leave</span><span class="ar">لا طريقة لإدخال إجازة ساعية</span></h3>
+  <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
+    <div><span class="en">It was planned and never built. Today the app only knows a full day of leave.</span><span class="ar">كانت مخططة ولم تُبنَ. التطبيق اليوم يعرف إجازة اليوم الكامل فقط.</span></div></div>
+  <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
+    <div><span class="en">An <b>Hour leave</b> button on every day: from, to, kind. (Section 4)</span><span class="ar">زر <b>إجازة ساعية</b> على كل يوم: من، إلى، النوع. (القسم 4)</span></div></div>
+</div>
+
+<div class="card pain">
+  <h3><span class="en">The pay month is 21 → 20, and the app thinks in calendar months</span><span class="ar">شهر الرواتب 21 ← 20 والتطبيق يفكر بالأشهر التقويمية</span></h3>
+  <div class="row"><span class="tag t-bad"><span class="en">Why</span><span class="ar">السبب</span></span>
+    <div><span class="en">I planned "October" as 1–31 October. HR's October is 21 September to 20 October. That is also why Odoo's punches stop on 20 October.</span><span class="ar">خططتُ «تشرين الأول» من 1 إلى 31. أما تشرين الأول عند الموارد البشرية فهو من 21 أيلول إلى 20 تشرين الأول. ولهذا تتوقف بصمات أودو عند 20 تشرين الأول.</span></div></div>
+  <div class="row"><span class="tag t-ok"><span class="en">Fix</span><span class="ar">الحل</span></span>
+    <div><span class="en">The app gets a <b>pay month</b>. Every page and every export is chosen by pay month. (Section 2)</span><span class="ar">يحصل التطبيق على <b>شهر رواتب</b>. كل صفحة وكل تصدير يُختار بشهر الرواتب. (القسم 2)</span></div></div>
+</div>
+
+<!-- 2 -->
+<h2><span class="en">2 · Pay months, old data and new data</span><span class="ar">2 · أشهر الرواتب والبيانات القديمة والجديدة</span></h2>
+
+<p class="en">A pay month runs from the 21st to the 20th and takes the name of the month it ends in. The line between old and new is the end of the last pay month Odoo paid.</p>
+<p class="ar">شهر الرواتب يمتد من 21 إلى 20 ويأخذ اسم الشهر الذي ينتهي فيه. والحد بين القديم والجديد هو نهاية آخر شهر رواتب دفعه أودو.</p>
+
+<div class="card scroll">
+  <div class="tl">
+    <div class="old"><b><span class="en">Pay month: October</span><span class="ar">شهر الرواتب: تشرين الأول</span></b><bdi>21 Sep → 20 Oct</bdi><br><span class="tag t-old"><span class="en">old · from Odoo</span><span class="ar">قديم · من أودو</span></span></div>
+    <div class="new"><b><span class="en">Pay month: November</span><span class="ar">شهر الرواتب: تشرين الثاني</span></b><bdi>21 Oct → 20 Nov</bdi><br><span class="tag t-new"><span class="en">new · calculated by the app</span><span class="ar">جديد · يحسبه التطبيق</span></span></div>
+    <div class="new"><b><span class="en">December</span><span class="ar">كانون الأول</span></b><bdi>21 Nov → …</bdi></div>
+  </div>
+  <div class="cal">
+    <div><bdi>21–30 Sep</bdi></div><div><bdi>1–20 Oct</bdi></div><div><bdi>21–31 Oct</bdi></div><div><bdi>1–20 Nov</bdi></div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <span class="tag t-old"><span class="en">Old data</span><span class="ar">البيانات القديمة</span></span>
+    <h3><span class="en">Up to 20 October: Odoo's own numbers</span><span class="ar">حتى 20 تشرين الأول: أرقام أودو نفسها</span></h3>
+    <ul class="en">
+      <li>We import each day <b>with the figures Odoo calculated</b>: required, worked, overtime, shortage, leave.</li>
+      <li>The app shows them and exports them. It does <b>not</b> calculate them again.</li>
+      <li>They are locked and carry a label "from Odoo".</li>
+      <li>Result: the old months equal Odoo exactly, because they <i>are</i> Odoo's numbers.</li>
+    </ul>
+    <ul class="ar">
+      <li>نستورد كل يوم <b>بالأرقام التي حسبها أودو</b>: المطلوب، المعمول، الإضافي، النقص، الإجازة.</li>
+      <li>التطبيق يعرضها ويصدّرها، و<b>لا</b> يعيد حسابها.</li>
+      <li>تكون مقفلة وعليها وسم «من أودو».</li>
+      <li>النتيجة: الأشهر القديمة تساوي أودو تماماً، لأنها أرقام أودو <i>نفسها</i>.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="tag t-new"><span class="en">New data</span><span class="ar">البيانات الجديدة</span></span>
+    <h3><span class="en">From 21 October: the app calculates</span><span class="ar">من 21 تشرين الأول: التطبيق يحسب</span></h3>
+    <ul class="en">
+      <li>Punches come from the fingerprint devices (or are typed).</li>
+      <li>The month roster says who works which day.</li>
+      <li>The app calculates each day with simple rules you can read on one settings card.</li>
+      <li>At the end of the pay month you close it and export the payroll file.</li>
+    </ul>
+    <ul class="ar">
+      <li>البصمات تأتي من أجهزة البصمة (أو تُكتب يدوياً).</li>
+      <li>جدول الشهر يحدد من يعمل في أي يوم.</li>
+      <li>التطبيق يحسب كل يوم بقواعد بسيطة تقرؤها في بطاقة إعدادات واحدة.</li>
+      <li>في نهاية شهر الرواتب تغلقه وتصدّر ملف الرواتب.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <span class="tag t-warn"><span class="en">What this changes in my last plan</span><span class="ar">ما الذي يغيّره هذا في خطتي السابقة</span></span>
+  <p class="en">Yesterday's plan made the app <b>reproduce</b> Odoo's October minute by minute, with a comparison page and a list of causes. That is the slow road, and it is the part that made the app feel like Odoo. Keeping Odoo's numbers for the old months removes that work. The price: an old day cannot be corrected and recalculated inside the app. Since those months are already paid, I think that is acceptable. It is your decision (question 2 below).</p>
+  <p class="ar">خطة الأمس جعلت التطبيق <b>يعيد إنتاج</b> تشرين الأول كما في أودو دقيقة بدقيقة، مع صفحة مقارنة وقائمة أسباب. هذا هو الطريق البطيء، وهو الجزء الذي جعل التطبيق يشبه أودو. الاحتفاظ بأرقام أودو للأشهر القديمة يلغي ذلك العمل. والثمن: لا يمكن تصحيح يوم قديم وإعادة حسابه داخل التطبيق. وبما أن تلك الأشهر مدفوعة، أرى ذلك مقبولاً. القرار لك (السؤال 2 في الأسفل).</p>
+</div>
+
+<!-- 3 -->
+<h2><span class="en">3 · The month roster instead of patterns</span><span class="ar">3 · جدول الشهر بدل الأنماط</span></h2>
+
+<p class="en">One page per pay month. It looks like the Excel sheet HR already makes. You click a cell to change it, or upload the Excel file (the upload already exists in the app). "Copy last month" gives you a starting point.</p>
+<p class="ar">صفحة واحدة لكل شهر رواتب، تشبه ورقة إكسل التي يعدّها قسم الموارد البشرية أصلاً. تنقر الخانة لتغييرها، أو ترفع ملف إكسل (الرفع موجود في التطبيق). وزر «نسخ الشهر السابق» يعطيك نقطة بداية.</p>
+
+<div class="card scroll">
+  <table>
+    <tr><th class="name"><span class="en">Employee</span><span class="ar">الموظف</span></th><th>21</th><th>22</th><th>23</th><th>24</th><th>25</th><th>26</th><th>27</th><th>28</th><th>…</th></tr>
+    <tr><td class="name"><span class="en">Employee A</span><span class="ar">الموظف أ</span></td><td class="D">D</td><td class="D">D</td><td class="O">—</td><td class="D">D</td><td class="D">D</td><td class="D">D</td><td class="O">—</td><td class="D">D</td><td>…</td></tr>
+    <tr><td class="name"><span class="en">Employee B</span><span class="ar">الموظف ب</span></td><td class="N">N</td><td class="N">N</td><td class="O">—</td><td class="O">—</td><td class="D">D</td><td class="D">D</td><td class="N">N</td><td class="N">N</td><td>…</td></tr>
+    <tr><td class="name"><span class="en">Employee C</span><span class="ar">الموظف ج</span></td><td class="O">—</td><td class="D">D</td><td class="D">D</td><td class="D">D</td><td class="O">—</td><td class="D">D</td><td class="D">D</td><td class="D">D</td><td>…</td></tr>
+  </table>
+  <p style="font-size:14px;color:var(--muted)"><span class="en"><b>D</b> day shift · <b>N</b> night shift · <b>—</b> day off. Changing a cell after the day has passed asks for a reason and recalculates that day.</span><span class="ar"><b>D</b> مناوبة نهارية · <b>N</b> مناوبة ليلية · <b>—</b> يوم عطلة. تغيير خانة بعد مرور اليوم يطلب سبباً ويعيد حساب ذلك اليوم.</span></p>
+</div>
+
+<div class="card">
+  <h3><span class="en">What "follows the cycle from day N" meant</span><span class="ar">ماذا كان يعني «يتبع الدورة من اليوم N»</span></h3>
+  <p class="en">A cycle is a row of days that repeats forever, for example two days, two nights, four off:</p>
+  <p class="ar">الدورة صف من الأيام يتكرر بلا نهاية، مثلاً يومان نهاراً، ليلتان، أربعة أيام عطلة:</p>
+  <div class="cyc" dir="ltr">
+    <span class="D">D</span><span class="D">D</span><span class="N here">N</span><span class="N">N</span><span class="O">—</span><span class="O">—</span><span class="O">—</span><span class="O">—</span>
+  </div>
+  <p class="en">Everyone in the crew uses the same row, but not everyone starts at the same place. "Starts on day 3" means: on the first date, this person is on the <b>third</b> box (the marked one), then moves one box each day. That is all it is. It is useful only for crews whose rotation never changes. Yours changes monthly, so the month roster replaces it.</p>
+  <p class="ar">كل أفراد الطاقم يستخدمون الصف نفسه، لكن لا يبدأ الجميع من المكان نفسه. «يبدأ من اليوم 3» تعني: في أول تاريخ يكون هذا الشخص على الخانة <b>الثالثة</b> (المعلَّمة)، ثم ينتقل خانة كل يوم. هذا كل ما في الأمر. يفيد فقط للأطقم التي لا يتغير دورانها أبداً. أما عندكم فيتغير شهرياً، فيحل جدول الشهر محله.</p>
+</div>
+
+<!-- 4 -->
+<h2><span class="en">4 · Hour leave</span><span class="ar">4 · الإجازة الساعية</span></h2>
+<p class="en">On the daily page, each day gets a button <b>Hour leave</b>. Example: a person on the 08:00–20:00 shift leaves from 10:00 to 12:00.</p>
+<p class="ar">في الصفحة اليومية يحصل كل يوم على زر <b>إجازة ساعية</b>. مثال: موظف في مناوبة 08:00–20:00 يغيب من 10:00 إلى 12:00.</p>
+<div class="card">
+  <div class="form">
+    <div class="field"><small><span class="en">From</span><span class="ar">من</span></small><bdi>10:00</bdi></div>
+    <div class="field"><small><span class="en">To</span><span class="ar">إلى</span></small><bdi>12:00</bdi></div>
+    <div class="field"><small><span class="en">Kind</span><span class="ar">النوع</span></small><span class="en">Annual ▾</span><span class="ar">سنوية ▾</span></div>
+  </div>
+  <span class="btn"><span class="en">Save</span><span class="ar">حفظ</span></span>
+  <ul class="en">
+    <li><b>Annual, sick, mission</b>: the two hours are paid and the person is not counted as short.</li>
+    <li><b>Unpaid</b>: the person is excused (not late, not absent) but the two hours are not paid.</li>
+    <li>The day shows a tag "Hour leave 2:00", and the edit log keeps who entered it.</li>
+  </ul>
+  <ul class="ar">
+    <li><b>سنوية، مرضية، مهمة</b>: الساعتان مدفوعتان ولا يُحسب على الموظف نقص.</li>
+    <li><b>بلا أجر</b>: الموظف معذور (لا تأخير ولا غياب) لكن الساعتين غير مدفوعتين.</li>
+    <li>يظهر على اليوم وسم «إجازة ساعية 2:00»، ويحفظ سجل التعديلات من أدخلها.</li>
+  </ul>
+</div>
+
+<!-- 5 -->
+<h2><span class="en">5 · A smaller menu</span><span class="ar">5 · قائمة أصغر</span></h2>
+<p><span class="en">Today the sidebar has 14 entries:</span><span class="ar">في الشريط الجانبي اليوم 14 مدخلاً:</span></p>
+<div class="menu now">
+  <span>Dashboard</span><span>Employees</span><span>Departments</span><span>Teams</span><span>Jobs</span><span>Management</span><span>Shifts</span><span>Patterns</span><span>Entry sheet</span><span>Daily attendance</span><span>Changes</span><span>Imports</span><span>Settings</span><span>Users</span>
+</div>
+<p><span class="en">It becomes 5, in the order HR works during a month:</span><span class="ar">تصبح 5، بترتيب عمل الموارد البشرية خلال الشهر:</span></p>
+<div class="menu next">
+  <span><span class="en">1 Employees</span><span class="ar">1 الموظفون</span></span>
+  <span><span class="en">2 Month roster</span><span class="ar">2 جدول الشهر</span></span>
+  <span><span class="en">3 Attendance</span><span class="ar">3 الحضور</span></span>
+  <span><span class="en">4 Pay month</span><span class="ar">4 شهر الرواتب</span></span>
+  <span><span class="en">5 Settings</span><span class="ar">5 الإعدادات</span></span>
+</div>
+<ul class="en">
+  <li><b>Attendance</b> = punches, fingerprint upload, full-day leave, hour leave, all on one page.</li>
+  <li><b>Pay month</b> = totals per person, close the month, export Excel. Old months open here too, with Odoo's numbers.</li>
+  <li><b>Settings</b> holds departments, teams, jobs, shifts, and an <b>Advanced</b> group with patterns, swap requests, imports and rules. Nothing is deleted.</li>
+</ul>
+<ul class="ar">
+  <li><b>الحضور</b> = البصمات، رفع ملف البصمة، إجازة اليوم الكامل، الإجازة الساعية، كلها في صفحة واحدة.</li>
+  <li><b>شهر الرواتب</b> = مجاميع كل موظف، إغلاق الشهر، تصدير إكسل. والأشهر القديمة تُفتح هنا أيضاً بأرقام أودو.</li>
+  <li><b>الإعدادات</b> تضم الأقسام والفرق والوظائف والمناوبات، ومجموعة <b>متقدم</b> فيها الأنماط وطلبات التبديل والاستيراد والقواعد. لا يُحذف شيء.</li>
+</ul>
+
+<!-- 6 -->
+<h2><span class="en">6 · The fast plan, in order</span><span class="ar">6 · الخطة السريعة بالترتيب</span></h2>
+<ol class="steps">
+  <li><h3><span class="en">Pay month 21 → 20</span><span class="ar">شهر الرواتب 21 ← 20</span></h3>
+    <span class="en">One setting (start day 21) and a pay-month picker on the attendance pages.</span><span class="ar">إعداد واحد (يوم البداية 21) ومنتقي شهر الرواتب في صفحات الحضور.</span>
+    <div class="get"><span class="en">You get: every page speaks HR's months.</span><span class="ar">تحصل على: كل صفحة تتكلم بأشهر الموارد البشرية.</span></div></li>
+  <li><h3><span class="en">Old months from Odoo, locked</span><span class="ar">الأشهر القديمة من أودو، مقفلة</span></h3>
+    <span class="en">Import Odoo's day figures for every pay month up to 20 October. Lock them.</span><span class="ar">استيراد أرقام أودو اليومية لكل شهر رواتب حتى 20 تشرين الأول، ثم قفلها.</span>
+    <div class="get"><span class="en">You get: old and new data in one app; the old part is finished for good.</span><span class="ar">تحصل على: القديم والجديد في تطبيق واحد؛ والجزء القديم منتهٍ نهائياً.</span></div></li>
+  <li><h3><span class="en">Smaller menu</span><span class="ar">قائمة أصغر</span></h3>
+    <span class="en">Five entries; the rest under Settings → Advanced.</span><span class="ar">خمسة مداخل؛ والباقي تحت الإعدادات ← متقدم.</span>
+    <div class="get"><span class="en">You get: the app looks easy from the first screen.</span><span class="ar">تحصل على: التطبيق يبدو سهلاً من أول شاشة.</span></div></li>
+  <li><h3><span class="en">Hour leave</span><span class="ar">الإجازة الساعية</span></h3>
+    <span class="en">The button, the four kinds, and the calculation.</span><span class="ar">الزر والأنواع الأربعة والحساب.</span>
+    <div class="get"><span class="en">You get: the missing entry you asked for.</span><span class="ar">تحصل على: الإدخال الناقص الذي طلبته.</span></div></li>
+  <li><h3><span class="en">Month roster page</span><span class="ar">صفحة جدول الشهر</span></h3>
+    <span class="en">The table of section 3: click to edit, upload Excel, copy last month.</span><span class="ar">جدول القسم 3: تعديل بالنقر، رفع إكسل، نسخ الشهر السابق.</span>
+    <div class="get"><span class="en">You get: no more patterns per month.</span><span class="ar">تحصل على: لا أنماط شهرية بعد اليوم.</span></div></li>
+  <li><h3><span class="en">Fingerprint file upload</span><span class="ar">رفع ملف البصمة</span></h3>
+    <span class="en">Needs one sample export from the device software. Until then punches are typed.</span><span class="ar">يحتاج عينة تصدير واحدة من برنامج الأجهزة. وحتى ذلك الحين تُكتب البصمات يدوياً.</span>
+    <div class="get"><span class="en">You get: no typing of punches.</span><span class="ar">تحصل على: لا كتابة يدوية للبصمات.</span></div></li>
+  <li><h3><span class="en">Pay month page and Excel export</span><span class="ar">صفحة شهر الرواتب وتصدير إكسل</span></h3>
+    <span class="en">Totals per person, close the month, one payroll file in the layout HR used with Odoo.</span><span class="ar">مجاميع كل موظف، إغلاق الشهر، ملف رواتب واحد بالشكل الذي استخدمته الموارد البشرية مع أودو.</span>
+    <div class="get"><span class="en">You get: November's payroll from the app.</span><span class="ar">تحصل على: رواتب تشرين الثاني من التطبيق.</span></div></li>
+</ol>
+<p class="en">Steps 1–3 are small and change how the app feels at once. Steps 4–7 are the real work for the November pay month, which closes on 20 November.</p>
+<p class="ar">الخطوات 1–3 صغيرة وتغيّر إحساس التطبيق فوراً. والخطوات 4–7 هي العمل الفعلي لشهر رواتب تشرين الثاني الذي يُغلق في 20 تشرين الثاني.</p>
+
+<div class="card">
+  <h3><span class="en">What I stop doing</span><span class="ar">ما الذي أتوقف عنه</span></h3>
+  <ul class="en">
+    <li>The app-next-to-Odoo comparison page and its list of causes.</li>
+    <li>Copying Odoo's grace, lateness and credit rules into the engine.</li>
+    <li>Reorganising the engine code before November works.</li>
+    <li>Leave balances, carry between months, sign-in and the server: later, after one pay month is paid from the app.</li>
+  </ul>
+  <ul class="ar">
+    <li>صفحة مقارنة التطبيق بأودو وقائمة أسبابها.</li>
+    <li>نقل قواعد أودو للسماح والتأخير والأرصدة إلى المحرك.</li>
+    <li>إعادة تنظيم كود المحرك قبل أن يعمل تشرين الثاني.</li>
+    <li>أرصدة الإجازات والترحيل بين الأشهر وتسجيل الدخول والخادم: لاحقاً، بعد دفع شهر رواتب واحد من التطبيق.</li>
+  </ul>
+</div>
+
+<!-- 7 -->
+<h2><span class="en">7 · Five answers I need before I write code</span><span class="ar">7 · خمس إجابات أحتاجها قبل كتابة أي كود</span></h2>
+
+<div class="card q"><b>1.</b>
+  <span class="en">Is the pay month <bdi>21 → 20</bdi>, named after the month it ends in (October = 21 Sep → 20 Oct)? <b class="def">My default: yes.</b></span>
+  <span class="ar">هل شهر الرواتب <bdi>21 ← 20</bdi> ويُسمّى باسم الشهر الذي ينتهي فيه (تشرين الأول = 21 أيلول ← 20 تشرين الأول)؟ <b class="def">افتراضي: نعم.</b></span></div>
+<div class="card q"><b>2.</b>
+  <span class="en">Old months keep Odoo's numbers and are not recalculated in the app. OK? And how far back: only October's pay month, or everything Odoo has (from 21 May 2026)? <b class="def">My default: yes; everything Odoo has.</b></span>
+  <span class="ar">الأشهر القديمة تحتفظ بأرقام أودو ولا يُعاد حسابها في التطبيق. موافق؟ وإلى أي تاريخ نرجع: شهر رواتب تشرين الأول فقط، أم كل ما في أودو (من 21 أيار 2026)؟ <b class="def">افتراضي: نعم؛ كل ما في أودو.</b></span></div>
+<div class="card q"><b>3.</b>
+  <span class="en">The new part starts on 21 October, so 21–31 October belongs to November's pay month and is calculated by the app. OK? <b class="def">My default: yes.</b></span>
+  <span class="ar">الجزء الجديد يبدأ في 21 تشرين الأول، فتكون أيام 21–31 تشرين الأول ضمن شهر رواتب تشرين الثاني ويحسبها التطبيق. موافق؟ <b class="def">افتراضي: نعم.</b></span></div>
+<div class="card q"><b>4.</b>
+  <span class="en">Hour leave kinds: annual, sick, mission (paid) and unpaid. Anything to add or remove? <b class="def">My default: these four.</b></span>
+  <span class="ar">أنواع الإجازة الساعية: سنوية، مرضية، مهمة (مدفوعة) وبلا أجر. هل تضيف أو تحذف شيئاً؟ <b class="def">افتراضي: هذه الأربعة.</b></span></div>
+<div class="card q"><b>5.</b>
+  <span class="en">Which fingerprint software do you use, and can you put one exported file (one day, any team) in <code>~/secure/syravia/imports/</code>? I only need its column names.</span>
+  <span class="ar">ما برنامج البصمة المستخدم، وهل تضع ملف تصدير واحداً (يوم واحد، أي فريق) في <code>~/secure/syravia/imports/</code>؟ أحتاج أسماء الأعمدة فقط.</span></div>
+
+</main>
+<script>
+  (function () {
+    var root = document.documentElement;
+    function set(lang) {
+      root.setAttribute('data-lang', lang);
+      root.setAttribute('lang', lang);
+      root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+      try { localStorage.setItem('simple-plan-lang', lang); } catch (e) {}
+    }
+    var saved = null;
+    try { saved = localStorage.getItem('simple-plan-lang'); } catch (e) {}
+    if (saved === 'ar' || saved === 'en') set(saved);
+    document.querySelectorAll('.lang button').forEach(function (b) {
+      b.addEventListener('click', function () { set(b.getAttribute('data-set')); });
+    });
+  })();
+</script>
+</body>
+</html>

@@ -2,6 +2,11 @@
 
 **Status:** in progress (written 2026-11-13 on the user's instruction; RF1 and RF2 are the user's, RF3–RF7 are proposed and wait for the user's "go")
 **Date:** 2026-11-13
+> note: 2026-11-13 (later the same day) the user reported the app feels as complicated as Odoo and
+> that HR's pay month runs 21 → 20. A simpler route is proposed in `docs/simple-plan.html` (EN/AR):
+> pay months, old months kept with Odoo's own figures and locked, a month roster instead of monthly
+> patterns, hour leave, a 5-entry menu. It would replace Phase A's comparison work and Q-RF6.
+> Nothing here changes until the user answers its five questions.
 **Goal:** every day up to 2026-10-31 gives the figures of the Odoo add-on `roster_attendance`
 (proven day by day, then locked). Every day from 2026-11-01 is calculated by the app's new rules.
 Both run through **one engine**: the difference is a dated set of rule values, never a second code

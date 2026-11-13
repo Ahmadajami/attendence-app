@@ -7,6 +7,10 @@
 > pay months, old months kept with Odoo's own figures and locked, a month roster instead of monthly
 > patterns, hour leave, a 5-entry menu. It would replace Phase A's comparison work and Q-RF6.
 > Nothing here changes until the user answers its five questions.
+> note: 2026-11-13 (version 2 of that page) the user: the new HR wants to change the old way, so
+> calculate months normally and let HR shape the report freely. Proposed there: calendar months, one
+> rule set for old and new days (no Odoo parity, no lock), a report page with free dates and columns.
+> If confirmed (its question 1), RF2–RF4 and Phases A–B of this plan are replaced.
 **Goal:** every day up to 2026-10-31 gives the figures of the Odoo add-on `roster_attendance`
 (proven day by day, then locked). Every day from 2026-11-01 is calculated by the app's new rules.
 Both run through **one engine**: the difference is a dated set of rule values, never a second code

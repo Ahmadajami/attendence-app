@@ -3593,9 +3593,9 @@
       ]
     },
     {
-      id: 'SP8', group: 'roster', status: 'proposed', date: '2026-11-13', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      id: 'SP8', group: 'roster', status: 'replaced', date: '2026-11-13', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
       title: {en: "Older months come in as inputs and are calculated", ar: "الأشهر الأقدم تدخل كمدخلات وتُحسب"},
-      decision: {en: "Roster, punches and leave of the months before October are imported from Odoo's files through the existing import pages and calculated like any day. Default: from 2026-09-01 first (Q-SP3).", ar: "جدول وبصمات وإجازات الأشهر قبل تشرين الأول تُستورد من ملفات أودو عبر صفحات الاستيراد الموجودة وتُحسب مثل أي يوم. الافتراضي: من 2026-09-01 أولاً (Q-SP3)."},
+      decision: {en: "Roster, punches and leave of the months before October are imported from Odoo's files through the existing import pages and calculated like any day. Default: from 2026-09-01 first (Q-SP3). Replaced on 2026-11-13 by SP10.", ar: "جدول وبصمات وإجازات الأشهر قبل تشرين الأول تُستورد من ملفات أودو عبر صفحات الاستيراد الموجودة وتُحسب مثل أي يوم. الافتراضي: من 2026-09-01 أولاً (Q-SP3). استُبدل في 2026-11-13 بـSP10."},
       why: {en: "Old and new data in one app with one calculation.", ar: "القديم والجديد في تطبيق واحد وبحساب واحد."},
       alts: [
         {en: "Import Odoo's results instead of its inputs: not chosen — see SP1.", ar: "استيراد نتائج أودو بدل مدخلاته: لم يُختر — انظر SP1."}
@@ -3608,6 +3608,16 @@
       why: {en: "The user asked for a fast plan; dated settings and tests protect the figures meanwhile.", ar: "طلب المستخدم خطة سريعة؛ والإعدادات المؤرَّخة والاختبارات تحمي الأرقام في الأثناء."},
       alts: [
         {en: "Reorganise the engine first: not chosen — it delays what the user needs to see.", ar: "إعادة تنظيم المحرك أولاً: لم يُختر — يؤخر ما يحتاج المستخدم رؤيته."}
+      ]
+    },
+    {
+      id: 'SP10', group: 'roster', status: 'approved', date: '2026-11-13', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      title: {en: "The app's data starts on 1 October 2026; teams differ only by overtime on or off", ar: "بيانات التطبيق تبدأ في 1 تشرين الأول 2026؛ والفرق تختلف فقط بتفعيل الإضافي"},
+      decision: {en: "Old data is 1–20 October from Odoo, already imported. September and earlier months are not imported, so the pay period 21 September → 20 October stays Odoo's. Between teams the only different rule is overtime on or off (answers Q-SP1 and Q-SP3). The user's decision, 2026-11-13. Replaces SP8.", ar: "البيانات القديمة هي 1–20 تشرين الأول من أودو، وهي مستوردة فعلاً. أيلول والأشهر الأسبق لا تُستورد، فتبقى فترة الرواتب 21 أيلول ← 20 تشرين الأول لأودو. والقاعدة الوحيدة المختلفة بين الفرق هي تفعيل الإضافي أو إيقافه (يجيب عن Q-SP1 وQ-SP3). قرار المستخدم، 2026-11-13. يستبدل SP8."},
+      why: {en: "September has its own roster for every team and a holiday; importing it costs more work than its ten days are worth.", ar: "لأيلول جدول خاص لكل فريق وفيه عطلة؛ واستيراده يكلّف عملاً أكثر مما تستحقه أيامه العشرة."},
+      alts: [
+        {en: "Import 21–30 September to complete the pay period: not chosen — a roster per team and the holiday would have to be rebuilt first.", ar: "استيراد 21–30 أيلول لإكمال فترة الرواتب: لم يُختر — يجب أولاً إعادة بناء جدول لكل فريق والعطلة."},
+        {en: "Settings per pattern for every rule now: not chosen — only overtime on or off differs, and that exists.", ar: "إعدادات لكل نمط لكل قاعدة الآن: لم يُختر — يختلف فقط تفعيل الإضافي، وهو موجود."}
       ]
     }
   ];
@@ -3770,9 +3780,9 @@
     ["Q-RF4", "November: lateness beyond grace — charge anything, and is the surplus overtime?", "closed 2026-11-13: Odoo's value is the default (SP1, SP6)", "تشرين الثاني: التأخير بعد السماح — هل يُخصم شيء، وهل الفائض إضافي؟", "أُغلق 2026-11-13: قيمة أودو هي الافتراضية (SP1، SP6)"],
     ["Q-RF5", "November punches: which device software, and one sample export?", "typed until a sample exists", "بصمات تشرين الثاني: أي برنامج للأجهزة، وعينة تصدير واحدة؟", "إدخال يدوي حتى توجد عينة"],
     ["Q-RF6", "Does the new way start on 1 November (calendar months) or on 21 October (Odoo's 21→20 period)?", "closed 2026-11-13: Odoo's value is the default (SP1, SP6)", "هل تبدأ الطريقة الجديدة في 1 تشرين الثاني (أشهر تقويمية) أم في 21 تشرين الأول (فترة أودو 21←20)؟", "أُغلق 2026-11-13: قيمة أودو هي الافتراضية (SP1، SP6)"],
-    ["Q-SP1", "What is different for Operations (rates, rounding, a minimum before overtime, other)? Which other teams have their own rules?", "only overtime on/off and rates differ", "ما المختلف لفريق العمليات (النسب، التقريب، حدّ أدنى قبل الإضافي، غير ذلك)؟ وأي فرق أخرى لها قواعدها؟", "يختلف فقط تفعيل الإضافي والنسب"],
+    ["Q-SP1", "What is different for Operations (rates, rounding, a minimum before overtime, other)? Which other teams have their own rules?", "answered 2026-11-13 (SP10): only overtime on or off", "ما المختلف لفريق العمليات (النسب، التقريب، حدّ أدنى قبل الإضافي، غير ذلك)؟ وأي فرق أخرى لها قواعدها؟", "أُجيب 2026-11-13 (SP10): تفعيل الإضافي فقط"],
     ["Q-SP2", "Leave kinds: annual, sick, mission, unpaid — the full list?", "these four", "أنواع الإجازات: سنوية، مرضية، مهمة، بلا أجر — هل هي القائمة الكاملة؟", "هذه الأربعة"],
-    ["Q-SP3", "How far back does the old data go (Odoo has punches from 2026-05-21)?", "from 2026-09-01 first", "إلى أي تاريخ ترجع البيانات القديمة (في أودو بصمات من 2026-05-21)؟", "من 2026-09-01 أولاً"],
+    ["Q-SP3", "How far back does the old data go (Odoo has punches from 2026-05-21)?", "answered 2026-11-13 (SP10): from 2026-10-01", "إلى أي تاريخ ترجع البيانات القديمة (في أودو بصمات من 2026-05-21)؟", "أُجيب 2026-11-13 (SP10): من 2026-10-01"],
     ["Q-SP4", "Fingerprint software, and one sample export?", "typed until a sample exists (was Q-RF5)", "برنامج البصمة، وعينة تصدير واحدة؟", "إدخال يدوي حتى توجد عينة (كان Q-RF5)"]
   ];
 

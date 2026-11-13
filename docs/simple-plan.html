@@ -100,7 +100,7 @@
 <main>
 
 <div class="top">
-  <small><span class="en">Attendance app · 13 November 2026 · version 4 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 4 · لا بيانات شخصية في هذه الصفحة</span></small>
+  <small><span class="en">Attendance app · 13 November 2026 · version 5 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 5 · لا بيانات شخصية في هذه الصفحة</span></small>
   <div class="lang" role="group" aria-label="Language">
     <button type="button" data-set="en">English</button>
     <button type="button" data-set="ar">العربية</button>
@@ -129,6 +129,22 @@
     <li><b>الاتجاه (قرارك):</b> مطابقة بيانات أودو مع إبقاء كل شيء قابلاً للإعداد. النسخة 2 قالت «نتوقف عن المقارنة بأودو»؛ وهذا سُحب.</li>
     <li><b>صفحة المجاميع هي الخطوة 1.</b> بلا عمود لأودو: تفتح أودو بنفسك.</li>
     <li><b>بقي:</b> نمط واحد لكل فريق لقواعده، جدول الشهر، الإجازة ليوم أو لساعات، تقارير بتواريخ حرة، القائمة الأصغر.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="tag t-ok"><span class="en">Decided in version 5</span><span class="ar">تقرّر في النسخة 5</span></span>
+  <ul class="en">
+    <li><b>The app's data starts on 1 October 2026.</b> The old data is 1–20 October from Odoo, and it is already in the app. September is not imported.</li>
+    <li>So the pay period 21 September → 20 October stays in Odoo. The app's totals start from 1 October.</li>
+    <li><b>Teams differ only by overtime on or off.</b> That switch already exists on each pattern, so no new team settings are needed now.</li>
+    <li>The September holiday no longer matters for the import. Holidays for coming months are entered on the team's pattern.</li>
+  </ul>
+  <ul class="ar">
+    <li><b>بيانات التطبيق تبدأ في 1 تشرين الأول 2026.</b> البيانات القديمة هي 1–20 تشرين الأول من أودو، وهي موجودة في التطبيق. أيلول لا يُستورد.</li>
+    <li>فتبقى فترة الرواتب 21 أيلول ← 20 تشرين الأول في أودو. ومجاميع التطبيق تبدأ من 1 تشرين الأول.</li>
+    <li><b>الفرق تختلف فقط بتفعيل الإضافي أو إيقافه.</b> هذا المفتاح موجود في كل نمط، فلا حاجة الآن لإعدادات جديدة للفرق.</li>
+    <li>عطلة أيلول لم تعد تهمّ الاستيراد. وأعياد الأشهر القادمة تُدخل في نمط الفريق.</li>
   </ul>
 </div>
 
@@ -292,9 +308,9 @@
   <table>
     <tr><th class="name"><span class="en">Team pattern</span><span class="ar">نمط الفريق</span></th><th><span class="en">Overtime</span><span class="ar">الإضافي</span></th><th><span class="en">Worked 13 h on a 12 h shift</span><span class="ar">عمل 13 ساعة في مناوبة 12</span></th></tr>
     <tr><td class="name"><span class="en">Agents</span><span class="ar">الموظفون الميدانيون (Agents)</span></td><td><span class="en">off</span><span class="ar">متوقف</span></td><td><span class="en">the extra hour is shown as "not paid"</span><span class="ar">الساعة الزائدة تُعرض «غير مدفوعة»</span></td></tr>
-    <tr><td class="name"><span class="en">Operations</span><span class="ar">العمليات</span></td><td><span class="en">on, with its own rates</span><span class="ar">مفعّل بنسبه الخاصة</span></td><td><span class="en">1 h overtime at the team's rate</span><span class="ar">ساعة إضافي بنسبة الفريق</span></td></tr>
+    <tr><td class="name"><span class="en">Operations</span><span class="ar">العمليات</span></td><td><span class="en">on</span><span class="ar">مفعّل</span></td><td><span class="en">1 h overtime, paid</span><span class="ar">ساعة إضافي مدفوعة</span></td></tr>
   </table>
-  <p style="font-size:14px;color:var(--muted)"><span class="en">The overtime switch and the three rates per pattern exist in the app today. If Operations needs more (its own rounding, its own Friday rule), those become fields of the same pattern card (question 1).</span><span class="ar">مفتاح الإضافي والنسب الثلاث لكل نمط موجودة في التطبيق اليوم. وإن احتاجت العمليات أكثر (تقريبها الخاص، قاعدة الجمعة الخاصة) فتصبح حقولاً في بطاقة النمط نفسها (السؤال 1).</span></p>
+  <p style="font-size:14px;color:var(--muted)"><span class="en">The overtime switch and the three rates per pattern exist in the app today. If Operations needs more (its own rounding, its own Friday rule), those can become fields of the same pattern card later.</span><span class="ar">مفتاح الإضافي والنسب الثلاث لكل نمط موجودة في التطبيق اليوم. وإن احتاجت العمليات أكثر (تقريبها الخاص، قاعدة الجمعة الخاصة) فيمكن أن تصبح حقولاً في بطاقة النمط نفسها لاحقاً.</span></p>
 </div>
 
 <div class="card">
@@ -417,17 +433,14 @@
     <span class="en">Grace time, late after grace, make-up time, lateness deduction, shortage against overtime.</span><span class="ar">وقت السماح، التأخير بعد السماح، وقت التعويض، خصم التأخير، النقص مقابل الإضافي.</span>
     <div class="get"><span class="en">You get: the same totals as Odoo, each rule visible on a card.</span><span class="ar">تحصل على: المجاميع نفسها كأودو، وكل قاعدة ظاهرة في بطاقة.</span></div></li>
   <li><h3><span class="en">Team rules on the pattern page</span><span class="ar">قواعد الفريق في صفحة النمط</span></h3>
-    <span class="en">Three plain cards: usual shift, overtime and rules, holidays. Any setting can be replaced for one team.</span><span class="ar">ثلاث بطاقات واضحة: المناوبة المعتادة، الإضافي والقواعد، الأعياد. وأي إعداد يمكن استبداله لفريق واحد.</span>
-    <div class="get"><span class="en">You get: Agents without overtime, Operations with its own rules, set once.</span><span class="ar">تحصل على: الـAgents بلا إضافي، والعمليات بقواعدها، تُضبط مرة واحدة.</span></div></li>
+    <span class="en">Three plain cards: usual shift, overtime (on or off, rates), holidays.</span><span class="ar">ثلاث بطاقات واضحة: المناوبة المعتادة، الإضافي (مفعّل أو متوقف، النسب)، الأعياد.</span>
+    <div class="get"><span class="en">You get: each team with overtime on or off, set once.</span><span class="ar">تحصل على: كل فريق بإضافي مفعّل أو متوقف، يُضبط مرة واحدة.</span></div></li>
   <li><h3><span class="en">Month roster page</span><span class="ar">صفحة جدول الشهر</span></h3>
     <span class="en">The table of section 3: click to edit, upload Excel, copy last month.</span><span class="ar">جدول القسم 3: تعديل بالنقر، رفع إكسل، نسخ الشهر السابق.</span>
     <div class="get"><span class="en">You get: no new pattern each month.</span><span class="ar">تحصل على: لا نمط جديد كل شهر.</span></div></li>
   <li><h3><span class="en">Smaller menu</span><span class="ar">قائمة أصغر</span></h3>
     <span class="en">Six entries; the rest under Settings → Advanced.</span><span class="ar">ستة مداخل؛ والباقي تحت الإعدادات ← متقدم.</span>
     <div class="get"><span class="en">You get: the app looks easy from the first screen.</span><span class="ar">تحصل على: التطبيق يبدو سهلاً من أول شاشة.</span></div></li>
-  <li><h3><span class="en">Older months in</span><span class="ar">إدخال الأشهر الأقدم</span></h3>
-    <span class="en">Files from Odoo for the months before October, through the upload pages that exist.</span><span class="ar">ملفات من أودو للأشهر قبل تشرين الأول، عبر صفحات الرفع الموجودة.</span>
-    <div class="get"><span class="en">You get: old and new data in one app, calculated the same way.</span><span class="ar">تحصل على: القديم والجديد في تطبيق واحد وبالحساب نفسه.</span></div></li>
   <li><h3><span class="en">Fingerprint file upload</span><span class="ar">رفع ملف البصمة</span></h3>
     <span class="en">Needs one sample export from the device software. Until then punches are typed.</span><span class="ar">يحتاج عينة تصدير واحدة من برنامج الأجهزة. وحتى ذلك الحين تُكتب البصمات يدوياً.</span>
     <div class="get"><span class="en">You get: no typing of punches.</span><span class="ar">تحصل على: لا كتابة يدوية للبصمات.</span></div></li>
@@ -452,19 +465,13 @@
 </div>
 
 <!-- 7 -->
-<h2><span class="en">7 · Four answers that would help</span><span class="ar">7 · أربع إجابات تساعد</span></h2>
-<p class="en">None of them blocks step 1.</p><p class="ar">لا يعطّل أيٌّ منها الخطوة 1.</p>
+<h2><span class="en">7 · Two answers that would help</span><span class="ar">7 · إجابتان تساعدان</span></h2>
+<p class="en">Neither blocks step 1.</p><p class="ar">لا تعطّل أيٌّ منهما الخطوة 1.</p>
 
 <div class="card q"><b>1.</b>
-  <span class="en">Team rules. Agents: overtime off. Operations: overtime on, but what exactly is different for them (rates, rounding, a minimum before overtime counts, something else)? Which other teams have their own rules?</span>
-  <span class="ar">قواعد الفرق. الـAgents: الإضافي متوقف. العمليات: الإضافي مفعّل، لكن ما المختلف عندهم بالضبط (النسب، التقريب، حدّ أدنى قبل احتساب الإضافي، شيء آخر)؟ وأي فرق أخرى لها قواعدها الخاصة؟</span></div>
-<div class="card q"><b>2.</b>
   <span class="en">Leave kinds: annual, sick, mission (paid) and unpaid, each for a whole day or for hours. Is that the full list? <b class="def">My default: these four.</b></span>
   <span class="ar">أنواع الإجازات: سنوية، مرضية، مهمة (مدفوعة) وبلا أجر، وكل منها ليوم كامل أو لساعات. هل هذه القائمة الكاملة؟ <b class="def">افتراضي: هذه الأربعة.</b></span></div>
-<div class="card q"><b>3.</b>
-  <span class="en">How far back should the old data go? Odoo has punches from 21 May 2026. <b class="def">My default: from 1 September 2026 first; earlier months when you ask.</b></span>
-  <span class="ar">إلى أي تاريخ نرجع في البيانات القديمة؟ في أودو بصمات من 21 أيار 2026. <b class="def">افتراضي: من 1 أيلول 2026 أولاً؛ والأشهر الأسبق عند طلبك.</b></span></div>
-<div class="card q"><b>4.</b>
+<div class="card q"><b>2.</b>
   <span class="en">Which fingerprint software do you use, and can you put one exported file (one day, any team) in <code>~/secure/syravia/imports/</code>? I only need its column names.</span>
   <span class="ar">ما برنامج البصمة المستخدم، وهل تضع ملف تصدير واحداً (يوم واحد، أي فريق) في <code>~/secure/syravia/imports/</code>؟ أحتاج أسماء الأعمدة فقط.</span></div>
 

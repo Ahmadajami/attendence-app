@@ -1,6 +1,6 @@
 # Follow Odoo, keep every rule a setting, make the app easy
 
-**Status:** in progress (direction decided by the user 2026-11-13: SP1–SP6 approved; SP7–SP9 proposed)
+**Status:** in progress (direction decided by the user 2026-11-13: SP1–SP6 and SP10 approved; SP7, SP9 proposed)
 **Date:** 2026-11-13
 **Goal:** with the same punches, roster and leave, the app gives the figures the Odoo add-on
 `roster_attendance` gives. Every rule is a setting (company, or one team's pattern) that changes
@@ -22,8 +22,9 @@ pictures (EN/AR): `docs/simple-plan.html`. Real data: CLAUDE.md §1; counts, dat
 | SP5 | approved (user); kinds default | **Leave = kind × length.** Kinds: annual, sick, mission (paid), unpaid. Length: whole day or hours (from, to). Leave by hours covers the shortage and never becomes overtime (BRIEF R8). Odoo's credit minutes for old days are imported as leave by hours (replaces RF4, IM7) | The app only knows whole days today |
 | SP6 | approved (user) | **No fixed pay month.** The calculation is per day; the totals page takes any dates, with a quick 21 → 20 button | HR may change the period; nothing in the calculation depends on it |
 | SP7 | proposed | Sidebar of 6 entries: Employees, Teams & patterns, Month roster, Attendance, Totals & reports, Settings (with Advanced) | 14 entries today |
-| SP8 | proposed | Old months before October come in as inputs (roster, punches, leave) through the existing import pages and are calculated like any day. Default: from 2026-09-01 first | Old and new data in one app, one calculation |
+| SP8 | replaced by SP10 | ~~Old months before October come in as inputs through the import pages~~ | — |
 | SP9 | proposed | Not built now: month lock (RF3), engine reorganisation (RF5), balances carry, sign-in. A made-up day fixture with Odoo's results is added with each rule of §2 | Fast route; the tests are the guard |
+| SP10 | approved (user, 2026-11-13) | **The app's data starts on 2026-10-01.** Old data = 1–20 October from Odoo (already imported). September and earlier are not imported: the pay period 21 Sep → 20 Oct stays Odoo's. **Teams differ only by overtime on or off** (answers Q-SP1), so settings per pattern beyond that are not built now | September has its own roster per team and a holiday; importing it costs more than it gives |
 
 Still in force from `docs/decisions.html`: OC2–OC10, RI1–RI11, AR1–AR6, IM1–IM4, IM6, IM17,
 PS1–PS3, PR1–PR39, FP1, EN8.
@@ -43,7 +44,7 @@ PS1–PS3, PR1–PR39, FP1, EN8.
 | Leave by hours | covers shortage, never overtime | R8 | to build (SP5) |
 | Final and balance of a day | Final − Required | R9, R10 | to build |
 | Shortage against overtime over the chosen dates | from ×1.25 overtime first, then ×1.5 | R11 | to build, in the totals page |
-| Any of the company settings replaced for one pattern | — | — | to build (today only on/off and rates) |
+| Any other company setting replaced for one pattern | — | — | later (SP10: teams differ only by overtime on/off, which is built) |
 
 Known from the earlier checks on 1–20 October (script notes, not visible in the app): inputs and
 worked time equal Odoo; overtime differed on 661 days by rounding only and on 11 others (7 are
@@ -69,18 +70,16 @@ Operations, OC10); shortage differed on 134 days (about 120 leave by hours, abou
 - [ ] T3 **Odoo's missing rules as settings** (§2): grace, late after grace, make-up time,
       lateness deduction with its day tick, Final and balance, shortage against overtime in the
       totals. One fixture day per rule with Odoo's figures. Then the 14 unexplained days.
-- [ ] T4 **Settings per pattern** (SP2, SP4): any §2 setting replaceable on a pattern, dated;
-      pattern page as three cards (usual shift, overtime and rules, holidays); rotation closed by
-      default; copy from another pattern.
+- [ ] T4 **Pattern page made easy** (SP4): three cards (usual shift, overtime, holidays); rotation
+      closed by default; copy from another pattern. No new settings per pattern (SP10).
 - [ ] T5 **Month roster page** (SP4): people × days of a calendar month, click to edit, upload
       (the roster import), copy last month; a cell edit of a past day asks for a reason.
 - [ ] T6 **Sidebar** of 6 entries (SP7).
-- [ ] T7 **Older months** (SP8): files from Odoo per month through `/imports`.
-- [ ] T8 **Fingerprint file import**, once a sample exists (IM10).
+- [ ] T7 **Fingerprint file import**, once a sample exists (IM10).
 
 ### Later (kept, not scheduled)
 
-Leave and sick balances; carry between periods; month lock; day actions other than the lateness
+Other settings per pattern; months before October; leave and sick balances; carry between periods; month lock; day actions other than the lateness
 tick; aviation privilege; attendance emails through Odoo; sign-in, roles and the facility server;
 Playwright specs.
 
@@ -107,8 +106,8 @@ On `http://127.0.0.1:5174` (e2e database). Tick when the user reports the result
 
 | ID | Question | Default |
 |---|---|---|
-| Q-SP1 | What is different for Operations (rates, rounding, a minimum before overtime, other)? Which other teams have their own rules? | only overtime on/off and rates differ |
+| Q-SP1 | answered 2026-11-13 (SP10): teams differ only by overtime on or off | — |
 | Q-SP2 | Leave kinds: annual, sick, mission, unpaid: the full list? | these four |
-| Q-SP3 | How far back does the old data go (Odoo has punches from 2026-05-21)? | from 2026-09-01 first |
+| Q-SP3 | answered 2026-11-13 (SP10): from 2026-10-01; September is not imported | — |
 | Q-SP4 | Fingerprint software, and one sample export in `~/secure/syravia/imports/`? | typed until a sample exists |
 | Q-AR1 | A Friday credit needs exactly two parts? (carried over) | yes |

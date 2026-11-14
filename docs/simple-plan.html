@@ -100,51 +100,45 @@
 <main>
 
 <div class="top">
-  <small><span class="en">Attendance app · 13 November 2026 · version 6 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 6 · لا بيانات شخصية في هذه الصفحة</span></small>
+  <small><span class="en">Attendance app · 14 November 2026 · final version · no personal data in this page</span><span class="ar">تطبيق الحضور · 14 تشرين الثاني 2026 · النسخة النهائية · لا بيانات شخصية في هذه الصفحة</span></small>
   <div class="lang" role="group" aria-label="Language">
     <button type="button" data-set="en">English</button>
     <button type="button" data-set="ar">العربية</button>
   </div>
 </div>
 
-<h1><span class="en">A fast plan to make the app simple again</span><span class="ar">خطة سريعة ليعود التطبيق بسيطاً</span></h1>
+<h1><span class="en">The plan: follow Odoo, keep it configurable, make it simple</span><span class="ar">الخطة: اتباع أودو، مع قابلية الإعداد، وبساطة الاستخدام</span></h1>
 <p class="lead"><span class="en">The app calculates like Odoo, and every rule is a setting you can change. A totals page for any dates. One pattern per team, a month roster for the days. Leave for a day or for hours.</span><span class="ar">التطبيق يحسب مثل أودو، وكل قاعدة إعداد يمكنك تغييره. صفحة مجاميع لأي تواريخ. نمط واحد لكل فريق وجدول شهري للأيام. وإجازة ليوم أو لساعات.</span></p>
 
 <div class="card answer">
   <h3><span class="en">The short answer</span><span class="ar">الجواب المختصر</span></h3>
-  <p class="en"><b>The app follows Odoo.</b> With the same punches, roster and leave, it should give the same numbers Odoo gives. But nothing is fixed in the code: each rule is a <b>setting</b>, for the company or for one team's pattern, and it can be changed <b>from a date</b>. So when HR decides to change something later, you change a setting, the earlier days keep their numbers, and nothing breaks.</p>
-  <p class="ar"><b>التطبيق يتبع أودو.</b> بالبصمات والجدول والإجازات نفسها يجب أن يعطي الأرقام نفسها التي يعطيها أودو. لكن لا شيء ثابت في الكود: كل قاعدة <b>إعداد</b>، للشركة أو لنمط فريق واحد، ويمكن تغييرها <b>ابتداءً من تاريخ</b>. فعندما يقرر قسم الموارد البشرية تغيير شيء لاحقاً، تغيّر إعداداً، وتحتفظ الأيام السابقة بأرقامها، ولا يتعطل شيء.</p>
+  <p class="en"><b>The app follows Odoo.</b> With the same punches, roster and leave, it should give the same numbers Odoo gives (overtime rounding aside). But nothing is fixed in the code: each rule is a <b>setting</b>, for the company or for one team's pattern, and it can be changed <b>from a date</b>. So when HR decides to change something later, you change a setting, the earlier days keep their numbers, and nothing breaks.</p>
+  <p class="ar"><b>التطبيق يتبع أودو.</b> بالبصمات والجدول والإجازات نفسها يجب أن يعطي الأرقام نفسها التي يعطيها أودو (عدا تقريب الإضافي). لكن لا شيء ثابت في الكود: كل قاعدة <b>إعداد</b>، للشركة أو لنمط فريق واحد، ويمكن تغييرها <b>ابتداءً من تاريخ</b>. فعندما يقرر قسم الموارد البشرية تغيير شيء لاحقاً، تغيّر إعداداً، وتحتفظ الأيام السابقة بأرقامها، ولا يتعطل شيء.</p>
   <p class="en"><b>First thing to build: a totals page.</b> Today the app shows days, never a person's totals. The totals page gives one row per employee for any dates, so you can open Odoo beside it and compare yourself.</p>
   <p class="ar"><b>أول ما يُبنى: صفحة المجاميع.</b> التطبيق اليوم يعرض الأيام ولا يعرض مجاميع الموظف أبداً. صفحة المجاميع تعطي صفاً واحداً لكل موظف لأي تواريخ، فتفتح أودو بجانبها وتقارن بنفسك.</p>
 </div>
 
 <div class="card">
-  <span class="tag t-warn"><span class="en">What changed in version 4</span><span class="ar">ما الذي تغيّر في النسخة 4</span></span>
+  <span class="tag t-ok"><span class="en">What you decided</span><span class="ar">ما قرّرتَه</span></span>
   <ul class="en">
-    <li><b>Direction (your decision):</b> match Odoo's data, keep everything configurable. Version 2 said "stop comparing with Odoo"; that is withdrawn.</li>
-    <li><b>Totals page is step 1.</b> No Odoo column in it: you open Odoo yourself.</li>
-    <li><b>Kept:</b> one pattern per team for its rules, the month roster, leave by day or hours, reports with free dates, the smaller menu.</li>
+    <li><b>Follow Odoo's calculation</b>, with every rule a setting that can change from a date.</li>
+    <li><b>One exception:</b> overtime stays rounded to the nearest 15 minutes. Odoo does not round, so overtime can differ from Odoo by up to 7 minutes on a day.</li>
+    <li><b>The app's data starts on 1 October 2026.</b> The old data is 1–20 October from Odoo, already in the app. September stays in Odoo, so the pay period 21 September → 20 October is totalled there.</li>
+    <li><b>No Odoo column in the app.</b> You open Odoo yourself and compare with the totals page.</li>
+    <li><b>The pattern builder stays</b>, one pattern per team. Teams differ only by overtime on or off.</li>
+    <li><b>All 22 people</b> who were only in Odoo are kept; their October roster and punches are imported.</li>
+    <li><b>No fixed pay month.</b> Totals and reports take any dates.</li>
+    <li><b>You work with OpenCode v2</b> on your machine.</li>
   </ul>
   <ul class="ar">
-    <li><b>الاتجاه (قرارك):</b> مطابقة بيانات أودو مع إبقاء كل شيء قابلاً للإعداد. النسخة 2 قالت «نتوقف عن المقارنة بأودو»؛ وهذا سُحب.</li>
-    <li><b>صفحة المجاميع هي الخطوة 1.</b> بلا عمود لأودو: تفتح أودو بنفسك.</li>
-    <li><b>بقي:</b> نمط واحد لكل فريق لقواعده، جدول الشهر، الإجازة ليوم أو لساعات، تقارير بتواريخ حرة، القائمة الأصغر.</li>
-  </ul>
-</div>
-
-<div class="card">
-  <span class="tag t-ok"><span class="en">Decided in version 5</span><span class="ar">تقرّر في النسخة 5</span></span>
-  <ul class="en">
-    <li><b>The app's data starts on 1 October 2026.</b> The old data is 1–20 October from Odoo, and it is already in the app. September is not imported.</li>
-    <li>So the pay period 21 September → 20 October stays in Odoo. The app's totals start from 1 October.</li>
-    <li><b>Teams differ only by overtime on or off.</b> That switch already exists on each pattern, so no new team settings are needed now.</li>
-    <li>The September holiday no longer matters for the import. Holidays for coming months are entered on the team's pattern.</li>
-  </ul>
-  <ul class="ar">
-    <li><b>بيانات التطبيق تبدأ في 1 تشرين الأول 2026.</b> البيانات القديمة هي 1–20 تشرين الأول من أودو، وهي موجودة في التطبيق. أيلول لا يُستورد.</li>
-    <li>فتبقى فترة الرواتب 21 أيلول ← 20 تشرين الأول في أودو. ومجاميع التطبيق تبدأ من 1 تشرين الأول.</li>
-    <li><b>الفرق تختلف فقط بتفعيل الإضافي أو إيقافه.</b> هذا المفتاح موجود في كل نمط، فلا حاجة الآن لإعدادات جديدة للفرق.</li>
-    <li>عطلة أيلول لم تعد تهمّ الاستيراد. وأعياد الأشهر القادمة تُدخل في نمط الفريق.</li>
+    <li><b>اتباع حساب أودو</b>، وكل قاعدة إعداد يمكن تغييره ابتداءً من تاريخ.</li>
+    <li><b>استثناء واحد:</b> الإضافي يبقى مقرَّباً إلى أقرب 15 دقيقة. أودو لا يقرّب، فقد يختلف الإضافي عن أودو حتى 7 دقائق في اليوم.</li>
+    <li><b>بيانات التطبيق تبدأ في 1 تشرين الأول 2026.</b> البيانات القديمة هي 1–20 تشرين الأول من أودو، وهي موجودة في التطبيق. أيلول يبقى في أودو، فتُجمع فترة الرواتب 21 أيلول ← 20 تشرين الأول هناك.</li>
+    <li><b>لا عمود لأودو في التطبيق.</b> تفتح أودو بنفسك وتقارن بصفحة المجاميع.</li>
+    <li><b>منشئ الأنماط يبقى</b>، نمط واحد لكل فريق. والفرق تختلف فقط بتفعيل الإضافي أو إيقافه.</li>
+    <li><b>الـ22 شخصاً</b> الموجودون في أودو فقط يبقون جميعاً؛ ويُستورد جدولهم وبصماتهم لتشرين الأول.</li>
+    <li><b>لا شهر رواتب ثابت.</b> المجاميع والتقارير تأخذ أي تواريخ.</li>
+    <li><b>تعمل بـOpenCode v2</b> على جهازك.</li>
   </ul>
 </div>
 
@@ -229,8 +223,8 @@
 </div>
 
 <h3 style="margin-top:22px"><span class="en">Every rule is a setting</span><span class="ar">كل قاعدة إعداد</span></h3>
-<p class="en">A setting has a value for the company. A team's pattern can replace it for that team. A change always has a start date: days before it keep their numbers.</p>
-<p class="ar">للإعداد قيمة للشركة. ونمط الفريق يمكن أن يستبدلها لذلك الفريق. والتغيير له دائماً تاريخ بداية: الأيام قبله تحتفظ بأرقامها.</p>
+<p class="en">A setting has a value for the company. Overtime on or off and the rates are set on each team's pattern. A change always has a start date: days before it keep their numbers.</p>
+<p class="ar">للإعداد قيمة للشركة. وتفعيل الإضافي ونسبه تُضبط في نمط كل فريق. والتغيير له دائماً تاريخ بداية: الأيام قبله تحتفظ بأرقامها.</p>
 <div class="card scroll">
   <table>
     <tr><th class="name"><span class="en">Setting</span><span class="ar">الإعداد</span></th><th><span class="en">Odoo's value (the default)</span><span class="ar">قيمة أودو (الافتراضية)</span></th><th><span class="en">In the app</span><span class="ar">في التطبيق</span></th></tr>
@@ -265,9 +259,8 @@
 <h2><span class="en">3 · The pattern stays for the team's rules; the month roster holds the days</span><span class="ar">3 · النمط يبقى لقواعد الفريق؛ وجدول الشهر يحمل الأيام</span></h2>
 
 <div class="card">
-  <span class="tag t-warn"><span class="en">Corrected in version 3</span><span class="ar">مصحَّح في النسخة 3</span></span>
-  <p class="en">I was wrong to hide the pattern builder. You need it because each team works under different rules. What was painful was not the pattern itself: it was that one pattern did <b>two jobs</b>, and one of them changes every month.</p>
-  <p class="ar">أخطأتُ حين اقترحتُ إخفاء منشئ الأنماط. أنت تحتاجه لأن كل فريق يعمل بقواعد مختلفة. المتعب لم يكن النمط نفسه، بل أن النمط الواحد كان يؤدي <b>مهمتين</b>، وإحداهما تتغير كل شهر.</p>
+  <p class="en">The pattern builder stays, because each team works under its own rules. What was painful was not the pattern itself: one pattern did <b>two jobs</b>, and one of them changes every month.</p>
+  <p class="ar">منشئ الأنماط يبقى، لأن كل فريق يعمل بقواعده. المتعب لم يكن النمط نفسه: النمط الواحد كان يؤدي <b>مهمتين</b>، وإحداهما تتغير كل شهر.</p>
 </div>
 
 <div class="grid2">
@@ -354,8 +347,8 @@
 
 <!-- 4 -->
 <h2><span class="en">4 · Leave: full day or hours, same kinds</span><span class="ar">4 · الإجازة: يوم كامل أو ساعات، والأنواع نفسها</span></h2>
-<p class="en">"Hour leave" was a bad name of mine. I did not mean a new kind of leave. I meant: <b>every kind of leave can be taken for a whole day or for some hours</b>. The kind and the length are two separate choices.</p>
-<p class="ar">«الإجازة الساعية» كانت تسمية سيئة مني. لم أقصد نوعاً جديداً من الإجازات. قصدتُ: <b>كل نوع إجازة يمكن أخذه ليوم كامل أو لبضع ساعات</b>. النوع والمدة اختياران منفصلان.</p>
+<p class="en"><b>Every kind of leave can be taken for a whole day or for some hours.</b> The kind and the length are two separate choices.</p>
+<p class="ar"><b>كل نوع إجازة يمكن أخذه ليوم كامل أو لبضع ساعات.</b> النوع والمدة اختياران منفصلان.</p>
 
 <div class="card scroll">
   <table>
@@ -422,6 +415,30 @@
 
 <!-- 6 -->
 <h2><span class="en">6 · The plan, in order</span><span class="ar">6 · الخطة بالترتيب</span></h2>
+
+<h3><span class="en">Part A · First, on your machine</span><span class="ar">الجزء أ · أولاً، على جهازك</span></h3>
+<div class="card">
+  <ol class="en" style="margin:0;padding-inline-start:22px">
+    <li><b>Set up OpenCode v2</b> for the project, then merge the branch and run the checks.</li>
+    <li><b>Rounding:</b> the rule that starts on 1 October is set to "nearest 15 minutes" (today it holds "no rounding").</li>
+    <li><b>The 22 people:</b> their October roster and punches are inserted from Odoo. You see the counts before anything is saved.</li>
+    <li><b>Recompute from 1 October</b>, after your OK. Overtime stays in steps of 15; the Friday Prayer credit appears.</li>
+    <li><b>Reception Excel files</b> are compared with the roster to list which team differs on which date (the night team from 28 October among them). Shifts and patterns are fixed from that list.</li>
+    <li><b>Attendance from 21 October onward</b> goes in by your own plan.</li>
+  </ol>
+  <ol class="ar" style="margin:0;padding-inline-start:22px">
+    <li><b>إعداد OpenCode v2</b> للمشروع، ثم دمج الفرع وتشغيل الفحوص.</li>
+    <li><b>التقريب:</b> تُضبط القاعدة التي تبدأ في 1 تشرين الأول على «أقرب 15 دقيقة» (هي اليوم «بلا تقريب»).</li>
+    <li><b>الـ22 شخصاً:</b> يُدخل جدولهم وبصماتهم لتشرين الأول من أودو. وترى الأعداد قبل حفظ أي شيء.</li>
+    <li><b>إعادة الحساب من 1 تشرين الأول</b> بعد موافقتك. يبقى الإضافي بدرجات 15؛ ويظهر رصيد صلاة الجمعة.</li>
+    <li><b>ملفات إكسل الاستقبال</b> تُقارن بالجدول لسرد أي فريق يختلف وفي أي تاريخ (ومنها الفريق الليلي من 28 تشرين الأول). وتُصحَّح المناوبات والأنماط من تلك القائمة.</li>
+    <li><b>الحضور من 21 تشرين الأول فصاعداً</b> يدخل وفق خطتك الخاصة.</li>
+  </ol>
+  <p class="en" style="font-size:14px;color:var(--muted)">For the steps that touch real data (3, 4, 5), the agent writes the script and you run it and read the output, so names never leave your machine. This rule is my proposal; tell me if you do not want it.</p>
+  <p class="ar" style="font-size:14px;color:var(--muted)">في الخطوات التي تمسّ بيانات حقيقية (3، 4، 5) يكتب الوكيل السكربت وأنت تشغّله وتقرأ ناتجه، فلا تغادر الأسماء جهازك. هذه القاعدة اقتراح مني؛ أخبرني إن لم تُردها.</p>
+</div>
+
+<h3 style="margin-top:22px"><span class="en">Part B · Building, one step at a time, each tested by you</span><span class="ar">الجزء ب · البناء، خطوة خطوة، وكل خطوة تختبرها أنت</span></h3>
 <ol class="steps">
   <li><h3><span class="en">Totals page</span><span class="ar">صفحة المجاميع</span></h3>
     <span class="en">One row per employee for any dates and team; click a number to see its days; choose columns; Excel.</span><span class="ar">صف لكل موظف لأي تواريخ وفريق؛ انقر رقماً لترى أيامه؛ اختر الأعمدة؛ إكسل.</span>
@@ -432,7 +449,7 @@
   <li><h3><span class="en">Odoo's missing rules, as settings</span><span class="ar">قواعد أودو الناقصة، كإعدادات</span></h3>
     <span class="en">Grace time, late after grace, make-up time, lateness deduction, shortage against overtime.</span><span class="ar">وقت السماح، التأخير بعد السماح، وقت التعويض، خصم التأخير، النقص مقابل الإضافي.</span>
     <div class="get"><span class="en">You get: the same totals as Odoo, each rule visible on a card.</span><span class="ar">تحصل على: المجاميع نفسها كأودو، وكل قاعدة ظاهرة في بطاقة.</span></div></li>
-  <li><h3><span class="en">Team rules on the pattern page</span><span class="ar">قواعد الفريق في صفحة النمط</span></h3>
+  <li><h3><span class="en">Easier pattern page</span><span class="ar">صفحة نمط أسهل</span></h3>
     <span class="en">Three plain cards: usual shift, overtime (on or off, rates), holidays.</span><span class="ar">ثلاث بطاقات واضحة: المناوبة المعتادة، الإضافي (مفعّل أو متوقف، النسب)، الأعياد.</span>
     <div class="get"><span class="en">You get: each team with overtime on or off, set once.</span><span class="ar">تحصل على: كل فريق بإضافي مفعّل أو متوقف، يُضبط مرة واحدة.</span></div></li>
   <li><h3><span class="en">Month roster page</span><span class="ar">صفحة جدول الشهر</span></h3>
@@ -442,23 +459,13 @@
     <span class="en">Six entries; the rest under Settings → Advanced.</span><span class="ar">ستة مداخل؛ والباقي تحت الإعدادات ← متقدم.</span>
     <div class="get"><span class="en">You get: the app looks easy from the first screen.</span><span class="ar">تحصل على: التطبيق يبدو سهلاً من أول شاشة.</span></div></li>
   <li><h3><span class="en">Fingerprint file upload</span><span class="ar">رفع ملف البصمة</span></h3>
-    <span class="en">Needs one sample export from the device software. Until then punches are typed.</span><span class="ar">يحتاج عينة تصدير واحدة من برنامج الأجهزة. وحتى ذلك الحين تُكتب البصمات يدوياً.</span>
+    <span class="en">Needs one sample export from the device software.</span><span class="ar">يحتاج عينة تصدير واحدة من برنامج الأجهزة.</span>
     <div class="get"><span class="en">You get: no typing of punches.</span><span class="ar">تحصل على: لا كتابة يدوية للبصمات.</span></div></li>
 </ol>
+<h3 style="margin-top:22px"><span class="en">Part C · Checking</span><span class="ar">الجزء ج · التحقق</span></h3>
 <div class="card">
-  <span class="tag t-ok"><span class="en">Before step 1, on your machine (version 6)</span><span class="ar">قبل الخطوة 1، على جهازك (النسخة 6)</span></span>
-  <ul class="en">
-    <li>Overtime <b>stays rounded to 15 minutes</b>. Odoo does not round, so overtime can differ from Odoo by up to 7 minutes on a day.</li>
-    <li><b>All 22 people are kept.</b> The agent on your machine (OpenCode v2) prepares the insert of their Odoo roster and punches; you see the counts before anything is saved.</li>
-    <li>Your reception Excel files are compared with the roster to find which team differs on which date (the night team from 28 October among them); shifts and patterns are fixed from that list.</li>
-    <li>Attendance from 21 October onward follows your own plan.</li>
-  </ul>
-  <ul class="ar">
-    <li>الإضافي <b>يبقى مقرَّباً إلى 15 دقيقة</b>. أودو لا يقرّب، فقد يختلف الإضافي عن أودو حتى 7 دقائق في اليوم.</li>
-    <li><b>يبقى الـ22 جميعاً.</b> الوكيل على جهازك (OpenCode v2) يجهّز إدخال جدولهم وبصماتهم من أودو؛ وترى الأعداد قبل حفظ أي شيء.</li>
-    <li>ملفات إكسل الاستقبال تُقارن بالجدول لمعرفة أي فريق يختلف وفي أي تاريخ (ومنها الفريق الليلي من 28 تشرين الأول)؛ وتُصحَّح المناوبات والأنماط من تلك القائمة.</li>
-    <li>الحضور من 21 تشرين الأول فصاعداً يتبع خطتك الخاصة.</li>
-  </ul>
+  <p class="en">After the first three building steps, open the totals page and Odoo for 1–20 October and the same team. Tell me any employee whose numbers differ, with the date. That day is fixed and added as a test.</p>
+  <p class="ar">بعد أول ثلاث خطوات بناء، افتح صفحة المجاميع وأودو لـ1–20 تشرين الأول وللفريق نفسه. أخبرني بأي موظف تختلف أرقامه مع التاريخ. يُصحَّح ذلك اليوم ويُضاف كاختبار.</p>
 </div>
 
 <div class="card">
@@ -467,19 +474,21 @@
     <li>An Odoo column or a comparison screen inside the app. You compare with Odoo yourself.</li>
     <li>A fixed pay month, or locking a month.</li>
     <li>A reorganisation of the calculation code.</li>
+    <li>September and earlier months; other rules per team.</li>
     <li>Leave balances, sign-in and the server: later.</li>
   </ul>
   <ul class="ar">
     <li>عمود لأودو أو شاشة مقارنة داخل التطبيق. تقارن بأودو بنفسك.</li>
     <li>شهر رواتب ثابت أو قفل شهر.</li>
     <li>إعادة تنظيم كود الحساب.</li>
+    <li>أيلول والأشهر الأسبق؛ وقواعد أخرى لكل فريق.</li>
     <li>أرصدة الإجازات وتسجيل الدخول والخادم: لاحقاً.</li>
   </ul>
 </div>
 
 <!-- 7 -->
-<h2><span class="en">7 · Two answers that would help</span><span class="ar">7 · إجابتان تساعدان</span></h2>
-<p class="en">Neither blocks step 1.</p><p class="ar">لا تعطّل أيٌّ منهما الخطوة 1.</p>
+<h2><span class="en">7 · Three answers that would help</span><span class="ar">7 · ثلاث إجابات تساعد</span></h2>
+<p class="en">None of them blocks the start.</p><p class="ar">لا يعطّل أيٌّ منها البدء.</p>
 
 <div class="card q"><b>1.</b>
   <span class="en">Leave kinds: annual, sick, mission (paid) and unpaid, each for a whole day or for hours. Is that the full list? <b class="def">My default: these four.</b></span>
@@ -487,6 +496,10 @@
 <div class="card q"><b>2.</b>
   <span class="en">Which fingerprint software do you use, and can you put one exported file (one day, any team) in <code>~/secure/syravia/imports/</code>? I only need its column names.</span>
   <span class="ar">ما برنامج البصمة المستخدم، وهل تضع ملف تصدير واحداً (يوم واحد، أي فريق) في <code>~/secure/syravia/imports/</code>؟ أحتاج أسماء الأعمدة فقط.</span></div>
+
+<div class="card q"><b>3.</b>
+  <span class="en">The 22 people: when they were added, the note was that they leave the app from November. Do they stay, or leave from a date?</span>
+  <span class="ar">الـ22 شخصاً: عند إضافتهم كانت الملاحظة أنهم يغادرون التطبيق من تشرين الثاني. هل يبقون، أم يغادرون من تاريخ معيّن؟</span></div>
 
 </main>
 <script>

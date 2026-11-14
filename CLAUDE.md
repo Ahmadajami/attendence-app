@@ -243,8 +243,9 @@ Use both on every task to keep context small.
   - §1 applies: build the graph from this repo only. Never point graphify at
     `~/secure/syravia/` or the old Odoo module (real names), and never use
     its Gemini backend (no cloud).
-- **OpenCode v2** (the user's local agent since 2026-11-14) reads this file as its rules when
-  no `AGENTS.md` exists. The RTK hook below is a Claude Code hook and does not run there; the
+- **OpenCode v2** (the user's local agent since 2026-11-14) only discovers `AGENTS.md`, so
+  `AGENTS.md` is a symlink to this file: edit `CLAUDE.md`, never replace the link, and never run
+  `/init` (it would rewrite this file). The RTK hook below is a Claude Code hook and does not run there; the
   Svelte MCP server and the permission rules are in the committed `opencode.json` (set-up and
   checks: `docs/opencode-setup.html`). Its models are
   hosted by outside providers: for any task on real data the agent writes the script and the

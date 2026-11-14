@@ -79,8 +79,9 @@ Start state of `attendance_app` (2026-11-12 notes): 28 migrations; 310 + 22 peop
 and punches of the 310 imported; the 22 have no roster or punches yet; rule version from 2026-10-01
 holds rounding 0; stored days were computed before engine 2 and have not been recomputed.
 
-- [ ] L0 OpenCode v2 set-up, by `docs/opencode-setup.html`: `CLAUDE.md` is read as the rules file
-      when no `AGENTS.md` exists, so `/init` is not run; the committed `opencode.json` (v2 keys,
+- [ ] L0 OpenCode v2 set-up, by `docs/opencode-setup.html`: OpenCode v2 only discovers
+      `AGENTS.md` (its migration notes; the `CLAUDE.md` fallback was v1), so `AGENTS.md` is a
+      committed symlink to `CLAUDE.md` and `/init` is not run; the committed `opencode.json` (v2 keys,
       taken from the v2 source, core 2.0.26: ordered `permissions` rules, `mcp.servers`) asks before
       commands and edits, denies package changes, the dev server, Playwright, `git push`, `.env`
       reads and `~/secure/syravia/`, and starts the local Svelte MCP server; graphify's skill is

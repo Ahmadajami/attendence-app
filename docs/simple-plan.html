@@ -128,7 +128,7 @@
     <li><b>The pattern builder stays</b>, one pattern per team. Teams differ only by overtime on or off.</li>
     <li><b>All 22 people</b> who were only in Odoo are kept; their October roster and punches are imported.</li>
     <li><b>No fixed pay month.</b> Totals and reports take any dates.</li>
-    <li><b>You work with OpenCode v2</b> on your machine.</li>
+    <li><b>OpenCode v2 does the tasks</b> on your machine; Claude plans each task and reviews the result.</li>
   </ul>
   <ul class="ar">
     <li><b>اتباع حساب أودو</b>، وكل قاعدة إعداد يمكن تغييره ابتداءً من تاريخ.</li>
@@ -138,7 +138,7 @@
     <li><b>منشئ الأنماط يبقى</b>، نمط واحد لكل فريق. والفرق تختلف فقط بتفعيل الإضافي أو إيقافه.</li>
     <li><b>الـ22 شخصاً</b> الموجودون في أودو فقط يبقون جميعاً؛ ويُستورد جدولهم وبصماتهم لتشرين الأول.</li>
     <li><b>لا شهر رواتب ثابت.</b> المجاميع والتقارير تأخذ أي تواريخ.</li>
-    <li><b>تعمل بـOpenCode v2</b> على جهازك.</li>
+    <li><b>OpenCode v2 ينفّذ المهام</b> على جهازك؛ وClaude يخطط لكل مهمة ويراجع النتيجة.</li>
   </ul>
 </div>
 
@@ -419,23 +419,43 @@
 <h3><span class="en">Part A · First, on your machine</span><span class="ar">الجزء أ · أولاً، على جهازك</span></h3>
 <div class="card">
   <ol class="en" style="margin:0;padding-inline-start:22px">
-    <li><b>Set up OpenCode v2</b> for the project, then merge the branch and run the checks.</li>
-    <li><b>Rounding:</b> the rule that starts on 1 October is set to "nearest 15 minutes" (today it holds "no rounding").</li>
+    <li><b>Merge the branch and set up OpenCode v2.</b> The steps, the ready <code>opencode.json</code> and seven checks are in <code>docs/opencode-setup.html</code>.</li>
+    <li><b>Rounding (task L2):</b> a small database migration sets the rule that starts on 1 October to "nearest 15 minutes" (today it holds "no rounding"). The agent applies it to the two test databases; you apply it to the real one.</li>
     <li><b>The 22 people:</b> their October roster and punches are inserted from Odoo. You see the counts before anything is saved.</li>
     <li><b>Recompute from 1 October</b>, after your OK. Overtime stays in steps of 15; the Friday Prayer credit appears.</li>
     <li><b>Reception Excel files</b> are compared with the roster to list which team differs on which date (the night team from 28 October among them). Shifts and patterns are fixed from that list.</li>
     <li><b>Attendance from 21 October onward</b> goes in by your own plan.</li>
   </ol>
   <ol class="ar" style="margin:0;padding-inline-start:22px">
-    <li><b>إعداد OpenCode v2</b> للمشروع، ثم دمج الفرع وتشغيل الفحوص.</li>
-    <li><b>التقريب:</b> تُضبط القاعدة التي تبدأ في 1 تشرين الأول على «أقرب 15 دقيقة» (هي اليوم «بلا تقريب»).</li>
+    <li><b>دمج الفرع وإعداد OpenCode v2.</b> الخطوات وملف <code>opencode.json</code> الجاهز وسبعة فحوص في <code>docs/opencode-setup.html</code>.</li>
+    <li><b>التقريب (المهمة L2):</b> ترحيل صغير لقاعدة البيانات يضبط القاعدة التي تبدأ في 1 تشرين الأول على «أقرب 15 دقيقة» (هي اليوم «بلا تقريب»). يطبّقه الوكيل على قاعدتَي الاختبار؛ وتطبّقه أنت على الحقيقية.</li>
     <li><b>الـ22 شخصاً:</b> يُدخل جدولهم وبصماتهم لتشرين الأول من أودو. وترى الأعداد قبل حفظ أي شيء.</li>
     <li><b>إعادة الحساب من 1 تشرين الأول</b> بعد موافقتك. يبقى الإضافي بدرجات 15؛ ويظهر رصيد صلاة الجمعة.</li>
     <li><b>ملفات إكسل الاستقبال</b> تُقارن بالجدول لسرد أي فريق يختلف وفي أي تاريخ (ومنها الفريق الليلي من 28 تشرين الأول). وتُصحَّح المناوبات والأنماط من تلك القائمة.</li>
     <li><b>الحضور من 21 تشرين الأول فصاعداً</b> يدخل وفق خطتك الخاصة.</li>
   </ol>
-  <p class="en" style="font-size:14px;color:var(--muted)">For the steps that touch real data (3, 4, 5), the agent writes the script and you run it and read the output, so names never leave your machine. This rule is my proposal; tell me if you do not want it.</p>
-  <p class="ar" style="font-size:14px;color:var(--muted)">في الخطوات التي تمسّ بيانات حقيقية (3، 4، 5) يكتب الوكيل السكربت وأنت تشغّله وتقرأ ناتجه، فلا تغادر الأسماء جهازك. هذه القاعدة اقتراح مني؛ أخبرني إن لم تُردها.</p>
+  <p class="en" style="font-size:14px;color:var(--muted)">For the steps that touch real data (3, 4, 5), the agent writes the script and you run it and read the output, so names never leave your machine. The prepared <code>opencode.json</code> also blocks the agent from the secure folder. This rule is my proposal; tell me if you do not want it.</p>
+  <p class="ar" style="font-size:14px;color:var(--muted)">في الخطوات التي تمسّ بيانات حقيقية (3، 4، 5) يكتب الوكيل السكربت وأنت تشغّله وتقرأ ناتجه، فلا تغادر الأسماء جهازك. وملف <code>opencode.json</code> الجاهز يحجب المجلد الآمن عن الوكيل أيضاً. هذه القاعدة اقتراح مني؛ أخبرني إن لم تُردها.</p>
+</div>
+
+<h3 style="margin-top:22px"><span class="en">How each task runs</span><span class="ar">كيف تُنفَّذ كل مهمة</span></h3>
+<div class="card">
+  <ol class="en" style="margin:0;padding-inline-start:22px">
+    <li>Claude (the cloud session) gives you a <b>brief</b>: a prompt to paste and a proposed Go-plan model.</li>
+    <li>You run it in OpenCode on branch <code>app/main</code>.</li>
+    <li>OpenCode does the task, runs the checks and commits.</li>
+    <li>You push and say "L2 done" (or the task's id), with any error text.</li>
+    <li>Claude reads the change and answers "accepted" or gives a short fix. Then the next brief.</li>
+  </ol>
+  <ol class="ar" style="margin:0;padding-inline-start:22px">
+    <li>Claude (الجلسة السحابية) يعطيك <b>موجزاً</b>: نصاً للّصق ونموذجاً مقترحاً من خطة Go.</li>
+    <li>تشغّله في OpenCode على الفرع <code>app/main</code>.</li>
+    <li>ينفّذ OpenCode المهمة ويشغّل الفحوص ويودِع.</li>
+    <li>تدفع التغييرات وتقول «L2 done» (أو رمز المهمة) مع أي نص خطأ.</li>
+    <li>يقرأ Claude التغيير ويجيب «مقبول» أو يعطي تصحيحاً قصيراً. ثم الموجز التالي.</li>
+  </ol>
+  <p class="en" style="font-size:14px;color:var(--muted)">The first brief (task L2) and the model for each kind of task are in <code>docs/opencode-setup.html</code>, sections 8 and 9.</p>
+  <p class="ar" style="font-size:14px;color:var(--muted)">الموجز الأول (المهمة L2) والنموذج لكل نوع من المهام في <code>docs/opencode-setup.html</code>، القسمان 8 و9.</p>
 </div>
 
 <h3 style="margin-top:22px"><span class="en">Part B · Building, one step at a time, each tested by you</span><span class="ar">الجزء ب · البناء، خطوة خطوة، وكل خطوة تختبرها أنت</span></h3>

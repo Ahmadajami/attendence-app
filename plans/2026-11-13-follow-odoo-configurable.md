@@ -29,7 +29,7 @@ pictures (EN/AR): `docs/simple-plan.html`. Real data: CLAUDE.md §1; counts, dat
 | SP12 | approved (user, 2026-11-14) | **The local Claude Code session does the Odoo inserts**, not the user by hand: it runs the extraction and calls the app's import services from a script (same plan, counts, audit and undo as the import pages). On `attendance_app`: counts shown first, then the user's OK (CLAUDE.md §4) | The work moves to the user's machine, where the database and the secure folder are |
 | SP13 | approved (user, 2026-11-14) | **Reception Excel files find the roster differences first.** A read-only script compares the reception files with the app's roster and lists, per team and date, where the worked hours do not fit the planned shift (the Fly Dubai nights from 2026-10-28 among them). Shifts and patterns are fixed from that list, not by guessing | Several teams may have changed, not one |
 | SP14 | approved (user, 2026-11-14) | **All 22 Odoo-only people are kept.** Their October roster and punches are imported (L3). Whether they leave the app from November (OC9) is still open | The user looked at the list and decided |
-| SP15 | proposed | **The local agent is OpenCode v2 (Go plan), not Claude Code** (amends SP12). Because its models are hosted by outside providers with no published retention policy found, the agent writes the scripts for tasks on real data and **the user runs them and reads the output**; the agent never opens `~/secure/syravia/` or runs a query that returns names | CLAUDE.md §1: no outside service receives staff data |
+| SP15 | proposed | **The local agent is OpenCode v2 (Go plan), not Claude Code** (amends SP12). Its models are hosted by outside providers (the Go docs list most as not trained on and kept 0 days, two as kept 30 days, and the free ones not at all), so the agent writes the scripts for tasks on real data and **the user runs them and reads the output**; the agent never opens `~/secure/syravia/` or runs a query that returns names | CLAUDE.md §1: no outside service receives staff data |
 | SP16 | approved (user, 2026-11-14) | **Division of work.** The cloud Claude session plans and reviews; OpenCode on the user's machine does every task it can. For each such task Claude gives the user a ready prompt and a proposed Go-plan model; the user runs it, pushes `app/main` and says it is finished; Claude fetches the branch and reviews the diff before the next task | Saves Claude tokens; OpenCode has the database, `node_modules` and the checks that the cloud session lacks |
 
 Still in force from `docs/decisions.html`: OC2–OC10, RI1–RI11, AR1–AR6, IM1–IM4, IM6, IM17,
@@ -79,13 +79,14 @@ Start state of `attendance_app` (2026-11-12 notes): 28 migrations; 310 + 22 peop
 and punches of the 310 imported; the 22 have no roster or punches yet; rule version from 2026-10-01
 holds rounding 0; stored days were computed before engine 2 and have not been recomputed.
 
-- [ ] L0 OpenCode v2 set-up (check each key against the v2 docs; v2 renamed several):
-      `CLAUDE.md` is read as the rules file when no `AGENTS.md` exists, so do not run `/init`;
-      permissions set to ask for shell commands and file edits (v2 keys `permissions` / `shell`,
-      not v1's `permission` / `bash`); the Svelte MCP server added under `mcp.servers` (CLAUDE.md
-      §3 needs its autofixer); the RTK hook of CLAUDE.md §7 is a Claude Code hook and does not run
-      here. **Done when** the agent answers "which plan file do I start from" correctly and a
-      `.svelte` autofixer call works.
+- [ ] L0 OpenCode v2 set-up, by `docs/opencode-setup.html`: `CLAUDE.md` is read as the rules file
+      when no `AGENTS.md` exists, so `/init` is not run; the committed `opencode.json` (v2 keys,
+      taken from the v2 source, core 2.0.26: ordered `permissions` rules, `mcp.servers`) asks before
+      commands and edits, denies package changes, the dev server, Playwright, `git push`, `.env`
+      reads and `~/secure/syravia/`, and starts the local Svelte MCP server; graphify's skill is
+      found in `~/.claude/skills/`; RTK through `rtk init -g --opencode`, or by prefixing commands
+      with `rtk` if its plugin does not fire on v2. **Done when** the user reports the page's seven
+      checks.
 - [ ] L1 Merge branch `ccr-c38cc2fe-mnmw85` into `app/main`; `pnpm check && pnpm test`.
 - [ ] L2 Rounding (SP11): a custom migration (`0028`) sets the `attendance_rule` row that starts
       2026-10-01 to step 15, nearest, with a reason naming SP11 (the versions were seeded by

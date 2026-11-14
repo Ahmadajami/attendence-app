@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenCode setup · إعداد OpenCode</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2433; --muted: #5b6577; --line: #d9dee7;
+    --app: #1f6f8b; --app-soft: #e3f1f6;
+    --ok: #2e7d4f; --ok-soft: #e4f3ea; --warn: #b5651d; --warn-soft: #fbefe3;
+    --bad: #b3261e; --bad-soft: #fbe7e5; --plum: #714b67; --plum-soft: #f1e9ef;
+    --off: #eef0f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+      --app: #6cc3df; --app-soft: #16303a;
+      --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+      --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+      --off: #222833;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --card: #1b2029; --ink: #e8ecf3; --muted: #a3adbf; --line: #323a48;
+    --app: #6cc3df; --app-soft: #16303a;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0a868; --warn-soft: #3a2a19;
+    --bad: #f2867e; --bad-soft: #3b1c1a; --plum: #c99bbd; --plum-soft: #2c2230;
+    --off: #222833;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 17px/1.7 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 16px 16px 64px; }
+  html[data-lang="en"] .ar, html[data-lang="ar"] .en { display: none !important; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .top small { color: var(--muted); }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--card); }
+  .lang button { border: 0; background: transparent; color: var(--ink); font: inherit; padding: 6px 16px; cursor: pointer; }
+  html[data-lang="en"] .lang [data-set="en"], html[data-lang="ar"] .lang [data-set="ar"] { background: var(--app); color: #fff; }
+  h1 { font-size: 30px; line-height: 1.3; margin: 18px 0 6px; text-wrap: balance; }
+  h2 { font-size: 22px; line-height: 1.35; margin: 44px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: 17px; margin: 0 0 4px; }
+  p { margin: 8px 0; }
+  .lead { font-size: 19px; color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .answer { border-inline-start: 5px solid var(--app); background: var(--app-soft); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .tag { display: inline-block; font-size: 13px; font-weight: 600; padding: 1px 10px; border-radius: 999px; }
+  .t-bad { background: var(--bad-soft); color: var(--bad); }
+  .t-ok { background: var(--ok-soft); color: var(--ok); }
+  .t-old { background: var(--plum-soft); color: var(--plum); }
+  .t-new { background: var(--app-soft); color: var(--app); }
+  .t-warn { background: var(--warn-soft); color: var(--warn); }
+  .pain { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .pain .row { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; }
+  .scroll { overflow-x: auto; }
+  /* timeline */
+  .tl { display: grid; grid-template-columns: 5fr 5fr 3fr; min-width: 560px; gap: 3px; margin: 10px 0 4px; text-align: center; font-size: 14px; }
+  .tl div { padding: 10px 6px; border-radius: 8px; }
+  .tl .old { background: var(--plum-soft); color: var(--plum); }
+  .tl .new { background: var(--app-soft); color: var(--app); }
+  .tl b { display: block; font-size: 15px; }
+  .cal { display: grid; grid-template-columns: 3fr 3fr 3fr 4fr; min-width: 560px; gap: 3px; font-size: 13px; text-align: center; color: var(--muted); }
+  .cal div { border-top: 3px solid var(--line); padding-top: 4px; }
+  /* roster grid */
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; }
+  th { background: var(--off); font-weight: 600; }
+  td.name, th.name { text-align: start; white-space: nowrap; }
+  .D { background: var(--app-soft); color: var(--app); font-weight: 600; }
+  .N { background: var(--plum-soft); color: var(--plum); font-weight: 600; }
+  .O { background: var(--off); color: var(--muted); }
+  .cyc { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+  .cyc span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; }
+  .cyc .here { outline: 3px solid var(--warn); outline-offset: 1px; }
+  /* form mock */
+  .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .field { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--bg); }
+  .field small { display: block; color: var(--muted); font-size: 12px; }
+  .btn { display: inline-block; background: var(--app); color: #fff; border-radius: 8px; padding: 6px 16px; font-weight: 600; margin-top: 10px; }
+  .menu { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .menu span { border: 1px solid var(--line); border-radius: 8px; padding: 3px 12px; background: var(--card); font-size: 15px; }
+  .menu.now span { color: var(--muted); }
+  .menu.next span { border-color: var(--app); color: var(--app); font-weight: 600; }
+  ol.steps { list-style: none; padding: 0; margin: 12px 0; counter-reset: s; display: grid; gap: 10px; }
+  ol.steps > li { counter-increment: s; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; padding-inline-start: 58px; position: relative; }
+  ol.steps > li::before { content: counter(s); position: absolute; inset-inline-start: 14px; top: 12px; width: 32px; height: 32px; border-radius: 50%; background: var(--app); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  ol.steps .get { color: var(--muted); font-size: 15px; }
+  ul { margin: 6px 0; padding-inline-start: 22px; }
+  .q { border-inline-start: 5px solid var(--warn); }
+  .q b.def { color: var(--ok); }
+  code { background: var(--off); padding: 1px 6px; border-radius: 5px; font-size: 14px; }
+  bdi { unicode-bidi: isolate; }
+  pre { background: var(--off); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; font-size: 14px; line-height: 1.5; direction: ltr; text-align: left; margin: 8px 0; }
+  pre code { background: none; padding: 0; }
+  .chk { list-style: none; padding: 0; }
+  .chk li { padding-inline-start: 28px; position: relative; margin: 6px 0; }
+  .chk li::before { content: "☐"; position: absolute; inset-inline-start: 0; }
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <small><span class="en">Attendance app · 14 November 2026 · no personal data in this page</span><span class="ar">تطبيق الحضور · 14 تشرين الثاني 2026 · لا بيانات شخصية في هذه الصفحة</span></small>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-set="en">English</button>
+    <button type="button" data-set="ar">العربية</button>
+  </div>
+</div>
+<h1><span class="en">Setting up OpenCode v2 for this project</span><span class="ar">إعداد OpenCode v2 لهذا المشروع</span></h1>
+<p class="lead"><span class="en">The project rules, the Svelte tool, graphify and RTK, working in OpenCode the way they work in Claude Code.</span><span class="ar">قواعد المشروع وأداة Svelte وgraphify وRTK، تعمل في OpenCode كما تعمل في Claude Code.</span></p>
+<div class="card answer">
+<span class="tag t-warn"><span class="en">Read this first</span><span class="ar">اقرأ هذا أولاً</span></span>
+<ul class="en"><li>I wrote this from the <b>OpenCode v2 source code</b> (the <code>v2</code> branch, core version 2.0.26), not from guesses. The config keys below are the ones that code reads.</li><li>I could <b>not run OpenCode</b> from my session, so nothing here is tested on a real install. Section 7 is a short list of checks; do them before the first real task.</li><li>RTK and the Svelte plugin are written by other projects. Whether they work on v2 is the part I am least sure of; each has a fallback below.</li></ul>
+<ul class="ar"><li>كتبتُ هذا من <b>الكود المصدري لـOpenCode v2</b> (الفرع <code>v2</code>، إصدار النواة 2.0.26) وليس تخميناً. مفاتيح الإعداد أدناه هي التي يقرؤها ذلك الكود.</li><li><b>لم أستطع تشغيل OpenCode</b> من جلستي، فلا شيء هنا مجرَّب على تثبيت حقيقي. القسم 7 قائمة فحوص قصيرة؛ نفّذها قبل أول مهمة حقيقية.</li><li>RTK وإضافة Svelte من مشاريع أخرى. عملها على v2 هو أقل ما أنا متأكد منه؛ ولكل منهما بديل أدناه.</li></ul>
+</div>
+
+<h2><span class="en">1 · Get the files</span><span class="ar">1 · احصل على الملفات</span></h2>
+<p class="en">Merge my branch. It brings the plan, the rules file and a ready <code>opencode.json</code>.</p>
+<p class="ar">ادمج فرعي. يجلب الخطة وملف القواعد وملف <code>opencode.json</code> جاهزاً.</p>
+<pre><code>git fetch origin ccr-c38cc2fe-mnmw85
+git checkout app/main
+git merge origin/ccr-c38cc2fe-mnmw85
+pnpm check &amp;&amp; pnpm test</code></pre>
+<p class="en">Then check your version. It must start with 2.</p>
+<p class="ar">ثم تحقق من إصدارك. يجب أن يبدأ بـ2.</p>
+<pre><code>opencode --version</code></pre>
+
+<h2><span class="en">2 · Connect the Go plan and pick a model</span><span class="ar">2 · اربط خطة Go واختر نموذجاً</span></h2>
+<ul class="en"><li>Start <code>opencode</code> in the project folder, run <code>/connect</code>, choose OpenCode Go and paste your key.</li><li><code>/models</code> switches model inside a session. From the terminal, <code>opencode models</code> lists them.</li><li>In the config a model is written <code>opencode-go/&lt;model-id&gt;</code>, for example <code>opencode-go/kimi-k2.7-code</code>. That one is the default in the file I prepared.</li></ul>
+<ul class="ar"><li>شغّل <code>opencode</code> في مجلد المشروع، ثم <code>/connect</code>، واختر OpenCode Go والصق مفتاحك.</li><li><code>/models</code> يبدّل النموذج داخل الجلسة. ومن الطرفية يسردها <code>opencode models</code>.</li><li>يُكتب النموذج في الإعداد <code>opencode-go/&lt;model-id&gt;</code>، مثل <code>opencode-go/kimi-k2.7-code</code>. وهو الافتراضي في الملف الذي جهّزته.</li></ul>
+<div class="card ">
+<span class="tag t-warn"><span class="en">Privacy of the Go models</span><span class="ar">خصوصية نماذج Go</span></span>
+<ul class="en"><li>The Go documentation has a <b>Privacy table</b>. In the copy I read, most models are "not used for training, kept 0 days" (Kimi, GLM, Qwen, MiniMax, DeepSeek, MiMo, Hy3). Two keep data up to 30 days: <b>Grok</b> and <b>GPT Luna</b>.</li><li>That copy is older than your model list. Claude Haiku, Gemini, the newer versions and the <b>free and "Contributor" models</b> were not in it. Open the Privacy section of the Go page and read the row of any model before you use it.</li><li>Whatever the table says, the text still leaves your machine. So the project rule stays: the agent never reads staff data. The config in section 4 blocks the secure folder for that reason.</li></ul>
+<ul class="ar"><li>في توثيق Go <b>جدول للخصوصية</b>. في النسخة التي قرأتُها معظم النماذج «لا تُستخدم للتدريب، وتُحفظ 0 يوم» (Kimi وGLM وQwen وMiniMax وDeepSeek وMiMo وHy3). ونموذجان يحتفظان بالبيانات حتى 30 يوماً: <b>Grok</b> و<b>GPT Luna</b>.</li><li>تلك النسخة أقدم من قائمة نماذجك. لم يكن فيها Claude Haiku ولا Gemini ولا الإصدارات الأحدث ولا <b>النماذج المجانية ونماذج «Contributor»</b>. افتح قسم Privacy في صفحة Go واقرأ صف أي نموذج قبل استخدامه.</li><li>مهما قال الجدول فالنص يغادر جهازك. فتبقى قاعدة المشروع: الوكيل لا يقرأ بيانات الموظفين. ولهذا يحجب الإعداد في القسم 4 المجلد الآمن.</li></ul>
+</div>
+
+<h2><span class="en">3 · The project rules (CLAUDE.md)</span><span class="ar">3 · قواعد المشروع (CLAUDE.md)</span></h2>
+<ul class="en"><li>OpenCode reads <code>AGENTS.md</code>. When a project has none, it reads <code>CLAUDE.md</code> instead. This project has no <code>AGENTS.md</code>, so your rules are loaded as they are, including all the Svelte, UI and Forms rules in section 3 of that file.</li><li><b>Do not run <code>/init</code>.</b> It creates an <code>AGENTS.md</code>, and from then on <code>CLAUDE.md</code> is ignored.</li><li>Your personal <code>~/.claude/CLAUDE.md</code> is also read, unless a <code>~/.config/opencode/AGENTS.md</code> exists.</li></ul>
+<ul class="ar"><li>OpenCode يقرأ <code>AGENTS.md</code>. وإن لم يوجد في المشروع قرأ <code>CLAUDE.md</code> بدلاً منه. هذا المشروع بلا <code>AGENTS.md</code>، فتُحمَّل قواعدك كما هي، ومنها كل قواعد Svelte والواجهة والنماذج في القسم 3 من ذلك الملف.</li><li><b>لا تشغّل <code>/init</code>.</b> فهو ينشئ <code>AGENTS.md</code>، وبعدها يُتجاهل <code>CLAUDE.md</code>.</li><li>ملفك الشخصي <code>~/.claude/CLAUDE.md</code> يُقرأ أيضاً، ما لم يوجد <code>~/.config/opencode/AGENTS.md</code>.</li></ul>
+
+<h2><span class="en">4 · The config file: opencode.json</span><span class="ar">4 · ملف الإعداد: opencode.json</span></h2>
+<p class="en">It is in the project root after the merge. OpenCode finds it by itself.</p>
+<p class="ar">يكون في جذر المشروع بعد الدمج. وOpenCode يجده وحده.</p>
+<pre><code>{
+  &quot;model&quot;: &quot;opencode-go/kimi-k2.7-code&quot;,
+  &quot;share&quot;: &quot;disabled&quot;,
+  &quot;mcp&quot;: {
+    &quot;servers&quot;: {
+      &quot;svelte&quot;: {
+        &quot;type&quot;: &quot;local&quot;,
+        &quot;command&quot;: [&quot;npx&quot;, &quot;-y&quot;, &quot;@sveltejs/mcp&quot;]
+      }
+    }
+  },
+  &quot;permissions&quot;: [
+    { &quot;action&quot;: &quot;*&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;ask&quot; },
+
+    { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;glob&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;grep&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;skill&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git status&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git diff&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git log --oneline -20&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm check&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm test&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;graphify update .&quot;, &quot;effect&quot;: &quot;allow&quot; },
+
+    { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*.env&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*.env.*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*.env.example&quot;, &quot;effect&quot;: &quot;allow&quot; },
+
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm add*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm install*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm remove*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm update*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm dev*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;*vite dev*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;*playwright*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git push*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+
+    { &quot;action&quot;: &quot;*&quot;, &quot;resource&quot;: &quot;*secure/syravia*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;*&quot;, &quot;resource&quot;: &quot;*roster_attendance/tests*&quot;, &quot;effect&quot;: &quot;deny&quot; }
+  ]
+}
+</code></pre>
+<div class="card scroll"><table>
+<tr><th class="name"><span class="en">Part</span><span class="ar">الجزء</span></th><th><span class="en">What it does</span><span class="ar">ما يفعله</span></th></tr>
+<tr><td class="name"><code>model</code></td><td style="text-align:start"><span class="en">The default model. Change it here or with <code>/models</code>.</span><span class="ar">النموذج الافتراضي. غيّره هنا أو بـ<code>/models</code>.</span></td></tr>
+<tr><td class="name"><code>share: disabled</code></td><td style="text-align:start"><span class="en">Sessions cannot be shared to a public link.</span><span class="ar">لا يمكن مشاركة الجلسات برابط عام.</span></td></tr>
+<tr><td class="name"><code>mcp.servers.svelte</code></td><td style="text-align:start"><span class="en">Starts the Svelte tool on your machine (section 5).</span><span class="ar">يشغّل أداة Svelte على جهازك (القسم 5).</span></td></tr>
+<tr><td class="name"><code>permissions</code></td><td style="text-align:start"><span class="en">An ordered list. For each action the <b>last</b> rule that matches wins. Anything unmatched asks you.</span><span class="ar">قائمة مرتّبة. لكل إجراء تفوز <b>آخر</b> قاعدة مطابقة. وما لا يطابق شيئاً يسألك.</span></td></tr>
+<tr><td class="name"><code>ask / allow</code></td><td style="text-align:start"><span class="en">Asks before every command and every edit. Reading and searching project files, <code>pnpm check</code>, <code>pnpm test</code> and <code>git status</code> run without asking.</span><span class="ar">يسأل قبل كل أمر وكل تعديل. قراءة ملفات المشروع والبحث فيها و<code>pnpm check</code> و<code>pnpm test</code> و<code>git status</code> تعمل دون سؤال.</span></td></tr>
+<tr><td class="name"><code>deny</code></td><td style="text-align:start"><span class="en">Blocks what your rules forbid an agent to do: adding packages, the dev server, Playwright, <code>git push</code>, reading <code>.env</code> files, anything under <code>~/secure/syravia/</code>, and the old Odoo tests that contain real names.</span><span class="ar">يحجب ما تمنعه قواعدك على الوكيل: إضافة الحزم، خادم التطوير، Playwright، <code>git push</code>، قراءة ملفات <code>.env</code>، كل ما تحت <code>~/secure/syravia/</code>، واختبارات أودو القديمة التي فيها أسماء حقيقية.</span></td></tr>
+</table></div>
+<ul class="en"><li>When it asks, "always" allows that command for the rest of the session only.</li><li>v2 also still accepts the old v1 keys (<code>permission</code>, <code>bash</code>, <code>plugin</code>). I used the v2 ones: <code>permissions</code>, <code>shell</code>, <code>mcp.servers</code>, <code>plugins</code>.</li><li>A config with a mistake is not an error on screen: the wrong part is skipped and a warning goes to the log. That is why section 7 tests that the denies really block.</li></ul>
+<ul class="ar"><li>عند السؤال، «always» يسمح بذلك الأمر لبقية الجلسة فقط.</li><li>v2 ما زال يقبل مفاتيح v1 القديمة (<code>permission</code> و<code>bash</code> و<code>plugin</code>). استخدمتُ مفاتيح v2: <code>permissions</code> و<code>shell</code> و<code>mcp.servers</code> و<code>plugins</code>.</li><li>الإعداد الذي فيه خطأ لا يظهر كخطأ على الشاشة: يُتجاوز الجزء الخاطئ ويُكتب تحذير في السجل. ولهذا يختبر القسم 7 أن الحجب يعمل فعلاً.</li></ul>
+
+<h2><span class="en">5 · Svelte: the rules and the Svelte tool</span><span class="ar">5 · Svelte: القواعد وأداة Svelte</span></h2>
+<p class="en">Your rules say: after every change to a <code>.svelte</code> file, run the Svelte autofixer until it reports nothing, and look up SvelteKit and Svelte APIs in the documentation tool instead of guessing. The rules come from <code>CLAUDE.md</code> (section 3). The tool comes from the <code>svelte</code> entry in the config.</p>
+<p class="ar">تقول قواعدك: بعد كل تغيير في ملف <code>.svelte</code> شغّل المصحّح التلقائي لـSvelte حتى لا يُبلغ عن شيء، وابحث عن واجهات SvelteKit وSvelte في أداة التوثيق بدل التخمين. القواعد تأتي من <code>CLAUDE.md</code> (القسم 3). والأداة تأتي من مدخل <code>svelte</code> في الإعداد.</p>
+<pre><code>opencode mcp list</code></pre>
+<ul class="en"><li>It should show <code>svelte</code> as connected. The first start downloads the server with <code>npx</code>, so it needs the internet once.</li><li>Test it with the prompt in section 7.</li><li><b>Other way:</b> Svelte publishes an OpenCode plugin, <code>@sveltejs/opencode</code>, which adds the same tool plus a Svelte file-editing helper. In v2 it would go in the config as <code>"plugins": ["@sveltejs/opencode"]</code>. By default it uses Svelte's online server, so the <code>.svelte</code> code it checks is sent there. I chose the local server to keep with your "no cloud" rule.</li><li>If the local server does not start, replace the entry with the online one: <code>{ "type": "remote", "url": "https://mcp.svelte.dev/mcp" }</code>. It only ever receives code, never data.</li></ul>
+<ul class="ar"><li>يجب أن يظهر <code>svelte</code> متصلاً. أول تشغيل ينزّل الخادم بـ<code>npx</code>، فيحتاج الإنترنت مرة واحدة.</li><li>اختبره بالنص في القسم 7.</li><li><b>طريقة أخرى:</b> تنشر Svelte إضافة لـOpenCode هي <code>@sveltejs/opencode</code> تضيف الأداة نفسها مع مساعد لتحرير ملفات Svelte. في v2 تُكتب في الإعداد <code>"plugins": ["@sveltejs/opencode"]</code>. وهي افتراضياً تستخدم خادم Svelte على الإنترنت، فيُرسَل إليه كود <code>.svelte</code> الذي تفحصه. اخترتُ الخادم المحلي التزاماً بقاعدتك «لا سحابة».</li><li>إن لم يعمل الخادم المحلي فاستبدل المدخل بالخادم على الإنترنت: <code>{ "type": "remote", "url": "https://mcp.svelte.dev/mcp" }</code>. وهو يستقبل كوداً فقط، لا بيانات أبداً.</li></ul>
+
+<h2><span class="en">6 · graphify and RTK</span><span class="ar">6 · graphify وRTK</span></h2>
+<div class="card ">
+<h3><span class="en">graphify</span><span class="ar">graphify</span></h3>
+<ul class="en"><li><b>The command-line tool works as it is.</b> The agent runs <code>graphify query "…"</code>, <code>graphify path</code>, <code>graphify explain</code> and <code>graphify update .</code> like any other command. <code>CLAUDE.md</code> section 7 already tells it when.</li><li><b>The skill is found automatically.</b> OpenCode v2 looks for skills in <code>~/.claude/skills/</code> and in the project's <code>.claude/skills/</code>, as well as its own <code>~/.config/opencode/skills/</code>. If your graphify skill is at <code>~/.claude/skills/graphify/SKILL.md</code>, there is nothing to copy.</li><li>In Claude Code you type <code>/graphify . --update</code>. In OpenCode a skill is not a slash command unless its file says so. Ask in words instead: "use the graphify skill to update the graph after the docs changed".</li><li>The rules stay the same: graph this repository only, never <code>~/secure/syravia/</code> or the old Odoo module, and never its online (Gemini) backend.</li></ul>
+<ul class="ar"><li><b>أداة سطر الأوامر تعمل كما هي.</b> يشغّل الوكيل <code>graphify query "…"</code> و<code>graphify path</code> و<code>graphify explain</code> و<code>graphify update .</code> كأي أمر آخر. والقسم 7 من <code>CLAUDE.md</code> يخبره متى.</li><li><b>المهارة تُكتشف تلقائياً.</b> يبحث OpenCode v2 عن المهارات في <code>~/.claude/skills/</code> وفي <code>.claude/skills/</code> داخل المشروع، إضافة إلى مجلده <code>~/.config/opencode/skills/</code>. إن كانت مهارة graphify في <code>~/.claude/skills/graphify/SKILL.md</code> فلا شيء يُنسخ.</li><li>في Claude Code تكتب <code>/graphify . --update</code>. أما في OpenCode فالمهارة ليست أمراً مائلاً إلا إذا نصّ ملفها على ذلك. اطلبها بالكلام: «استخدم مهارة graphify لتحديث المخطط بعد تغيّر الوثائق».</li><li>القواعد كما هي: مخطط هذا المستودع فقط، لا <code>~/secure/syravia/</code> ولا إضافة أودو القديمة، ولا الخلفية السحابية (Gemini) أبداً.</li></ul>
+</div>
+<div class="card ">
+<h3><span class="en">RTK</span><span class="ar">RTK</span></h3>
+<p class="en">In Claude Code, RTK works through a hook that rewrites each command (<code>git status</code> becomes <code>rtk git status</code>). That hook does not exist in OpenCode. RTK ships its own OpenCode plugin instead:</p>
+<p class="ar">في Claude Code يعمل RTK عبر خطّاف يعيد كتابة كل أمر (<code>git status</code> يصبح <code>rtk git status</code>). هذا الخطّاف غير موجود في OpenCode. ولدى RTK إضافة خاصة بـOpenCode:</p>
+<pre><code>rtk init -g --opencode</code></pre>
+<ul class="en"><li>It writes <code>~/.config/opencode/plugins/rtk.ts</code>. Restart OpenCode afterwards.</li><li><b>This is the part most likely not to work on v2.</b> The plugin was written for OpenCode 1, where the command tool is called <code>bash</code>; in v2 it is called <code>shell</code>. Test it: note the number in <code>rtk gain</code>, let the agent run a few commands, and look again. If the number did not move, the plugin is not active.</li><li><b>Fallback that always works:</b> RTK is also a normal command. Add this line to your prompts, or ask me to add it to <code>CLAUDE.md</code>: "Prefix shell commands with <code>rtk</code> (for example <code>rtk git status</code>, <code>rtk pnpm test</code>); use <code>rtk proxy</code> when the full output matters."</li><li>Without RTK nothing breaks. The agent only spends more tokens on command output.</li></ul>
+<ul class="ar"><li>تكتب <code>~/.config/opencode/plugins/rtk.ts</code>. أعد تشغيل OpenCode بعدها.</li><li><b>هذا أكثر جزء يُحتمل ألا يعمل على v2.</b> الإضافة كُتبت لـOpenCode 1 حيث تُسمّى أداة الأوامر <code>bash</code>؛ وفي v2 اسمها <code>shell</code>. اختبرها: سجّل الرقم في <code>rtk gain</code>، ودع الوكيل يشغّل بضعة أوامر، ثم انظر ثانية. إن لم يتحرك الرقم فالإضافة غير فعّالة.</li><li><b>بديل يعمل دائماً:</b> RTK أمر عادي أيضاً. أضف هذا السطر إلى نصوصك، أو اطلب مني إضافته إلى <code>CLAUDE.md</code>: «ابدأ أوامر الطرفية بـ<code>rtk</code> (مثل <code>rtk git status</code> و<code>rtk pnpm test</code>)؛ واستخدم <code>rtk proxy</code> عندما يهمّ الناتج الكامل.»</li><li>بدون RTK لا يتعطل شيء. الوكيل فقط ينفق رموزاً أكثر على نواتج الأوامر.</li></ul>
+</div>
+
+<h2><span class="en">7 · Seven checks before the first real task</span><span class="ar">7 · سبعة فحوص قبل أول مهمة حقيقية</span></h2>
+<div class="card"><ol class="en" style="margin:0;padding-inline-start:22px"><li><code>opencode --version</code> starts with 2.</li><li>Ask: "Which plan file do you start from, and what must you never do with staff data?" The answer names <code>plans/2026-11-13-follow-odoo-configurable.md</code> and says no names, no secure folder. This proves <code>CLAUDE.md</code> is loaded.</li><li>Ask: "Run <code>ls ~/secure/syravia</code>." It must be <b>refused</b>, not run and not asked.</li><li>Ask: "Run <code>pnpm add left-pad</code>." It must be refused.</li><li>Ask: "Run <code>pnpm check</code>." It runs without asking. Then "Run <code>ls</code>": it asks first.</li><li>Ask: "Use the svelte tool to run the autofixer on <code>src/routes/+error.svelte</code>. Change nothing." It reports a result from the tool.</li><li>Ask: "Which skills can you load?" graphify is in the list. Then the RTK test of section 6.</li></ol><ol class="ar" style="margin:0;padding-inline-start:22px"><li><code>opencode --version</code> يبدأ بـ2.</li><li>اسأل: «من أي ملف خطة تبدأ، وما الذي لا تفعله أبداً ببيانات الموظفين؟» الجواب يسمّي <code>plans/2026-11-13-follow-odoo-configurable.md</code> ويقول لا أسماء ولا مجلد آمن. هذا يثبت تحميل <code>CLAUDE.md</code>.</li><li>اطلب: «شغّل <code>ls ~/secure/syravia</code>.» يجب أن <b>يُرفض</b>، لا أن يُنفَّذ ولا أن يُسأل عنه.</li><li>اطلب: «شغّل <code>pnpm add left-pad</code>.» يجب أن يُرفض.</li><li>اطلب: «شغّل <code>pnpm check</code>.» يعمل دون سؤال. ثم «شغّل <code>ls</code>»: يسأل أولاً.</li><li>اطلب: «استخدم أداة svelte لتشغيل المصحّح التلقائي على <code>src/routes/+error.svelte</code>. لا تغيّر شيئاً.» يُبلغ بنتيجة من الأداة.</li><li>اسأل: «أي المهارات تستطيع تحميلها؟» graphify في القائمة. ثم اختبار RTK من القسم 6.</li></ol></div>
+<p class="en">If check 3 or 4 is not refused, stop and tell me what happened. Those two protect your data and your packages; do not start real work without them.</p>
+<p class="ar">إن لم يُرفض الفحص 3 أو 4 فتوقف وأخبرني بما حدث. هذان يحميان بياناتك وحزمك؛ فلا تبدأ عملاً حقيقياً بدونهما.</p>
+
+<h2><span class="en">8 · How each task runs</span><span class="ar">8 · كيف تُنفَّذ كل مهمة</span></h2>
+<div class="card"><ol class="en" style="margin:0;padding-inline-start:22px"><li>I give you a <b>brief</b>: a prompt to paste and a proposed model.</li><li>You pick the model with <code>/models</code>, on branch <code>app/main</code>, and paste the prompt.</li><li>OpenCode does the task, runs the checks and commits. Commands on the real database are left for you to run.</li><li>You push (<code>git push origin app/main</code>) and tell me "L2 done", with any error text.</li><li>I read the change and answer "accepted" or give a short fix prompt. Then the next brief.</li></ol><ol class="ar" style="margin:0;padding-inline-start:22px"><li>أعطيك <b>موجزاً</b>: نصاً للّصق ونموذجاً مقترحاً.</li><li>تختار النموذج بـ<code>/models</code> على الفرع <code>app/main</code> وتلصق النص.</li><li>ينفّذ OpenCode المهمة ويشغّل الفحوص ويودِع. وأوامر قاعدة البيانات الحقيقية تُترك لك لتشغّلها.</li><li>تدفع (<code>git push origin app/main</code>) وتخبرني «L2 done» مع أي نص خطأ.</li><li>أقرأ التغيير وأجيب «مقبول» أو أعطي نص تصحيح قصيراً. ثم الموجز التالي.</li></ol></div>
+<h3><span class="en">Which model for which kind of task (provisional)</span><span class="ar">أي نموذج لأي نوع من المهام (مبدئي)</span></h3>
+<div class="card scroll"><table>
+<tr><th class="name"><span class="en">Kind of task</span><span class="ar">نوع المهمة</span></th><th><span class="en">Model</span><span class="ar">النموذج</span></th><th><span class="en">Why</span><span class="ar">السبب</span></th></tr>
+<tr><td class="name"><span class="en">Small, exact tasks (a migration, a script, a rename)</span><span class="ar">مهام صغيرة ومحددة (ترحيل، سكربت، إعادة تسمية)</span></td><td>Kimi K2.7 Code</td><td style="text-align:start"><span class="en">$60 budget, so the 5-hour limit is far away</span><span class="ar">ميزانية 60 دولاراً، فحدّ الخمس ساعات بعيد</span></td></tr>
+<tr><td class="name"><span class="en">Pages and forms</span><span class="ar">صفحات ونماذج</span></td><td>GLM-5.2 / Qwen3.7 Plus</td><td style="text-align:start"><span class="en">$60 budget; try both on the first page</span><span class="ar">ميزانية 60 دولاراً؛ جرّب الاثنين على أول صفحة</span></td></tr>
+<tr><td class="name"><span class="en">Hard logic (totals, the Odoo rules)</span><span class="ar">منطق صعب (المجاميع، قواعد أودو)</span></td><td>DeepSeek V4 Pro (off-peak)</td><td style="text-align:start"><span class="en">top tier at the lowest cost per task of the $15 models</span><span class="ar">فئة عليا بأقل كلفة للمهمة بين نماذج 15 دولاراً</span></td></tr>
+<tr><td class="name"><span class="en">Review</span><span class="ar">المراجعة</span></td><td><span class="en">me (Claude), from the pushed branch</span><span class="ar">أنا (Claude) من الفرع المدفوع</span></td><td style="text-align:start"><span class="en">no Go budget used</span><span class="ar">لا يُستهلك من ميزانية Go</span></td></tr>
+</table></div>
+<p class="en">I chose these from the price table you sent, not from knowing how well each one codes. Tell me when one does badly and I will move that kind of task.</p>
+<p class="ar">اخترتُها من جدول الأسعار الذي أرسلتَه، لا من معرفة بجودة كل نموذج في البرمجة. أخبرني حين يُخفق أحدها فأنقل ذلك النوع من المهام.</p>
+
+<h2><span class="en">9 · The first brief: task L2</span><span class="ar">9 · الموجز الأول: المهمة L2</span></h2>
+<p class="en"><b>Proposed model:</b> Kimi K2.7 Code. <b>Goal:</b> overtime stays rounded to 15 minutes from 1 October. Paste this as it is (it stays in English, because the agent reads English rules):</p>
+<p class="ar"><b>النموذج المقترح:</b> Kimi K2.7 Code. <b>الهدف:</b> يبقى الإضافي مقرَّباً إلى 15 دقيقة من 1 تشرين الأول. الصق هذا كما هو (يبقى بالإنجليزية لأن الوكيل يقرأ قواعد إنجليزية):</p>
+<pre><code>Task L2 from plans/2026-11-13-follow-odoo-configurable.md (decision SP11). Follow CLAUDE.md.
+
+Goal: the attendance_rule row whose effective_from is 2026-10-01 must round overtime
+to the nearest 15 minutes. It holds overtime_step 0 today.
+
+Steps:
+1. Create an empty custom migration with drizzle-kit:
+   drizzle-kit generate --custom --name attendance_rule_october_round_15
+   Load the e2e environment file for this, never .env (.env is the real database).
+2. In the new SQL file write one UPDATE on &quot;attendance_rule&quot;:
+   overtime_step = 15, overtime_mode = &#x27;nearest&#x27;,
+   reason = a sentence saying the user chose to keep 15-minute rounding from
+   1 October 2026 (SP11), a chosen difference from Odoo,
+   WHERE effective_from = &#x27;2026-10-01&#x27;.
+   Start the file with a short comment, in the style of drizzle/0027.
+3. Apply it to attendance_app_e2e and attendance_app_test only, the same way 0026 and
+   0027 were applied. If you cannot tell which environment file targets the test
+   database, stop and ask me.
+4. Run: pnpm check &amp;&amp; pnpm test
+5. In the plan, add a &quot;&gt; note:&quot; under L2 with the migration name and the migration
+   count on e2e and test. Do not tick the box.
+6. Commit on app/main: &quot;Overtime rounding stays 15 minutes from 1 October (SP11, migration 0028)&quot;
+
+Do not:
+- run anything against attendance_app, or open ~/secure/syravia/
+- change any file other than the new migration, drizzle/meta, and the plan note
+- add packages, start a dev server, or print any person&#x27;s name
+
+Finish by printing the exact commands I must run myself to apply the migration to
+attendance_app, with a row count of day_result and a listing of attendance_rule
+(effective_from, effective_to, overtime_step) before and after.</code></pre>
+<p class="en">Then push and tell me "L2 done". The full list of tasks is in the plan page, <code>docs/simple-plan.html</code>, section 6.</p>
+<p class="ar">ثم ادفع وأخبرني «L2 done». والقائمة الكاملة للمهام في صفحة الخطة <code>docs/simple-plan.html</code>، القسم 6.</p>
+
+</main>
+<script>
+  (function () {
+    var root = document.documentElement;
+    function set(lang) {
+      root.setAttribute('data-lang', lang);
+      root.setAttribute('lang', lang);
+      root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+      try { localStorage.setItem('opencode-setup-lang', lang); } catch (e) {}
+    }
+    var saved = null;
+    try { saved = localStorage.getItem('opencode-setup-lang'); } catch (e) {}
+    if (saved === 'ar' || saved === 'en') set(saved);
+    document.querySelectorAll('.lang button').forEach(function (b) {
+      b.addEventListener('click', function () { set(b.getAttribute('data-set')); });
+    });
+  })();
+</script>
+</body>
+</html>

@@ -245,7 +245,8 @@ Use both on every task to keep context small.
     its Gemini backend (no cloud).
 - **OpenCode v2** (the user's local agent since 2026-11-14) reads this file as its rules when
   no `AGENTS.md` exists. The RTK hook below is a Claude Code hook and does not run there; the
-  Svelte MCP server must be configured in OpenCode's own config (`mcp.servers`). Its models are
+  Svelte MCP server and the permission rules are in the committed `opencode.json` (set-up and
+  checks: `docs/opencode-setup.html`). Its models are
   hosted by outside providers: for any task on real data the agent writes the script and the
   **user** runs it and reads the output (plan decision SP15); §1 applies in full.
   Tasks arrive as a brief written by the cloud Claude session (plan §2b, SP16): do exactly the

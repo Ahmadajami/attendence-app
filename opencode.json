@@ -1,0 +1,43 @@
+{
+	"model": "opencode-go/kimi-k2.7-code",
+	"share": "disabled",
+	"mcp": {
+		"servers": {
+			"svelte": {
+				"type": "local",
+				"command": ["npx", "-y", "@sveltejs/mcp"]
+			}
+		}
+	},
+	"permissions": [
+		{ "action": "*", "resource": "*", "effect": "ask" },
+
+		{ "action": "read", "resource": "*", "effect": "allow" },
+		{ "action": "glob", "resource": "*", "effect": "allow" },
+		{ "action": "grep", "resource": "*", "effect": "allow" },
+		{ "action": "skill", "resource": "*", "effect": "allow" },
+
+		{ "action": "shell", "resource": "git status", "effect": "allow" },
+		{ "action": "shell", "resource": "git diff", "effect": "allow" },
+		{ "action": "shell", "resource": "git log --oneline -20", "effect": "allow" },
+		{ "action": "shell", "resource": "pnpm check", "effect": "allow" },
+		{ "action": "shell", "resource": "pnpm test", "effect": "allow" },
+		{ "action": "shell", "resource": "graphify update .", "effect": "allow" },
+
+		{ "action": "read", "resource": "*.env", "effect": "deny" },
+		{ "action": "read", "resource": "*.env.*", "effect": "deny" },
+		{ "action": "read", "resource": "*.env.example", "effect": "allow" },
+
+		{ "action": "shell", "resource": "pnpm add*", "effect": "deny" },
+		{ "action": "shell", "resource": "pnpm install*", "effect": "deny" },
+		{ "action": "shell", "resource": "pnpm remove*", "effect": "deny" },
+		{ "action": "shell", "resource": "pnpm update*", "effect": "deny" },
+		{ "action": "shell", "resource": "pnpm dev*", "effect": "deny" },
+		{ "action": "shell", "resource": "*vite dev*", "effect": "deny" },
+		{ "action": "shell", "resource": "*playwright*", "effect": "deny" },
+		{ "action": "shell", "resource": "git push*", "effect": "deny" },
+
+		{ "action": "*", "resource": "*secure/syravia*", "effect": "deny" },
+		{ "action": "*", "resource": "*roster_attendance/tests*", "effect": "deny" }
+	]
+}

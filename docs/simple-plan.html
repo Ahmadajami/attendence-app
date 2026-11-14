@@ -100,7 +100,7 @@
 <main>
 
 <div class="top">
-  <small><span class="en">Attendance app · 13 November 2026 · version 5 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 5 · لا بيانات شخصية في هذه الصفحة</span></small>
+  <small><span class="en">Attendance app · 13 November 2026 · version 6 · no personal data in this page</span><span class="ar">تطبيق الحضور · 13 تشرين الثاني 2026 · النسخة 6 · لا بيانات شخصية في هذه الصفحة</span></small>
   <div class="lang" role="group" aria-label="Language">
     <button type="button" data-set="en">English</button>
     <button type="button" data-set="ar">العربية</button>
@@ -236,7 +236,7 @@
     <tr><th class="name"><span class="en">Setting</span><span class="ar">الإعداد</span></th><th><span class="en">Odoo's value (the default)</span><span class="ar">قيمة أودو (الافتراضية)</span></th><th><span class="en">In the app</span><span class="ar">في التطبيق</span></th></tr>
     <tr><td class="name"><span class="en">Overtime on / off</span><span class="ar">الإضافي مفعّل / متوقف</span></td><td><span class="en">on</span><span class="ar">مفعّل</span></td><td><span class="tag t-ok"><span class="en">built, per pattern</span><span class="ar">موجود، لكل نمط</span></span></td></tr>
     <tr><td class="name"><span class="en">Overtime rates</span><span class="ar">نسب الإضافي</span></td><td><span class="en">work day ×1.25 · day off ×1.5 · holiday ×1.5</span><span class="ar">يوم عمل ×1.25 · عطلة ×1.5 · عيد ×1.5</span></td><td><span class="tag t-ok"><span class="en">built, per pattern</span><span class="ar">موجود، لكل نمط</span></span></td></tr>
-    <tr><td class="name"><span class="en">Overtime rounding</span><span class="ar">تقريب الإضافي</span></td><td><span class="en">none</span><span class="ar">لا تقريب</span></td><td><span class="tag t-ok"><span class="en">built, company</span><span class="ar">موجود، للشركة</span></span></td></tr>
+    <tr><td class="name"><span class="en">Overtime rounding</span><span class="ar">تقريب الإضافي</span></td><td><span class="en">none in Odoo; <b>here: nearest 15 minutes</b> (your choice)</span><span class="ar">لا تقريب في أودو؛ <b>هنا: أقرب 15 دقيقة</b> (اختيارك)</span></td><td><span class="tag t-ok"><span class="en">built, company</span><span class="ar">موجود، للشركة</span></span></td></tr>
     <tr><td class="name"><span class="en">Friday Prayer</span><span class="ar">صلاة الجمعة</span></td><td><span class="en">+60 paid minutes on a Friday with a break</span><span class="ar">+60 دقيقة مدفوعة في جمعة فيها استراحة</span></td><td><span class="tag t-ok"><span class="en">built, company</span><span class="ar">موجود، للشركة</span></span></td></tr>
     <tr><td class="name"><span class="en">Grace time</span><span class="ar">وقت السماح</span></td><td><span class="en">15 minutes; lateness inside it is forgiven and paid</span><span class="ar">15 دقيقة؛ والتأخير ضمنه مغفور ومدفوع</span></td><td><span class="tag t-bad"><span class="en">to build</span><span class="ar">يُبنى</span></span></td></tr>
     <tr><td class="name"><span class="en">Late minutes shown</span><span class="ar">دقائق التأخير المعروضة</span></td><td><span class="en">after the grace time</span><span class="ar">بعد وقت السماح</span></td><td><span class="tag t-bad"><span class="en">to build (today: from the shift start)</span><span class="ar">يُبنى (اليوم: من بداية المناوبة)</span></span></td></tr>
@@ -445,8 +445,21 @@
     <span class="en">Needs one sample export from the device software. Until then punches are typed.</span><span class="ar">يحتاج عينة تصدير واحدة من برنامج الأجهزة. وحتى ذلك الحين تُكتب البصمات يدوياً.</span>
     <div class="get"><span class="en">You get: no typing of punches.</span><span class="ar">تحصل على: لا كتابة يدوية للبصمات.</span></div></li>
 </ol>
-<p class="en">Before step 1 there are two things only you can do, left from earlier work: upload the roster and punch files for the 22 people who were in Odoo only, and approve the October recompute that removes the 15-minute rounding.</p>
-<p class="ar">قبل الخطوة 1 أمران لا يقوم بهما غيرك، باقيان من عمل سابق: رفع ملفي الجدول والبصمات للـ22 موظفاً الموجودين في أودو فقط، والموافقة على إعادة حساب تشرين الأول التي تزيل التقريب إلى 15 دقيقة.</p>
+<div class="card">
+  <span class="tag t-ok"><span class="en">Before step 1, on your machine (version 6)</span><span class="ar">قبل الخطوة 1، على جهازك (النسخة 6)</span></span>
+  <ul class="en">
+    <li>Overtime <b>stays rounded to 15 minutes</b>. Odoo does not round, so overtime can differ from Odoo by up to 7 minutes on a day.</li>
+    <li>Claude Code on your machine inserts the Odoo data for the 22 people (roster and punches), showing you the counts before it saves.</li>
+    <li>Your reception Excel files are compared with the roster to find which team differs on which date (the night team from 28 October among them); shifts and patterns are fixed from that list.</li>
+    <li>Attendance from 21 October onward follows your own plan.</li>
+  </ul>
+  <ul class="ar">
+    <li>الإضافي <b>يبقى مقرَّباً إلى 15 دقيقة</b>. أودو لا يقرّب، فقد يختلف الإضافي عن أودو حتى 7 دقائق في اليوم.</li>
+    <li>Claude Code على جهازك يُدخل بيانات أودو للـ22 موظفاً (الجدول والبصمات)، ويعرض عليك الأعداد قبل الحفظ.</li>
+    <li>ملفات إكسل الاستقبال تُقارن بالجدول لمعرفة أي فريق يختلف وفي أي تاريخ (ومنها الفريق الليلي من 28 تشرين الأول)؛ وتُصحَّح المناوبات والأنماط من تلك القائمة.</li>
+    <li>الحضور من 21 تشرين الأول فصاعداً يتبع خطتك الخاصة.</li>
+  </ul>
+</div>
 
 <div class="card">
   <h3><span class="en">What I do not build</span><span class="ar">ما الذي لا أبنيه</span></h3>

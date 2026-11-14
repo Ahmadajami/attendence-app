@@ -3436,7 +3436,7 @@
     {
       id: 'AR4', group: 'payroll', status: 'approved', date: '2026-11-12', src: 'plans/2026-11-12-attendance-rules-settings.md §2; migrations 0026 and 0027',
       title: {en: "October uses Odoo's values from 1 October; earlier months keep the app's old rules", ar: "يستخدم تشرين الأول قيم أودو من 1 تشرين الأول؛ وتبقى الأشهر السابقة على قواعد التطبيق القديمة"},
-      decision: {en: "Two company versions are seeded by migration: from 2026-01-01 to 2026-10-01 the app's former rules (nearest 15 minutes, no Friday Prayer credit); from 2026-10-01, open, Odoo's rules (no rounding, Friday Prayer on, 60 minutes, two segments). The built-in defaults are Odoo's values.", ar: "تُزرع نسختان للشركة بالترحيل: من 2026-01-01 حتى 2026-10-01 قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة الجمعة)؛ ومن 2026-10-01 مفتوحة، قواعد أودو (بلا تقريب، وصلاة الجمعة مفعّلة، 60 دقيقة، فترتان). والافتراضات المدمجة هي قيم أودو."},
+      decision: {en: "Two company versions are seeded by migration: from 2026-01-01 to 2026-10-01 the app's former rules (nearest 15 minutes, no Friday Prayer credit); from 2026-10-01, open, Odoo's rules (no rounding, Friday Prayer on, 60 minutes, two segments). The built-in defaults are Odoo's values. Changed on 2026-11-14 by SP11: the version from 2026-10-01 rounds to the nearest 15 minutes.", ar: "تُزرع نسختان للشركة بالترحيل: من 2026-01-01 حتى 2026-10-01 قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة الجمعة)؛ ومن 2026-10-01 مفتوحة، قواعد أودو (بلا تقريب، وصلاة الجمعة مفعّلة، 60 دقيقة، فترتان). والافتراضات المدمجة هي قيم أودو. عُدّل في 2026-11-14 بـSP11: الإصدار من 2026-10-01 يقرّب إلى أقرب 15 دقيقة."},
       why: {en: "9,270 stored days are before October (from 1 September). Under the new default they would change at their next recompute; the old-rules version keeps their figures.", ar: "هناك 9270 يوماً مخزّناً قبل تشرين الأول (منذ 1 أيلول). وبالافتراضي الجديد كانت ستتغيّر عند إعادة حسابها التالية؛ ونسخة القواعد القديمة تحفظ أرقامها."},
       alts: [
         {en: "Seed October only: not chosen — September would change silently on its next recompute.", ar: "زرع تشرين الأول وحده: لم يُختر — كان أيلول سيتغيّر بصمت عند إعادة حسابه التالية."},
@@ -3618,6 +3618,33 @@
       alts: [
         {en: "Import 21–30 September to complete the pay period: not chosen — a roster per team and the holiday would have to be rebuilt first.", ar: "استيراد 21–30 أيلول لإكمال فترة الرواتب: لم يُختر — يجب أولاً إعادة بناء جدول لكل فريق والعطلة."},
         {en: "Settings per pattern for every rule now: not chosen — only overtime on or off differs, and that exists.", ar: "إعدادات لكل نمط لكل قاعدة الآن: لم يُختر — يختلف فقط تفعيل الإضافي، وهو موجود."}
+      ]
+    },
+    {
+      id: 'SP11', group: 'payroll', status: 'approved', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      title: {en: "Overtime stays rounded to the nearest 15 minutes", ar: "الإضافي يبقى مقرَّباً إلى أقرب 15 دقيقة"},
+      decision: {en: "From 2026-10-01 too, overtime is rounded to the nearest 15 minutes. Odoo does not round, so this is a chosen difference from Odoo and an exception to SP1. The rule version that starts on 2026-10-01 is set to 15. The user's decision, 2026-11-14.", ar: "من 2026-10-01 أيضاً يُقرَّب الإضافي إلى أقرب 15 دقيقة. أودو لا يقرّب، فهذا فرق مقصود عن أودو واستثناء من SP1. ويُضبط إصدار القاعدة الذي يبدأ في 2026-10-01 على 15. قرار المستخدم، 2026-11-14."},
+      why: {en: "The user's choice; it is a setting, so it can change again from any date.", ar: "اختيار المستخدم؛ وهو إعداد، فيمكن تغييره مجدداً من أي تاريخ."},
+      alts: [
+        {en: "No rounding, as Odoo (AR4's October value): not chosen by the user — overtime will differ from Odoo by up to 7 minutes on a day.", ar: "بلا تقريب كما في أودو (قيمة تشرين الأول في AR4): لم يختره المستخدم — سيختلف الإضافي عن أودو حتى 7 دقائق في اليوم."}
+      ]
+    },
+    {
+      id: 'SP12', group: 'rules', status: 'approved', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      title: {en: "The local Claude Code session does the Odoo inserts", ar: "جلسة Claude Code المحلية تقوم بإدخالات أودو"},
+      decision: {en: "On the user's machine the agent runs the extraction and calls the app's import services from a script, with the same plan, counts, audit and undo as the import pages. On attendance_app it shows the counts first and waits for the user's OK. The user's decision, 2026-11-14.", ar: "على جهاز المستخدم يشغّل الوكيل الاستخراج ويستدعي خدمات الاستيراد في التطبيق من سكربت، بالخطة والأعداد والتدقيق والتراجع نفسها كما في صفحات الاستيراد. وعلى attendance_app يعرض الأعداد أولاً وينتظر موافقة المستخدم. قرار المستخدم، 2026-11-14."},
+      why: {en: "The database and the secure folder are on that machine, and the user does not want to upload by hand.", ar: "قاعدة البيانات والمجلد الآمن على ذلك الجهاز، والمستخدم لا يريد الرفع يدوياً."},
+      alts: [
+        {en: "The user uploads each file on the import page: not chosen by the user.", ar: "يرفع المستخدم كل ملف من صفحة الاستيراد: لم يختره المستخدم."}
+      ]
+    },
+    {
+      id: 'SP13', group: 'roster', status: 'approved', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      title: {en: "Reception Excel files find the roster differences first", ar: "ملفات إكسل الاستقبال تكشف فروق الجدول أولاً"},
+      decision: {en: "A read-only script compares the reception files with the app's roster and lists, per team and date, where the worked hours do not fit the planned shift. Shifts and patterns are corrected from that list; the team that moved to nights on 2026-10-28 is one case. The user's decision, 2026-11-14.", ar: "سكربت للقراءة فقط يقارن ملفات الاستقبال بجدول التطبيق ويسرد، لكل فريق وتاريخ، أين لا تتوافق ساعات العمل مع المناوبة المخططة. وتُصحَّح المناوبات والأنماط من تلك القائمة؛ والفريق الذي انتقل إلى الليل في 2026-10-28 حالة منها. قرار المستخدم، 2026-11-14."},
+      why: {en: "More than one team may have changed; the files show which and when.", ar: "قد يكون أكثر من فريق قد تغيّر؛ والملفات تُظهر أيها ومتى."},
+      alts: [
+        {en: "Set up one team's night pattern by hand first: not chosen — other differences would stay hidden.", ar: "إعداد نمط ليلي لفريق واحد يدوياً أولاً: لم يُختر — تبقى الفروق الأخرى مخفية."}
       ]
     }
   ];

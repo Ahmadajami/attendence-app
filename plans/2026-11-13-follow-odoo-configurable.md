@@ -1,6 +1,6 @@
 # Follow Odoo, keep every rule a setting, make the app easy
 
-**Status:** in progress (direction decided by the user 2026-11-13: SP1–SP6 and SP10 approved; SP7, SP9 proposed)
+**Status:** in progress (direction decided by the user 2026-11-13: SP1–SP6 and SP10–SP13 approved; SP7, SP9 proposed)
 **Date:** 2026-11-13
 **Goal:** with the same punches, roster and leave, the app gives the figures the Odoo add-on
 `roster_attendance` gives. Every rule is a setting (company, or one team's pattern) that changes
@@ -25,6 +25,9 @@ pictures (EN/AR): `docs/simple-plan.html`. Real data: CLAUDE.md §1; counts, dat
 | SP8 | replaced by SP10 | ~~Old months before October come in as inputs through the import pages~~ | — |
 | SP9 | proposed | Not built now: month lock (RF3), engine reorganisation (RF5), balances carry, sign-in. A made-up day fixture with Odoo's results is added with each rule of §2 | Fast route; the tests are the guard |
 | SP10 | approved (user, 2026-11-13) | **The app's data starts on 2026-10-01.** Old data = 1–20 October from Odoo (already imported). September and earlier are not imported: the pay period 21 Sep → 20 Oct stays Odoo's. **Teams differ only by overtime on or off** (answers Q-SP1), so settings per pattern beyond that are not built now | September has its own roster per team and a holiday; importing it costs more than it gives |
+| SP11 | approved (user, 2026-11-14) | **Overtime stays rounded to the nearest 15 minutes**, from 2026-10-01 too. This is a chosen difference from Odoo, which does not round (an exception to SP1; replaces the October value of AR4) | The user's choice |
+| SP12 | approved (user, 2026-11-14) | **The local Claude Code session does the Odoo inserts**, not the user by hand: it runs the extraction and calls the app's import services from a script (same plan, counts, audit and undo as the import pages). On `attendance_app`: counts shown first, then the user's OK (CLAUDE.md §4) | The work moves to the user's machine, where the database and the secure folder are |
+| SP13 | approved (user, 2026-11-14) | **Reception Excel files find the roster differences first.** A read-only script compares the reception files with the app's roster and lists, per team and date, where the worked hours do not fit the planned shift (the Fly Dubai nights from 2026-10-28 among them). Shifts and patterns are fixed from that list, not by guessing | Several teams may have changed, not one |
 
 Still in force from `docs/decisions.html`: OC2–OC10, RI1–RI11, AR1–AR6, IM1–IM4, IM6, IM17,
 PS1–PS3, PR1–PR39, FP1, EN8.
@@ -35,7 +38,7 @@ PS1–PS3, PR1–PR39, FP1, EN8.
 |---|---|---|---|
 | Overtime on / off | on | R8 | built, per pattern |
 | Overtime rates | work day 1.25, day off 1.5, holiday 1.5 | R8 | built, per pattern |
-| Overtime rounding | none | R8 | built, company; October recompute not run on `attendance_app` |
+| Overtime rounding | none | R8 | built, company. **Value here: nearest 15 (SP11)**; the rule version from 2026-10-01 holds 0 and must be set to 15 |
 | Friday Prayer | +60 on a Friday work day with two parts | R15 | built, company |
 | Grace time | 15 minutes; lateness inside it is paid and reduces shortage, never overtime | R4, R5 | to build |
 | Late minutes | after the grace time | R5 | to build (today: raw, from the shift start) |
@@ -53,10 +56,30 @@ Operations, OC10); shortage differed on 134 days (about 120 leave by hours, abou
 
 ## 3. Tasks
 
-### Only the user can do (left from earlier work)
+### First, on the user's machine (local Claude Code session; SP11–SP13)
 
-- [ ] T0a Upload the roster file of the 22 Odoo-only people and the October punch file again.
-- [ ] T0b OK the "Recompute from a date" 2026-10-01 on `attendance_app` (removes the rounding).
+Start state of `attendance_app` (2026-11-12 notes): 28 migrations; 310 + 22 people; October roster
+and punches of the 310 imported; the 22 have no roster or punches yet; rule version from 2026-10-01
+holds rounding 0; stored days were computed before engine 2 and have not been recomputed.
+
+- [ ] L1 Merge branch `ccr-c38cc2fe-mnmw85` into `app/main`; `pnpm check && pnpm test`.
+- [ ] L2 Rounding (SP11): set the attendance rule version that starts 2026-10-01 to step 15,
+      nearest, on `_e2e` and `_test`, then on `attendance_app` after the row count and the user's
+      OK (audited; a data change, not a new version, because a version may not start on an
+      existing start date, AR5). Update `attendance-rules.test.ts` if a test pins October to 0.
+- [ ] L3 The 22 Odoo-only people (SP12): their October roster (`extract_roster.py --only-new`,
+      RI11) and their punches (about 329 lines of the October file; saved lines skip), through a
+      script that calls the roster-import and punch-import services. Dry counts first, user's OK,
+      commit. **Done when** the counts equal the file and 0 lines are refused as unknown person.
+- [ ] L4 Recompute from 2026-10-01 on `attendance_app` after the user's OK. **Done when** every
+      stored day is on engine 2, overtime is still in steps of 15, and the Friday credit shows on
+      the qualifying Fridays (counts in a note).
+- [ ] L5 Reception files (SP13): the user puts them in `~/secure/syravia/imports/reception/`; a
+      read-only script lists team, date and count where the worked hours do not fit the planned
+      shift (ids, dates and counts only). The user decides per row: new shift and pattern from a
+      date (Fly Dubai, night from 2026-10-28), a shift change for single days, or leave as is.
+- [ ] L6 Attendance from 2026-10-21 onward: by the user's own plan (to be told to the local
+      session). Not typed by default.
 
 ### Build, in this order
 

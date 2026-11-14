@@ -3664,6 +3664,16 @@
       alts: [
         {en: "Let the agent run the data scripts itself: not chosen — their output would reach the model provider.", ar: "ترك الوكيل يشغّل سكربتات البيانات بنفسه: لم يُختر — ناتجها سيصل إلى مزوّد النموذج."}
       ]
+    },
+    {
+      id: 'SP16', group: 'rules', status: 'approved', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §2b',
+      title: {en: "Claude plans and reviews; OpenCode does the tasks", ar: "Claude يخطط ويراجع؛ وOpenCode ينفّذ المهام"},
+      decision: {en: "For every task OpenCode can do, the cloud Claude session gives the user a ready prompt and a proposed Go-plan model. The user runs it in OpenCode on app/main, pushes, and says it is finished; Claude fetches the branch and reviews the diff before the next task. The user's decision, 2026-11-14.", ar: "لكل مهمة يستطيع OpenCode تنفيذها تعطي جلسة Claude السحابية المستخدمَ نصاً جاهزاً ونموذجاً مقترحاً من خطة Go. يشغّله المستخدم في OpenCode على app/main ثم يدفع التغييرات ويُبلغ بالانتهاء؛ فيجلب Claude الفرع ويراجع الفروق قبل المهمة التالية. قرار المستخدم، 2026-11-14."},
+      why: {en: "It saves Claude tokens, and OpenCode has what the cloud session lacks: the database, node_modules and the checks.", ar: "يوفّر رموز Claude، ولدى OpenCode ما تفتقده الجلسة السحابية: قاعدة البيانات وnode_modules والفحوص."},
+      alts: [
+        {en: "Claude writes all the code in the cloud session: not chosen — it cannot run the checks or reach the database, and costs more tokens.", ar: "يكتب Claude كل الكود في الجلسة السحابية: لم يُختر — لا يستطيع تشغيل الفحوص ولا الوصول إلى قاعدة البيانات، ويكلّف رموزاً أكثر."},
+        {en: "OpenCode works alone from the plan: not chosen — the user wants each task reviewed.", ar: "يعمل OpenCode وحده من الخطة: لم يُختر — المستخدم يريد مراجعة كل مهمة."}
+      ]
     }
   ];
 

@@ -248,6 +248,9 @@ Use both on every task to keep context small.
   Svelte MCP server must be configured in OpenCode's own config (`mcp.servers`). Its models are
   hosted by outside providers: for any task on real data the agent writes the script and the
   **user** runs it and reads the output (plan decision SP15); §1 applies in full.
+  Tasks arrive as a brief written by the cloud Claude session (plan §2b, SP16): do exactly the
+  brief on `app/main`, run the checks, commit, and stop; the user pushes and the cloud session
+  reviews before the next task. Do not start a task that has no brief.
 - **RTK** (`rtk`, Rust Token Killer). It filters and compresses command
   output before it reaches the LLM context: a single Rust binary, 100+
   supported commands, <10 ms overhead. A Claude Code hook rewrites shell

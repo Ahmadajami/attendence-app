@@ -82,7 +82,8 @@ holds rounding 0; stored days were computed before engine 2 and have not been re
 - [ ] L0 OpenCode v2 set-up, by `docs/opencode-setup.html`: OpenCode v2 only discovers
       `AGENTS.md` (its migration notes; the `CLAUDE.md` fallback was v1), so `AGENTS.md` is a
       committed symlink to `CLAUDE.md` and `/init` is not run; the committed `opencode.json` (v2 keys,
-      taken from the v2 source, core 2.0.26: ordered `permissions` rules, `mcp.servers`) asks before
+      taken from the v2 source, core 2.0.26, and the v2 Permissions page: ordered `permissions`
+      rules, `mcp.servers`; v2's own default allows every action and every outside folder) asks before
       commands and edits, denies package changes, the dev server, Playwright, `git push`, `.env`
       reads and `~/secure/syravia/`, and starts the local Svelte MCP server; graphify's skill is
       found in `~/.claude/skills/`; RTK through `rtk init -g --opencode`, or by prefixing commands

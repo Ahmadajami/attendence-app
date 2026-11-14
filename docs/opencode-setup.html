@@ -114,8 +114,8 @@
 <p class="lead"><span class="en">The project rules, the Svelte tool, graphify and RTK, working in OpenCode the way they work in Claude Code.</span><span class="ar">قواعد المشروع وأداة Svelte وgraphify وRTK، تعمل في OpenCode كما تعمل في Claude Code.</span></p>
 <div class="card answer">
 <span class="tag t-warn"><span class="en">Read this first</span><span class="ar">اقرأ هذا أولاً</span></span>
-<ul class="en"><li>I wrote this from the <b>OpenCode v2 source code</b> (the <code>v2</code> branch, core version 2.0.26), not from guesses. The config keys below are the ones that code reads.</li><li>I could <b>not run OpenCode</b> from my session, so nothing here is tested on a real install. Section 7 is a short list of checks; do them before the first real task.</li><li>RTK and the Svelte plugin are written by other projects. Whether they work on v2 is the part I am least sure of; each has a fallback below.</li></ul>
-<ul class="ar"><li>كتبتُ هذا من <b>الكود المصدري لـOpenCode v2</b> (الفرع <code>v2</code>، إصدار النواة 2.0.26) وليس تخميناً. مفاتيح الإعداد أدناه هي التي يقرؤها ذلك الكود.</li><li><b>لم أستطع تشغيل OpenCode</b> من جلستي، فلا شيء هنا مجرَّب على تثبيت حقيقي. القسم 7 قائمة فحوص قصيرة؛ نفّذها قبل أول مهمة حقيقية.</li><li>RTK وإضافة Svelte من مشاريع أخرى. عملها على v2 هو أقل ما أنا متأكد منه؛ ولكل منهما بديل أدناه.</li></ul>
+<ul class="en"><li>I wrote this from the <b>OpenCode v2 source code</b> (the <code>v2</code> branch, core version 2.0.26) and from the <b>v2 Permissions page you sent me</b>. The config keys and rule patterns below follow both.</li><li>I could <b>not run OpenCode</b> from my session, so nothing here is tested on a real install. Section 7 is a short list of checks; do them before the first real task.</li><li>RTK and the Svelte plugin are written by other projects. Whether they work on v2 is the part I am least sure of; each has a fallback below.</li></ul>
+<ul class="ar"><li>كتبتُ هذا من <b>الكود المصدري لـOpenCode v2</b> (الفرع <code>v2</code>، إصدار النواة 2.0.26) ومن <b>صفحة الصلاحيات لـv2 التي أرسلتَها</b>. مفاتيح الإعداد وأنماط القواعد أدناه تتبع الاثنين.</li><li><b>لم أستطع تشغيل OpenCode</b> من جلستي، فلا شيء هنا مجرَّب على تثبيت حقيقي. القسم 7 قائمة فحوص قصيرة؛ نفّذها قبل أول مهمة حقيقية.</li><li>RTK وإضافة Svelte من مشاريع أخرى. عملها على v2 هو أقل ما أنا متأكد منه؛ ولكل منهما بديل أدناه.</li></ul>
 </div>
 
 <h2><span class="en">1 · Get the files</span><span class="ar">1 · احصل على الملفات</span></h2>
@@ -154,6 +154,7 @@ pnpm check &amp;&amp; pnpm test</code></pre>
 <p class="en">It is in the project root after the merge. OpenCode finds it by itself.</p>
 <p class="ar">يكون في جذر المشروع بعد الدمج. وOpenCode يجده وحده.</p>
 <pre><code>{
+  &quot;$schema&quot;: &quot;https://opencode.ai/config.json&quot;,
   &quot;model&quot;: &quot;opencode-go/kimi-k2.7-code&quot;,
   &quot;share&quot;: &quot;disabled&quot;,
   &quot;mcp&quot;: {
@@ -171,27 +172,46 @@ pnpm check &amp;&amp; pnpm test</code></pre>
     { &quot;action&quot;: &quot;glob&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
     { &quot;action&quot;: &quot;grep&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
     { &quot;action&quot;: &quot;skill&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;question&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;execute&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;svelte_*&quot;, &quot;resource&quot;: &quot;*&quot;, &quot;effect&quot;: &quot;allow&quot; },
 
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git status&quot;, &quot;effect&quot;: &quot;allow&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git diff&quot;, &quot;effect&quot;: &quot;allow&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git log --oneline -20&quot;, &quot;effect&quot;: &quot;allow&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm check&quot;, &quot;effect&quot;: &quot;allow&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm test&quot;, &quot;effect&quot;: &quot;allow&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;graphify update .&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git status *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git diff *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git log *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm check *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm test *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm exec eslint *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;graphify query *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;graphify path *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;graphify explain *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;graphify update *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;rtk gain *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;rtk git status *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;rtk git diff *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;rtk git log *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;rtk pnpm check *&quot;, &quot;effect&quot;: &quot;allow&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;rtk pnpm test *&quot;, &quot;effect&quot;: &quot;allow&quot; },
 
     { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*.env&quot;, &quot;effect&quot;: &quot;deny&quot; },
     { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*.env.*&quot;, &quot;effect&quot;: &quot;deny&quot; },
     { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;*.env.example&quot;, &quot;effect&quot;: &quot;allow&quot; },
 
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm add*&quot;, &quot;effect&quot;: &quot;deny&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm install*&quot;, &quot;effect&quot;: &quot;deny&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm remove*&quot;, &quot;effect&quot;: &quot;deny&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm update*&quot;, &quot;effect&quot;: &quot;deny&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm dev*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm add *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm install *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm i *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm remove *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm update *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;npm install *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;npm i *&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;pnpm dev *&quot;, &quot;effect&quot;: &quot;deny&quot; },
     { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;*vite dev*&quot;, &quot;effect&quot;: &quot;deny&quot; },
     { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;*playwright*&quot;, &quot;effect&quot;: &quot;deny&quot; },
-    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git push*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;shell&quot;, &quot;resource&quot;: &quot;git push *&quot;, &quot;effect&quot;: &quot;deny&quot; },
 
+    { &quot;action&quot;: &quot;external_directory&quot;, &quot;resource&quot;: &quot;~/secure/*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;read&quot;, &quot;resource&quot;: &quot;~/secure/*&quot;, &quot;effect&quot;: &quot;deny&quot; },
+    { &quot;action&quot;: &quot;edit&quot;, &quot;resource&quot;: &quot;~/secure/*&quot;, &quot;effect&quot;: &quot;deny&quot; },
     { &quot;action&quot;: &quot;*&quot;, &quot;resource&quot;: &quot;*secure/syravia*&quot;, &quot;effect&quot;: &quot;deny&quot; },
     { &quot;action&quot;: &quot;*&quot;, &quot;resource&quot;: &quot;*roster_attendance/tests*&quot;, &quot;effect&quot;: &quot;deny&quot; }
   ]
@@ -202,12 +222,17 @@ pnpm check &amp;&amp; pnpm test</code></pre>
 <tr><td class="name"><code>model</code></td><td style="text-align:start"><span class="en">The default model. Change it here or with <code>/models</code>.</span><span class="ar">النموذج الافتراضي. غيّره هنا أو بـ<code>/models</code>.</span></td></tr>
 <tr><td class="name"><code>share: disabled</code></td><td style="text-align:start"><span class="en">Sessions cannot be shared to a public link.</span><span class="ar">لا يمكن مشاركة الجلسات برابط عام.</span></td></tr>
 <tr><td class="name"><code>mcp.servers.svelte</code></td><td style="text-align:start"><span class="en">Starts the Svelte tool on your machine (section 5).</span><span class="ar">يشغّل أداة Svelte على جهازك (القسم 5).</span></td></tr>
-<tr><td class="name"><code>permissions</code></td><td style="text-align:start"><span class="en">An ordered list. For each action the <b>last</b> rule that matches wins. Anything unmatched asks you.</span><span class="ar">قائمة مرتّبة. لكل إجراء تفوز <b>آخر</b> قاعدة مطابقة. وما لا يطابق شيئاً يسألك.</span></td></tr>
-<tr><td class="name"><code>ask / allow</code></td><td style="text-align:start"><span class="en">Asks before every command and every edit. Reading and searching project files, <code>pnpm check</code>, <code>pnpm test</code> and <code>git status</code> run without asking.</span><span class="ar">يسأل قبل كل أمر وكل تعديل. قراءة ملفات المشروع والبحث فيها و<code>pnpm check</code> و<code>pnpm test</code> و<code>git status</code> تعمل دون سؤال.</span></td></tr>
+<tr><td class="name"><code>permissions</code></td><td style="text-align:start"><span class="en">An ordered list. For each action the <b>last</b> rule that matches wins. A pattern ending in <code> *</code> matches the command with or without arguments. A command joined with <code>&amp;&amp;</code> or <code>;</code> is split, and every part is checked.</span><span class="ar">قائمة مرتّبة. لكل إجراء تفوز <b>آخر</b> قاعدة مطابقة. والنمط المنتهي بـ<code> *</code> يطابق الأمر مع وسائط أو بدونها. والأمر الموصول بـ<code>&amp;&amp;</code> أو <code>;</code> يُقسَّم ويُفحص كل جزء منه.</span></td></tr>
+<tr><td class="name"><code>ask / allow</code></td><td style="text-align:start"><span class="en">The first rule turns everything to "ask"; the rules after it allow the safe things: reading and searching, the Svelte tool, <code>git status / diff / log</code>, <code>pnpm check</code>, <code>pnpm test</code>, eslint and the graphify commands. Every other command and every edit asks.</span><span class="ar">القاعدة الأولى تجعل كل شيء «اسأل»؛ والقواعد بعدها تسمح بالآمن: القراءة والبحث، أداة Svelte، <code>git status / diff / log</code>، <code>pnpm check</code>، <code>pnpm test</code>، eslint وأوامر graphify. وكل أمر آخر وكل تعديل يسأل.</span></td></tr>
 <tr><td class="name"><code>deny</code></td><td style="text-align:start"><span class="en">Blocks what your rules forbid an agent to do: adding packages, the dev server, Playwright, <code>git push</code>, reading <code>.env</code> files, anything under <code>~/secure/syravia/</code>, and the old Odoo tests that contain real names.</span><span class="ar">يحجب ما تمنعه قواعدك على الوكيل: إضافة الحزم، خادم التطوير، Playwright، <code>git push</code>، قراءة ملفات <code>.env</code>، كل ما تحت <code>~/secure/syravia/</code>، واختبارات أودو القديمة التي فيها أسماء حقيقية.</span></td></tr>
 </table></div>
-<ul class="en"><li>When it asks, "always" allows that command for the rest of the session only.</li><li>v2 also still accepts the old v1 keys (<code>permission</code>, <code>bash</code>, <code>plugin</code>). I used the v2 ones: <code>permissions</code>, <code>shell</code>, <code>mcp.servers</code>, <code>plugins</code>.</li><li>A config with a mistake is not an error on screen: the wrong part is skipped and a warning goes to the log. That is why section 7 tests that the denies really block.</li></ul>
-<ul class="ar"><li>عند السؤال، «always» يسمح بذلك الأمر لبقية الجلسة فقط.</li><li>v2 ما زال يقبل مفاتيح v1 القديمة (<code>permission</code> و<code>bash</code> و<code>plugin</code>). استخدمتُ مفاتيح v2: <code>permissions</code> و<code>shell</code> و<code>mcp.servers</code> و<code>plugins</code>.</li><li>الإعداد الذي فيه خطأ لا يظهر كخطأ على الشاشة: يُتجاوز الجزء الخاطئ ويُكتب تحذير في السجل. ولهذا يختبر القسم 7 أن الحجب يعمل فعلاً.</li></ul>
+<div class="card">
+<span class="tag t-warn"><span class="en">Why this file matters on v2</span><span class="ar">لماذا يهمّ هذا الملف في v2</span></span>
+<ul class="en"><li><b>Without any config, v2 allows everything.</b> Its built-in policy is "allow all actions", and it only asks before reading <code>.env</code> files.</li><li><b>Folders outside the project are open by default.</b> With no rule, the agent can read <code>~/secure/syravia/</code> without a prompt. The last five rules in the file close that.</li><li>So check after the merge that OpenCode really picked the file up (checks 3 and 4 in section 7).</li></ul>
+<ul class="ar"><li><b>بدون أي إعداد، v2 يسمح بكل شيء.</b> سياسته المدمجة «السماح بكل الإجراءات»، ويسأل فقط قبل قراءة ملفات <code>.env</code>.</li><li><b>المجلدات خارج المشروع مفتوحة افتراضياً.</b> بلا قاعدة يستطيع الوكيل قراءة <code>~/secure/syravia/</code> دون سؤال. والقواعد الخمس الأخيرة في الملف تغلق ذلك.</li><li>فتحقق بعد الدمج أن OpenCode التقط الملف فعلاً (الفحصان 3 و4 في القسم 7).</li></ul>
+</div>
+<ul class="en"><li>When it asks, you can answer <b>once</b>, <b>always</b> or <b>reject</b>. "Always" is saved for this project and stays after you close OpenCode, so use it only for commands you would allow every time. A saved approval never overrides a "deny" in the file.</li><li>"Reject" also rejects every other request waiting in that session.</li><li>The shell warning from the OpenCode docs applies: a command runs with your own rights on the machine, and OpenCode's reading of which folders a command touches is best effort. That is why the file allows a short list and asks for the rest, instead of trying to list every dangerous command.</li><li>The agents add their own rules after these. The <b>plan</b> agent cannot edit project files at all; the <b>build</b> agent follows the file.</li></ul>
+<ul class="ar"><li>عند السؤال تجيب <b>مرة واحدة</b> أو <b>دائماً</b> أو <b>رفض</b>. «دائماً» تُحفظ لهذا المشروع وتبقى بعد إغلاق OpenCode، فاستخدمها فقط للأوامر التي تسمح بها كل مرة. والموافقة المحفوظة لا تتجاوز «deny» في الملف أبداً.</li><li>«رفض» يرفض أيضاً كل طلب آخر منتظر في تلك الجلسة.</li><li>تحذير الطرفية في توثيق OpenCode ينطبق: الأمر يعمل بصلاحياتك أنت على الجهاز، وتقدير OpenCode للمجلدات التي يمسّها الأمر تقريبي. ولهذا يسمح الملف بقائمة قصيرة ويسأل عن الباقي، بدل محاولة سرد كل أمر خطر.</li><li>الوكلاء يضيفون قواعدهم بعد هذه. وكيل <b>plan</b> لا يستطيع تعديل ملفات المشروع أصلاً؛ ووكيل <b>build</b> يتبع الملف.</li></ul>
 
 <h2><span class="en">5 · Svelte: the rules and the Svelte tool</span><span class="ar">5 · Svelte: القواعد وأداة Svelte</span></h2>
 <p class="en">Your rules say: after every change to a <code>.svelte</code> file, run the Svelte autofixer until it reports nothing, and look up SvelteKit and Svelte APIs in the documentation tool instead of guessing. The rules come from <code>CLAUDE.md</code> (section 3). The tool comes from the <code>svelte</code> entry in the config.</p>
@@ -232,7 +257,7 @@ pnpm check &amp;&amp; pnpm test</code></pre>
 </div>
 
 <h2><span class="en">7 · Seven checks before the first real task</span><span class="ar">7 · سبعة فحوص قبل أول مهمة حقيقية</span></h2>
-<div class="card"><ol class="en" style="margin:0;padding-inline-start:22px"><li><code>opencode --version</code> starts with 2.</li><li>Ask: "Which plan file do you start from, and what must you never do with staff data?" The answer names <code>plans/2026-11-13-follow-odoo-configurable.md</code> and says no names, no secure folder. This proves the rules are loaded through <code>AGENTS.md</code>.</li><li>Ask: "Run <code>ls ~/secure/syravia</code>." It must be <b>refused</b>, not run and not asked.</li><li>Ask: "Run <code>pnpm add left-pad</code>." It must be refused.</li><li>Ask: "Run <code>pnpm check</code>." It runs without asking. Then "Run <code>ls</code>": it asks first.</li><li>Ask: "Use the svelte tool to run the autofixer on <code>src/routes/+error.svelte</code>. Change nothing." It reports a result from the tool.</li><li>Ask: "Which skills can you load?" graphify is in the list. Then the RTK test of section 6.</li></ol><ol class="ar" style="margin:0;padding-inline-start:22px"><li><code>opencode --version</code> يبدأ بـ2.</li><li>اسأل: «من أي ملف خطة تبدأ، وما الذي لا تفعله أبداً ببيانات الموظفين؟» الجواب يسمّي <code>plans/2026-11-13-follow-odoo-configurable.md</code> ويقول لا أسماء ولا مجلد آمن. هذا يثبت تحميل القواعد عبر <code>AGENTS.md</code>.</li><li>اطلب: «شغّل <code>ls ~/secure/syravia</code>.» يجب أن <b>يُرفض</b>، لا أن يُنفَّذ ولا أن يُسأل عنه.</li><li>اطلب: «شغّل <code>pnpm add left-pad</code>.» يجب أن يُرفض.</li><li>اطلب: «شغّل <code>pnpm check</code>.» يعمل دون سؤال. ثم «شغّل <code>ls</code>»: يسأل أولاً.</li><li>اطلب: «استخدم أداة svelte لتشغيل المصحّح التلقائي على <code>src/routes/+error.svelte</code>. لا تغيّر شيئاً.» يُبلغ بنتيجة من الأداة.</li><li>اسأل: «أي المهارات تستطيع تحميلها؟» graphify في القائمة. ثم اختبار RTK من القسم 6.</li></ol></div>
+<div class="card"><ol class="en" style="margin:0;padding-inline-start:22px"><li><code>opencode --version</code> starts with 2.</li><li>Ask: "Which plan file do you start from, and what must you never do with staff data?" The answer names <code>plans/2026-11-13-follow-odoo-configurable.md</code> and says no names, no secure folder. This proves the rules are loaded through <code>AGENTS.md</code>.</li><li>Ask: "Run <code>ls ~/secure/syravia</code>", then "Read the file <code>~/secure/syravia/attendance_app.env</code>". Both must be <b>refused</b>, not run and not asked.</li><li>Ask: "Run <code>pnpm add left-pad</code>." It must be refused.</li><li>Ask: "Run <code>pnpm check &amp;&amp; pnpm test</code>." It runs without asking. Then "Run <code>ls</code>": it asks first.</li><li>Ask: "Use the svelte tool to run the autofixer on <code>src/routes/+error.svelte</code>. Change nothing." It reports a result from the tool.</li><li>Ask: "Which skills can you load?" graphify is in the list. Then the RTK test of section 6.</li></ol><ol class="ar" style="margin:0;padding-inline-start:22px"><li><code>opencode --version</code> يبدأ بـ2.</li><li>اسأل: «من أي ملف خطة تبدأ، وما الذي لا تفعله أبداً ببيانات الموظفين؟» الجواب يسمّي <code>plans/2026-11-13-follow-odoo-configurable.md</code> ويقول لا أسماء ولا مجلد آمن. هذا يثبت تحميل القواعد عبر <code>AGENTS.md</code>.</li><li>اطلب: «شغّل <code>ls ~/secure/syravia</code>» ثم «اقرأ الملف <code>~/secure/syravia/attendance_app.env</code>». يجب أن <b>يُرفض</b> الاثنان، لا أن يُنفَّذا ولا أن يُسأل عنهما.</li><li>اطلب: «شغّل <code>pnpm add left-pad</code>.» يجب أن يُرفض.</li><li>اطلب: «شغّل <code>pnpm check &amp;&amp; pnpm test</code>.» يعمل دون سؤال. ثم «شغّل <code>ls</code>»: يسأل أولاً.</li><li>اطلب: «استخدم أداة svelte لتشغيل المصحّح التلقائي على <code>src/routes/+error.svelte</code>. لا تغيّر شيئاً.» يُبلغ بنتيجة من الأداة.</li><li>اسأل: «أي المهارات تستطيع تحميلها؟» graphify في القائمة. ثم اختبار RTK من القسم 6.</li></ol></div>
 <p class="en">If check 3 or 4 is not refused, stop and tell me what happened. Those two protect your data and your packages; do not start real work without them.</p>
 <p class="ar">إن لم يُرفض الفحص 3 أو 4 فتوقف وأخبرني بما حدث. هذان يحميان بياناتك وحزمك؛ فلا تبدأ عملاً حقيقياً بدونهما.</p>
 

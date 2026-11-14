@@ -3632,7 +3632,7 @@
     {
       id: 'SP12', group: 'rules', status: 'approved', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
       title: {en: "The local Claude Code session does the Odoo inserts", ar: "جلسة Claude Code المحلية تقوم بإدخالات أودو"},
-      decision: {en: "On the user's machine the agent runs the extraction and calls the app's import services from a script, with the same plan, counts, audit and undo as the import pages. On attendance_app it shows the counts first and waits for the user's OK. The user's decision, 2026-11-14.", ar: "على جهاز المستخدم يشغّل الوكيل الاستخراج ويستدعي خدمات الاستيراد في التطبيق من سكربت، بالخطة والأعداد والتدقيق والتراجع نفسها كما في صفحات الاستيراد. وعلى attendance_app يعرض الأعداد أولاً وينتظر موافقة المستخدم. قرار المستخدم، 2026-11-14."},
+      decision: {en: "On the user's machine the agent runs the extraction and calls the app's import services from a script, with the same plan, counts, audit and undo as the import pages. On attendance_app it shows the counts first and waits for the user's OK. The user's decision, 2026-11-14. Amended on 2026-11-14 by SP15: the local agent is OpenCode v2.", ar: "على جهاز المستخدم يشغّل الوكيل الاستخراج ويستدعي خدمات الاستيراد في التطبيق من سكربت، بالخطة والأعداد والتدقيق والتراجع نفسها كما في صفحات الاستيراد. وعلى attendance_app يعرض الأعداد أولاً وينتظر موافقة المستخدم. قرار المستخدم، 2026-11-14. عُدّل في 2026-11-14 بـSP15: الوكيل المحلي هو OpenCode v2."},
       why: {en: "The database and the secure folder are on that machine, and the user does not want to upload by hand.", ar: "قاعدة البيانات والمجلد الآمن على ذلك الجهاز، والمستخدم لا يريد الرفع يدوياً."},
       alts: [
         {en: "The user uploads each file on the import page: not chosen by the user.", ar: "يرفع المستخدم كل ملف من صفحة الاستيراد: لم يختره المستخدم."}
@@ -3645,6 +3645,24 @@
       why: {en: "More than one team may have changed; the files show which and when.", ar: "قد يكون أكثر من فريق قد تغيّر؛ والملفات تُظهر أيها ومتى."},
       alts: [
         {en: "Set up one team's night pattern by hand first: not chosen — other differences would stay hidden.", ar: "إعداد نمط ليلي لفريق واحد يدوياً أولاً: لم يُختر — تبقى الفروق الأخرى مخفية."}
+      ]
+    },
+    {
+      id: 'SP14', group: 'roster', status: 'approved', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      title: {en: "All 22 Odoo-only people are kept", ar: "يبقى جميع الـ22 الموجودين في أودو فقط"},
+      decision: {en: "The 22 people who had October punches in Odoo and were not in HR's workbook stay in the app; their October roster and punches are imported. Whether they leave from November (OC9) is still open. The user's decision, 2026-11-14, after reading the list.", ar: "الـ22 شخصاً الذين لهم بصمات في أودو لتشرين الأول ولم يكونوا في ملف الموارد البشرية يبقون في التطبيق؛ ويُستورد جدولهم وبصماتهم لتشرين الأول. وهل يغادرون من تشرين الثاني (OC9) ما زال مفتوحاً. قرار المستخدم، 2026-11-14، بعد قراءة القائمة."},
+      why: {en: "October is complete only with them.", ar: "لا يكتمل تشرين الأول إلا بهم."},
+      alts: [
+        {en: "Mark some inactive and import nothing for them: not chosen — the user keeps all 22.", ar: "تعطيل بعضهم وعدم استيراد شيء لهم: لم يُختر — المستخدم يبقي الـ22 جميعاً."}
+      ]
+    },
+    {
+      id: 'SP15', group: 'rules', status: 'proposed', date: '2026-11-14', src: 'plans/2026-11-13-follow-odoo-configurable.md §1',
+      title: {en: "The local agent is OpenCode v2; scripts on real data are run by the user", ar: "الوكيل المحلي هو OpenCode v2؛ والسكربتات على البيانات الحقيقية يشغّلها المستخدم"},
+      decision: {en: "The user works with OpenCode v2 on the Go plan (told 2026-11-14); it reads CLAUDE.md as its rules. Proposed: for any task on real data the agent writes the script, the user runs it and reads the output, and the agent never opens the secure folder or runs a query that returns names. Amends SP12.", ar: "يعمل المستخدم بـOpenCode v2 على خطة Go (أُبلغ في 2026-11-14)؛ وهو يقرأ CLAUDE.md كقواعده. المقترح: في أي مهمة على بيانات حقيقية يكتب الوكيل السكربت، ويشغّله المستخدم ويقرأ ناتجه، ولا يفتح الوكيل المجلد الآمن ولا يشغّل استعلاماً يعيد أسماء. يعدّل SP12."},
+      why: {en: "Its models are hosted by outside providers and no published retention policy was found; the rule is that no outside service receives staff data.", ar: "نماذجه مستضافة لدى مزوّدين خارجيين ولم يُعثر على سياسة احتفاظ منشورة؛ والقاعدة ألا تتلقى أي خدمة خارجية بيانات الموظفين."},
+      alts: [
+        {en: "Let the agent run the data scripts itself: not chosen — their output would reach the model provider.", ar: "ترك الوكيل يشغّل سكربتات البيانات بنفسه: لم يُختر — ناتجها سيصل إلى مزوّد النموذج."}
       ]
     }
   ];

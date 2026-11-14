@@ -30,4 +30,4 @@ Overview page with every plan, its progress and open tasks: `docs/plans-status.h
 | Date | Plan | Status |
 |---|---|---|
 | 2026-11-13 | [One plan: October follows the Odoo add-on, November runs the new way](2026-11-13-october-odoo-november-new.md) (replaced the 29 earlier plans) | superseded (2026-11-13) by the plan below |
-| 2026-11-13 | [Follow Odoo, keep every rule a setting, make the app easy](2026-11-13-follow-odoo-configurable.md) | in progress (SP1–SP6, SP10–SP13 approved by the user; SP7, SP9 proposed) |
+| 2026-11-13 | [Follow Odoo, keep every rule a setting, make the app easy](2026-11-13-follow-odoo-configurable.md) | in progress (SP1–SP6, SP10–SP14 approved by the user; SP7, SP9, SP15 proposed) |

@@ -243,6 +243,11 @@ Use both on every task to keep context small.
   - §1 applies: build the graph from this repo only. Never point graphify at
     `~/secure/syravia/` or the old Odoo module (real names), and never use
     its Gemini backend (no cloud).
+- **OpenCode v2** (the user's local agent since 2026-11-14) reads this file as its rules when
+  no `AGENTS.md` exists. The RTK hook below is a Claude Code hook and does not run there; the
+  Svelte MCP server must be configured in OpenCode's own config (`mcp.servers`). Its models are
+  hosted by outside providers: for any task on real data the agent writes the script and the
+  **user** runs it and reads the output (plan decision SP15); §1 applies in full.
 - **RTK** (`rtk`, Rust Token Killer). It filters and compresses command
   output before it reaches the LLM context: a single Rust binary, 100+
   supported commands, <10 ms overhead. A Claude Code hook rewrites shell

@@ -1,6 +1,6 @@
 # Follow Odoo, keep every rule a setting, make the app easy
 
-**Status:** in progress (direction decided by the user 2026-11-13: SP1–SP6 and SP10–SP13 approved; SP7, SP9 proposed)
+**Status:** in progress (direction decided by the user 2026-11-13: SP1–SP6 and SP10–SP14 approved; SP7, SP9, SP15 proposed)
 **Date:** 2026-11-13
 **Goal:** with the same punches, roster and leave, the app gives the figures the Odoo add-on
 `roster_attendance` gives. Every rule is a setting (company, or one team's pattern) that changes
@@ -28,6 +28,8 @@ pictures (EN/AR): `docs/simple-plan.html`. Real data: CLAUDE.md §1; counts, dat
 | SP11 | approved (user, 2026-11-14) | **Overtime stays rounded to the nearest 15 minutes**, from 2026-10-01 too. This is a chosen difference from Odoo, which does not round (an exception to SP1; replaces the October value of AR4) | The user's choice |
 | SP12 | approved (user, 2026-11-14) | **The local Claude Code session does the Odoo inserts**, not the user by hand: it runs the extraction and calls the app's import services from a script (same plan, counts, audit and undo as the import pages). On `attendance_app`: counts shown first, then the user's OK (CLAUDE.md §4) | The work moves to the user's machine, where the database and the secure folder are |
 | SP13 | approved (user, 2026-11-14) | **Reception Excel files find the roster differences first.** A read-only script compares the reception files with the app's roster and lists, per team and date, where the worked hours do not fit the planned shift (the Fly Dubai nights from 2026-10-28 among them). Shifts and patterns are fixed from that list, not by guessing | Several teams may have changed, not one |
+| SP14 | approved (user, 2026-11-14) | **All 22 Odoo-only people are kept.** Their October roster and punches are imported (L3). Whether they leave the app from November (OC9) is still open | The user looked at the list and decided |
+| SP15 | proposed | **The local agent is OpenCode v2 (Go plan), not Claude Code** (amends SP12). Because its models are hosted by outside providers with no published retention policy found, the agent writes the scripts for tasks on real data and **the user runs them and reads the output**; the agent never opens `~/secure/syravia/` or runs a query that returns names | CLAUDE.md §1: no outside service receives staff data |
 
 Still in force from `docs/decisions.html`: OC2–OC10, RI1–RI11, AR1–AR6, IM1–IM4, IM6, IM17,
 PS1–PS3, PR1–PR39, FP1, EN8.
@@ -56,21 +58,28 @@ Operations, OC10); shortage differed on 134 days (about 120 leave by hours, abou
 
 ## 3. Tasks
 
-### First, on the user's machine (local Claude Code session; SP11–SP13)
+### First, on the user's machine (local OpenCode v2 session; SP11–SP15)
 
 Start state of `attendance_app` (2026-11-12 notes): 28 migrations; 310 + 22 people; October roster
 and punches of the 310 imported; the 22 have no roster or punches yet; rule version from 2026-10-01
 holds rounding 0; stored days were computed before engine 2 and have not been recomputed.
 
+- [ ] L0 OpenCode v2 set-up (check each key against the v2 docs; v2 renamed several):
+      `CLAUDE.md` is read as the rules file when no `AGENTS.md` exists, so do not run `/init`;
+      permissions set to ask for shell commands and file edits (v2 keys `permissions` / `shell`,
+      not v1's `permission` / `bash`); the Svelte MCP server added under `mcp.servers` (CLAUDE.md
+      §3 needs its autofixer); the RTK hook of CLAUDE.md §7 is a Claude Code hook and does not run
+      here. **Done when** the agent answers "which plan file do I start from" correctly and a
+      `.svelte` autofixer call works.
 - [ ] L1 Merge branch `ccr-c38cc2fe-mnmw85` into `app/main`; `pnpm check && pnpm test`.
 - [ ] L2 Rounding (SP11): set the attendance rule version that starts 2026-10-01 to step 15,
       nearest, on `_e2e` and `_test`, then on `attendance_app` after the row count and the user's
       OK (audited; a data change, not a new version, because a version may not start on an
       existing start date, AR5). Update `attendance-rules.test.ts` if a test pins October to 0.
-- [ ] L3 The 22 Odoo-only people (SP12): their October roster (`extract_roster.py --only-new`,
+- [ ] L3 The 22 Odoo-only people, **all kept (SP14)**: their October roster (`extract_roster.py --only-new`,
       RI11) and their punches (about 329 lines of the October file; saved lines skip), through a
       script that calls the roster-import and punch-import services. Dry counts first, user's OK,
-      commit. **Done when** the counts equal the file and 0 lines are refused as unknown person.
+      commit. Under SP15 the user runs the script; the agent sees counts only. **Done when** the counts equal the file and 0 lines are refused as unknown person.
 - [ ] L4 Recompute from 2026-10-01 on `attendance_app` after the user's OK. **Done when** every
       stored day is on engine 2, overtime is still in steps of 15, and the Friday credit shows on
       the qualifying Fridays (counts in a note).

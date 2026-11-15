@@ -96,6 +96,9 @@ holds rounding 0; stored days were computed before engine 2 and have not been re
       existing start date, AR5). Applied to `_e2e` and `_test` by the agent; on `attendance_app`
       by the user after the row count. **Done when** all three list 29 migrations and the row
       shows 15.
+      > note: migration `0028_attendance_rule_october_round_15`; 29 migrations on `attendance_app_e2e`
+      > and 29 migrations on `attendance_app_test`; `attendance_rule` row `effective_from = 2026-10-01`
+      > now has `overtime_step = 15`, `overtime_mode = nearest` on both synthetic DBs.
 - [ ] L3 The 22 Odoo-only people, **all kept (SP14)**: their October roster (`extract_roster.py --only-new`,
       RI11) and their punches (about 329 lines of the October file; saved lines skip), through a
       script that calls the roster-import and punch-import services. Dry counts first, user's OK,

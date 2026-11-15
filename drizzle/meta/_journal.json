@@ -197,6 +197,13 @@
       "when": 1794485773211,
       "tag": "0027_attendance_rule_before_october",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794726651138,
+      "tag": "0028_attendance_rule_october_round_15",
+      "breakpoints": true
     }
   ]
 }

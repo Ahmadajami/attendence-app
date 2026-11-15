@@ -1666,5 +1666,7 @@
 	"reports_rows_title": "{count} شخصاً",
 	"reports_rows_description": "صف لكل شخص: مجموع أيامه المحفوظة بين التاريخين.",
 	"reports_rows_empty": "لا توجد أيام محفوظة بين هذين التاريخين في هذا النطاق بعد.",
-	"reports_export": "Excel"
+	"reports_export": "Excel",
+	"reports_search_label": "بحث",
+	"reports_search_placeholder": "الاسم أو الرقم الوظيفي"
 }

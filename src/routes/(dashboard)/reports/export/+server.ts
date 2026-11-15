@@ -1,6 +1,6 @@
 import writeXlsxFile from 'write-excel-file/node';
 import { m } from '#lib/paraglide/messages.js';
-import { TOTALS_COLUMN_LABEL } from '#lib/reports/totals.js';
+import { parseTotalsParams, TOTALS_COLUMN_LABEL } from '#lib/reports/totals.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import type { Actor } from '#lib/server/services/common.js';
 import { parseScope } from '#lib/server/services/daily/daily.bl.js';
@@ -9,7 +9,7 @@ import { personName } from '#lib/utils/locale.js';
 import type { RequestHandler } from './$types';
 
 // The Excel export of the totals report (task T1, decisions SP3, SP6): the same rows and columns
-// as the page, from the same URL filters. Needs `staff.write`, like the page. Minutes and day
+// as the page, from the same URL filters, sort and search (R1). Needs `staff.write`, like the page. Minutes and day
 // counts are written as numbers, so Excel can sum and compare them.
 
 export const GET: RequestHandler = async ({ locals, url, setHeaders }) => {
@@ -17,11 +17,14 @@ export const GET: RequestHandler = async ({ locals, url, setHeaders }) => {
 		user: requirePermission(locals, 'staff.write'),
 		permissions: locals.permissions
 	};
+	const { from, to, sort, q, columns } = parseTotalsParams(url.searchParams);
 	const page = await getTotals(actor, {
-		from: url.searchParams.get('from'),
-		to: url.searchParams.get('to'),
+		from,
+		to,
 		scope: parseScope(url.searchParams.get('scope')),
-		columns: url.searchParams.getAll('col')
+		columns,
+		sort,
+		q
 	});
 
 	const sheet = [

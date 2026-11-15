@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import ArrowDownIcon from 'phosphor-svelte/lib/ArrowDownIcon';
+	import ArrowUpIcon from 'phosphor-svelte/lib/ArrowUpIcon';
 	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
@@ -17,7 +19,9 @@
 		TOTALS_COLUMNS,
 		TOTALS_COLUMN_LABEL,
 		type PersonTotals,
-		type TotalsColumn
+		type TotalsColumn,
+		type TotalsSortDir,
+		type TotalsSortKey
 	} from '#lib/reports/totals.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
 	import { lookupName, personName } from '#lib/utils/locale.js';
@@ -58,12 +62,28 @@
 		filter?.requestSubmit();
 	}
 
-	/** The report's query with the dates replaced, keeping the scope and the chosen columns. */
-	function queryOf(from: string, to: string) {
+	/**
+	 * The report's query: the shown filters, sort and search and the chosen columns, with any of
+	 * `overrides` replaced. Links (quick ranges, sort headers) and the export use it, so they keep
+	 * the rest of the view.
+	 */
+	function queryOf(
+		overrides: Partial<{ from: string; to: string; sort: TotalsSortKey; dir: TotalsSortDir }> = {}
+	) {
+		const shown = {
+			from: page.from,
+			to: page.to,
+			sort: page.sort.key,
+			dir: page.sort.dir,
+			...overrides
+		};
 		return [
-			['from', from],
-			['to', to],
+			['from', shown.from],
+			['to', shown.to],
 			['scope', scopeValue === ALL ? '' : scopeValue],
+			['sort', shown.sort],
+			['dir', shown.dir],
+			['q', page.q],
 			...page.columns.map((column) => ['col', column] as const)
 		]
 			.filter(([, value]) => value !== '')
@@ -73,11 +93,23 @@
 
 	/** A quick range (SP6) navigates to the report with both dates set. */
 	function quickHref(range: { from: string; to: string }) {
-		return `${localizedHref('/reports')}?${queryOf(range.from, range.to)}`;
+		return `${localizedHref('/reports')}?${queryOf(range)}`;
 	}
 
-	/** The Excel export of exactly the shown rows and columns. */
-	const exportHref = $derived(`${localizedHref('/reports/export')}?${queryOf(page.from, page.to)}`);
+	/** The Excel export of exactly the shown rows, sort, search and columns. */
+	const exportHref = $derived(`${localizedHref('/reports/export')}?${queryOf()}`);
+
+	/** A column heading's link: the first click sorts ascending, the next one descending (R1). */
+	function sortHref(key: TotalsSortKey) {
+		const dir: TotalsSortDir = page.sort.key === key && page.sort.dir === 'asc' ? 'desc' : 'asc';
+		return `${localizedHref('/reports')}?${queryOf({ sort: key, dir })}`;
+	}
+
+	/** The `aria-sort` value of a heading, and its arrow when it is the sort column. */
+	function ariaSort(key: TotalsSortKey): 'ascending' | 'descending' | 'none' {
+		if (page.sort.key !== key) return 'none';
+		return page.sort.dir === 'asc' ? 'ascending' : 'descending';
+	}
 
 	/** The daily page of this person and the shown dates: what every number opens. */
 	function daysHref(staffId: string) {
@@ -111,6 +143,9 @@
 			filter = element;
 		}}
 	>
+		<!-- The sort is kept by the form too, so changing a filter keeps the order. -->
+		<input type="hidden" name="sort" value={page.sort.key} />
+		<input type="hidden" name="dir" value={page.sort.dir} />
 		<div class="flex flex-wrap items-end gap-3">
 			<div class="flex flex-col gap-2">
 				<Label for="reports-from">{m.daily_field_from()}</Label>
@@ -132,6 +167,18 @@
 					bind:value={toValue}
 					onchange={apply}
 					class="w-44"
+				/>
+			</div>
+			<div class="flex flex-col gap-2">
+				<Label for="reports-q">{m.reports_search_label()}</Label>
+				<Input
+					id="reports-q"
+					type="search"
+					name="q"
+					value={page.q}
+					placeholder={m.reports_search_placeholder()}
+					onchange={apply}
+					class="w-64"
 				/>
 			</div>
 			<div class="flex flex-col gap-2">
@@ -204,9 +251,31 @@
 			<Table.Root>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head>{m.attendance_col_person()}</Table.Head>
+						<Table.Head aria-sort={ariaSort('name')}>
+							<Button variant="ghost" size="sm" class="-ms-2" href={sortHref('name')}>
+								{m.attendance_col_person()}
+								{#if page.sort.key === 'name'}
+									{#if page.sort.dir === 'asc'}
+										<ArrowUpIcon data-icon="inline-end" />
+									{:else}
+										<ArrowDownIcon data-icon="inline-end" />
+									{/if}
+								{/if}
+							</Button>
+						</Table.Head>
 						{#each page.columns as column (column)}
-							<Table.Head class="text-end">{TOTALS_COLUMN_LABEL[column]()}</Table.Head>
+							<Table.Head class="text-end" aria-sort={ariaSort(column)}>
+								<Button variant="ghost" size="sm" class="-me-2" href={sortHref(column)}>
+									{TOTALS_COLUMN_LABEL[column]()}
+									{#if page.sort.key === column}
+										{#if page.sort.dir === 'asc'}
+											<ArrowUpIcon data-icon="inline-end" />
+										{:else}
+											<ArrowDownIcon data-icon="inline-end" />
+										{/if}
+									{/if}
+								</Button>
+							</Table.Head>
 						{/each}
 					</Table.Row>
 				</Table.Header>

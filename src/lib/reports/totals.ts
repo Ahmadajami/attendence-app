@@ -152,3 +152,44 @@ export function sumTotalsDays(days: readonly TotalsDay[]): PersonTotals {
 	}
 	return totals;
 }
+
+/** The sort keys the URL can name: the person's name, or any shown column (R1, RP1). */
+export const TOTALS_SORT_KEYS = ['name', ...TOTALS_COLUMNS] as const;
+export type TotalsSortKey = (typeof TOTALS_SORT_KEYS)[number];
+export type TotalsSortDir = 'asc' | 'desc';
+export type TotalsSort = { key: TotalsSortKey; dir: TotalsSortDir };
+
+/** The default order: by name, ascending (RP1). */
+export const DEFAULT_TOTALS_SORT: TotalsSort = { key: 'name', dir: 'asc' };
+
+/** The longest search text kept from the URL. */
+export const TOTALS_SEARCH_MAX = 100;
+
+/** The sort the URL asks for; an unknown key or direction falls back to the default for that part. */
+export function parseTotalsSort(key: string | null, dir: string | null): TotalsSort {
+	const sortKey = (TOTALS_SORT_KEYS as readonly string[]).includes(key ?? '')
+		? (key as TotalsSortKey)
+		: DEFAULT_TOTALS_SORT.key;
+	const sortDir: TotalsSortDir = dir === 'desc' ? 'desc' : 'asc';
+	return { key: sortKey, dir: sortDir };
+}
+
+/** The search text from the URL: trimmed and cut to `TOTALS_SEARCH_MAX`; empty means no search. */
+export function parseTotalsSearch(value: string | null): string {
+	return (value ?? '').trim().slice(0, TOTALS_SEARCH_MAX);
+}
+
+/**
+ * Everything the report reads from its URL (page and Excel export alike, so both show the same
+ * rows): the dates, the sort, the search text and the chosen columns. The scope is parsed by the
+ * caller, since it needs the daily page's parser.
+ */
+export function parseTotalsParams(params: URLSearchParams) {
+	return {
+		from: params.get('from'),
+		to: params.get('to'),
+		sort: parseTotalsSort(params.get('sort'), params.get('dir')),
+		q: parseTotalsSearch(params.get('q')),
+		columns: params.getAll('col')
+	};
+}

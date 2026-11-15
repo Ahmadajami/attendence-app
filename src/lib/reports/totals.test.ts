@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { containsPattern } from '#lib/attendance/person-search.js';
 import {
 	DEFAULT_TOTALS_COLUMNS,
 	monthRange,
 	parseTotalsColumns,
+	parseTotalsParams,
+	parseTotalsSearch,
+	parseTotalsSort,
 	payMonthRange,
 	sumTotalsDays,
 	totalsRange,
@@ -180,5 +184,52 @@ describe('parseTotalsColumns', () => {
 			'workDays',
 			'lateMinutes'
 		]);
+	});
+});
+
+describe('sort and search from the URL (R1)', () => {
+	it('defaults to name ascending, and an unknown key or direction falls back', () => {
+		expect(parseTotalsSort(null, null)).toEqual({ key: 'name', dir: 'asc' });
+		expect(parseTotalsSort('nope', 'sideways')).toEqual({ key: 'name', dir: 'asc' });
+		expect(parseTotalsSort('overtimeMinutes', 'desc')).toEqual({
+			key: 'overtimeMinutes',
+			dir: 'desc'
+		});
+	});
+
+	it('keeps a column sort in either direction', () => {
+		expect(parseTotalsSort('workedMinutes', 'asc')).toEqual({ key: 'workedMinutes', dir: 'asc' });
+		expect(parseTotalsSort('shortageMinutes', 'desc')).toEqual({
+			key: 'shortageMinutes',
+			dir: 'desc'
+		});
+	});
+
+	it('trims the search text and cuts it to the limit; blank means no search', () => {
+		expect(parseTotalsSearch('   ')).toBe('');
+		expect(parseTotalsSearch(null)).toBe('');
+		expect(parseTotalsSearch('  Made Up  ')).toBe('Made Up');
+		expect(parseTotalsSearch('x'.repeat(150))).toHaveLength(100);
+	});
+
+	it('escapes LIKE wildcards in the pattern and keeps Arabic text as typed', () => {
+		expect(containsPattern('50%_off')).toBe('%50\\%\\_off%');
+		expect(containsPattern('محمد')).toBe('%محمد%');
+	});
+
+	it('the page and the Excel export read the same URL to the same filter', () => {
+		const url = new URLSearchParams(
+			'from=2026-11-01&to=2026-11-15&sort=overtimeMinutes&dir=desc&q=Made&col=workDays&col=overtimeMinutes'
+		);
+		const first = parseTotalsParams(url);
+		const second = parseTotalsParams(new URLSearchParams(url.toString()));
+		expect(second).toEqual(first);
+		expect(first).toEqual({
+			from: '2026-11-01',
+			to: '2026-11-15',
+			sort: { key: 'overtimeMinutes', dir: 'desc' },
+			q: 'Made',
+			columns: ['workDays', 'overtimeMinutes']
+		});
 	});
 });

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { parseTotalsColumns, totalsRange, type TotalsColumn } from '#lib/reports/totals.js';
+import {
+	parseTotalsColumns,
+	totalsRange,
+	type TotalsColumn,
+	type TotalsSort
+} from '#lib/reports/totals.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import { scopeOptions, type EntryScope, type ScopeOptions } from '../attendance/attendance.bl.js';
 import { requireActorPermission, type Actor } from '../common.js';
@@ -15,6 +20,10 @@ export type TotalsFilter = {
 	scope: EntryScope;
 	/** The column names the URL asks for; unknown ones are ignored by `parseTotalsColumns`. */
 	columns: readonly string[];
+	/** The order of the rows (R1); the default is by name. */
+	sort: TotalsSort;
+	/** The search text, already trimmed (R1): name or employee number. Empty: no search. */
+	q: string;
 };
 
 export type TotalsPage = ScopeOptions & {
@@ -25,6 +34,8 @@ export type TotalsPage = ScopeOptions & {
 	scope: EntryScope;
 	/** The shown columns, in the table's fixed order. */
 	columns: TotalsColumn[];
+	sort: TotalsSort;
+	q: string;
 	rows: TotalsPersonRow[];
 };
 
@@ -42,7 +53,7 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 	);
 	const [options, rows] = await Promise.all([
 		scopeOptions(),
-		listTotalsPeople(from, to, filter.scope)
+		listTotalsPeople(from, to, filter.scope, filter.sort, filter.q)
 	]);
 	return {
 		...options,
@@ -51,6 +62,8 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 		today,
 		scope: filter.scope,
 		columns: parseTotalsColumns(filter.columns),
+		sort: filter.sort,
+		q: filter.q,
 		rows
 	};
 }

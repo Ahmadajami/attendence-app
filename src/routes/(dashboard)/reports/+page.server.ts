@@ -1,6 +1,7 @@
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import type { Actor } from '#lib/server/services/common.js';
 import { parseScope } from '#lib/server/services/daily/daily.bl.js';
+import { parseTotalsParams } from '#lib/reports/totals.js';
 import { getTotals } from '#lib/server/services/reports/reports.bl.js';
 import type { PageServerLoad } from './$types';
 
@@ -14,11 +15,14 @@ function actorFrom(locals: App.Locals): Actor {
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const actor = actorFrom(locals);
+	const { from, to, sort, q, columns } = parseTotalsParams(url.searchParams);
 	const page = await getTotals(actor, {
-		from: url.searchParams.get('from'),
-		to: url.searchParams.get('to'),
+		from,
+		to,
 		scope: parseScope(url.searchParams.get('scope')),
-		columns: url.searchParams.getAll('col')
+		columns,
+		sort,
+		q
 	});
 	return { page };
 };

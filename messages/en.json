@@ -1666,5 +1666,7 @@
 	"reports_rows_title": "{count} people",
 	"reports_rows_description": "One row per person: the sums of their stored days between the two dates.",
 	"reports_rows_empty": "No stored days between these dates for this scope yet.",
-	"reports_export": "Excel"
+	"reports_export": "Excel",
+	"reports_search_label": "Search",
+	"reports_search_placeholder": "Name or employee number"
 }

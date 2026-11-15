@@ -2,10 +2,12 @@ import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from 
 import { containsPattern } from '#lib/attendance/person-search.js';
 import {
 	capOvertimeMinutes,
+	type PayDay,
 	type PersonDay,
 	type PersonTotals,
 	type TotalsColumn,
-	type TotalsSort
+	type TotalsSort,
+	shiftHoursOf
 } from '#lib/reports/totals.js';
 import { descendantIds } from '#lib/workforce/departments.js';
 import { db } from '#lib/server/db/index.js';
@@ -148,7 +150,8 @@ export async function listTotalsPeople(
 		.select({
 			person: personColumns,
 			...totalsAggregates,
-			eligibleMinutes: sql<number>`coalesce(sum(${dayResult.paidOtMinutes}), 0)::int`
+			// RP23: a day with no required hours and no shift has no hour rate, so it is not eligible.
+			eligibleMinutes: sql<number>`coalesce(sum(${dayResult.paidOtMinutes}) filter (where ${dayResult.requiredMinutes} > 0 or ${dayResult.shiftId} is not null), 0)::int`
 		})
 		.from(dayResult)
 		.innerJoin(staff, eq(staff.id, dayResult.staffId))
@@ -171,4 +174,47 @@ export async function listTotalsPeople(
 			cappedMinutes: capOvertimeMinutes(eligibleMinutes, totals.requiredMinutes, capPercent)
 		}
 	}));
+}
+
+/**
+ * The pay inputs of every person with a stored day in `[from, to]` and the scope (R6): their days
+ * with the shift's hours (RP23). Read-only; the salary is never here.
+ */
+export async function listPayDays(
+	from: string,
+	to: string,
+	scope: EntryScope
+): Promise<Map<string, PayDay[]>> {
+	const scoped = await scopeFilter(scope);
+	const rows = await db
+		.select({
+			staffId: dayResult.staffId,
+			requiredMinutes: dayResult.requiredMinutes,
+			paidOtMinutes: dayResult.paidOtMinutes,
+			otRate: dayResult.otRate,
+			shortageMinutes: dayResult.shortageMinutes,
+			startTime: shift.startTime,
+			endTime: shift.endTime,
+			endsNextDay: shift.endsNextDay
+		})
+		.from(dayResult)
+		.leftJoin(shift, eq(shift.id, dayResult.shiftId))
+		.where(and(gte(dayResult.shiftDate, from), lte(dayResult.shiftDate, to), scoped));
+	const byPerson = new Map<string, PayDay[]>();
+	for (const row of rows) {
+		const day: PayDay = {
+			requiredMinutes: row.requiredMinutes,
+			shiftHours:
+				row.startTime === null || row.endTime === null || row.endsNextDay === null
+					? null
+					: shiftHoursOf(row.startTime, row.endTime, row.endsNextDay),
+			paidOtMinutes: row.paidOtMinutes,
+			otRate: row.otRate,
+			shortageMinutes: row.shortageMinutes
+		};
+		const list = byPerson.get(row.staffId);
+		if (list) list.push(day);
+		else byPerson.set(row.staffId, [day]);
+	}
+	return byPerson;
 }

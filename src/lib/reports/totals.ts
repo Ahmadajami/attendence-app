@@ -264,3 +264,74 @@ export function personDayRows(days: readonly PersonDay[], dir: TotalsSortDir): P
 	if (dir === 'desc') sorted.reverse();
 	return sorted.map((day) => ({ ...day, reason: overtimeReason(day) }));
 }
+
+/** The pay plan's day rate divisor (RP7): the day rate is the monthly salary ÷ 30, always. */
+export const PAY_DAYS_PER_MONTH = 30;
+
+/** The day rate of a typed monthly salary (RP7). Frontend only: the salary is never stored (RP13). */
+export function dayRateOf(monthlySalary: number): number {
+	return monthlySalary / PAY_DAYS_PER_MONTH;
+}
+
+/** The base pay: the day rate × the work days in the range. The overtime and shortage parts are not here (R6 stops). */
+export function basePayOf(monthlySalary: number, workDays: number): number {
+	return dayRateOf(monthlySalary) * workDays;
+}
+
+/** Hours from a wall-clock shift `HH:MM[:SS]` to the same clock (next day when `endsNextDay`). */
+export function shiftHoursOf(startTime: string, endTime: string, endsNextDay: boolean): number {
+	const toMinutes = (clock: string) => {
+		const [hours, minutes] = clock.split(':').map(Number);
+		return hours * 60 + minutes;
+	};
+	const span = toMinutes(endTime) - toMinutes(startTime) + (endsNextDay ? 24 * 60 : 0);
+	return span / 60;
+}
+
+/**
+ * The hours a day's hour rate divides by (RP21, RP23): its required hours; on a day with none, the
+ * hours of the shift worked that day; `null` when neither exists (the hour rate is undefined).
+ */
+export function hourRateHours(requiredMinutes: number, shiftHours: number | null): number | null {
+	if (requiredMinutes > 0) return requiredMinutes / 60;
+	return shiftHours !== null && shiftHours > 0 ? shiftHours : null;
+}
+
+/** A day's pay inputs (R6): the minutes the coefficients use, and its shift hours. */
+export type PayDay = {
+	requiredMinutes: number;
+	shiftHours: number | null;
+	paidOtMinutes: number;
+	/** The day's overtime multiplier (`ot_rate`); `null` when nothing is paid. */
+	otRate: number | null;
+	shortageMinutes: number;
+};
+
+/**
+ * The two pay coefficients of a person for their days in the range (R6, RP19–RP23). The pay is
+ * `(monthly salary ÷ 30) × coefficient`, so the salary is never needed here:
+ * - `overtime`: each day's paid overtime (after the pro-rata cap, RP20) × its multiplier ÷ its hours;
+ * - `shortage`: each day's shortage ÷ its hours (the deduction, when the page's switch is on).
+ * Days with no hour rate (`hourRateHours` is `null`) are not eligible and not deducted.
+ */
+export function payCoefficients(
+	days: readonly PayDay[],
+	capPercent: number | null
+): { overtime: number; shortage: number; eligibleMinutes: number; cappedMinutes: number } {
+	const priced = days.flatMap((day) => {
+		const hours = hourRateHours(day.requiredMinutes, day.shiftHours);
+		return hours === null ? [] : [{ day, hours }];
+	});
+	const eligibleMinutes = priced.reduce((sum, { day }) => sum + day.paidOtMinutes, 0);
+	const requiredMinutes = days.reduce((sum, day) => sum + day.requiredMinutes, 0);
+	const cappedMinutes = capOvertimeMinutes(eligibleMinutes, requiredMinutes, capPercent);
+	// RP20: the cut is pro-rata, so each day keeps its share of its own minutes and multiplier.
+	const share = eligibleMinutes > 0 ? cappedMinutes / eligibleMinutes : 0;
+	let overtime = 0;
+	let shortage = 0;
+	for (const { day, hours } of priced) {
+		overtime += (share * day.paidOtMinutes * (day.otRate ?? 0)) / (60 * hours);
+		shortage += day.shortageMinutes / (60 * hours);
+	}
+	return { overtime, shortage, eligibleMinutes, cappedMinutes };
+}

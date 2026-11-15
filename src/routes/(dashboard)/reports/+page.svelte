@@ -13,6 +13,7 @@
 	import * as Select from '#lib/components/ui/select/index.js';
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
+	import { Switch } from '#lib/components/ui/switch/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import {
@@ -27,6 +28,8 @@
 		type TotalsSortKey
 	} from '#lib/reports/totals.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
+	import { basePayOf, dayRateOf } from '#lib/reports/totals.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { endSide, lookupName, personName } from '#lib/utils/locale.js';
 	import type { PersonDayRow } from '#lib/reports/totals.js';
 	import { goto } from '$app/navigation';
@@ -58,6 +61,54 @@
 				: page.teams.find((t) => t.id === id);
 		return row ? lookupName(row) : m.daily_scope_everyone();
 	};
+
+	/** The monthly salary typed per person (R6, RP13): kept only in this page's memory, never saved, never in the URL or the export. */
+	let salaries = $state<Record<string, number>>({});
+
+	/** The typed salary of a person, or `null` while the input is empty or negative. */
+	function salaryOf(staffId: string): number | null {
+		const value = salaries[staffId];
+		return typeof value === 'number' && value >= 0 ? value : null;
+	}
+
+	function moneyText(value: number) {
+		return new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 2 }).format(value);
+	}
+
+	/** The day rate: the typed salary ÷ 30; `—` while there is no salary. */
+	function dayRateText(staffId: string) {
+		const salary = salaryOf(staffId);
+		return salary === null ? '—' : moneyText(dayRateOf(salary));
+	}
+
+	/** The base pay: the day rate × the work days in the range (overtime and shortage are not in it yet). */
+	function basePayText(staffId: string, workDays: number) {
+		const salary = salaryOf(staffId);
+		return salary === null ? '—' : moneyText(basePayOf(salary, workDays));
+	}
+
+	/** The deduction switch (R6, RP22): off by default, frontend only, never in the URL or the export. */
+	let deductShortage = $state(false);
+
+	/** Overtime pay: the day rate × the person's overtime coefficient (RP19–RP23). */
+	function overtimePayText(staffId: string, coefficient: number) {
+		const salary = salaryOf(staffId);
+		return salary === null ? '—' : moneyText(dayRateOf(salary) * coefficient);
+	}
+
+	/** The shortage deduction: the day rate × the shortage coefficient, shown only when the switch is on. */
+	function deductionText(staffId: string, coefficient: number) {
+		const salary = salaryOf(staffId);
+		return salary === null ? '—' : moneyText(dayRateOf(salary) * coefficient);
+	}
+
+	/** The total: base pay + overtime pay − the deduction when the switch is on. */
+	function totalPayText(staffId: string, workDays: number, overtime: number, shortage: number) {
+		const salary = salaryOf(staffId);
+		if (salary === null) return '—';
+		const deduction = deductShortage ? dayRateOf(salary) * shortage : 0;
+		return moneyText(basePayOf(salary, workDays) + dayRateOf(salary) * overtime - deduction);
+	}
 
 	let filter: HTMLFormElement | undefined = $state();
 	/** The picked scope; follows the URL after each navigation. */
@@ -297,6 +348,12 @@
 		</div>
 	</form>
 
+	<!-- Outside the GET form on purpose: the switch is not in the URL or the export (RP22). -->
+	<div class="flex items-center gap-3">
+		<Switch id="reports-deduct" bind:checked={deductShortage} />
+		<Label for="reports-deduct">{m.reports_deduct_shortage()}</Label>
+	</div>
+
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>{m.reports_rows_title({ count: page.rows.length })}</Card.Title>
@@ -341,6 +398,14 @@
 						{#if page.cap !== null}
 							<Table.Head class="text-end">{m.reports_col_capped()}</Table.Head>
 						{/if}
+						<Table.Head class="text-end">{m.reports_col_salary()}</Table.Head>
+						<Table.Head class="text-end">{m.reports_col_day_rate()}</Table.Head>
+						<Table.Head class="text-end">{m.reports_col_base_pay()}</Table.Head>
+						<Table.Head class="text-end">{m.reports_col_overtime_pay()}</Table.Head>
+						{#if deductShortage}
+							<Table.Head class="text-end">{m.reports_col_deduction()}</Table.Head>
+						{/if}
+						<Table.Head class="text-end">{m.reports_col_total_pay()}</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -375,11 +440,48 @@
 									<bdi dir="ltr">{formatHoursMinutes(row.overtime.cappedMinutes)}</bdi>
 								</Table.Cell>
 							{/if}
+							<Table.Cell class="text-end">
+								<Input
+									type="number"
+									min="0"
+									step="any"
+									class="ms-auto w-32"
+									aria-label={m.reports_col_salary()}
+									bind:value={salaries[row.person.staffId]}
+								/>
+							</Table.Cell>
+							<Table.Cell class="text-end font-mono">
+								<bdi dir="ltr">{dayRateText(row.person.staffId)}</bdi>
+							</Table.Cell>
+							<Table.Cell class="text-end font-mono">
+								<bdi dir="ltr">{basePayText(row.person.staffId, row.totals.workDays)}</bdi>
+							</Table.Cell>
+							<Table.Cell class="text-end font-mono">
+								<bdi dir="ltr">{overtimePayText(row.person.staffId, row.pay.overtime)}</bdi>
+							</Table.Cell>
+							{#if deductShortage}
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{deductionText(row.person.staffId, row.pay.shortage)}</bdi>
+								</Table.Cell>
+							{/if}
+							<Table.Cell class="text-end font-mono">
+								<bdi dir="ltr"
+									>{totalPayText(
+										row.person.staffId,
+										row.totals.workDays,
+										row.pay.overtime,
+										row.pay.shortage
+									)}</bdi
+								>
+							</Table.Cell>
 						</Table.Row>
 					{:else}
 						<Table.Row>
 							<Table.Cell
-								colspan={page.columns.length + (page.cap !== null ? 2 : 1)}
+								colspan={page.columns.length +
+									6 +
+									(page.cap !== null ? 1 : 0) +
+									(deductShortage ? 1 : 0)}
 								class="h-20 text-center text-muted-foreground"
 							>
 								{m.reports_rows_empty()}

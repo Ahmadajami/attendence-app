@@ -11,6 +11,10 @@ import {
 	DEFAULT_TOTALS_COLUMNS,
 	monthRange,
 	parseTotalsCap,
+	basePayOf,
+	payCoefficients,
+	shiftHoursOf,
+	dayRateOf,
 	personDayRows,
 	parseTotalsColumns,
 	parseTotalsParams,
@@ -395,5 +399,67 @@ describe('the person sheet (R2)', () => {
 
 	it('a day with no shift keeps no shift', () => {
 		expect(personDayRows(days, 'asc')[2].shift).toBeNull();
+	});
+});
+
+describe('pay: day rate and base pay (R6, partial)', () => {
+	it('a monthly salary of 3000 gives a day rate of 100', () => {
+		expect(dayRateOf(3000)).toBe(100);
+	});
+
+	it('the base pay is the day rate times the work days', () => {
+		// A made-up person with 22 work days in the range.
+		expect(basePayOf(3000, 22)).toBe(2200);
+		expect(basePayOf(3000, 0)).toBe(0);
+	});
+});
+
+describe('overtime and shortage coefficients (R6, RP19–RP23)', () => {
+	// Made-up days: a 8-hour shift (480 required) and a 9-hour shift (540 required).
+	it('a shift that crosses midnight counts its real hours', () => {
+		expect(shiftHoursOf('22:00:00', '06:00:00', true)).toBe(8);
+		expect(shiftHoursOf('08:00:00', '17:00:00', false)).toBe(9);
+	});
+
+	it('two rosters: each day divides by its own hours, and the total is exact', () => {
+		const days = [
+			{ requiredMinutes: 480, shiftHours: 8, paidOtMinutes: 60, otRate: 1.2, shortageMinutes: 0 },
+			{ requiredMinutes: 540, shiftHours: 9, paidOtMinutes: 0, otRate: null, shortageMinutes: 90 }
+		];
+		const c = payCoefficients(days, null);
+		// 60 min × 1.2 ÷ 8 h, and 90 min shortage ÷ 9 h: a salary of 3000 (day rate 100) gives 15 and 16.67.
+		expect(c.overtime * 100).toBeCloseTo(15, 6);
+		expect(c.shortage * 100).toBeCloseTo(16.6667, 3);
+	});
+
+	it('a cap that cuts is pro-rata: each day keeps its share and its own multiplier', () => {
+		const days = [
+			{ requiredMinutes: 480, shiftHours: 8, paidOtMinutes: 60, otRate: 1.2, shortageMinutes: 0 },
+			{ requiredMinutes: 540, shiftHours: 9, paidOtMinutes: 120, otRate: 1.5, shortageMinutes: 0 }
+		];
+		// Required 1020 × 10 % = 102 of 180 eligible: each day keeps 102 ÷ 180.
+		const c = payCoefficients(days, 10);
+		expect(c.cappedMinutes).toBe(102);
+		const share = 102 / 180;
+		expect(c.overtime).toBeCloseTo(share * ((60 * 1.2) / (60 * 8) + (120 * 1.5) / (60 * 9)), 9);
+	});
+
+	it('an off day with no shift has no hour rate: not eligible, not deducted', () => {
+		const days = [
+			{ requiredMinutes: 0, shiftHours: null, paidOtMinutes: 60, otRate: 1.5, shortageMinutes: 30 }
+		];
+		expect(payCoefficients(days, null)).toEqual({
+			overtime: 0,
+			shortage: 0,
+			eligibleMinutes: 0,
+			cappedMinutes: 0
+		});
+	});
+
+	it('an off day with a shift worked uses that shift’s hours', () => {
+		const days = [
+			{ requiredMinutes: 0, shiftHours: 8, paidOtMinutes: 60, otRate: 1.5, shortageMinutes: 0 }
+		];
+		expect(payCoefficients(days, null).overtime * 100).toBeCloseTo(18.75, 6);
 	});
 });

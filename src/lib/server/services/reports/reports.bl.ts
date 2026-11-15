@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
 	parseTotalsColumns,
+	payCoefficients,
 	personDayRows,
 	totalsRange,
 	type PersonDayRow,
@@ -14,10 +15,16 @@ import { requireActorPermission, type Actor } from '../common.js';
 import type { PersonOption } from '#lib/attendance/person-search.js';
 import {
 	getPerson,
+	listPayDays,
 	listPersonDays,
 	listTotalsPeople,
 	type TotalsPersonRow
 } from './reports.crud.js';
+
+/** A person's row with the two pay coefficients of their days (R6): pay = (salary ÷ 30) × coefficient. */
+export type PayRow = TotalsPersonRow & {
+	pay: { overtime: number; shortage: number };
+};
 
 // The totals report service (task T1, decisions SP3, SP6): the page's and the Excel export's rows.
 // One row per person for any two dates and a scope, read-only. Viewing needs `staff.write`, the
@@ -53,7 +60,7 @@ export type TotalsPage = ScopeOptions & {
 	staffId: string | null;
 	/** The picked person for the combobox's label, if one is picked. */
 	person: PersonOption | null;
-	rows: TotalsPersonRow[];
+	rows: PayRow[];
 };
 
 const isDate = (value: string | null): value is string =>
@@ -68,11 +75,16 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 		isDate(filter.to) ? filter.to : null,
 		today
 	);
-	const [options, rows, person] = await Promise.all([
+	const [options, rows, person, payDays] = await Promise.all([
 		scopeOptions(),
 		listTotalsPeople(from, to, filter.scope, filter.sort, filter.q, filter.cap, filter.staffId),
-		filter.staffId ? getPerson(filter.staffId) : undefined
+		filter.staffId ? getPerson(filter.staffId) : undefined,
+		listPayDays(from, to, filter.scope)
 	]);
+	const payRows: PayRow[] = rows.map((row) => {
+		const c = payCoefficients(payDays.get(row.person.staffId) ?? [], filter.cap);
+		return { ...row, pay: { overtime: c.overtime, shortage: c.shortage } };
+	});
 	return {
 		...options,
 		from,
@@ -85,7 +97,7 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 		cap: filter.cap,
 		staffId: filter.staffId,
 		person: person ?? null,
-		rows
+		rows: payRows
 	};
 }
 

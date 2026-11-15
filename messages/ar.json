@@ -1649,5 +1649,22 @@
 	"attendance_rules_error_prayer_minutes": "أدخل دقائق صحيحة من 0 إلى 240.",
 	"attendance_rules_error_prayer_segments": "أدخل عدداً صحيحاً من 1 إلى 10.",
 	"attendance_rules_error_same_date": "توجد نسخة تبدأ في هذا التاريخ.",
-	"attendance_rules_error_later": "توجد نسخة لاحقة: اختر تاريخاً بعدها."
+	"attendance_rules_error_later": "توجد نسخة لاحقة: اختر تاريخاً بعدها.",
+	"reports_title": "الإجماليات",
+	"reports_description": "صف لكل شخص بين أي تاريخين، بمجاميع أيامه المحفوظة. كل رقم يفتح صفحة الحضور اليومي لهذا الشخص في هذه الأيام.",
+	"reports_quick_this_month": "هذا الشهر",
+	"reports_quick_pay_month": "من 21 إلى 20",
+	"reports_columns_label": "الأعمدة",
+	"reports_col_work_days": "أيام العمل",
+	"reports_col_required": "المطلوب",
+	"reports_col_worked": "وقت العمل",
+	"reports_col_overtime": "الإضافي",
+	"reports_col_late": "التأخير",
+	"reports_col_shortage": "النقص",
+	"reports_col_leave": "أيام الإجازة",
+	"reports_col_credit": "الرصيد",
+	"reports_rows_title": "{count} شخصاً",
+	"reports_rows_description": "صف لكل شخص: مجموع أيامه المحفوظة بين التاريخين.",
+	"reports_rows_empty": "لا توجد أيام محفوظة بين هذين التاريخين في هذا النطاق بعد.",
+	"reports_export": "Excel"
 }

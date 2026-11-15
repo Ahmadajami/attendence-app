@@ -1649,5 +1649,22 @@
 	"attendance_rules_error_prayer_minutes": "Enter whole minutes from 0 to 240.",
 	"attendance_rules_error_prayer_segments": "Enter a whole number from 1 to 10.",
 	"attendance_rules_error_same_date": "A version already starts on this date.",
-	"attendance_rules_error_later": "A later version exists: pick a date after it."
+	"attendance_rules_error_later": "A later version exists: pick a date after it.",
+	"reports_title": "Totals",
+	"reports_description": "One row per person for any two dates, with the sums of their stored days. Every number opens the daily page for that person and those dates.",
+	"reports_quick_this_month": "This month",
+	"reports_quick_pay_month": "21 → 20",
+	"reports_columns_label": "Columns",
+	"reports_col_work_days": "Work days",
+	"reports_col_required": "Required",
+	"reports_col_worked": "Worked",
+	"reports_col_overtime": "Overtime",
+	"reports_col_late": "Late",
+	"reports_col_shortage": "Shortage",
+	"reports_col_leave": "Leave days",
+	"reports_col_credit": "Credit",
+	"reports_rows_title": "{count} people",
+	"reports_rows_description": "One row per person: the sums of their stored days between the two dates.",
+	"reports_rows_empty": "No stored days between these dates for this scope yet.",
+	"reports_export": "Excel"
 }

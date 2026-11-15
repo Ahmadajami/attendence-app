@@ -3,6 +3,7 @@ import BriefcaseIcon from 'phosphor-svelte/lib/BriefcaseIcon';
 import BuildingsIcon from 'phosphor-svelte/lib/BuildingsIcon';
 import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
 import CalendarDotsIcon from 'phosphor-svelte/lib/CalendarDotsIcon';
+import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
 import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 import FingerprintIcon from 'phosphor-svelte/lib/FingerprintIcon';
 import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
@@ -52,6 +53,12 @@ export const dashboardNav: NavItem[] = [
 		path: '/attendance/days',
 		label: m.nav_attendance_days,
 		icon: CalendarCheckIcon,
+		permission: 'staff.write'
+	},
+	{
+		path: '/reports',
+		label: m.nav_reports,
+		icon: ChartBarIcon,
 		permission: 'staff.write'
 	},
 	{

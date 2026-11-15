@@ -1,15 +1,23 @@
 import { z } from 'zod';
 import {
 	parseTotalsColumns,
+	personDayRows,
 	totalsRange,
+	type PersonDayRow,
 	type TotalsColumn,
-	type TotalsSort
+	type TotalsSort,
+	type TotalsSortDir
 } from '#lib/reports/totals.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import { scopeOptions, type EntryScope, type ScopeOptions } from '../attendance/attendance.bl.js';
 import { requireActorPermission, type Actor } from '../common.js';
 import type { PersonOption } from '#lib/attendance/person-search.js';
-import { getPerson, listTotalsPeople, type TotalsPersonRow } from './reports.crud.js';
+import {
+	getPerson,
+	listPersonDays,
+	listTotalsPeople,
+	type TotalsPersonRow
+} from './reports.crud.js';
 
 // The totals report service (task T1, decisions SP3, SP6): the page's and the Excel export's rows.
 // One row per person for any two dates and a scope, read-only. Viewing needs `staff.write`, the
@@ -79,4 +87,28 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 		person: person ?? null,
 		rows
 	};
+}
+
+/** The person sheet (R2): one person's days in the range, with their reason, and the sort. */
+export type PersonSheet = {
+	person: PersonOption;
+	dir: TotalsSortDir;
+	days: PersonDayRow[];
+};
+
+/**
+ * One person's days in `[from, to]` and the scope (the same scope as the table), by date in `dir`
+ * order. Read-only, `staff.write`. `null` when there is no such person.
+ */
+export async function getPersonDays(
+	actor: Actor,
+	filter: { staffId: string; from: string; to: string; scope: EntryScope; dir: TotalsSortDir }
+): Promise<PersonSheet | null> {
+	requireActorPermission(actor, 'staff.write');
+	const [person, days] = await Promise.all([
+		getPerson(filter.staffId),
+		listPersonDays(filter.staffId, filter.from, filter.to, filter.scope)
+	]);
+	if (!person) return null;
+	return { person, dir: filter.dir, days: personDayRows(days, filter.dir) };
 }

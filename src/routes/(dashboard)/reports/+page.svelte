@@ -4,12 +4,14 @@
 	import ArrowUpIcon from 'phosphor-svelte/lib/ArrowUpIcon';
 	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
 	import PersonCombobox from '#lib/app/attendance/PersonCombobox.svelte';
+	import { formatCalendarDate } from '#lib/app/roster/labels.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
+	import * as Sheet from '#lib/components/ui/sheet/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -25,12 +27,16 @@
 		type TotalsSortKey
 	} from '#lib/reports/totals.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
-	import { lookupName, personName } from '#lib/utils/locale.js';
+	import { endSide, lookupName, personName } from '#lib/utils/locale.js';
+	import type { PersonDayRow } from '#lib/reports/totals.js';
+	import { goto } from '$app/navigation';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	const page = $derived(data.page);
+	/** The person sheet (R2), open while `person=<id>` is in the URL. */
+	const sheet = $derived(data.personSheet);
 	const ALL = 'all';
 	/** The picked person and the text search, as the combobox posts them (`staff`, `q`). */
 	let staff = $derived(page.staffId ?? '');
@@ -120,6 +126,41 @@
 	/** The daily page of this person and the shown dates: what every number opens. */
 	function daysHref(staffId: string) {
 		return `${localizedHref('/attendance/days')}?from=${encodeURIComponent(page.from)}&to=${encodeURIComponent(page.to)}&staff=${encodeURIComponent(staffId)}`;
+	}
+
+	/** A name opens the person sheet for that person, with the shown dates, scope and filters. */
+	function personHref(staffId: string) {
+		return `${localizedHref('/reports')}?${queryOf()}&person=${encodeURIComponent(staffId)}`;
+	}
+
+	/** The sheet's day sort: the same sheet, the other direction. */
+	function sheetSortHref(dir: TotalsSortDir) {
+		const staffId = sheet?.person.staffId ?? '';
+		return `${localizedHref('/reports')}?${queryOf()}&person=${encodeURIComponent(staffId)}&pdir=${dir}`;
+	}
+
+	/** Closing the sheet removes only `person` and `pdir` from the URL. */
+	function closeSheet(open: boolean) {
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- localizedHref resolves it
+		if (!open) void goto(`${localizedHref('/reports')}?${queryOf()}`, { reset: false });
+	}
+
+	/** The plain reason of a day's overtime (RP6): never an absence type or a health detail. */
+	function reasonText(day: PersonDayRow): string {
+		switch (day.reason) {
+			case 'paid':
+				return m.reports_ot_reason_paid({ rate: String(day.otRate ?? '') });
+			case 'ot_off':
+				return m.reports_ot_reason_ot_off();
+			case 'person_no_ot':
+				return m.reports_ot_reason_person_no_ot();
+			case 'holiday_not_eligible':
+				return m.reports_ot_reason_holiday_not_eligible();
+			case 'absence':
+				return m.reports_ot_reason_absence();
+			case 'none':
+				return m.reports_ot_reason_none();
+		}
 	}
 
 	/** A cell's text: day counts as they are, minutes as `h:mm`. */
@@ -293,8 +334,13 @@
 						{const href = $derived(daysHref(row.person.staffId))}
 						<Table.Row>
 							<Table.Cell>
-								<!-- Opens the daily page filtered to this person and the shown dates. -->
-								<Button variant="link" class="h-auto p-0 font-medium" {href}>
+								<!-- A name opens the person sheet (R2); the numbers open the daily page. -->
+								<Button
+									variant="link"
+									class="h-auto p-0 font-medium"
+									href={personHref(row.person.staffId)}
+									data-sveltekit-noscroll
+								>
 									{personName(row.person)}
 								</Button>
 								<div>
@@ -326,3 +372,87 @@
 		</Card.Content>
 	</Card.Root>
 </section>
+
+{#if sheet}
+	<Sheet.Root open onOpenChange={closeSheet}>
+		<Sheet.Content side={endSide()} class="w-full overflow-y-auto sm:max-w-5xl">
+			<Sheet.Header>
+				<Sheet.Title>{personName(sheet.person)}</Sheet.Title>
+				<Sheet.Description>{m.reports_sheet_description()}</Sheet.Description>
+			</Sheet.Header>
+			<div class="overflow-x-auto px-4 pb-4">
+				<Table.Root>
+					<Table.Header>
+						<Table.Row>
+							<Table.Head aria-sort={sheet.dir === 'asc' ? 'ascending' : 'descending'}>
+								<Button
+									variant="ghost"
+									size="sm"
+									class="-ms-2"
+									href={sheetSortHref(sheet.dir === 'asc' ? 'desc' : 'asc')}
+									data-sveltekit-noscroll
+								>
+									{m.reports_sheet_col_day()}
+									{#if sheet.dir === 'asc'}
+										<ArrowUpIcon data-icon="inline-end" />
+									{:else}
+										<ArrowDownIcon data-icon="inline-end" />
+									{/if}
+								</Button>
+							</Table.Head>
+							<Table.Head>{m.reports_sheet_col_shift()}</Table.Head>
+							<Table.Head class="text-end">{TOTALS_COLUMN_LABEL.requiredMinutes()}</Table.Head>
+							<Table.Head class="text-end">{TOTALS_COLUMN_LABEL.workedMinutes()}</Table.Head>
+							<Table.Head class="text-end">{TOTALS_COLUMN_LABEL.overtimeMinutes()}</Table.Head>
+							<Table.Head class="text-end">{m.reports_sheet_col_paid()}</Table.Head>
+							<Table.Head class="text-end">{m.reports_sheet_col_unpaid()}</Table.Head>
+							<Table.Head class="text-end">{TOTALS_COLUMN_LABEL.lateMinutes()}</Table.Head>
+							<Table.Head class="text-end">{TOTALS_COLUMN_LABEL.shortageMinutes()}</Table.Head>
+							<Table.Head>{m.reports_sheet_col_reason()}</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body>
+						{#each sheet.days as day (day.shiftDate)}
+							<Table.Row>
+								<Table.Cell>
+									<bdi>{formatCalendarDate(day.shiftDate)}</bdi>
+								</Table.Cell>
+								<Table.Cell>{day.shift ? lookupName(day.shift) : '—'}</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(day.requiredMinutes)}</bdi>
+								</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">
+										{day.workedMinutes === null ? '—' : formatHoursMinutes(day.workedMinutes)}
+									</bdi>
+								</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(day.overtimeMinutes)}</bdi>
+								</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(day.paidOtMinutes)}</bdi>
+								</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(day.unpaidExtraMinutes)}</bdi>
+								</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(day.lateMinutes)}</bdi>
+								</Table.Cell>
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(day.shortageMinutes)}</bdi>
+								</Table.Cell>
+								<Table.Cell class="whitespace-normal">{reasonText(day)}</Table.Cell>
+							</Table.Row>
+						{:else}
+							<Table.Row>
+								<Table.Cell colspan={10} class="h-20 text-center text-muted-foreground">
+									{m.reports_sheet_empty()}
+								</Table.Cell>
+							</Table.Row>
+						{/each}
+					</Table.Body>
+				</Table.Root>
+			</div>
+		</Sheet.Content>
+	</Sheet.Root>
+{/if}

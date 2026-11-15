@@ -1668,5 +1668,18 @@
 	"reports_rows_description": "صف لكل شخص: مجموع أيامه المحفوظة بين التاريخين.",
 	"reports_rows_empty": "لا توجد أيام محفوظة بين هذين التاريخين في هذا النطاق بعد.",
 	"reports_export": "Excel",
-	"reports_search_label": "بحث"
+	"reports_search_label": "بحث",
+	"reports_sheet_description": "كل يوم محفوظ لهذا الشخص في تواريخ التقرير. للقراءة فقط: الأرقام هي النتائج المحفوظة لليوم.",
+	"reports_sheet_col_day": "اليوم",
+	"reports_sheet_col_shift": "الوردية",
+	"reports_sheet_col_paid": "الإضافي المدفوع",
+	"reports_sheet_col_unpaid": "الإضافي غير المدفوع",
+	"reports_sheet_col_reason": "سبب الإضافي",
+	"reports_sheet_empty": "لا توجد أيام محفوظة لهذا الشخص في هذه التواريخ.",
+	"reports_ot_reason_paid": "مدفوع كإضافي بمعدل ×{rate}.",
+	"reports_ot_reason_ot_off": "غير مدفوع: الإضافي متوقف لهذا النمط.",
+	"reports_ot_reason_person_no_ot": "غير مدفوع: هذا الشخص غير مؤهل للإضافي.",
+	"reports_ot_reason_holiday_not_eligible": "غير مدفوع: هذه العطلة غير مؤهلة للإضافي.",
+	"reports_ot_reason_absence": "غير مدفوع: يوم إجازة.",
+	"reports_ot_reason_none": "لا يوجد وقت إضافي."
 }

@@ -1668,5 +1668,18 @@
 	"reports_rows_description": "One row per person: the sums of their stored days between the two dates.",
 	"reports_rows_empty": "No stored days between these dates for this scope yet.",
 	"reports_export": "Excel",
-	"reports_search_label": "Search"
+	"reports_search_label": "Search",
+	"reports_sheet_description": "Each stored day of this person in the report's dates. Read-only: the figures are the day's stored results.",
+	"reports_sheet_col_day": "Day",
+	"reports_sheet_col_shift": "Shift",
+	"reports_sheet_col_paid": "Paid extra",
+	"reports_sheet_col_unpaid": "Unpaid extra",
+	"reports_sheet_col_reason": "Overtime reason",
+	"reports_sheet_empty": "No stored days for this person in these dates.",
+	"reports_ot_reason_paid": "Paid as overtime at ×{rate}.",
+	"reports_ot_reason_ot_off": "Not paid: overtime is off for this pattern.",
+	"reports_ot_reason_person_no_ot": "Not paid: this person is not eligible for overtime.",
+	"reports_ot_reason_holiday_not_eligible": "Not paid: this holiday is not overtime-eligible.",
+	"reports_ot_reason_absence": "Not paid: a leave day.",
+	"reports_ot_reason_none": "No extra time."
 }

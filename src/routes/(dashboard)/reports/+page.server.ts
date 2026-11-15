@@ -1,8 +1,8 @@
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import type { Actor } from '#lib/server/services/common.js';
 import { parseScope, parseStaffId } from '#lib/server/services/daily/daily.bl.js';
-import { parseTotalsParams } from '#lib/reports/totals.js';
-import { getTotals } from '#lib/server/services/reports/reports.bl.js';
+import { parseTotalsDir, parseTotalsParams } from '#lib/reports/totals.js';
+import { getPersonDays, getTotals } from '#lib/server/services/reports/reports.bl.js';
 import type { PageServerLoad } from './$types';
 
 // The totals report `/reports` (task T1, decisions SP3, SP6). The filters live in the URL (a GET
@@ -26,5 +26,16 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		cap,
 		staffId: parseStaffId(url.searchParams.get('staff'))
 	});
-	return { page };
+	// The person sheet (R2): `person=<id>` opens it, `pdir` sorts its days; same dates and scope.
+	const staffId = parseStaffId(url.searchParams.get('person'));
+	const personSheet = staffId
+		? await getPersonDays(actor, {
+				staffId,
+				from: page.from,
+				to: page.to,
+				scope: page.scope,
+				dir: parseTotalsDir(url.searchParams.get('pdir'))
+			})
+		: null;
+	return { page, personSheet };
 };

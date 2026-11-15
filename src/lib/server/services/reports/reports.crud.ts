@@ -2,13 +2,14 @@ import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from 
 import { containsPattern } from '#lib/attendance/person-search.js';
 import {
 	capOvertimeMinutes,
+	type PersonDay,
 	type PersonTotals,
 	type TotalsColumn,
 	type TotalsSort
 } from '#lib/reports/totals.js';
 import { descendantIds } from '#lib/workforce/departments.js';
 import { db } from '#lib/server/db/index.js';
-import { dayResult, staff, team } from '#lib/server/db/schema/index.js';
+import { dayResult, shift, staff, team } from '#lib/server/db/schema/index.js';
 import type { EntryScope } from '../attendance/attendance.bl.js';
 import { listDepartmentRows } from '../departments/departments.crud.js';
 
@@ -33,6 +34,68 @@ const personColumns = {
 	fullName: staff.fullName,
 	fullNameAr: staff.fullNameAr
 };
+
+/**
+ * The days a scope keeps (the same rule for the table and the person sheet, R2): a team scope by
+ * `day_result.team_id`; a department scope through its teams and sub-departments; none: `undefined`.
+ */
+export async function scopeFilter(scope: EntryScope): Promise<SQL | undefined> {
+	if (scope && 'teamId' in scope) return eq(dayResult.teamId, scope.teamId);
+	if (!scope) return undefined;
+	const departments = await listDepartmentRows();
+	const ids = [scope.departmentId, ...descendantIds(departments, scope.departmentId)];
+	return inArray(
+		dayResult.teamId,
+		db.select({ id: team.id }).from(team).where(inArray(team.departmentId, ids))
+	);
+}
+
+/**
+ * One person's stored days on `[from, to]` in the scope, oldest first (R2). Reads only; the shift
+ * is `null` on a day without one.
+ */
+export async function listPersonDays(
+	staffId: string,
+	from: string,
+	to: string,
+	scope: EntryScope
+): Promise<PersonDay[]> {
+	const scoped = await scopeFilter(scope);
+	const rows = await db
+		.select({
+			shiftDate: dayResult.shiftDate,
+			shiftCode: shift.code,
+			shiftNameEn: shift.nameEn,
+			shiftNameAr: shift.nameAr,
+			requiredMinutes: dayResult.requiredMinutes,
+			workedMinutes: dayResult.workedMinutes,
+			overtimeMinutes: dayResult.overtimeMinutes,
+			paidOtMinutes: dayResult.paidOtMinutes,
+			unpaidExtraMinutes: dayResult.unpaidExtraMinutes,
+			unpaidReason: dayResult.unpaidReason,
+			otRate: dayResult.otRate,
+			lateMinutes: dayResult.lateMinutes,
+			shortageMinutes: dayResult.shortageMinutes
+		})
+		.from(dayResult)
+		.leftJoin(shift, eq(shift.id, dayResult.shiftId))
+		.where(
+			and(
+				eq(dayResult.staffId, staffId),
+				gte(dayResult.shiftDate, from),
+				lte(dayResult.shiftDate, to),
+				scoped
+			)
+		)
+		.orderBy(asc(dayResult.shiftDate));
+	return rows.map(({ shiftCode, shiftNameEn, shiftNameAr, ...day }) => ({
+		...day,
+		shift:
+			shiftCode === null || shiftNameEn === null || shiftNameAr === null
+				? null
+				: { code: shiftCode, nameEn: shiftNameEn, nameAr: shiftNameAr }
+	}));
+}
 
 /** One person's row, or `undefined`: the picked person's details for the combobox's label. */
 export async function getPerson(staffId: string) {
@@ -66,17 +129,7 @@ export async function listTotalsPeople(
 	capPercent: number | null,
 	staffId: string | null
 ): Promise<TotalsPersonRow[]> {
-	let scoped: SQL | undefined;
-	if (scope && 'teamId' in scope) {
-		scoped = eq(dayResult.teamId, scope.teamId);
-	} else if (scope) {
-		const departments = await listDepartmentRows();
-		const ids = [scope.departmentId, ...descendantIds(departments, scope.departmentId)];
-		scoped = inArray(
-			dayResult.teamId,
-			db.select({ id: team.id }).from(team).where(inArray(team.departmentId, ids))
-		);
-	}
+	const scoped = await scopeFilter(scope);
 
 	let searched: SQL | undefined;
 	if (q !== '') {

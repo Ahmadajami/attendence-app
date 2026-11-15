@@ -1,5 +1,5 @@
 import { m } from '#lib/paraglide/messages.js';
-import type { AbsenceType, DayKind } from '#lib/schemas/enums.js';
+import type { AbsenceType, DayKind, UnpaidReason } from '#lib/schemas/enums.js';
 
 // The totals report `/reports` (task T1, decisions SP3, SP6): one row per person for any two dates,
 // summed from `day_result`. Pure, so it is tested without a database; `reports.crud.ts` sums the
@@ -216,4 +216,51 @@ export function parseTotalsParams(params: URLSearchParams) {
 		cap: parseTotalsCap(params.get('cap')),
 		columns: params.getAll('col')
 	};
+}
+
+/** A sort direction for the rows of the person sheet (R2): `desc` only when the URL says so. */
+export function parseTotalsDir(value: string | null): TotalsSortDir {
+	return value === 'desc' ? 'desc' : 'asc';
+}
+
+/** One stored day of a person, for the person sheet (R2). Absence type is left out on purpose (RP6). */
+export type PersonDay = {
+	shiftDate: string;
+	shift: { code: string; nameEn: string; nameAr: string } | null;
+	requiredMinutes: number;
+	/** `null` until checked out. */
+	workedMinutes: number | null;
+	overtimeMinutes: number;
+	paidOtMinutes: number;
+	unpaidExtraMinutes: number;
+	unpaidReason: UnpaidReason | null;
+	/** The rate the paid overtime earns; `null` when nothing is paid. */
+	otRate: number | null;
+	lateMinutes: number;
+	shortageMinutes: number;
+};
+
+/**
+ * Why a day's overtime is what it is, as a message key (RP6): `paid` when some extra minutes are
+ * paid; else the unpaid reason; `none` when there are no unpaid extra minutes either.
+ */
+export type OvertimeReasonKey = 'paid' | 'none' | UnpaidReason;
+
+export function overtimeReason(
+	day: Pick<PersonDay, 'paidOtMinutes' | 'unpaidExtraMinutes' | 'unpaidReason'>
+): OvertimeReasonKey {
+	if (day.paidOtMinutes > 0) return 'paid';
+	if (day.unpaidExtraMinutes > 0 && day.unpaidReason !== null) return day.unpaidReason;
+	return 'none';
+}
+
+export type PersonDayRow = PersonDay & { reason: OvertimeReasonKey };
+
+/** The person's days with their reason, by date in `dir` order (asc: oldest first). */
+export function personDayRows(days: readonly PersonDay[], dir: TotalsSortDir): PersonDayRow[] {
+	const sorted = [...days].sort((a, b) =>
+		a.shiftDate < b.shiftDate ? -1 : a.shiftDate > b.shiftDate ? 1 : 0
+	);
+	if (dir === 'desc') sorted.reverse();
+	return sorted.map((day) => ({ ...day, reason: overtimeReason(day) }));
 }

@@ -11,6 +11,7 @@ import {
 	DEFAULT_TOTALS_COLUMNS,
 	monthRange,
 	parseTotalsCap,
+	personDayRows,
 	parseTotalsColumns,
 	parseTotalsParams,
 	parseTotalsSearch,
@@ -18,6 +19,7 @@ import {
 	payMonthRange,
 	sumTotalsDays,
 	totalsRange,
+	type PersonDay,
 	type TotalsDay
 } from './totals.js';
 
@@ -303,5 +305,95 @@ describe('overtime eligibility and the cap (R7)', () => {
 		expect(resolved.sources.workDayRate).toBe('pattern');
 		expect(resolved.sources.offDayRate).toBe('default');
 		expect(overtimePay('work', 60, resolved.rule).rate).toBe(1.2);
+	});
+});
+
+describe('the person sheet (R2)', () => {
+	// A made-up person with four made-up days, in shuffled order.
+	const days: PersonDay[] = [
+		{
+			shiftDate: '2026-11-04',
+			shift: null,
+			requiredMinutes: 0,
+			workedMinutes: 120,
+			overtimeMinutes: 120,
+			paidOtMinutes: 0,
+			unpaidExtraMinutes: 120,
+			unpaidReason: 'ot_off',
+			otRate: null,
+			lateMinutes: 0,
+			shortageMinutes: 0
+		},
+		{
+			shiftDate: '2026-11-02',
+			shift: { code: 'A1', nameEn: 'Made-up A', nameAr: 'وردية وهمية أ' },
+			requiredMinutes: 480,
+			workedMinutes: 540,
+			overtimeMinutes: 60,
+			paidOtMinutes: 60,
+			unpaidExtraMinutes: 0,
+			unpaidReason: null,
+			otRate: 1.2,
+			lateMinutes: 0,
+			shortageMinutes: 0
+		},
+		{
+			shiftDate: '2026-11-05',
+			shift: { code: 'A1', nameEn: 'Made-up A', nameAr: 'وردية وهمية أ' },
+			requiredMinutes: 480,
+			workedMinutes: 300,
+			overtimeMinutes: 0,
+			paidOtMinutes: 0,
+			unpaidExtraMinutes: 30,
+			unpaidReason: 'absence',
+			otRate: null,
+			lateMinutes: 0,
+			shortageMinutes: 180
+		},
+		{
+			shiftDate: '2026-11-03',
+			shift: { code: 'B2', nameEn: 'Made-up B', nameAr: 'وردية وهمية ب' },
+			requiredMinutes: 480,
+			workedMinutes: 480,
+			overtimeMinutes: 0,
+			paidOtMinutes: 0,
+			unpaidExtraMinutes: 0,
+			unpaidReason: null,
+			otRate: null,
+			lateMinutes: 15,
+			shortageMinutes: 0
+		}
+	];
+
+	it('oldest first: overtime and reason per day', () => {
+		const rows = personDayRows(days, 'asc');
+		expect(rows.map((r) => r.shiftDate)).toEqual([
+			'2026-11-02',
+			'2026-11-03',
+			'2026-11-04',
+			'2026-11-05'
+		]);
+		expect(rows.map((r) => [r.paidOtMinutes, r.unpaidExtraMinutes])).toEqual([
+			[60, 0],
+			[0, 0],
+			[0, 120],
+			[0, 30]
+		]);
+		expect(rows.map((r) => r.reason)).toEqual(['paid', 'none', 'ot_off', 'absence']);
+	});
+
+	it('newest first reverses the same rows', () => {
+		const rows = personDayRows(days, 'desc');
+		expect(rows.map((r) => r.shiftDate)).toEqual([
+			'2026-11-05',
+			'2026-11-04',
+			'2026-11-03',
+			'2026-11-02'
+		]);
+		expect(rows[3].reason).toBe('paid');
+	});
+
+	it('a day with no shift keeps no shift', () => {
+		expect(personDayRows(days, 'asc')[2].shift).toBeNull();
 	});
 });

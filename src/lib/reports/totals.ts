@@ -53,6 +53,7 @@ export const TOTALS_COLUMNS = [
 	'overtimeMinutes',
 	'lateMinutes',
 	'shortageMinutes',
+	'balanceMinutes',
 	'leaveDays',
 	'creditMinutes'
 ] as const;
@@ -66,6 +67,7 @@ export const DEFAULT_TOTALS_COLUMNS: readonly TotalsColumn[] = [
 	'overtimeMinutes',
 	'lateMinutes',
 	'shortageMinutes',
+	'balanceMinutes',
 	'leaveDays'
 ];
 
@@ -80,6 +82,7 @@ export const TOTALS_COLUMN_LABEL: Record<TotalsColumn, () => string> = {
 	overtimeMinutes: m.reports_col_overtime,
 	lateMinutes: m.reports_col_late,
 	shortageMinutes: m.reports_col_shortage,
+	balanceMinutes: m.reports_col_balance,
 	leaveDays: m.reports_col_leave,
 	creditMinutes: m.reports_col_credit
 };
@@ -119,6 +122,7 @@ export type PersonTotals = {
 	overtimeMinutes: number;
 	lateMinutes: number;
 	shortageMinutes: number;
+	balanceMinutes: number;
 	creditMinutes: number;
 };
 
@@ -130,6 +134,7 @@ const EMPTY_TOTALS: PersonTotals = {
 	overtimeMinutes: 0,
 	lateMinutes: 0,
 	shortageMinutes: 0,
+	balanceMinutes: 0,
 	creditMinutes: 0
 };
 
@@ -148,6 +153,8 @@ export function sumTotalsDays(days: readonly TotalsDay[]): PersonTotals {
 		totals.overtimeMinutes += day.overtimeMinutes;
 		totals.lateMinutes += day.lateMinutes;
 		totals.shortageMinutes += day.shortageMinutes;
+		// RP15: balance = overtime − shortage.
+		totals.balanceMinutes += day.overtimeMinutes - day.shortageMinutes;
 		totals.creditMinutes += day.creditMinutes;
 	}
 	return totals;
@@ -305,6 +312,8 @@ export type PayDay = {
 	/** The day's overtime multiplier (`ot_rate`); `null` when nothing is paid. */
 	otRate: number | null;
 	shortageMinutes: number;
+	/** Credit left after the shortage: paid as extra time at the hour rate, not as overtime (RP24). */
+	creditExtraMinutes: number;
 };
 
 /**
@@ -317,7 +326,13 @@ export type PayDay = {
 export function payCoefficients(
 	days: readonly PayDay[],
 	capPercent: number | null
-): { overtime: number; shortage: number; eligibleMinutes: number; cappedMinutes: number } {
+): {
+	overtime: number;
+	shortage: number;
+	credit: number;
+	eligibleMinutes: number;
+	cappedMinutes: number;
+} {
 	const priced = days.flatMap((day) => {
 		const hours = hourRateHours(day.requiredMinutes, day.shiftHours);
 		return hours === null ? [] : [{ day, hours }];
@@ -329,9 +344,12 @@ export function payCoefficients(
 	const share = eligibleMinutes > 0 ? cappedMinutes / eligibleMinutes : 0;
 	let overtime = 0;
 	let shortage = 0;
+	let credit = 0;
 	for (const { day, hours } of priced) {
 		overtime += (share * day.paidOtMinutes * (day.otRate ?? 0)) / (60 * hours);
 		shortage += day.shortageMinutes / (60 * hours);
+		// RP24: the credit left over is paid at the hour rate, with no multiplier and no cap.
+		credit += day.creditExtraMinutes / (60 * hours);
 	}
-	return { overtime, shortage, eligibleMinutes, cappedMinutes };
+	return { overtime, shortage, credit, eligibleMinutes, cappedMinutes };
 }

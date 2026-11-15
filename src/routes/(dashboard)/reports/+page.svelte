@@ -102,12 +102,26 @@
 		return salary === null ? '—' : moneyText(dayRateOf(salary) * coefficient);
 	}
 
-	/** The total: base pay + overtime pay − the deduction when the switch is on. */
-	function totalPayText(staffId: string, workDays: number, overtime: number, shortage: number) {
+	/** The credit extra pay (RP24): the day rate × the credit coefficient, paid as extra time. */
+	function creditPayText(staffId: string, coefficient: number) {
+		const salary = salaryOf(staffId);
+		return salary === null ? '—' : moneyText(dayRateOf(salary) * coefficient);
+	}
+
+	/** The total: base pay + overtime pay + credit pay − the deduction when the switch is on. */
+	function totalPayText(
+		staffId: string,
+		workDays: number,
+		overtime: number,
+		shortage: number,
+		credit: number
+	) {
 		const salary = salaryOf(staffId);
 		if (salary === null) return '—';
 		const deduction = deductShortage ? dayRateOf(salary) * shortage : 0;
-		return moneyText(basePayOf(salary, workDays) + dayRateOf(salary) * overtime - deduction);
+		return moneyText(
+			basePayOf(salary, workDays) + dayRateOf(salary) * (overtime + credit) - deduction
+		);
 	}
 
 	let filter: HTMLFormElement | undefined = $state();
@@ -214,11 +228,17 @@
 		}
 	}
 
-	/** A cell's text: day counts as they are, minutes as `h:mm`. */
+	/** Signed minutes as `+h:mm` / `−h:mm`, the way the Odoo summary shows overtime and balance (RP15). */
+	function signedText(minutes: number) {
+		return `${minutes < 0 ? '−' : minutes > 0 ? '+' : ''}${formatHoursMinutes(Math.abs(minutes))}`;
+	}
+
+	/** A cell's text: day counts as they are, overtime and balance signed, other minutes as `h:mm`. */
 	function cellText(totals: PersonTotals, column: TotalsColumn) {
-		return COUNT_COLUMNS.includes(column)
-			? String(totals[column])
-			: formatHoursMinutes(totals[column]);
+		if (COUNT_COLUMNS.includes(column)) return String(totals[column]);
+		if (column === 'overtimeMinutes' || column === 'balanceMinutes')
+			return signedText(totals[column]);
+		return formatHoursMinutes(totals[column]);
 	}
 </script>
 
@@ -402,6 +422,7 @@
 						<Table.Head class="text-end">{m.reports_col_day_rate()}</Table.Head>
 						<Table.Head class="text-end">{m.reports_col_base_pay()}</Table.Head>
 						<Table.Head class="text-end">{m.reports_col_overtime_pay()}</Table.Head>
+						<Table.Head class="text-end">{m.reports_col_credit_pay()}</Table.Head>
 						{#if deductShortage}
 							<Table.Head class="text-end">{m.reports_col_deduction()}</Table.Head>
 						{/if}
@@ -459,27 +480,31 @@
 							<Table.Cell class="text-end font-mono">
 								<bdi dir="ltr">{overtimePayText(row.person.staffId, row.pay.overtime)}</bdi>
 							</Table.Cell>
+							<Table.Cell class="text-end font-mono">
+								<bdi dir="ltr">{creditPayText(row.person.staffId, row.pay.credit)}</bdi>
+							</Table.Cell>
 							{#if deductShortage}
 								<Table.Cell class="text-end font-mono">
 									<bdi dir="ltr">{deductionText(row.person.staffId, row.pay.shortage)}</bdi>
 								</Table.Cell>
 							{/if}
 							<Table.Cell class="text-end font-mono">
-								<bdi dir="ltr"
-									>{totalPayText(
+								<bdi dir="ltr">
+									{totalPayText(
 										row.person.staffId,
 										row.totals.workDays,
 										row.pay.overtime,
-										row.pay.shortage
-									)}</bdi
-								>
+										row.pay.shortage,
+										row.pay.credit
+									)}
+								</bdi>
 							</Table.Cell>
 						</Table.Row>
 					{:else}
 						<Table.Row>
 							<Table.Cell
 								colspan={page.columns.length +
-									6 +
+									7 +
 									(page.cap !== null ? 1 : 0) +
 									(deductShortage ? 1 : 0)}
 								class="h-20 text-center text-muted-foreground"

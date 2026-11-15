@@ -83,6 +83,7 @@ describe('sumTotalsDays', () => {
 			overtimeMinutes: 0,
 			lateMinutes: 30,
 			shortageMinutes: 30,
+			balanceMinutes: -30,
 			creditMinutes: 0
 		});
 	});
@@ -96,6 +97,7 @@ describe('sumTotalsDays', () => {
 			overtimeMinutes: 80,
 			lateMinutes: 0,
 			shortageMinutes: 0,
+			balanceMinutes: 80,
 			creditMinutes: 60
 		});
 	});
@@ -109,6 +111,7 @@ describe('sumTotalsDays', () => {
 			overtimeMinutes: 0,
 			lateMinutes: 0,
 			shortageMinutes: 60,
+			balanceMinutes: -60,
 			creditMinutes: 60
 		});
 	});
@@ -122,6 +125,7 @@ describe('sumTotalsDays', () => {
 			overtimeMinutes: 0,
 			lateMinutes: 0,
 			shortageMinutes: 0,
+			balanceMinutes: 0,
 			creditMinutes: 0
 		});
 	});
@@ -136,6 +140,7 @@ describe('sumTotalsDays', () => {
 			overtimeMinutes: a.overtimeMinutes + b.overtimeMinutes,
 			lateMinutes: a.lateMinutes + b.lateMinutes,
 			shortageMinutes: a.shortageMinutes + b.shortageMinutes,
+			balanceMinutes: a.balanceMinutes + b.balanceMinutes,
 			creditMinutes: a.creditMinutes + b.creditMinutes
 		});
 		expect(sumTotalsDays([...daysOfFirst, ...daysOfSecond, ...daysOfThird])).toEqual(
@@ -423,8 +428,22 @@ describe('overtime and shortage coefficients (R6, RP19–RP23)', () => {
 
 	it('two rosters: each day divides by its own hours, and the total is exact', () => {
 		const days = [
-			{ requiredMinutes: 480, shiftHours: 8, paidOtMinutes: 60, otRate: 1.2, shortageMinutes: 0 },
-			{ requiredMinutes: 540, shiftHours: 9, paidOtMinutes: 0, otRate: null, shortageMinutes: 90 }
+			{
+				requiredMinutes: 480,
+				shiftHours: 8,
+				paidOtMinutes: 60,
+				otRate: 1.2,
+				shortageMinutes: 0,
+				creditExtraMinutes: 0
+			},
+			{
+				requiredMinutes: 540,
+				shiftHours: 9,
+				paidOtMinutes: 0,
+				otRate: null,
+				shortageMinutes: 90,
+				creditExtraMinutes: 0
+			}
 		];
 		const c = payCoefficients(days, null);
 		// 60 min × 1.2 ÷ 8 h, and 90 min shortage ÷ 9 h: a salary of 3000 (day rate 100) gives 15 and 16.67.
@@ -434,8 +453,22 @@ describe('overtime and shortage coefficients (R6, RP19–RP23)', () => {
 
 	it('a cap that cuts is pro-rata: each day keeps its share and its own multiplier', () => {
 		const days = [
-			{ requiredMinutes: 480, shiftHours: 8, paidOtMinutes: 60, otRate: 1.2, shortageMinutes: 0 },
-			{ requiredMinutes: 540, shiftHours: 9, paidOtMinutes: 120, otRate: 1.5, shortageMinutes: 0 }
+			{
+				requiredMinutes: 480,
+				shiftHours: 8,
+				paidOtMinutes: 60,
+				otRate: 1.2,
+				shortageMinutes: 0,
+				creditExtraMinutes: 0
+			},
+			{
+				requiredMinutes: 540,
+				shiftHours: 9,
+				paidOtMinutes: 120,
+				otRate: 1.5,
+				shortageMinutes: 0,
+				creditExtraMinutes: 0
+			}
 		];
 		// Required 1020 × 10 % = 102 of 180 eligible: each day keeps 102 ÷ 180.
 		const c = payCoefficients(days, 10);
@@ -446,11 +479,19 @@ describe('overtime and shortage coefficients (R6, RP19–RP23)', () => {
 
 	it('an off day with no shift has no hour rate: not eligible, not deducted', () => {
 		const days = [
-			{ requiredMinutes: 0, shiftHours: null, paidOtMinutes: 60, otRate: 1.5, shortageMinutes: 30 }
+			{
+				requiredMinutes: 0,
+				shiftHours: null,
+				paidOtMinutes: 60,
+				otRate: 1.5,
+				shortageMinutes: 30,
+				creditExtraMinutes: 0
+			}
 		];
 		expect(payCoefficients(days, null)).toEqual({
 			overtime: 0,
 			shortage: 0,
+			credit: 0,
 			eligibleMinutes: 0,
 			cappedMinutes: 0
 		});
@@ -458,8 +499,65 @@ describe('overtime and shortage coefficients (R6, RP19–RP23)', () => {
 
 	it('an off day with a shift worked uses that shift’s hours', () => {
 		const days = [
-			{ requiredMinutes: 0, shiftHours: 8, paidOtMinutes: 60, otRate: 1.5, shortageMinutes: 0 }
+			{
+				requiredMinutes: 0,
+				shiftHours: 8,
+				paidOtMinutes: 60,
+				otRate: 1.5,
+				shortageMinutes: 0,
+				creditExtraMinutes: 0
+			}
 		];
 		expect(payCoefficients(days, null).overtime * 100).toBeCloseTo(18.75, 6);
+	});
+});
+
+describe('credit extra pay (RP24)', () => {
+	it('the credit left over is paid at the hour rate, not as overtime', () => {
+		// Made-up: an 8-hour work day with 10 min of credit left after the shortage.
+		const days = [
+			{
+				requiredMinutes: 480,
+				shiftHours: 8,
+				paidOtMinutes: 0,
+				otRate: null,
+				shortageMinutes: 0,
+				creditExtraMinutes: 10
+			}
+		];
+		const c = payCoefficients(days, null);
+		expect(c.credit).toBeCloseTo(10 / 60 / 8, 9);
+		expect(c.overtime).toBe(0);
+		expect(c.eligibleMinutes).toBe(0);
+	});
+});
+
+describe('balance (RP15)', () => {
+	it('balance is overtime minus shortage, and can be negative', () => {
+		// Made-up: 600 min overtime and 150 min shortage give +450 min.
+		const days: TotalsDay[] = [
+			{
+				kind: 'work',
+				absenceType: null,
+				requiredMinutes: 480,
+				workedMinutes: 1080,
+				overtimeMinutes: 600,
+				lateMinutes: 0,
+				shortageMinutes: 0,
+				creditMinutes: 0
+			},
+			{
+				kind: 'work',
+				absenceType: null,
+				requiredMinutes: 480,
+				workedMinutes: 330,
+				overtimeMinutes: 0,
+				lateMinutes: 0,
+				shortageMinutes: 150,
+				creditMinutes: 0
+			}
+		];
+		expect(sumTotalsDays(days).balanceMinutes).toBe(450);
+		expect(sumTotalsDays([days[1]]).balanceMinutes).toBe(-150);
 	});
 });

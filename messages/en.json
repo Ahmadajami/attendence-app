@@ -1669,6 +1669,8 @@
 	"reports_rows_empty": "No stored days between these dates for this scope yet.",
 	"reports_export": "Excel",
 	"reports_search_label": "Search",
+	"reports_col_balance": "Balance",
+	"reports_col_credit_pay": "Credit pay",
 	"reports_col_overtime_pay": "Overtime pay",
 	"reports_col_deduction": "Shortage deduction",
 	"reports_col_total_pay": "Total pay",

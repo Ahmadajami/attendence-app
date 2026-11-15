@@ -27,6 +27,8 @@ const totalsAggregates = {
 	overtimeMinutes: sql<number>`coalesce(sum(${dayResult.overtimeMinutes}), 0)::int`,
 	lateMinutes: sql<number>`coalesce(sum(${dayResult.lateMinutes}), 0)::int`,
 	shortageMinutes: sql<number>`coalesce(sum(${dayResult.shortageMinutes}), 0)::int`,
+	// RP15: balance = overtime − shortage, in the same SQL sums.
+	balanceMinutes: sql<number>`(coalesce(sum(${dayResult.overtimeMinutes}), 0) - coalesce(sum(${dayResult.shortageMinutes}), 0))::int`,
 	creditMinutes: sql<number>`coalesce(sum(${dayResult.creditMinutes}), 0)::int`
 } satisfies Record<TotalsColumn, SQL<number>>;
 
@@ -193,6 +195,7 @@ export async function listPayDays(
 			paidOtMinutes: dayResult.paidOtMinutes,
 			otRate: dayResult.otRate,
 			shortageMinutes: dayResult.shortageMinutes,
+			creditExtraMinutes: dayResult.creditExtraMinutes,
 			startTime: shift.startTime,
 			endTime: shift.endTime,
 			endsNextDay: shift.endsNextDay
@@ -210,7 +213,8 @@ export async function listPayDays(
 					: shiftHoursOf(row.startTime, row.endTime, row.endsNextDay),
 			paidOtMinutes: row.paidOtMinutes,
 			otRate: row.otRate,
-			shortageMinutes: row.shortageMinutes
+			shortageMinutes: row.shortageMinutes,
+			creditExtraMinutes: row.creditExtraMinutes
 		};
 		const list = byPerson.get(row.staffId);
 		if (list) list.push(day);

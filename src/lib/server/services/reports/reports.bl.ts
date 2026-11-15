@@ -23,7 +23,7 @@ import {
 
 /** A person's row with the two pay coefficients of their days (R6): pay = (salary ÷ 30) × coefficient. */
 export type PayRow = TotalsPersonRow & {
-	pay: { overtime: number; shortage: number };
+	pay: { overtime: number; shortage: number; credit: number };
 };
 
 // The totals report service (task T1, decisions SP3, SP6): the page's and the Excel export's rows.
@@ -83,7 +83,7 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 	]);
 	const payRows: PayRow[] = rows.map((row) => {
 		const c = payCoefficients(payDays.get(row.person.staffId) ?? [], filter.cap);
-		return { ...row, pay: { overtime: c.overtime, shortage: c.shortage } };
+		return { ...row, pay: { overtime: c.overtime, shortage: c.shortage, credit: c.credit } };
 	});
 	return {
 		...options,

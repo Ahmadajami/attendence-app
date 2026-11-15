@@ -3,6 +3,7 @@
 	import ArrowDownIcon from 'phosphor-svelte/lib/ArrowDownIcon';
 	import ArrowUpIcon from 'phosphor-svelte/lib/ArrowUpIcon';
 	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
+	import PersonCombobox from '#lib/app/attendance/PersonCombobox.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
@@ -31,6 +32,9 @@
 
 	const page = $derived(data.page);
 	const ALL = 'all';
+	/** The picked person and the text search, as the combobox posts them (`staff`, `q`). */
+	let staff = $derived(page.staffId ?? '');
+	let q = $derived(page.q);
 
 	const scopeValue = $derived(
 		!page.scope
@@ -83,6 +87,7 @@
 			['scope', scopeValue === ALL ? '' : scopeValue],
 			['sort', shown.sort],
 			['dir', shown.dir],
+			['staff', page.staffId ?? ''],
 			['q', page.q],
 			['cap', page.cap === null ? '' : String(page.cap)],
 			...page.columns.map((column) => ['col', column] as const)
@@ -147,6 +152,9 @@
 		<!-- The sort is kept by the form too, so changing a filter keeps the order. -->
 		<input type="hidden" name="sort" value={page.sort.key} />
 		<input type="hidden" name="dir" value={page.sort.dir} />
+		{#if page.cap !== null}
+			<input type="hidden" name="cap" value={page.cap} />
+		{/if}
 		<div class="flex flex-wrap items-end gap-3">
 			<div class="flex flex-col gap-2">
 				<Label for="reports-from">{m.daily_field_from()}</Label>
@@ -171,15 +179,15 @@
 				/>
 			</div>
 			<div class="flex flex-col gap-2">
-				<Label for="reports-q">{m.reports_search_label()}</Label>
-				<Input
-					id="reports-q"
-					type="search"
-					name="q"
-					value={page.q}
-					placeholder={m.reports_search_placeholder()}
-					onchange={apply}
+				<Label for="reports-person">{m.reports_search_label()}</Label>
+				<!-- Submits on a pick or a clear, like the daily page's person filter. -->
+				<PersonCombobox
+					id="reports-person"
 					class="w-64"
+					bind:staff
+					bind:q
+					person={page.person}
+					onchange={apply}
 				/>
 			</div>
 			<div class="flex flex-col gap-2">

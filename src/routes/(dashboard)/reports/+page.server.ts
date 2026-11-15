@@ -1,6 +1,6 @@
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import type { Actor } from '#lib/server/services/common.js';
-import { parseScope } from '#lib/server/services/daily/daily.bl.js';
+import { parseScope, parseStaffId } from '#lib/server/services/daily/daily.bl.js';
 import { parseTotalsParams } from '#lib/reports/totals.js';
 import { getTotals } from '#lib/server/services/reports/reports.bl.js';
 import type { PageServerLoad } from './$types';
@@ -23,7 +23,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		columns,
 		sort,
 		q,
-		cap
+		cap,
+		staffId: parseStaffId(url.searchParams.get('staff'))
 	});
 	return { page };
 };

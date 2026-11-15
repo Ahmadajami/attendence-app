@@ -3,7 +3,7 @@ import { m } from '#lib/paraglide/messages.js';
 import { parseTotalsParams, TOTALS_COLUMN_LABEL } from '#lib/reports/totals.js';
 import { requirePermission } from '#lib/server/rbac/guard.js';
 import type { Actor } from '#lib/server/services/common.js';
-import { parseScope } from '#lib/server/services/daily/daily.bl.js';
+import { parseScope, parseStaffId } from '#lib/server/services/daily/daily.bl.js';
 import { getTotals } from '#lib/server/services/reports/reports.bl.js';
 import { personName } from '#lib/utils/locale.js';
 import type { RequestHandler } from './$types';
@@ -25,7 +25,8 @@ export const GET: RequestHandler = async ({ locals, url, setHeaders }) => {
 		columns,
 		sort,
 		q,
-		cap
+		cap,
+		staffId: parseStaffId(url.searchParams.get('staff'))
 	});
 
 	const sheet = [

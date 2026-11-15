@@ -34,6 +34,12 @@ const personColumns = {
 	fullNameAr: staff.fullNameAr
 };
 
+/** One person's row, or `undefined`: the picked person's details for the combobox's label. */
+export async function getPerson(staffId: string) {
+	const [row] = await db.select(personColumns).from(staff).where(eq(staff.id, staffId));
+	return row;
+}
+
 /** One person's summed row of the totals report. */
 export type TotalsPersonRow = {
 	person: { staffId: string; employeeNo: string; fullName: string; fullNameAr: string | null };
@@ -57,7 +63,8 @@ export async function listTotalsPeople(
 	scope: EntryScope,
 	sort: TotalsSort,
 	q: string,
-	capPercent: number | null
+	capPercent: number | null,
+	staffId: string | null
 ): Promise<TotalsPersonRow[]> {
 	let scoped: SQL | undefined;
 	if (scope && 'teamId' in scope) {
@@ -92,7 +99,15 @@ export async function listTotalsPeople(
 		})
 		.from(dayResult)
 		.innerJoin(staff, eq(staff.id, dayResult.staffId))
-		.where(and(gte(dayResult.shiftDate, from), lte(dayResult.shiftDate, to), scoped, searched))
+		.where(
+			and(
+				gte(dayResult.shiftDate, from),
+				lte(dayResult.shiftDate, to),
+				scoped,
+				searched,
+				staffId ? eq(staff.id, staffId) : undefined
+			)
+		)
 		.groupBy(staff.id, staff.employeeNo, staff.fullName, staff.fullNameAr)
 		.orderBy(order(sortBy), asc(staff.fullName), asc(staff.employeeNo), asc(staff.id));
 	return rows.map(({ person, eligibleMinutes, ...totals }) => ({

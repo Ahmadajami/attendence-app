@@ -193,9 +193,6 @@
 		<!-- The sort is kept by the form too, so changing a filter keeps the order. -->
 		<input type="hidden" name="sort" value={page.sort.key} />
 		<input type="hidden" name="dir" value={page.sort.dir} />
-		{#if page.cap !== null}
-			<input type="hidden" name="cap" value={page.cap} />
-		{/if}
 		<div class="flex flex-wrap items-end gap-3">
 			<div class="flex flex-col gap-2">
 				<Label for="reports-from">{m.daily_field_from()}</Label>
@@ -256,6 +253,20 @@
 						</Select.Group>
 					</Select.Content>
 				</Select.Root>
+			</div>
+			<div class="flex flex-col gap-2">
+				<Label for="reports-cap">{m.reports_cap_label()}</Label>
+				<Input
+					id="reports-cap"
+					type="number"
+					name="cap"
+					min="0"
+					step="any"
+					value={page.cap ?? ''}
+					placeholder={m.reports_cap_placeholder()}
+					onchange={apply}
+					class="w-40"
+				/>
 			</div>
 			<!-- Quick ranges (SP6): navigation links, so they keep the scope and the columns. -->
 			<Button variant="outline" size="sm" href={quickHref(monthRange(page.today))}>
@@ -327,6 +338,9 @@
 								</Button>
 							</Table.Head>
 						{/each}
+						{#if page.cap !== null}
+							<Table.Head class="text-end">{m.reports_col_capped()}</Table.Head>
+						{/if}
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
@@ -356,11 +370,16 @@
 									</Button>
 								</Table.Cell>
 							{/each}
+							{#if page.cap !== null}
+								<Table.Cell class="text-end font-mono">
+									<bdi dir="ltr">{formatHoursMinutes(row.overtime.cappedMinutes)}</bdi>
+								</Table.Cell>
+							{/if}
 						</Table.Row>
 					{:else}
 						<Table.Row>
 							<Table.Cell
-								colspan={page.columns.length + 1}
+								colspan={page.columns.length + (page.cap !== null ? 2 : 1)}
 								class="h-20 text-center text-muted-foreground"
 							>
 								{m.reports_rows_empty()}

@@ -180,6 +180,29 @@ export function parseTotalsSearch(value: string | null): string {
 }
 
 /**
+ * The overtime cap the URL asks for (R7): a percent of the required minutes. Blank, missing or not a
+ * number from 0 up: `null`, which means no cap (RP17).
+ */
+export function parseTotalsCap(value: string | null): number | null {
+	if (value === null || value.trim() === '') return null;
+	const percent = Number(value);
+	return Number.isFinite(percent) && percent >= 0 ? percent : null;
+}
+
+/**
+ * The overtime minutes that count after the cap (RP10, RP17): with no cap, all of the eligible
+ * minutes; with a cap, the smaller of them and required × cap ÷ 100, in whole minutes (rounded down).
+ */
+export function capOvertimeMinutes(
+	eligibleMinutes: number,
+	requiredMinutes: number,
+	capPercent: number | null
+): number {
+	if (capPercent === null) return eligibleMinutes;
+	return Math.min(eligibleMinutes, Math.floor((requiredMinutes * capPercent) / 100));
+}
+
+/**
  * Everything the report reads from its URL (page and Excel export alike, so both show the same
  * rows): the dates, the sort, the search text and the chosen columns. The scope is parsed by the
  * caller, since it needs the daily page's parser.
@@ -190,6 +213,7 @@ export function parseTotalsParams(params: URLSearchParams) {
 		to: params.get('to'),
 		sort: parseTotalsSort(params.get('sort'), params.get('dir')),
 		q: parseTotalsSearch(params.get('q')),
+		cap: parseTotalsCap(params.get('cap')),
 		columns: params.getAll('col')
 	};
 }

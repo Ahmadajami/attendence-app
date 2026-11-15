@@ -24,6 +24,8 @@ export type TotalsFilter = {
 	sort: TotalsSort;
 	/** The search text, already trimmed (R1): name or employee number. Empty: no search. */
 	q: string;
+	/** The overtime cap in percent of the required minutes (R7); `null`: no cap. */
+	cap: number | null;
 };
 
 export type TotalsPage = ScopeOptions & {
@@ -36,6 +38,7 @@ export type TotalsPage = ScopeOptions & {
 	columns: TotalsColumn[];
 	sort: TotalsSort;
 	q: string;
+	cap: number | null;
 	rows: TotalsPersonRow[];
 };
 
@@ -53,7 +56,7 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 	);
 	const [options, rows] = await Promise.all([
 		scopeOptions(),
-		listTotalsPeople(from, to, filter.scope, filter.sort, filter.q)
+		listTotalsPeople(from, to, filter.scope, filter.sort, filter.q, filter.cap)
 	]);
 	return {
 		...options,
@@ -64,6 +67,7 @@ export async function getTotals(actor: Actor, filter: TotalsFilter): Promise<Tot
 		columns: parseTotalsColumns(filter.columns),
 		sort: filter.sort,
 		q: filter.q,
+		cap: filter.cap,
 		rows
 	};
 }

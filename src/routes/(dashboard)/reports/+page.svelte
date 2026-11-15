@@ -84,6 +84,7 @@
 			['sort', shown.sort],
 			['dir', shown.dir],
 			['q', page.q],
+			['cap', page.cap === null ? '' : String(page.cap)],
 			...page.columns.map((column) => ['col', column] as const)
 		]
 			.filter(([, value]) => value !== '')

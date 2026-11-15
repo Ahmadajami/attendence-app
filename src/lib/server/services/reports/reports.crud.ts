@@ -1,6 +1,11 @@
 import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from 'drizzle-orm';
 import { containsPattern } from '#lib/attendance/person-search.js';
-import type { PersonTotals, TotalsColumn, TotalsSort } from '#lib/reports/totals.js';
+import {
+	capOvertimeMinutes,
+	type PersonTotals,
+	type TotalsColumn,
+	type TotalsSort
+} from '#lib/reports/totals.js';
 import { descendantIds } from '#lib/workforce/departments.js';
 import { db } from '#lib/server/db/index.js';
 import { dayResult, staff, team } from '#lib/server/db/schema/index.js';
@@ -33,6 +38,8 @@ const personColumns = {
 export type TotalsPersonRow = {
 	person: { staffId: string; employeeNo: string; fullName: string; fullNameAr: string | null };
 	totals: PersonTotals;
+	/** Overtime the pay rule makes eligible (0 when the pattern's overtime is off), and after the cap (R7). */
+	overtime: { eligibleMinutes: number; cappedMinutes: number };
 };
 
 /**
@@ -49,7 +56,8 @@ export async function listTotalsPeople(
 	to: string,
 	scope: EntryScope,
 	sort: TotalsSort,
-	q: string
+	q: string,
+	capPercent: number | null
 ): Promise<TotalsPersonRow[]> {
 	let scoped: SQL | undefined;
 	if (scope && 'teamId' in scope) {
@@ -77,11 +85,22 @@ export async function listTotalsPeople(
 	const sortBy = sort.key === 'name' ? staff.fullName : totalsAggregates[sort.key];
 
 	const rows = await db
-		.select({ person: personColumns, ...totalsAggregates })
+		.select({
+			person: personColumns,
+			...totalsAggregates,
+			eligibleMinutes: sql<number>`coalesce(sum(${dayResult.paidOtMinutes}), 0)::int`
+		})
 		.from(dayResult)
 		.innerJoin(staff, eq(staff.id, dayResult.staffId))
 		.where(and(gte(dayResult.shiftDate, from), lte(dayResult.shiftDate, to), scoped, searched))
 		.groupBy(staff.id, staff.employeeNo, staff.fullName, staff.fullNameAr)
 		.orderBy(order(sortBy), asc(staff.fullName), asc(staff.employeeNo), asc(staff.id));
-	return rows.map(({ person, ...totals }) => ({ person, totals }));
+	return rows.map(({ person, eligibleMinutes, ...totals }) => ({
+		person,
+		totals,
+		overtime: {
+			eligibleMinutes,
+			cappedMinutes: capOvertimeMinutes(eligibleMinutes, totals.requiredMinutes, capPercent)
+		}
+	}));
 }

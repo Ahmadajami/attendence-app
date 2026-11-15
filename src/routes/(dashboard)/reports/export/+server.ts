@@ -17,14 +17,15 @@ export const GET: RequestHandler = async ({ locals, url, setHeaders }) => {
 		user: requirePermission(locals, 'staff.write'),
 		permissions: locals.permissions
 	};
-	const { from, to, sort, q, columns } = parseTotalsParams(url.searchParams);
+	const { from, to, sort, q, cap, columns } = parseTotalsParams(url.searchParams);
 	const page = await getTotals(actor, {
 		from,
 		to,
 		scope: parseScope(url.searchParams.get('scope')),
 		columns,
 		sort,
-		q
+		q,
+		cap
 	});
 
 	const sheet = [

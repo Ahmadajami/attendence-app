@@ -15,14 +15,15 @@ function actorFrom(locals: App.Locals): Actor {
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const actor = actorFrom(locals);
-	const { from, to, sort, q, columns } = parseTotalsParams(url.searchParams);
+	const { from, to, sort, q, cap, columns } = parseTotalsParams(url.searchParams);
 	const page = await getTotals(actor, {
 		from,
 		to,
 		scope: parseScope(url.searchParams.get('scope')),
 		columns,
 		sort,
-		q
+		q,
+		cap
 	});
 	return { page };
 };

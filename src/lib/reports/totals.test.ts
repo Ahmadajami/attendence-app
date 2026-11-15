@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import {
+	overtimePay,
+	resolvePayRule,
+	type PayRule,
+	type PayRuleVersion
+} from '#lib/payroll/pay-rule.js';
 import { containsPattern } from '#lib/attendance/person-search.js';
 import {
+	capOvertimeMinutes,
 	DEFAULT_TOTALS_COLUMNS,
 	monthRange,
+	parseTotalsCap,
 	parseTotalsColumns,
 	parseTotalsParams,
 	parseTotalsSearch,
@@ -229,7 +237,71 @@ describe('sort and search from the URL (R1)', () => {
 			to: '2026-11-15',
 			sort: { key: 'overtimeMinutes', dir: 'desc' },
 			q: 'Made',
+			cap: null,
 			columns: ['workDays', 'overtimeMinutes']
 		});
+	});
+});
+
+describe('overtime eligibility and the cap (R7)', () => {
+	// Made-up rates: the test checks where a rate comes from, not what its value is.
+	const pattern: PayRule = { otEnabled: true, workDayRate: 1.2, offDayRate: 1.8, holidayRate: 2 };
+
+	it('a pattern with overtime off makes 0 eligible minutes', () => {
+		const versions: PayRuleVersion[] = [
+			{
+				effectiveFrom: '2026-01-01',
+				effectiveTo: null,
+				otEnabled: false,
+				workDayRate: null,
+				offDayRate: null,
+				holidayRate: null
+			}
+		];
+		const rule = resolvePayRule(versions, '2026-11-10').rule;
+		const pay = overtimePay('work', 60, rule);
+		expect(pay.paidMinutes).toBe(0);
+		expect(pay.reason).toBe('ot_off');
+		expect(capOvertimeMinutes(pay.paidMinutes, 480, 25)).toBe(0);
+	});
+
+	it('a cap of 25 % of 480 required minutes gives 120 minutes', () => {
+		expect(capOvertimeMinutes(300, 480, 25)).toBe(120);
+	});
+
+	it('fewer eligible minutes than the cap are all kept', () => {
+		expect(capOvertimeMinutes(90, 480, 25)).toBe(90);
+	});
+
+	it('a blank cap gives no limit', () => {
+		expect(parseTotalsCap(null)).toBeNull();
+		expect(parseTotalsCap('   ')).toBeNull();
+		expect(capOvertimeMinutes(300, 480, null)).toBe(300);
+	});
+
+	it('the cap is a percent from 0 up; anything else is no cap', () => {
+		expect(parseTotalsCap('25')).toBe(25);
+		expect(parseTotalsCap('12.5')).toBe(12.5);
+		expect(parseTotalsCap('0')).toBe(0);
+		expect(parseTotalsCap('-5')).toBeNull();
+		expect(parseTotalsCap('abc')).toBeNull();
+	});
+
+	it('the multiplier comes from the pattern version, not from the code', () => {
+		const versions: PayRuleVersion[] = [
+			{
+				effectiveFrom: '2026-01-01',
+				effectiveTo: null,
+				otEnabled: pattern.otEnabled,
+				workDayRate: pattern.workDayRate,
+				offDayRate: null,
+				holidayRate: null
+			}
+		];
+		const resolved = resolvePayRule(versions, '2026-11-10');
+		expect(resolved.rule.workDayRate).toBe(1.2);
+		expect(resolved.sources.workDayRate).toBe('pattern');
+		expect(resolved.sources.offDayRate).toBe('default');
+		expect(overtimePay('work', 60, resolved.rule).rate).toBe(1.2);
 	});
 });

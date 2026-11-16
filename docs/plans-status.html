@@ -114,9 +114,9 @@
   <div class="stats">
     <div class="stat"><b>30</b><span>plans</span></div>
     <div class="stat"><b>4</b><span>finished</span></div>
-    <div class="stat"><b>26</b><span>unfinished (0 urgent, 20 in progress, 6 to do, 0 on hold)</span></div>
-    <div class="stat"><b>312 / 540</b><span>tasks done (58%)</span></div>
-    <div class="stat"><b>228</b><span>open tasks</span></div>
+    <div class="stat"><b>26</b><span>unfinished (0 urgent, 21 in progress, 5 to do, 0 on hold)</span></div>
+    <div class="stat"><b>313 / 540</b><span>tasks done (58%)</span></div>
+    <div class="stat"><b>227</b><span>open tasks</span></div>
     <div class="stat"><b>39</b><span>open tasks waiting on your check or OK</span></div>
   </div>
 
@@ -179,7 +179,15 @@
 <span class="box" aria-hidden="true"></span>
 <div><div class="tt"><span class="pill k-user">your check</span> 4. Settings OC7 (rounding, Friday prayer) with October set to Odoo's values (<code>2026-11-12-attendance-rules-settings.md</code>); recompute October after the user's OK.</div><div class="notes"><p>2026-11-12 built and tested (547 tests); migrations 0026/0027 on e2e and test; the recompute on <code>attendance_app</code> waits for the user's OK.</p></div></div></li></ul><h4><a href="#2026-11-12-roster-import">Roster import: every team's month roster from one file, previewed, saved and undone in the app</a></h4><ul class="tasks k-progress"><li class="task is-open" data-user="true">
 <span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 5.3 Join a saved month (RI11): <code>joinableAssignment</code> and <code>fitTeams</code> <code>joined</code> in <code>src/lib/roster/fit-weekly.ts</code>, the import reuses same-name patterns, <code>extract_roster.py --only-new</code>; the 22 people of OC9 imported by the user as a second October batch.</div><div class="notes"><p>2026-11-12 built: 3 new tests (550 in all), <code>pnpm check</code> 0 errors. File for the 22: <code>~/secure/syravia/imports/rosters/2026-10/odoo-new/roster_2026-10.md</code>: 22 people, 8 groups (7 join a saved department pattern; Human Resources gets a new one that reaches only its 1 person), 8 shifts all already in the app. Waits for the user's upload on <code>attendance_app</code>.</p></div></div></li></ul><h4><a href="#2026-11-03-aviation-privilege">Aviation privilege per employee: number, dates, withdrawal and renewal</a></h4><ul class="tasks k-todo"><li class="task is-open" data-user="true">
+<div><div class="tt"><span class="pill k-user">your check</span> 5.3 Join a saved month (RI11): <code>joinableAssignment</code> and <code>fitTeams</code> <code>joined</code> in <code>src/lib/roster/fit-weekly.ts</code>, the import reuses same-name patterns, <code>extract_roster.py --only-new</code>; the 22 people of OC9 imported by the user as a second October batch.</div><div class="notes"><p>2026-11-12 built: 3 new tests (550 in all), <code>pnpm check</code> 0 errors. File for the 22: <code>~/secure/syravia/imports/rosters/2026-10/odoo-new/roster_2026-10.md</code>: 22 people, 8 groups (7 join a saved department pattern; Human Resources gets a new one that reaches only its 1 person), 8 shifts all already in the app. Waits for the user's upload on <code>attendance_app</code>.</p></div></div></li></ul><h4><a href="#2026-11-16-weekly-hours-engine">Weekly hours engine: required hours per week, 2 off days, overtime over a period</a></h4><ul class="tasks k-progress"><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 1.1 <code>src/lib/hours/</code> (§3) with the tests of §4. <strong>Done when</strong> <code>pnpm test</code> passes all 12 cases and <code>pnpm check</code> is clean (run by the user: no <code>node_modules</code> in the cloud session).</div><div class="notes"><p>2026-11-16. Written: <code>dates.ts</code>, <code>rules.ts</code>, <code>segments.ts</code>, <code>off-days.ts</code>, <code>period.ts</code>, <code>test-helpers.ts</code>; tests <code>segments.test.ts</code> (11) and <code>period.test.ts</code> (16). All 27 pass under Node with a stand-in for Vitest; <code>pnpm check</code>, <code>pnpm test</code>, eslint and prettier wait for the user.</p></div></div></li><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 2.1 Tables <code>hours_rule</code>, <code>staff_hours</code> (§2), migration generated and read. <strong>Done when</strong> applied to <code>attendance_app_test</code> and <code>attendance_app_e2e</code>; <code>attendance_app</code> after the row count and the user's OK.</div></div></li><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 2.3 Settings section &quot;Weekly hours&quot; (company versions: weekly hours, off days, week start, night window, four rates, four switches) and the employee card (weekly hours, fixed off weekdays); en + ar. <strong>Done when</strong> the user's manual check 6.1–6.3 holds.</div></div></li><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 3.1 <code>/overtime</code> page and drawer (WH12), en + ar, RTL. <strong>Done when</strong> the user's manual check 6.4–6.8 holds.</div></div></li></ul><h4><a href="#2026-11-03-aviation-privilege">Aviation privilege per employee: number, dates, withdrawal and renewal</a></h4><ul class="tasks k-todo"><li class="task is-open" data-user="true">
 <span class="box" aria-hidden="true"></span>
 <div><div class="tt"><span class="pill k-user">your check</span> 1.3 Apply to <code>_test</code> and <code>_e2e</code>; <code>attendance_app</code> after the row count and the user's OK. <strong>Done when</strong> all three show the same migration count and the real row counts are unchanged</div></div></li><li class="task is-open" data-user="true">
 <span class="box" aria-hidden="true"></span>
@@ -203,15 +211,7 @@
 <span class="box" aria-hidden="true"></span>
 <div><div class="tt"><span class="pill k-user">your check</span> 1.9 Manual check by the user (checklist in the hand-off; unticked until reported).</div></div></li><li class="task is-open" data-user="true">
 <span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 4.6 Manual check by the user.</div></div></li></ul><h4><a href="#2026-11-16-weekly-hours-engine">Weekly hours engine: required hours per week, 2 off days, overtime over a period</a></h4><ul class="tasks k-todo"><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 1.1 <code>src/lib/hours/</code> (§3) with the tests of §4. <strong>Done when</strong> <code>pnpm test</code> passes all 12 cases and <code>pnpm check</code> is clean (run by the user: no <code>node_modules</code> in the cloud session).</div></div></li><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 2.1 Tables <code>hours_rule</code>, <code>staff_hours</code> (§2), migration generated and read. <strong>Done when</strong> applied to <code>attendance_app_test</code> and <code>attendance_app_e2e</code>; <code>attendance_app</code> after the row count and the user's OK.</div></div></li><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 2.3 Settings section &quot;Weekly hours&quot; (company versions: weekly hours, off days, week start, night window, four rates, four switches) and the employee card (weekly hours, fixed off weekdays); en + ar. <strong>Done when</strong> the user's manual check 6.1–6.3 holds.</div></div></li><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 3.1 <code>/overtime</code> page and drawer (WH12), en + ar, RTL. <strong>Done when</strong> the user's manual check 6.4–6.8 holds.</div></div></li></ul>
+<div><div class="tt"><span class="pill k-user">your check</span> 4.6 Manual check by the user.</div></div></li></ul>
     </div>
   </section>
 
@@ -1302,6 +1302,56 @@
 <span class="box" aria-hidden="true">✓</span>
 <div><div class="tt">5.2 e2e: a made-up shifts file and grid; then <code>attendance_app</code> after the user's OK; each team checked with <code>check-team-roster.ts verify</code> (0 mismatches).</div><div class="notes"><p>2026-11-12, real import by the user: shifts batch 17 created; roster batch 267 people, 32 patterns, 42 assignments (13 department, 29 personal), 162 own rules, 33 self swaps (66 swap days), 108 day edits, 0 refused, 0 mismatches. Checked against the file from the stored rows (replay through <code>rosterDay</code>): 7 976 / 7 976 planned person-days equal; the recomputed day results: 7 976 / 7 976 equal, none missing, none still flagged. 2 department members not in the file (HR &amp; Admin 1, Station Damascus 1; no Odoo plan) are planned by their department's pattern: 43 work days, 28 of them on 1–20 Oct without a punch.</p></div></div></li></ul></details>
 </article>
+<article class="plan k-progress" id="2026-11-16-weekly-hours-engine" data-kind="progress" data-search="weekly hours engine: required hours per week, 2 off days, overtime over a period in progress (approved 2026-11-16: the user's answers and &quot;defaults for the rest&quot;; phase 1 written and tested, waiting for `pnpm check &amp;&amp; pnpm test` on the laptop) a second way to calculate overtime, from the same data as the roster engine. it does not use shifts or rosters. each person owes a number of hours per week and gets 2 off days per week. for any from–to period the engine shows the overtime, split into **day**, **night** and **off-day** overtime, each with its own multiplier set in the app. it is a separate report for everyone (wh1). the roster engine, `day_result` and the payroll exports stay as they are. 0.1 the user answers q-wh1–q-wh6 (or keeps the defaults). **done when** each is recorded here and in `docs/decisions.html`. 1.1 `src/lib/hours/` (§3) with the tests of §4. **done when** `pnpm test` passes all 12 cases and `pnpm check` is clean (run by the user: no `node_modules` in the cloud session). 2.1 tables `hours_rule`, `staff_hours` (§2), migration generated and read. **done when** applied to `attendance_app_test` and `attendance_app_e2e`; `attendance_app` after the row count and the user's ok. 2.2 services `weekly-hours.bl.ts` / `.crud.ts`, schema `#lib/schemas/weekly-hours.schema.ts`, permission checks, audit. **done when** a version can be added and closed, and a person version set, with an audit row each. 2.3 settings section &quot;weekly hours&quot; (company versions: weekly hours, off days, week start, night window, four rates, four switches) and the employee card (weekly hours, fixed off weekdays); en + ar. **done when** the user's manual check 6.1–6.3 holds. 3.1 `/overtime` page and drawer (wh12), en + ar, rtl. **done when** the user's manual check 6.4–6.8 holds. 3.2 compare with the roster engine on one real month (counts only, outside the repo). **done when** the user has seen the comparison. 4.1 excel export of the report. 4.2 holidays (wh7), rounding (wh11), team-level rates. 6.1 settings → weekly hours: add a version (40 h, 2 off days, sunday, 22:00–06:00, rates); it appears with its dates. 6.2 switch &quot;night on an off day has its own rate&quot; on: the extra rate field appears; off: it disappears. 6.3 an employee page: set fixed off days fri + sat; choosing a third day is refused. 6.4 `/overtime` with a month: one row per person with the columns of wh12. 6.5 open a person: the weeks show their off days (f on fixed ones) and the days add up to the row. 6.6 turn off-day ot off in a new version: the row's weighted total drops, the minutes stay, marked &quot;not paid&quot;. 6.7 a person with a missing check-out shows a problem. 6.8 `/ar/overtime`: right to left, all labels in arabic.">
+<header>
+  <span class="pill k-progress">In progress</span>
+  <span class="date">2026-11-16</span>
+  <a class="file" href="../plans/2026-11-16-weekly-hours-engine.md"><code>plans/2026-11-16-weekly-hours-engine.md</code></a>
+</header>
+<h3>Weekly hours engine: required hours per week, 2 off days, overtime over a period</h3>
+<p class="status"><strong>Status:</strong> in progress (approved 2026-11-16: the user's answers and &quot;defaults for the rest&quot;; Phase 1 written and tested, waiting for <code>pnpm check &amp;&amp; pnpm test</code> on the laptop)</p>
+<details class="goal"><summary>Goal</summary><p>A second way to calculate overtime, from the same data as the roster engine. It does not use shifts or rosters. Each person owes a number of hours per week and gets 2 off days per week. For any from–to period the engine shows the overtime, split into <strong>day</strong>, <strong>night</strong> and <strong>off-day</strong> overtime, each with its own multiplier set in the app. It is a separate report for everyone (WH1). The roster engine, <code>day_result</code> and the payroll exports stay as they are.</p></details>
+<div class="progress" role="img" aria-label="1 of 17 tasks done">
+  <div class="bar"><span style="width:6%"></span></div>
+  <span class="count"><strong>1</strong> / 17 tasks · 6%</span>
+</div>
+<section class="open"><h4 class="lead">Open tasks (16)</h4><h4>5. Tasks › Phase 1 · The engine (pure)</h4><ul class="tasks"><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 1.1 <code>src/lib/hours/</code> (§3) with the tests of §4. <strong>Done when</strong> <code>pnpm test</code> passes all 12 cases and <code>pnpm check</code> is clean (run by the user: no <code>node_modules</code> in the cloud session).</div><div class="notes"><p>2026-11-16. Written: <code>dates.ts</code>, <code>rules.ts</code>, <code>segments.ts</code>, <code>off-days.ts</code>, <code>period.ts</code>, <code>test-helpers.ts</code>; tests <code>segments.test.ts</code> (11) and <code>period.test.ts</code> (16). All 27 pass under Node with a stand-in for Vitest; <code>pnpm check</code>, <code>pnpm test</code>, eslint and prettier wait for the user.</p></div></div></li></ul><h4>5. Tasks › Phase 2 · Settings</h4><ul class="tasks"><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 2.1 Tables <code>hours_rule</code>, <code>staff_hours</code> (§2), migration generated and read. <strong>Done when</strong> applied to <code>attendance_app_test</code> and <code>attendance_app_e2e</code>; <code>attendance_app</code> after the row count and the user's OK.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">2.2 Services <code>weekly-hours.bl.ts</code> / <code>.crud.ts</code>, schema <code>#lib/schemas/weekly-hours.schema.ts</code>, permission checks, audit. <strong>Done when</strong> a version can be added and closed, and a person version set, with an audit row each.</div></div></li><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 2.3 Settings section &quot;Weekly hours&quot; (company versions: weekly hours, off days, week start, night window, four rates, four switches) and the employee card (weekly hours, fixed off weekdays); en + ar. <strong>Done when</strong> the user's manual check 6.1–6.3 holds.</div></div></li></ul><h4>5. Tasks › Phase 3 · Report</h4><ul class="tasks"><li class="task is-open" data-user="true">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt"><span class="pill k-user">your check</span> 3.1 <code>/overtime</code> page and drawer (WH12), en + ar, RTL. <strong>Done when</strong> the user's manual check 6.4–6.8 holds.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">3.2 Compare with the roster engine on one real month (counts only, outside the repo). <strong>Done when</strong> the user has seen the comparison.</div></div></li></ul><h4>5. Tasks › Phase 4 · Later (not started without the user's go)</h4><ul class="tasks"><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">4.1 Excel export of the report.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">4.2 Holidays (WH7), rounding (WH11), team-level rates.</div></div></li></ul><h4>6. Manual checks (the user, on <code>http://127.0.0.1:5174</code>)</h4><ul class="tasks"><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.1 Settings → Weekly hours: add a version (40 h, 2 off days, Sunday, 22:00–06:00, rates); it appears with its dates.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.2 Switch &quot;Night on an off day has its own rate&quot; on: the extra rate field appears; off: it disappears.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.3 An employee page: set fixed off days Fri + Sat; choosing a third day is refused.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.4 <code>/overtime</code> with a month: one row per person with the columns of WH12.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.5 Open a person: the weeks show their off days (F on fixed ones) and the days add up to the row.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.6 Turn off-day OT off in a new version: the row's weighted total drops, the minutes stay, marked &quot;not paid&quot;.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.7 A person with a missing check-out shows a problem.</div></div></li><li class="task is-open" data-user="false">
+<span class="box" aria-hidden="true"></span>
+<div><div class="tt">6.8 <code>/ar/overtime</code>: right to left, all labels in Arabic.</div></div></li></ul></section>
+<details class="donelist"><summary>Finished tasks (1)</summary><h4>5. Tasks › Phase 0 · Answers</h4><ul class="tasks"><li class="task is-done" data-user="false">
+<span class="box" aria-hidden="true">✓</span>
+<div><div class="tt">0.1 The user answers Q-WH1–Q-WH6 (or keeps the defaults). <strong>Done when</strong> each is recorded here and in <code>docs/decisions.html</code>.</div><div class="notes"><p>2026-11-16. Absences asked again and answered &quot;a&quot; (WH13 replaces WH10, so Q-WH6 is answered by WH13); &quot;defaults for the rest&quot; answers Q-WH1–Q-WH5.</p></div></div></li></ul></details>
+</article>
 <article class="plan k-todo" id="2026-11-03-aviation-privilege" data-kind="todo" data-search="aviation privilege per employee: number, dates, withdrawal and renewal to do (approved 2026-11-03: the user answered q-av1, q-av2, q-av4, q-av6; q-av3, q-av5, q-av7 keep their defaults) each employee holds a **privilege issued by the civil aviation authority**, with its own **privilege number**, a **start date** and an **end date**. hr records it in the app, sees who is valid, expiring, expired or has none, can **withdraw** (&quot;take&quot;) it for a reason and **renew** it for a reason. every period stays in the history; nothing is deleted. 0.1 the user answers q-av1–q-av7 (or keeps the defaults); update §1 and add av1–av11 and the q-av rows to `docs/decisions.html` (group `profile`, status `approved` / `default`; `node --check` the script). **done when** the decisions page lists them in both languages 1.1 drizzle table `staff_privilege` (§2) + relations and types; generated migration; read the sql. **done when** `pnpm check` passes and the sql adds only this table 1.2 custom migration with both `exclude`s. **done when** a rolled-back probe on `_test` with made-up staff refuses an overlapping period, the same number on a second person, a withdrawal outside the period and a withdrawal without a reason, and accepts a renewal the day after the end; 0 rows left behind 1.3 apply to `_test` and `_e2e`; `attendance_app` after the row count and the user's ok. **done when** all three show the same migration count and the real row counts are unchanged 2.1 `src/lib/workforce/privilege.ts` (§3). **done when** t1–t12 pass 3.1 `#lib/schemas/privilege.schema.ts` (grant / renew, withdraw, correct; number format, to ≥ from, reason required) + vitest 3.2 `services/privileges/privileges.crud.ts` + `privileges.bl.ts`: `listprivilegeperiods`, `grantprivilege`, `renewprivilege`, `withdrawprivilege`, `correctprivilege`, `listprivilegeoverview(filters)`; `staff.write`; each write one `batch` with its audit row (`staff_privilege.grant|renew|withdraw|correct`, ids and dates; the number only inside the audit row's before/after, as documents do); `23p01` → translated `conflicterror`. **done when** `pnpm check` and `pnpm test` pass 4.1 privilege tab, the three sheets, actions on `/employees/[id]/+page.server.ts`, overview badge; autofixer clean on every touched `.svelte`. **done when** the user confirms the §6 steps 1–6 on `5174` 5.1 `/privileges` with filters, counts and the table; sidebar link. **done when** the user confirms §6 steps 7–8 6.1 every string in en + ar; `pnpm check &amp;&amp; pnpm test`, eslint + prettier on touched code (**not** on plans: prettier breaks the `&gt; note:` lines), autofixer clean 6.2 docs: `plans/readme.md` row, main plan pointer (s3, employee data), decisions approved 6.3 playwright spec on `attendance_app_test` with made-up people; the user runs it">
 <header>
   <span class="pill k-todo">To do</span>
@@ -1552,56 +1602,6 @@
 <div><div class="tt">4.5 Balances page Time tab, employee Balances card, explanation drawers.</div></div></li><li class="task is-open" data-user="true">
 <span class="box" aria-hidden="true"></span>
 <div><div class="tt"><span class="pill k-user">your check</span> 4.6 Manual check by the user.</div></div></li></ul></section>
-
-</article>
-<article class="plan k-todo" id="2026-11-16-weekly-hours-engine" data-kind="todo" data-search="weekly hours engine: required hours per week, 2 off days, overtime over a period to do (proposed 2026-11-16; the user answered questions 1–3 and 5–8 the same day; waiting for q-wh1–q-wh6) a second way to calculate overtime, from the same data as the roster engine. it does not use shifts or rosters. each person owes a number of hours per week and gets 2 off days per week. for any from–to period the engine shows the overtime, split into **day**, **night** and **off-day** overtime, each with its own multiplier set in the app. it is a separate report for everyone (wh1). the roster engine, `day_result` and the payroll exports stay as they are. 0.1 the user answers q-wh1–q-wh6 (or keeps the defaults). **done when** each is recorded here and in `docs/decisions.html`. 1.1 `src/lib/hours/` (§3) with the tests of §4. **done when** `pnpm test` passes all 12 cases and `pnpm check` is clean (run by the user: no `node_modules` in the cloud session). 2.1 tables `hours_rule`, `staff_hours` (§2), migration generated and read. **done when** applied to `attendance_app_test` and `attendance_app_e2e`; `attendance_app` after the row count and the user's ok. 2.2 services `weekly-hours.bl.ts` / `.crud.ts`, schema `#lib/schemas/weekly-hours.schema.ts`, permission checks, audit. **done when** a version can be added and closed, and a person version set, with an audit row each. 2.3 settings section &quot;weekly hours&quot; (company versions: weekly hours, off days, week start, night window, four rates, four switches) and the employee card (weekly hours, fixed off weekdays); en + ar. **done when** the user's manual check 6.1–6.3 holds. 3.1 `/overtime` page and drawer (wh12), en + ar, rtl. **done when** the user's manual check 6.4–6.8 holds. 3.2 compare with the roster engine on one real month (counts only, outside the repo). **done when** the user has seen the comparison. 4.1 excel export of the report. 4.2 holidays (wh7), rounding (wh11), team-level rates. 6.1 settings → weekly hours: add a version (40 h, 2 off days, sunday, 22:00–06:00, rates); it appears with its dates. 6.2 switch &quot;night on an off day has its own rate&quot; on: the extra rate field appears; off: it disappears. 6.3 an employee page: set fixed off days fri + sat; choosing a third day is refused. 6.4 `/overtime` with a month: one row per person with the columns of wh12. 6.5 open a person: the weeks show their off days (f on fixed ones) and the days add up to the row. 6.6 turn off-day ot off in a new version: the row's weighted total drops, the minutes stay, marked &quot;not paid&quot;. 6.7 a person with a missing check-out shows a problem. 6.8 `/ar/overtime`: right to left, all labels in arabic.">
-<header>
-  <span class="pill k-todo">To do</span>
-  <span class="date">2026-11-16</span>
-  <a class="file" href="../plans/2026-11-16-weekly-hours-engine.md"><code>plans/2026-11-16-weekly-hours-engine.md</code></a>
-</header>
-<h3>Weekly hours engine: required hours per week, 2 off days, overtime over a period</h3>
-<p class="status"><strong>Status:</strong> to do (proposed 2026-11-16; the user answered questions 1–3 and 5–8 the same day; waiting for Q-WH1–Q-WH6)</p>
-<details class="goal"><summary>Goal</summary><p>A second way to calculate overtime, from the same data as the roster engine. It does not use shifts or rosters. Each person owes a number of hours per week and gets 2 off days per week. For any from–to period the engine shows the overtime, split into <strong>day</strong>, <strong>night</strong> and <strong>off-day</strong> overtime, each with its own multiplier set in the app. It is a separate report for everyone (WH1). The roster engine, <code>day_result</code> and the payroll exports stay as they are.</p></details>
-<div class="progress" role="img" aria-label="0 of 17 tasks done">
-  <div class="bar"><span style="width:0%"></span></div>
-  <span class="count"><strong>0</strong> / 17 tasks · 0%</span>
-</div>
-<section class="open"><h4 class="lead">Open tasks (17)</h4><h4>5. Tasks › Phase 0 · Answers</h4><ul class="tasks"><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">0.1 The user answers Q-WH1–Q-WH6 (or keeps the defaults). <strong>Done when</strong> each is recorded here and in <code>docs/decisions.html</code>.</div></div></li></ul><h4>5. Tasks › Phase 1 · The engine (pure)</h4><ul class="tasks"><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 1.1 <code>src/lib/hours/</code> (§3) with the tests of §4. <strong>Done when</strong> <code>pnpm test</code> passes all 12 cases and <code>pnpm check</code> is clean (run by the user: no <code>node_modules</code> in the cloud session).</div></div></li></ul><h4>5. Tasks › Phase 2 · Settings</h4><ul class="tasks"><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 2.1 Tables <code>hours_rule</code>, <code>staff_hours</code> (§2), migration generated and read. <strong>Done when</strong> applied to <code>attendance_app_test</code> and <code>attendance_app_e2e</code>; <code>attendance_app</code> after the row count and the user's OK.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">2.2 Services <code>weekly-hours.bl.ts</code> / <code>.crud.ts</code>, schema <code>#lib/schemas/weekly-hours.schema.ts</code>, permission checks, audit. <strong>Done when</strong> a version can be added and closed, and a person version set, with an audit row each.</div></div></li><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 2.3 Settings section &quot;Weekly hours&quot; (company versions: weekly hours, off days, week start, night window, four rates, four switches) and the employee card (weekly hours, fixed off weekdays); en + ar. <strong>Done when</strong> the user's manual check 6.1–6.3 holds.</div></div></li></ul><h4>5. Tasks › Phase 3 · Report</h4><ul class="tasks"><li class="task is-open" data-user="true">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt"><span class="pill k-user">your check</span> 3.1 <code>/overtime</code> page and drawer (WH12), en + ar, RTL. <strong>Done when</strong> the user's manual check 6.4–6.8 holds.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">3.2 Compare with the roster engine on one real month (counts only, outside the repo). <strong>Done when</strong> the user has seen the comparison.</div></div></li></ul><h4>5. Tasks › Phase 4 · Later (not started without the user's go)</h4><ul class="tasks"><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">4.1 Excel export of the report.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">4.2 Holidays (WH7), rounding (WH11), team-level rates.</div></div></li></ul><h4>6. Manual checks (the user, on <code>http://127.0.0.1:5174</code>)</h4><ul class="tasks"><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.1 Settings → Weekly hours: add a version (40 h, 2 off days, Sunday, 22:00–06:00, rates); it appears with its dates.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.2 Switch &quot;Night on an off day has its own rate&quot; on: the extra rate field appears; off: it disappears.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.3 An employee page: set fixed off days Fri + Sat; choosing a third day is refused.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.4 <code>/overtime</code> with a month: one row per person with the columns of WH12.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.5 Open a person: the weeks show their off days (F on fixed ones) and the days add up to the row.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.6 Turn off-day OT off in a new version: the row's weighted total drops, the minutes stay, marked &quot;not paid&quot;.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.7 A person with a missing check-out shows a problem.</div></div></li><li class="task is-open" data-user="false">
-<span class="box" aria-hidden="true"></span>
-<div><div class="tt">6.8 <code>/ar/overtime</code>: right to left, all labels in Arabic.</div></div></li></ul></section>
 
 </article>
   </section>

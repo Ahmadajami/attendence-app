@@ -181,7 +181,8 @@
     jobs: { en: 'Jobs page', ar: 'صفحة الوظائف' },
     hourly: { en: 'Hourly leave', ar: 'الإجازة الساعية' },
     balances: { en: 'Leave & sick balances', ar: 'أرصدة الإجازة والمرض' },
-    speed: { en: 'Speed', ar: 'السرعة' }
+    speed: { en: 'Speed', ar: 'السرعة' },
+    weekly: { en: 'Weekly hours engine', ar: 'محرك الساعات الأسبوعية' }
   };
 
   // One object per decision. alts = alternatives NOT chosen, each with its reason.
@@ -3460,6 +3461,117 @@
       alts: [
         {en: "Flag every stored day in the migration: not chosen — about 22,000 rows would rewrite on page loads without a decision.", ar: "تعليم كل يوم مخزّن في الترحيل: لم يُختر — نحو 22,000 صف كانت ستُكتب من جديد عند تحميل الصفحات دون قرار."}
       ]
+    },
+    // ---------------- Weekly hours engine ----------------
+    {
+      id: 'WH1', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "A second engine as a separate, read-only report for everyone", ar: "محرك ثانٍ كتقرير منفصل للقراءة فقط لكل الموظفين"},
+      decision: {en: "The weekly hours engine runs next to the roster engine. It is computed when the page asks and stores nothing yet; day_result, the roster engine and the payroll exports do not change.", ar: "يعمل محرك الساعات الأسبوعية بجانب محرك الجدول. يُحسب عند طلب الصفحة ولا يخزّن شيئاً بعد؛ ولا يتغير day_result ولا محرك الجدول ولا ملفات الرواتب."},
+      why: {en: "Both engines can be compared on real months before anything depends on the new one (user's answer 8a).", ar: "يمكن مقارنة المحركين على أشهر حقيقية قبل أن يعتمد أي شيء على الجديد (جواب المستخدم 8أ)."},
+      alts: [
+        {en: "A per-team switch choosing which engine pays the team (8b): not chosen — not before the comparison.", ar: "مفتاح لكل فريق يختار المحرك الذي يُدفع به (8ب): لم يُختر — ليس قبل المقارنة."}
+      ]
+    },
+    {
+      id: 'WH2', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "Off days: fixed weekdays when set on the person, otherwise floating", ar: "أيام الراحة: أيام ثابتة إن حُددت للشخص، وإلا متغيرة"},
+      decision: {en: "A person with fixed off weekdays (dated) has those off days. Without them, each week the engine takes the 2 days with the least worked time as the off days.", ar: "الشخص الذي له أيام راحة ثابتة (مؤرخة) تكون تلك أيام راحته. ومن دونها يأخذ المحرك في كل أسبوع اليومين الأقل عملاً كيومي راحة."},
+      why: {en: "No roster is needed, and a person with fixed days keeps them (user: 'if b not specified then a').", ar: "لا حاجة إلى جدول، ويحتفظ صاحب الأيام الثابتة بها (المستخدم: «إن لم تُحدد ب فـ أ»)."},
+      alts: [
+        {en: "Floating only: not chosen — some people have fixed days.", ar: "متغيرة فقط: لم يُختر — بعض الأشخاص لهم أيام ثابتة."},
+        {en: "Fixed only: not chosen — every person would need days set first.", ar: "ثابتة فقط: لم يُختر — كان كل شخص سيحتاج تحديد أيامه أولاً."}
+      ]
+    },
+    {
+      id: 'WH3', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "Overtime is counted over the whole period", ar: "يُحسب العمل الإضافي على الفترة كاملة"},
+      decision: {en: "Overtime = work-day time − the period's required time. A short week cancels overtime from another week. A net shortage is shown as a shortage, never as negative overtime.", ar: "الإضافي = وقت أيام العمل − الوقت المطلوب للفترة. الأسبوع الناقص يلغي إضافي أسبوع آخر. والنقص الصافي يُعرض نقصاً، لا إضافياً سالباً."},
+      why: {en: "User's answer 2b.", ar: "جواب المستخدم 2ب."},
+      alts: [
+        {en: "Each week on its own (2a): not chosen by the user.", ar: "كل أسبوع وحده (2أ): لم يختره المستخدم."}
+      ]
+    },
+    {
+      id: 'WH4', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1, Q-WH3',
+      title: {en: "Night overtime = the minutes after the required time is reached, by the clock", ar: "الإضافي الليلي = الدقائق بعد بلوغ الوقت المطلوب، حسب الساعة"},
+      decision: {en: "In time order, the work-day minutes after the required time is reached are overtime; each is day or night by the night window. To reconfirm (Q-WH3): with whole-period counting this is the last days of the period.", ar: "بترتيب الوقت، دقائق أيام العمل بعد بلوغ الوقت المطلوب هي الإضافي؛ وكل دقيقة نهارية أو ليلية حسب نافذة الليل. للتأكيد (Q-WH3): مع الحساب على الفترة كاملة تكون هذه الأيام الأخيرة من الفترة."},
+      why: {en: "User's answer 3a.", ar: "جواب المستخدم 3أ."},
+      alts: [
+        {en: "In proportion to the night share of the period (3b): not chosen by the user; offered again in Q-WH3.", ar: "بنسبة حصة الليل في الفترة (3ب): لم يختره المستخدم؛ ويُعرض مجدداً في Q-WH3."}
+      ]
+    },
+    {
+      id: 'WH5', group: 'weekly', status: 'proposed', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1, Q-WH4',
+      title: {en: "Required time of a period, week start, partial weeks", ar: "الوقت المطلوب للفترة، بداية الأسبوع، الأسابيع الجزئية"},
+      decision: {en: "Required = weekly hours × days ÷ 7, minus weekly hours ÷ 5 for each absence day that is not an off day. The week starts on a setting (default Sunday). A partial week at the period's edge gets round(2 × days ÷ 7) floating off days.", ar: "المطلوب = الساعات الأسبوعية × الأيام ÷ 7، ناقص الساعات الأسبوعية ÷ 5 لكل يوم غياب ليس يوم راحة. يبدأ الأسبوع حسب إعداد (الافتراضي الأحد). والأسبوع الجزئي على طرف الفترة يأخذ round(2 × الأيام ÷ 7) يوم راحة متغير."},
+      why: {en: "Each period stands alone and can be closed without waiting for days after its end.", ar: "كل فترة قائمة بذاتها ويمكن إغلاقها دون انتظار أيام بعد نهايتها."},
+      alts: [
+        {en: "Choose the off days over the whole week, also outside the period: not chosen — the period would change after its end.", ar: "اختيار أيام الراحة على الأسبوع كله ولو خارج الفترة: لم يُختر — كانت الفترة ستتغير بعد نهايتها."},
+        {en: "No weeks, 2 × days ÷ 7 off days over the whole period: not chosen — 14 days in a row would earn no off-day overtime.", ar: "دون أسابيع، 2 × الأيام ÷ 7 أيام راحة على الفترة كلها: لم يُختر — 14 يوماً متتالية لن تعطي إضافي يوم راحة."}
+      ]
+    },
+    {
+      id: 'WH6', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1, Q-WH5',
+      title: {en: "A switch for each overtime kind, and one for night work on an off day", ar: "مفتاح لكل نوع إضافي، ومفتاح للعمل الليلي في يوم الراحة"},
+      decision: {en: "Day, night and off-day overtime each have an on/off switch (off: minutes shown, weighted 0, 'not paid'). 'Night on an off day has its own rate': off → off-day rate; on → a separate off-day night rate.", ar: "لكل من الإضافي النهاري والليلي ويوم الراحة مفتاح تشغيل (مطفأ: تظهر الدقائق بوزن 0، «غير مدفوع»). «لليل في يوم الراحة معدله الخاص»: مطفأ ← معدل يوم الراحة؛ مشغّل ← معدل منفصل لليل يوم الراحة."},
+      why: {en: "User's answer 5: 'keep a toggle for each one'.", ar: "جواب المستخدم 5: «اترك مفتاحاً لكل واحد»."},
+      alts: [
+        {en: "Off-day rate only, no switch: not chosen by the user.", ar: "معدل يوم الراحة فقط دون مفتاح: لم يختره المستخدم."}
+      ]
+    },
+    {
+      id: 'WH7', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "No holidays in this engine for now", ar: "لا عطل رسمية في هذا المحرك حالياً"},
+      decision: {en: "A holiday is an ordinary date: its work counts like any day, and an unworked holiday does not lower the required time.", ar: "العطلة الرسمية تاريخ عادي: يُحسب عملها كأي يوم، والعطلة غير المعمولة لا تخفض الوقت المطلوب."},
+      why: {en: "User's answer 6.", ar: "جواب المستخدم 6."},
+      alts: [
+        {en: "A holiday rate and a lower required time: not chosen now — may come later.", ar: "معدل للعطلة ووقت مطلوب أقل: لم يُختر الآن — قد يأتي لاحقاً."}
+      ]
+    },
+    {
+      id: 'WH8', group: 'weekly', status: 'approved', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1, §2',
+      title: {en: "Every number is set in the app, in dated versions", ar: "كل رقم يُضبط في التطبيق، بإصدارات مؤرخة"},
+      decision: {en: "Weekly hours, off days per week, week start, night window, four rates and four switches are company versions (table hours_rule); a person can have own weekly hours and fixed off weekdays (table staff_hours). Without a company version the report shows minutes but no weighted totals.", ar: "الساعات الأسبوعية وأيام الراحة وبداية الأسبوع ونافذة الليل والمعدلات الأربعة والمفاتيح الأربعة إصدارات للشركة (جدول hours_rule)؛ ويمكن أن يكون للشخص ساعاته الأسبوعية وأيام راحته الثابتة (جدول staff_hours). ودون إصدار للشركة يعرض التقرير الدقائق دون المجاميع الموزونة."},
+      why: {en: "User's answer 7 ('defined at front end'); dated versions never rewrite past periods silently.", ar: "جواب المستخدم 7 («تُحدد في الواجهة»)؛ والإصدارات المؤرخة لا تعيد كتابة الفترات الماضية بصمت."},
+      alts: [
+        {en: "Constants in code: not chosen — every change would need a release.", ar: "ثوابت في الكود: لم يُختر — كل تغيير كان سيحتاج إصداراً."}
+      ]
+    },
+    {
+      id: 'WH9', group: 'weekly', status: 'default', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "Punch pairing without shifts", ar: "مزاوجة البصمات دون ورديات"},
+      decision: {en: "Corrections and voids applied; in time order a check-in pairs with the next check-out; the segment belongs to the check-in's date and may cross midnight; breaks are paid. A missing check-out or a segment over 16 h is a problem that counts 0.", ar: "تُطبّق التصحيحات والإلغاءات؛ بترتيب الوقت يُزاوج الدخول مع الخروج التالي؛ وتنتمي الفترة إلى تاريخ الدخول وقد تعبر منتصف الليل؛ والاستراحات مدفوعة. الخروج المفقود أو الفترة فوق 16 ساعة مشكلة تُحسب صفراً."},
+      why: {en: "Same pairing as the rest of the app; no hidden guesses.", ar: "المزاوجة نفسها كبقية التطبيق؛ دون تخمين خفي."},
+      alts: [
+        {en: "Guess a check-out from the required hours: not chosen — the app never invents a punch.", ar: "تخمين الخروج من الساعات المطلوبة: لم يُختر — التطبيق لا يخترع بصمة."}
+      ]
+    },
+    {
+      id: 'WH10', group: 'weekly', status: 'default', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1, Q-WH6',
+      title: {en: "Absences lower the required time", ar: "الغيابات تخفض الوقت المطلوب"},
+      decision: {en: "Leave, sick, mission and unpaid days lower the required time by weekly hours ÷ 5 each, unless the day is an off day; punches on them are ignored.", ar: "أيام الإجازة والمرض والمهمة وغير المدفوعة تخفض الوقت المطلوب بمقدار الساعات الأسبوعية ÷ 5 لكل يوم، إلا إذا كان اليوم يوم راحة؛ وتُتجاهل بصماتها."},
+      why: {en: "A person on leave does not owe those hours.", ar: "الشخص في إجازة لا يدين بتلك الساعات."},
+      alts: [
+        {en: "Absences change nothing: not chosen — every leave day would show as a shortage.", ar: "الغيابات لا تغير شيئاً: لم يُختر — كان كل يوم إجازة سيظهر نقصاً."}
+      ]
+    },
+    {
+      id: 'WH11', group: 'weekly', status: 'default', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "Exact minutes, raw and weighted side by side", ar: "دقائق دقيقة، الخام والموزون جنباً إلى جنب"},
+      decision: {en: "No overtime rounding. Weighted total = Σ minutes × rate, shown next to the raw minutes in hours:minutes and decimal hours.", ar: "لا تقريب للإضافي. المجموع الموزون = مجموع الدقائق × المعدل، ويُعرض بجانب الدقائق الخام بالساعات:الدقائق وبالساعات العشرية."},
+      why: {en: "Nothing was asked about rounding; showing both avoids the confusion of EN4.", ar: "لم يُطلب تقريب؛ وعرض الاثنين يتجنب لبس EN4."},
+      alts: [
+        {en: "Reuse the attendance rounding setting: not chosen — it belongs to the roster engine.", ar: "استخدام إعداد التقريب للحضور: لم يُختر — يخص محرك الجدول."}
+      ]
+    },
+    {
+      id: 'WH12', group: 'weekly', status: 'proposed', date: '2026-11-16', src: 'plans/2026-11-16-weekly-hours-engine.md §1',
+      title: {en: "One /overtime page, a settings section and an employee card", ar: "صفحة /overtime واحدة وقسم إعدادات وبطاقة للموظف"},
+      decision: {en: "/overtime with a GET filter (from, to, department, team, search): one row per person (required, worked, shortage, day, night, off-day, off-day night OT, weighted total, problems) and a drawer with the weeks and days. Settings section 'Weekly hours'; 'Weekly hours' card on the employee page.", ar: "صفحة /overtime بمرشح GET (من، إلى، القسم، الفريق، البحث): صف لكل شخص (المطلوب، المعمول، النقص، الإضافي النهاري والليلي ويوم الراحة وليل يوم الراحة، المجموع الموزون، المشاكل) ودرج بالأسابيع والأيام. قسم إعدادات «الساعات الأسبوعية»؛ وبطاقة «الساعات الأسبوعية» في صفحة الموظف."},
+      why: {en: "One page answers 'how much overtime in this period', and every figure can be traced to its days.", ar: "صفحة واحدة تجيب «كم الإضافي في هذه الفترة»، وكل رقم يمكن تتبعه إلى أيامه."},
+      alts: [
+        {en: "A column on the daily attendance page: not chosen — the figures belong to a period, not a day.", ar: "عمود في صفحة الحضور اليومي: لم يُختر — الأرقام تخص فترة لا يوماً."}
+      ]
     }
   ];
 
@@ -3614,7 +3726,13 @@
     ["Q-RI2", "Pattern names <Team>/<Mon>/<YYYY>?", "yes (RI8)", "أسماء الأنماط <الفريق>/<الشهر>/<السنة>؟", "نعم (RI8)"],
     ["Q-DS1", "Daily page: how many rows on one page?", "100 (DS2)", "الصفحة اليومية: كم صفاً في الصفحة الواحدة؟", "100 (DS2)"],
     ['Q-AR1', 'Friday Prayer credit: exactly two punch segments, or two or more?', 'exactly two (BRIEF R15 wording; setting: segments)', 'رصيد صلاة الجمعة: فترتا حضور بالضبط، أم فترتان أو أكثر؟', 'بالضبط فترتان (نص BRIEF R15؛ الإعداد: الفترات)'],
-    ['Q-AR2', 'Months before October 2026: keep the app\'s old rules (nearest 15 minutes, no prayer credit)?', 'yes, from a second company version (AR4)', 'الأشهر قبل تشرين الأول 2026: إبقاء قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة)؟', 'نعم، من نسخة شركة ثانية (AR4)']
+    ['Q-AR2', 'Months before October 2026: keep the app\'s old rules (nearest 15 minutes, no prayer credit)?', 'yes, from a second company version (AR4)', 'الأشهر قبل تشرين الأول 2026: إبقاء قواعد التطبيق القديمة (الأقرب 15 دقيقة، دون رصيد صلاة)؟', 'نعم، من نسخة شركة ثانية (AR4)'],
+    ['Q-WH1', 'Floating off days: two days with the same worked time (e.g. a leave day and an unworked day) — which is the off day?', 'the day without an absence, then the earlier date', 'أيام الراحة المتغيرة: يومان بالوقت المعمول نفسه (مثلاً يوم إجازة ويوم بلا عمل) — أيهما يوم الراحة؟', 'اليوم بلا غياب، ثم التاريخ الأبكر'],
+    ['Q-WH2', 'Does a period shortage on work days eat off-day overtime?', 'no: off-day overtime is always paid', 'هل يأكل نقص أيام العمل في الفترة إضافي أيام الراحة؟', 'لا: إضافي يوم الراحة يُدفع دائماً'],
+    ['Q-WH3', 'With whole-period counting, night overtime comes from the last days of the period (3a). Keep it, or share night minutes in proportion?', 'keep 3a until reconfirmed', 'مع الحساب على الفترة كاملة يأتي الإضافي الليلي من آخر أيام الفترة (3أ). نبقيه أم نوزع الدقائق الليلية بالنسبة؟', 'إبقاء 3أ حتى التأكيد'],
+    ['Q-WH4', 'Week start day; partial edge weeks get floating off days by share?', 'Sunday; by share (WH5)', 'يوم بداية الأسبوع؛ الأسابيع الجزئية على الأطراف تأخذ أيام راحة بالنسبة؟', 'الأحد؛ بالنسبة (WH5)'],
+    ['Q-WH5', 'A switch per overtime kind plus the off-day night own-rate switch?', 'yes (WH6)', 'مفتاح لكل نوع إضافي مع مفتاح المعدل الخاص لليل يوم الراحة؟', 'نعم (WH6)'],
+    ['Q-WH6', 'Do all absence types lower the required time?', 'yes (WH10)', 'هل تخفض كل أنواع الغياب الوقت المطلوب؟', 'نعم (WH10)']
   ];
 
   function el(tag, attrs, children) {

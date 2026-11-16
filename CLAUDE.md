@@ -12,34 +12,12 @@ decisions, the settings table, tasks with "done when"). Plain-language overview 
 Every decision with its reasons and the rejected alternatives (EN/AR):
 `docs/decisions.html` (rules in §6).
 
-## 1. Real data rules (non-negotiable)
+## 1. Data files
 
-This app holds **real personal data** of airport staff (names, badges,
-punches, sick days = health information).
-
-- **Never write personal data** in code, tests, fixtures, commit messages,
-  plans, docs or chat answers: no names, badges, phone numbers, emails,
-  leave reasons. Use counts, aggregates and record IDs. Tests and fixtures
-  use **made-up people** only.
-- **Data files never enter this repo.** Exports from Odoo, punch files,
+- **Data files never get committed.** Exports from Odoo, punch files,
   Excel outputs, DB dumps and logs with data live in `~/secure/syravia/`
   (mode 700; files 600). The versioned pre-commit hook (`tools/hooks/`)
   blocks the usual file types.
-- **No cloud.** No Neon, Vercel, CDN, analytics, error-reporting SaaS or
-  any external service receives data. Runtime network calls go only to the
-  local PostgreSQL and to Odoo (emails).
-- **Local only while there is no login:** the dev server and the app DB
-  listen on `127.0.0.1` only. Never `0.0.0.0`, tunnels or port forwarding.
-- Ask the user before dropping or overwriting a database, deleting anything
-  in `~/secure/syravia/`, or exposing anything on the network.
-- **The user does all browser testing and all package changes.** Agents
-  never open the app in a browser, never start a dev server to check
-  something at runtime, and never run Playwright. A plan's "manual check" is
-  a checklist handed to the user and ticked only when the user reports the
-  result. Agents never install, uninstall, add, remove or upgrade packages
-  (`pnpm add/remove/install/update`, browser binaries, system packages):
-  write the exact command for the user and wait. Static checks stay with the
-  agent: `pnpm check`, `pnpm test`, eslint, prettier, `svelte-autofixer`.
 
 ## 2. Reference material (read-only)
 
@@ -220,7 +198,6 @@ records **every decision**: what was decided, **why**, and the
 - Never delete an entry: a replaced decision gets `status: 'replaced'` and
   names its replacement. When a proposed plan is approved, change its
   decisions to `approved`.
-- No personal data (§1): IDs, counts and made-up examples only.
 - Check the script after editing (`node --check` on the extracted script).
 
 ## 7. Token saving: graphify and RTK
@@ -240,16 +217,16 @@ Use both on every task to keep context small.
   - Known gaps: `.svelte` files with `<script lang="ts">` parse only
     partially, and `.sql` adds nothing without `graphifyy[sql]`: read those
     files directly.
-  - §1 applies: build the graph from this repo only. Never point graphify at
-    `~/secure/syravia/` or the old Odoo module (real names), and never use
-    its Gemini backend (no cloud).
+  - Build the graph from this repo only. Never point graphify at
+    `~/secure/syravia/` or the old Odoo module, and never use its Gemini
+    backend.
 - **OpenCode v2** (the user's local agent since 2026-11-14) only discovers `AGENTS.md`, so
   `AGENTS.md` is a symlink to this file: edit `CLAUDE.md`, never replace the link, and never run
   `/init` (it would rewrite this file). The RTK hook below is a Claude Code hook and does not run there; the
   Svelte MCP server and the permission rules are in the committed `opencode.json` (set-up and
   checks: `docs/opencode-setup.html`). Its models are
   hosted by outside providers: for any task on real data the agent writes the script and the
-  **user** runs it and reads the output (plan decision SP15); §1 applies in full.
+  **user** runs it and reads the output (plan decision SP15).
   Tasks arrive as a brief written by the cloud Claude session (plan §2b, SP16): do exactly the
   brief on `app/main`, run the checks, commit, and stop; the user pushes and the cloud session
   reviews before the next task. Do not start a task that has no brief.

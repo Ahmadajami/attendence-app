@@ -129,3 +129,18 @@ Stop and report if a sheet's headers do not match what the plan expects, if a ma
 > are skipped, and a file without a findable team column is reported with its header names and
 > skipped — nothing is guessed. Console and report print counts, dates, team names and header
 > names only; never a name, badge, ID or cell value.
+
+> note: 2026-11-16 (brief "sort the October files into READY and PENDING"): this **replaces the
+> team-change scan for now**. New script `scripts/october-file-sort.ts` (analysis in
+> `src/lib/server/imports/october-sort.ts`, tests in `october-sort.test.ts`, made-up workbooks
+> only). Per daily/correction file, seven checks in order, first failure wins:
+> OPEN_FAILED, HEADER_NOT_FOUND (no row with ≥3 non-empty cells), REQUIRED_COLUMN_MISSING
+> (no ID/badge column or no date column by header name), DATE_MISMATCH (a daily file's date column
+> holds values that are not the file's own day; a correction file holding other days is allowed and
+> only counted), EMPTY (no data rows), DUPLICATE_OF_OTHER_FILE (row contents are an exact copy of
+> another file — hash over sorted rows, date cells included; every member of a copy group is
+> flagged; shared rows between different days are never flagged), DUPLICATE_ROWS_IN_FILE (the same
+> ID twice on the same date). Rows with a blank ID or blank date are counted, not failed. Range
+> files are PENDING with RANGE_NOT_IN_SCOPE; `.~lock` files are SKIPPED (names printed; other xlsx
+> files only counted, names not shown — one name has personal names). Nothing is inserted; no team
+> membership is checked. Console and report print counts, dates and reason codes only.

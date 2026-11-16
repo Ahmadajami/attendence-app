@@ -70,19 +70,19 @@ export function findHeaderRow(rows: readonly (readonly unknown[])[]): number {
  * accepted: a serial-number column would make every row look like a new person and invent changes.
  * Arabic and English both match; the user corrects via the printed headers when nothing matches.
  */
-const TEAM_PATTERNS = [
+export const TEAM_PATTERNS = [
 	/\bteam\b|فريق/iu,
 	/\bdepartment\b|\bdept\b|قسم/iu,
 	/\bsection\b|\bunit\b|وحدة/iu
 ];
-const ID_PATTERNS = [
+export const ID_PATTERNS = [
 	/\bbadge\b|بصمة|بطاقة/iu,
 	/\bemployee ?(id|no|number|#)\b|\bemp ?(id|no|number|#)\b|رقم ?(الموظف|الوظيفي)/iu,
 	/\bid\b|هوية/iu,
 	/\bstaff ?(id|no|number|#)\b/iu
 ];
 /** Columns excluded from the duplicate "row content" signature: they carry the day, not the data. */
-const DATE_PATTERNS = [/\bdate\b|\bday\b|تاريخ|يوم/iu];
+export const DATE_PATTERNS = [/\bdate\b|\bday\b|تاريخ|يوم/iu];
 
 /** Index of the first header matching any pattern, or null. */
 export function findColumn(headers: readonly string[], patterns: readonly RegExp[]): number | null {

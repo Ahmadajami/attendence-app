@@ -16,6 +16,15 @@ export type PayRule = {
 export type PayRuleField = keyof PayRule;
 
 /**
+ * From this shift-start date the night overtime factor exists (TP33): before it the resolved night
+ * rate is `null`, whatever a pattern or the company stores. Other new policies start 2026-11-01.
+ */
+export const NIGHT_RATE_DEFAULT_DATE = '2026-10-25';
+
+/** The approved initial night factor (TP29, TP33): the resolver's fallback from that date. */
+export const NIGHT_RATE_DEFAULT = 1.5;
+
+/**
  * The built-in default under the company setting (PR7, PR35): the old Odoo values (Q1: holiday 1.5,
  * the old behaviour). Used for every value neither the pattern nor the company sets.
  */
@@ -26,8 +35,13 @@ export const OVERTIME_DEFAULTS: Readonly<PayRule> = Object.freeze({
 	holidayRate: 1.5
 });
 
-/** One `pattern_pay_rule` version: `null` in a field inherits (PR4). */
+/**
+ * One `pattern_pay_rule` version: `null` in a field inherits (PR4). `nightRate` is optional for now:
+ * legacy callers and rows selected without the column omit it, and an absent value inherits too.
+ */
 export type PayRuleVersion = { [K in PayRuleField]: PayRule[K] | null } & {
+	/** `null`/absent: inherit. Only read for dates from `NIGHT_RATE_DEFAULT_DATE`. */
+	nightRate?: number | null;
 	effectiveFrom: string;
 	/** Exclusive; `null` while open. */
 	effectiveTo: string | null;
@@ -40,8 +54,8 @@ export type PayRuleVersion = { [K in PayRuleField]: PayRule[K] | null } & {
 export type PayRuleSource = 'pattern' | 'company' | 'default';
 
 export type ResolvedPayRule = {
-	rule: PayRule;
-	sources: Record<PayRuleField, PayRuleSource>;
+	rule: PayRule & { nightRate: number | null };
+	sources: Record<PayRuleField | 'nightRate', PayRuleSource>;
 };
 
 const FIELDS = ['otEnabled', 'workDayRate', 'offDayRate', 'holidayRate'] as const;
@@ -57,8 +71,27 @@ export function versionOn<V extends { effectiveFrom: string; effectiveTo: string
 }
 
 /**
+ * The night factor on `date`: nothing before `NIGHT_RATE_DEFAULT_DATE`; from it, the pattern's
+ * active value, else the company's active value, else the approved default. Only the version in
+ * force on the date is read, so an expired version never supplies the value.
+ */
+function nightRateOn(
+	levels: readonly (readonly [PayRuleVersion | undefined, PayRuleSource])[],
+	date: string
+): { value: number | null; source: PayRuleSource } {
+	if (date < NIGHT_RATE_DEFAULT_DATE) return { value: null, source: 'default' };
+	for (const [version, source] of levels) {
+		const value = version?.nightRate ?? null;
+		if (value === null) continue;
+		return { value, source };
+	}
+	return { value: NIGHT_RATE_DEFAULT, source: 'default' };
+}
+
+/**
  * The rule on `date`: each field from the pattern's version in force, else the company's version in
- * force (PR35), else the built-in default, with where each came from.
+ * force (PR35), else the built-in default, with where each came from. `nightRate` is dated: `null`
+ * before `NIGHT_RATE_DEFAULT_DATE`, and pattern → company → 1.50 from it on (TP33).
  */
 export function resolvePayRule(
 	patternVersions: readonly PayRuleVersion[],
@@ -81,7 +114,11 @@ export function resolvePayRule(
 			break;
 		}
 	}
-	return { rule, sources };
+	const night = nightRateOn(levels, date);
+	return {
+		rule: { ...rule, nightRate: night.value },
+		sources: { ...sources, nightRate: night.source }
+	};
 }
 
 export type OvertimePay = {

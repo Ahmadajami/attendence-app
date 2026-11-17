@@ -1,0 +1,13 @@
+# Keep the user's selected model and authentication.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+project_doc_max_bytes = 65536
+
+[sandbox_workspace_write]
+network_access = false
+
+[mcp_servers.svelte]
+command = "npx"
+args = ["-y", "@sveltejs/mcp"]
+startup_timeout_sec = 60
+tool_timeout_sec = 120

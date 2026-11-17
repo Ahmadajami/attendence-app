@@ -204,6 +204,20 @@
       "when": 1794726651138,
       "tag": "0028_attendance_rule_october_round_15",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794933518512,
+      "tag": "0029_calm_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794933527328,
+      "tag": "0030_off_day_leave_conversion_no_overlap",
+      "breakpoints": true
     }
   ]
 }

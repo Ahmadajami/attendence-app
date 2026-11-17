@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Roster reconciliation and app rollout · خطة تنظيم الجداول وتطوير التطبيق</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			:root {
+				color-scheme: light dark;
+				--bg: #f4f6f8;
+				--paper: #fff;
+				--ink: #172c38;
+				--muted: #526471;
+				--line: #ced8df;
+				--accent: #146378;
+				--notice: #ecf5f7;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #111b23;
+					--paper: #192832;
+					--ink: #e5edf2;
+					--muted: #b6c7d2;
+					--line: #405663;
+					--accent: #83d4e5;
+					--notice: #203b47;
+				}
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--ink);
+				font:
+					17px/1.85 system-ui,
+					sans-serif;
+			}
+			main,
+			.toolbar {
+				max-width: 1120px;
+				margin: auto;
+				padding: 24px;
+			}
+			.toolbar {
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			button {
+				font: inherit;
+				padding: 8px 20px;
+				background: var(--paper);
+				color: var(--ink);
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				cursor: pointer;
+			}
+			button[aria-pressed='true'] {
+				background: var(--ink);
+				color: var(--paper);
+			}
+			a {
+				color: var(--accent);
+			}
+			button:focus-visible,
+			a:focus-visible {
+				outline: 3px solid var(--accent);
+				outline-offset: 4px;
+			}
+			header,
+			section {
+				background: var(--paper);
+				padding: clamp(18px, 4vw, 32px);
+				margin-block-end: 22px;
+				border-radius: 12px;
+			}
+			h1 {
+				font-size: clamp(28px, 4vw, 44px);
+				line-height: 1.3;
+			}
+			h2 {
+				font-size: 25px;
+				line-height: 1.5;
+			}
+			.meta {
+				color: var(--muted);
+			}
+			.gate {
+				padding: 16px;
+				background: var(--notice);
+				border-inline-start: 4px solid var(--accent);
+			}
+			li {
+				margin-block: 10px;
+			}
+			.flow {
+				display: flex;
+				gap: 12px;
+				flex-wrap: wrap;
+				padding: 14px;
+				background: var(--notice);
+			}
+			.table-wrap {
+				overflow-x: auto;
+			}
+			table {
+				border-collapse: collapse;
+				width: 100%;
+				min-width: 620px;
+			}
+			th,
+			td {
+				text-align: start;
+				border-bottom: 1px solid var(--line);
+				padding: 12px;
+				vertical-align: top;
+			}
+			th {
+				background: var(--notice);
+			}
+			caption {
+				text-align: start;
+				font-weight: 700;
+				padding: 10px 0;
+			}
+			nav ul {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+				gap: 8px;
+				padding-inline-start: 22px;
+			}
+			code {
+				overflow-wrap: anywhere;
+			}
+			[hidden] {
+				display: none !important;
+			}
+			@media print {
+				.toolbar {
+					display: none;
+				}
+				body {
+					background: white;
+					color: black;
+					font-size: 11pt;
+				}
+				main {
+					padding: 0;
+					max-width: none;
+				}
+				section {
+					padding: 10px 0;
+					break-inside: auto;
+					border-radius: 0;
+				}
+				h2 {
+					break-after: avoid;
+				}
+				thead {
+					display: table-header-group;
+				}
+				tr {
+					break-inside: avoid;
+				}
+				a {
+					color: inherit;
+				}
+				.table-wrap {
+					overflow: visible;
+				}
+				table {
+					min-width: 0;
+				}
+				.gate {
+					background: transparent;
+					border: 1px solid #777;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="toolbar" aria-label="Language / اللغة">
+			<button type="button" data-lang="ar" aria-pressed="true">العربية</button
+			><button type="button" data-lang="en" aria-pressed="false">English</button>
+		</div>
+		<main>
+			<article lang="ar" dir="rtl" data-language="ar">
+				<header>
+					<p class="meta">من 1 تشرين الأول حتى 17 تشرين الثاني 2026 · خطة عمل على التطبيق الحالي</p>
+					<h1>خطة تنظيم الفرق والجداول واستكمال الدوام</h1>
+					<p>وثيقة تخطيط — لا تطبق تغييرات على البيانات. الترجمتان تعرضان الخطة نفسها.</p>
+					<nav aria-label="محتويات الخطة">
+						<ul>
+							<li><a href="#ar-scope">١. الهدف والحالة وحدود العمل</a></li>
+							<li><a href="#ar-dates">٢. الفترات الزمنية وتغطية المصادر</a></li>
+							<li><a href="#ar-model">٣. ما يجب أن يفصله التطبيق</a></li>
+							<li><a href="#ar-inventory">٤. المرحلة R0 — الجرد والحماية</a></li>
+							<li><a href="#ar-team">٥. المرحلة R1 — بطاقة مراجعة لكل فريق</a></li>
+							<li><a href="#ar-cleanup">٦. المرحلة R2 — تنظيم الأسماء والفرق وروابط الجداول</a></li>
+							<li><a href="#ar-baseline">٧. المرحلة R3 — تثبيت فترة 1–24 تشرين الأول</a></li>
+							<li><a href="#ar-later">٨. المرحلة R4 — تحليل 25 تشرين الأول–17 تشرين الثاني</a></li>
+							<li><a href="#ar-build">٩. تعديلات التطبيق وتسلسل البناء الحالي</a></li>
+							<li><a href="#ar-import">١٠. المرحلة R5 — الاستيراد والتصحيح المنضبط</a></li>
+							<li><a href="#ar-validation">١١. المرحلة R6 — التحقق والقبول</a></li>
+							<li><a href="#ar-workflow">١٢. توزيع العمل والخطوة التالية</a></li>
+							<li><a href="#ar-questions">١٣. الأدلة والأسئلة المتبقية</a></li>
+						</ul>
+					</nav>
+				</header>
+				<section id="ar-scope">
+					<h2>١. الهدف والحالة وحدود العمل</h2>
+					<p>
+						نعدّل <strong>تطبيق الدوام الحالي</strong> ليكون لكل موظف فريق وجدول وساعات مطلوبة وحساب
+						قابل للتفسير بحسب التاريخ. نراجع الفترة السابقة أولاً ثم نعالج السجلات اللاحقة فريقاً
+						بعد فريق. لا نبني تطبيقاً جديداً ولا نحذف الحضور كله لإعادة استيراده.
+					</p>
+					<p>
+						<strong>تاريخ الخطة ونهاية نطاقها: 17 تشرين الثاني 2026.</strong> عبارة «حتى اليوم» تعني
+						هذا التاريخ؛ تبقى الورديات غير المكتملة اليوم مؤقتة. هذه الوثيقة للتخطيط فقط؛ التنفيذ
+						وتطبيق الترحيلات وتعديلات البيانات الفعلية تحتاج مهام ومراجعات وموافقات مستقلة.
+					</p>
+					<p>
+						اعتمد المستخدم الاتجاه: مراجعة جداول أودو بأسماء ورديات ودورات واضحة، وتنظيم الفرق
+						والورديات، والتحقق من الفترة السابقة، ثم بحث تغييرات 25 تشرين الأول وما بعدها. تبقى
+						خرائط الربط والدمج وقوائم الأرشفة وتعديلات البيانات مقترحات حتى مراجعتها.
+					</p>
+				</section>
+				<section id="ar-dates">
+					<h2>٢. الفترات الزمنية وتغطية المصادر</h2>
+					<div class="table-wrap">
+						<table>
+							<caption>
+								التسلسل الزمني لعام 2026 — يشمل تاريخي البداية والنهاية
+							</caption>
+							<thead>
+								<tr>
+									<th>الفترة</th>
+									<th>المعلوم</th>
+									<th>الإجراء</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>1–20 تشرين الأول</td>
+									<td>أكد المستخدم أن هذه هي فترة الحضور الموجودة حالياً في التطبيق.</td>
+									<td>
+										نحافظ عليها ونقارن الجداول والدقائق المطلوبة والبصمات والمجاميع المعتمدة، ونملأ
+										النقص المثبت فقط.
+									</td>
+								</tr>
+								<tr>
+									<td>21–24 تشرين الأول</td>
+									<td>
+										غير مستوردة بعد. لا يوجد حضور في أودو للفترة 21–24 تشرين الأول، لكن جدوله الشهري
+										يغطي الدوام المخطط. مصدر الحضور الفعلي هو ملفات الاستقبال.
+									</td>
+									<td>نتحقق من التغطية ونوع السجل قبل اختيار مصدر الحضور الناقص واستيراده.</td>
+								</tr>
+								<tr>
+									<td>25–31 تشرين الأول</td>
+									<td>
+										بدأت ترتيبات ليلية جديدة لبعض مجموعات المطار، بينما لدى الحراس والعمليات جداول
+										ليلية سابقة.
+									</td>
+									<td>
+										نراجع تاريخ تغيير كل مجموعة. يبدأ معامل الإضافي الليلي الجديد في 25 تشرين الأول
+										وفق TP33.
+									</td>
+								</tr>
+								<tr>
+									<td>1–17 تشرين الثاني</td>
+									<td>
+										تبدأ السياسات الجديدة الأخرى في 1 تشرين الثاني. لم تثبت بعد تغطية الملفات حتى 17
+										تشرين الثاني.
+									</td>
+									<td>نستكمل الأدلة ونؤكد الجداول المؤرخة ثم نستورد السجلات المثبتة فقط.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>
+						<strong>فصل المصادر المؤكد:</strong> لا توجد سجلات حضور في أودو للفترة 21–24 تشرين
+						الأول. نستخدم جدوله الشهري لشهر تشرين الأول للورديات والدورات والراحة والساعات المطلوبة
+						بعد التحقق من تكليفات الموظفين والاستثناءات، وملفات الاستقبال للحضور الفعلي. الوردية
+						المخططة لا تنشئ بصمة.
+					</p>
+				</section>
+				<section id="ar-model">
+					<h2>٣. ما يجب أن يفصله التطبيق</h2>
+					<div class="flow" aria-label="مسار الحساب">
+						<span>هوية الموظف والفريق المؤرخ</span><span>← الجدول وسياسة اليوم المؤرخة</span
+						><span>← المقارنة مع فترات الحضور الفعلية</span
+						><span>← نتيجة يومية وتقرير تمت مراجعتهما</span>
+					</div>
+					<ul>
+						<li>
+							<strong>الحضور الفعلي:</strong> نحفظ حركات الدخول والخروج الأصلية ونجمع الفترات
+							الصحيحة المسجلة. تظهر الفجوات ولا تصنف تلقائياً استراحات. اختلاف الحضور عن الجدول لا
+							يبرر تغيير البصمة.
+						</li>
+						<li>
+							<strong>الجدول والسياسة:</strong> يحددان الدقائق المطلوبة والدورة وأيام الراحة وتصنيف
+							الليل لكل موظف وتاريخ. لا نستنتج الساعات المطلوبة من مدة البقاء في الموقع.
+						</li>
+						<li>
+							<strong>الفريق:</strong> نحفظ العضوية المؤرخة والاستثناءات الفردية. مجموعة أو موقع
+							الحضور في ملف دليل للمراجعة وليسا نقلاً رسمياً تلقائياً.
+						</li>
+						<li>
+							<strong>امتداد الوردية مقابل الساعات المطلوبة:</strong> نسجل الاثنين؛ الامتداد الطويل
+							لا يثبت أن جميع ساعاته مطلوبة أو مدفوعة.
+						</li>
+						<li>
+							<strong>النتائج:</strong> تحسب بالسياسة المؤرخة المعتمدة. تبقى الهوية أو الجداول أو
+							القواعد الناقصة غير محسومة؛ لا نعوضها بصفر أو ثماني ساعات مفترضة. لا نختلق حضوراً
+							للأيام التي لا دليل عليها.
+						</li>
+					</ul>
+				</section>
+				<section id="ar-inventory">
+					<h2>٤. المرحلة R0 — الجرد والحماية</h2>
+					<ol>
+						<li>
+							نجهز سكربتات من الكود واختبارات ببيانات وهمية. يشغّل المستخدم جرد البيانات الفعلية
+							محلياً؛ تصل للوكيل أعداد وتواريخ ومعرفات سجلات مسموحة فقط.
+						</li>
+						<li>
+							نجرد تغطية التطبيق حسب التاريخ والفريق ونوع السجل: الموظفون والعضويات والتكليفات
+							والورديات والدورات والاستثناءات والبصمات والأرصدة التعويضية والغيابات ودفعات الاستيراد
+							والأيام المحسوبة.
+						</li>
+						<li>
+							نجرد أودو بشكل منفصل للموظفين والجداول والتقويم والساعات المطلوبة والبصمات والتعديلات
+							المعتمدة. نثبت أول وآخر تاريخ والفجوات لكل نوع.
+						</li>
+						<li>
+							نجرد ملفات الاستقبال اليومية والتصحيحات حتى 17 تشرين الثاني: التغطية الفعلية والأوراق
+							والعناوين والنسخ المكررة وأولوية التصحيح والأيام المفقودة. تبقى التفاصيل الشخصية في
+							تقارير آمنة لا في الخطة العامة.
+						</li>
+						<li>
+							قبل أي كتابة فعلية نأخذ نسخة محمية ونختبر الاستعادة في بيئة معزولة غير إنتاجية بمعالجة
+							محلية مخولة.
+						</li>
+					</ol>
+					<p class="gate">
+						<strong>تكتمل عندما:</strong> تراجع مصفوفة التغطية والأعداد وقائمة المصادر المفقودة
+						وطريقة الاستعادة. لا تستنتج التغطية من اسم الملف أو التقويم وحده.
+					</p>
+				</section>
+				<section id="ar-team">
+					<h2>٥. المرحلة R1 — بطاقة مراجعة لكل فريق</h2>
+					<p>
+						نعيد استخدام الجرد والأدلة وقرارات الساعات المطلوبة المعتمدة؛ لا نبدأ البحث من الصفر ولا
+						نحول الفرضيات إلى حقائق. نراجع فريقاً أو مجموعة في كل مرة مع الاستثناءات الفردية.
+					</p>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>الحقول المطلوب تسجيلها</th>
+									<th>الدليل المطلوب</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>الفريق أو المجموعة وربط الموظفين وتاريخ العضوية</td>
+									<td>
+										ربط ثابت بين سجلات التطبيق وأودو والتحقق من الرقم؛ الأسماء الملتبسة تحتاج
+										مراجعة.
+									</td>
+								</tr>
+								<tr>
+									<td>
+										اسم الوردية بالعربية والإنكليزية، البداية والنهاية، عبور منتصف الليل والدقائق
+										المطلوبة
+									</td>
+									<td>جدول مؤرخ وسياسة معتمدة مع الفصل بين امتداد الوردية والالتزام المطلوب.</td>
+								</tr>
+								<tr>
+									<td>ترتيب الدورة وطولها وتاريخ ارتكازها وموضع كل موظف فيها</td>
+									<td>تكليفات أودو المؤرخة؛ نطابق أيام العمل والراحة الناتجة لا اسم الدورة فقط.</td>
+								</tr>
+								<tr>
+									<td>الراحة الأسبوعية والعطل والاستراحات والسماح والتعويض وأهلية الإضافي</td>
+									<td>
+										قواعد معتمدة سابقة أو تأكيد صريح من الموارد البشرية؛ المجهول يبقى مجهولاً.
+									</td>
+								</tr>
+								<tr>
+									<td>تواريخ التغيير والاستثناءات والمغادرون والمنضمون</td>
+									<td>دليل مؤرخ؛ لا نسقط عضوية اليوم على الماضي.</td>
+								</tr>
+								<tr>
+									<td>درجة الثقة ومرجع الدليل والأسئلة العالقة والمراجع</td>
+									<td>
+										فصل المرصود والمقترح والمعتمد، مع إبقاء التفاصيل الشخصية في التقارير الآمنة.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>
+						تشمل قائمة المراجعة العمليات والحراس والسائقين والتنظيف والحمالين ومجموعات شركات الطيران
+						والمفقودات والمكتب وحلب حيث تظهر في الجرد المثبت. ليست هذه تأكيداً لتطابق قواعد
+						المجموعات أو اكتمال أدلتها.
+					</p>
+					<p class="gate">
+						<strong>تكتمل عندما:</strong> يعتمد المستخدم خط الأساس وربط العضوية والدورة وتاريخ
+						ارتكازها والاستثناءات لكل فريق. نحافظ على تحليل الساعات السابق ونطاقه الزمني الأصلي.
+					</p>
+				</section>
+				<section id="ar-cleanup">
+					<h2>٦. المرحلة R2 — تنظيم الأسماء والفرق وروابط الجداول</h2>
+					<ol>
+						<li>
+							نجهز خريطة مقترحة: معرف الوردية أو الفريق أو النمط القديم ← المعرف المحتفظ به والاسم
+							الواضح باللغتين والاستخدام المؤرخ والسبب وأعداد الارتباطات.
+						</li>
+						<li>
+							نغير الاسم فقط إذا بقي المعنى نفسه. اختلاف المدة المطلوبة أو امتداد الوردية أو الدورة
+							يحتاج تغييراً مناسباً مؤرخاً لا مجرد تسمية.
+						</li>
+						<li>
+							لا ندمج ورديات لتشابه الاسم أو وقت البداية وحده. نقارن الدقائق المطلوبة ويوم النهاية
+							ودورها في الدورات والروابط التاريخية.
+						</li>
+						<li>
+							نؤرشف الورديات والفرق غير المستخدمة فعلاً بعد فحص التكليفات وعناصر الدورات
+							والاستثناءات وروابط الاستيراد والنتائج اليومية. تبقى المراجع التاريخية مقروءة؛ لا حذف
+							نهائي.
+						</li>
+						<li>
+							نصحح عضوية الفريق بسجلات مؤرخة وسبب. لا نعطل الموظفين لتنظيم فريق؛ نحافظ على تواريخ
+							المغادرة المؤكدة والتكليفات الفردية.
+						</li>
+						<li>
+							إذا لم تكف خدمات الأرشفة أو التسمية الحالية، نقترح مهمة صغيرة مدققة ونختبرها ببيانات
+							وهمية ونراجعها قبل تنظيف البيانات الفعلية.
+						</li>
+					</ol>
+					<p class="gate">
+						<strong>تكتمل عندما:</strong> تعتمد خريطة الربط وتفحص الارتباطات وتتوفر معاينة الأثر
+						وطريقة التراجع، مع بقاء أيام العمل والراحة والدقائق المطلوبة التاريخية مطابقة للمعتمد ما
+						لم يعتمد تصحيح صريح.
+					</p>
+				</section>
+				<section id="ar-baseline">
+					<h2>٧. المرحلة R3 — تثبيت فترة 1–24 تشرين الأول</h2>
+					<p>
+						<strong>1–20 تشرين الأول:</strong> نقارن البصمات الموجودة وجميع فترات الحضور وحالات
+						الأيام والتعويضات بمدخلات أودو المثبتة. نصنفها إلى مطابق وناقص ومتعارض وغير مفسر. لا
+						نستبدل التصحيحات اليدوية ولا نكرر السجلات المطابقة.
+					</p>
+					<p>
+						<strong>21–24 تشرين الأول:</strong> نستخدم جدول أودو الشهري لشهر تشرين الأول أساساً
+						للدوام المخطط مع التكليفات المؤرخة والاستثناءات المعتمدة. نستورد الحضور الفعلي من ملفات
+						الاستقبال؛ لا يوجد حضور من أودو للاستيراد لهذه الأيام. تراجع تصحيحات الاستقبال صراحة ولا
+						تضاف كحضور إضافي.
+					</p>
+					<p>
+						نقارن لكل فريق وتاريخ حالة العمل أو الراحة والدقائق المطلوبة ومجموع الحضور الفعلي
+						والتعويض المدفوع والنقص والإضافي. نحافظ على التقريب المعتمد لأقرب 15 دقيقة للإضافي وفق
+						SP11؛ نشرح الفرق المتوقع عن أودو ولا نفرض تطابقاً زائفاً.
+					</p>
+					<p class="gate">
+						<strong>تكتمل عندما:</strong> تربط الهويات وتحسم التكرارات والتعارضات أو تعزل بوضوح
+						وتفسر فروق خط الأساس، ولا تظهر تغييرات غير مفسرة في معاينة الاستيراد وإعادة الحساب. لا
+						نعلن اكتمال فريق ناقص دون بيان.
+					</p>
+				</section>
+				<section id="ar-later">
+					<h2>٨. المرحلة R4 — تحليل 25 تشرين الأول–17 تشرين الثاني</h2>
+					<ol>
+						<li>
+							نقرأ كل مصدر يومي أو تصحيح مثبت إلى فترات خام محفوظة مع المصدر وتغطية التاريخ وتسلسل
+							التصحيح.
+						</li>
+						<li>
+							نجمع الأدلة بربط موظف ثابت وفريق أو مجموعة مؤرخة. نقارن الأيام المتتابعة دون اختلاق
+							سجلات مفقودة.
+						</li>
+						<li>
+							نقترح أوقات النهار والليل والدورات وأيام الراحة وأول تغيير مرصود. نفصل نمط الحضور
+							المرصود عن الجدول المطلوب المعتمد.
+						</li>
+						<li>
+							نطلب من كل فريق وقت البداية والنهاية والدقائق المطلوبة والراحة والدورة وتاريخ السريان
+							والاستثناءات والاستراحات أو التعويضات المدفوعة وأهلية الإضافي. نؤكد إن كان التغيير في
+							25 تشرين الأول فعلاً أم في تاريخ آخر لذلك الفريق.
+						</li>
+						<li>
+							نحافظ على جداول الحراس والعمليات الليلية السابقة. نطبق التغييرات المثبتة على المجموعات
+							المعنية فقط ولا نفرض نمطاً موحداً.
+						</li>
+						<li>
+							نحفظ نسخ الجداول المؤرخة المعتمدة ونستخدم استثناء اليوم للحوادث المنفردة. نعاين تقويم
+							الأيام وربط الورديات الليلية قبل الاستيراد وإعادة الحساب.
+						</li>
+					</ol>
+					<p>
+						يبدأ معامل الليل الجديد وحده في 25 تشرين الأول: 1.50 أولياً للإضافي المستحق في يوم عمل
+						ليلي عادي. إذا بدأ في يوم راحة تستخدم قاعدة الراحة؛ لا تركيب للمعاملات ولا اختيار
+						للأعلى. تبدأ السياسات الجديدة الأخرى في 1 تشرين الثاني. تبقى علاقة العطل ومساهمة تعويض
+						الإلغاء في الإضافي غير محسومة ولا تُخمن.
+					</p>
+					<p class="gate">
+						<strong>تكتمل عندما:</strong> يكون لكل فريق وتاريخ معالج حضور مستند لمصدر وجدول مؤرخ
+						معتمد، أو يدرج كعالق مع السبب. يجب الحصول على ملفات ما بعد تشرين الأول الناقصة قبل إعلان
+						التغطية حتى 17 تشرين الثاني.
+					</p>
+				</section>
+				<section id="ar-build">
+					<h2>٩. تعديلات التطبيق وتسلسل البناء الحالي</h2>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>العمل</th>
+									<th>الحالة والحدود</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>B1 تحويل خصم الإجازة</td>
+									<td>مقبول: 17 اختباراً مركزاً. منطق مستقل دون ربط بسجل الخصومات.</td>
+								</tr>
+								<tr>
+									<td>B2.1 التصميم وB2.2 البنية التخزينية</td>
+									<td>
+										تمت المراجعة. الترحيلان 0029 و0030 مولدان وغير مطبقين بعد. آخر مراجعة: 612
+										اختباراً وصفر أخطاء أنواع وتحذير سابق واحد.
+									</td>
+								</tr>
+								<tr>
+									<td>B2.3 أدوات اختيار القيم المؤرخة</td>
+									<td>
+										مهمة أوبن كود الحالية؛ لا تقبل قبل مراجعة التغييرات والفحوص الفعلية محلياً. لا
+										نوقفها ولا نطلق تنفيذاً آخر بالتوازي.
+									</td>
+								</tr>
+								<tr>
+									<td>باقي B2: الخدمات والنماذج وواجهة الإعدادات</td>
+									<td>
+										مهام منفصلة للصلاحيات والتاريخ والتدقيق والتحرير باللغتين وعرض مصدر القيم. لا
+										قيمة افتراضية لتحويل ثماني ساعات.
+									</td>
+								</tr>
+								<tr>
+									<td>B3 سجل خصومات الإجازة</td>
+									<td>
+										إجراء خصم مستقل مخول ومنع التكرار وأرصدة افتتاحية وسماح بالسالب وحفظ المقسوم
+										عليه ونسخته والعكس المرتبط. حفظ تعويض الحضور وحده لا يخصم إجازة.
+									</td>
+								</tr>
+								<tr>
+									<td>B4 محرك الحساب والعرض</td>
+									<td>
+										ربط قاعدة الليل بيوم البداية والفصل بين الإضافي الفعلي والمرجح والزيادة، وفصل
+										إخفاء العرض عن الحساب. لا نغير معنى otEnabled الحالي بصمت.
+									</td>
+								</tr>
+								<tr>
+									<td>دعم تنظيم الفرق والجداول وتسوية الاستيراد</td>
+									<td>
+										نفحص الخدمات الحالية أولاً ونضيف فقط ما ينقص من أرشفة وتسمية وربط ومعاينة
+										واستيراد مدقق عبر مهام صغيرة مراجعة.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>
+						مساران متكاملان: استكمال قدرات التطبيق المراجعة ببيانات وهمية وتجهيز أدلة الفرق محلياً.
+						ينتظر الاستيراد وإعادة الحساب الفعليان اعتماد خرائط البيانات والتحقق من القدرات معاً. لا
+						نبني محرك رواتب موازياً.
+					</p>
+				</section>
+				<section id="ar-import">
+					<h2>١٠. المرحلة R5 — الاستيراد والتصحيح المنضبط</h2>
+					<ol>
+						<li>
+							نعاين عبر خدمات الأعمال والاستيراد الحالية أعداد المطابق والجديد والمكرر والمصحح
+							والمتجاوز والمحجوب لكل فريق وتاريخ ومصدر.
+						</li>
+						<li>
+							نكشف تكرار صفوف المصدر والحركات المحفوظة ونحفظ علاقة المصدر والدفعة. يحتفظ خروج
+							الوردية الليلية بتاريخه الفعلي وينسب الحساب ليوم البداية المعتمد.
+						</li>
+						<li>
+							نستخدم مسار تصحيح أو تراجع صريح للسجلات الخاطئة. لا حذف شامل لحضور أودو ولا استبدال
+							للتصحيحات اليدوية دون قرار تعارض مراجع.
+						</li>
+						<li>
+							نختبر الاستيراد وتجاوز إعادة الاستيراد والتصحيح والتراجع وإعادة الحساب على قواعد وهمية
+							أولاً.
+						</li>
+						<li>
+							قبل الإنتاج: نسخة محمية وأعداد صفوف ونطاق ودفعة معتمدان وموافقة المستخدم الصريحة.
+							الكتابة عبر خدمات الأعمال الذرية والمدققة لا تعديلات جداول عشوائية.
+						</li>
+						<li>
+							نطابق الأعداد المكتوبة مع المعاينة ونراجع النتائج ونتوقف عند الاختلاف. تشخص الدفعة
+							الفاشلة أو تعكس بالمسار المراجع قبل الإعادة.
+						</li>
+					</ol>
+					<p class="gate">
+						<strong>تكتمل عندما:</strong> توجد السجلات المثبتة مرة واحدة مع تتبع التصحيحات وتطابق
+						الأعداد، وتبقى الصفوف المحجوبة ظاهرة في قائمة المراجعة الآمنة.
+					</p>
+				</section>
+				<section id="ar-validation">
+					<h2>١١. المرحلة R6 — التحقق والقبول</h2>
+					<ul>
+						<li>
+							الفحوص الآلية: pnpm check وpnpm test وESLint وPrettier للملفات المعدلة، ومصحح Svelte
+							MCP لكل ملف Svelte معدل.
+						</li>
+						<li>
+							تطبق الترحيلات المراجعة بالترتيب على attendance_app_test وattendance_app_e2e ثم تختبر
+							القيود والقيم المحدودة والكسور والحدود الزمنية وذرية التدقيق. الإنتاج بعد الأعداد
+							والموافقة الصريحة فقط.
+						</li>
+						<li>
+							نتحقق لكل فريق من ارتكاز الدورة والراحة والدقائق المطلوبة والورديات العادية والعابرة
+							لمنتصف الليل وفترات الدخول والخروج والفجوات والتصحيحات والبصمة الناقصة والاستثناءات.
+						</li>
+						<li>
+							نختبر حدود 20/21 تشرين الأول لتسليم المصدر و24/25 تشرين الأول لمعامل الليل و31 تشرين
+							الأول/1 تشرين الثاني للسياسات الأخرى والنهايات الحصرية للنسخ واليوم الحالي غير
+							المكتمل.
+						</li>
+						<li>
+							نختبر بقاء الحضور الفعلي والتقريب المعتمد وotEnabled=false حتى تغييره بمهمة محددة،
+							وأولوية الراحة، والإضافي الفعلي والمرجح والزيادة، ومنع تكرار التعويض وخصم الإجازة،
+							وحجب حالات الإلغاء غير المحسومة.
+						</li>
+						<li>
+							مراجعة يدوية باللغتين واتجاه اليمين على خادم الاختبار الوهمي في المنفذ 5174: الجداول
+							والموظفون وتاريخ الفرق والتسمية والأرشفة وإدخال الحضور واستيراده والإعدادات والتقارير.
+							تبقى الورديات التاريخية المؤرشفة مقروءة.
+						</li>
+					</ul>
+					<p class="gate">
+						<strong>القبول النهائي:</strong> لا فروق غير مفسرة ضمن النطاق المقبول، وتدرج فجوات
+						المصادر والقرارات العالقة، ويسجل نطاق كل فريق المعتمد ومراجعه، ولا تغير إعادة الاستيراد
+						المجاميع المقبولة. لا ندعي اكتمال التغطية إذا بقي فريق أو يوم عالقاً.
+					</p>
+				</section>
+				<section id="ar-workflow">
+					<h2>١٢. توزيع العمل والخطوة التالية</h2>
+					<p>
+						<strong>أوبن كود:</strong> مهمة محددة جديدة كل مرة، كود ومدخلات وهمية فقط وفحوص مطلوبة
+						وتغييرات دون إيداع ثم توقف. <strong>كودكس:</strong> تجهيز المهام ومراجعة التغييرات
+						الفعلية وإعادة الفحوص وإعلان القبول.
+						<strong>المستخدم والموارد البشرية المخولة:</strong> تشغيل سكربتات البيانات الحقيقية
+						المعتمدة محلياً ومراجعة الأدلة الآمنة وتأكيد سياسات الفرق والموافقة على تعديلات الإنتاج
+						المحددة.
+					</p>
+					<p>
+						<strong>التالي:</strong> إنهاء مهمة B2.3 الجارية ومراجعتها، ثم تجهيز مهمة R0 للجرد
+						والتحقق من تغطية المصادر والفرق للقراءة فقط. تستكمل الخدمات والواجهة بمهام مراجعة
+						مستقلة؛ لا تطلق هذه الوثيقة تنفيذاً تلقائياً.
+					</p>
+					<p>
+						تبقى الملفات والنسخ والتقارير الحقيقية ضمن
+						<code dir="ltr">~/secure/syravia/</code> بصلاحيات 700 للمجلدات و600 للملفات. لا ترسل
+						معرفات أو سجلات موظفين حقيقية إلى مزود مفوض. لا إيداع ولا دفع إلا بطلب.
+					</p>
+					<p>
+						تكمل هذه الخطة خطط القواعد القابلة للضبط وسياسات الفرق وتسوية إكسل. توضح ترتيب مراجعة
+						المصادر والعمل ولا تلغي مهام سابقة بصمت ولا تعتمد عمليات بيانات.
+					</p>
+				</section>
+				<section id="ar-questions">
+					<h2>١٣. الأدلة والأسئلة المتبقية</h2>
+					<ul>
+						<li>
+							التحقق من ربط جدول تشرين الأول لكل موظف في 21–24 تشرين الأول واكتمال حضور الاستقبال
+							لهذه الأيام؛ غياب حضور أودو فيها مؤكد.
+						</li>
+						<li>
+							تغطية الاستقبال والمصادر الأخرى لشهر تشرين الثاني حتى نهاية النطاق والملفات الناقصة
+							والمكررة.
+						</li>
+						<li>
+							تاريخ تغيير كل فريق ودورته وارتكازها وساعاته المطلوبة من 25 تشرين الأول وما بعده.
+						</li>
+						<li>
+							التباس الهويات وفروق الفرق المؤرخة، ومنها المكتب والحراس وحلب والاستثناءات الفردية.
+						</li>
+						<li>مساهمة تعويض الإلغاء في عتبة الإضافي وزيادته وعلاقة الليل بالعطل.</li>
+						<li>مدة يوم العمل المعتاد للتحويل عند نقص بيانات الجدول؛ لا نعوضها بتخمين.</li>
+					</ul>
+					<p>
+						تبقى الحالات غير المحسومة خارج القبول النهائي للرواتب حتى تأكيد القرار المختص. يظل
+						التحليل المعتمد السابق دليلاً ولا تعتمد هذه الخطة سياسات رقمية جديدة.
+					</p>
+				</section>
+				<section>
+					<h2>المراجع المحلية</h2>
+					<ul>
+						<li><a href="team-policies-plan.html">Team policies · سياسات الفرق</a></li>
+						<li><a href="decisions.html">Decision log · سجل القرارات</a></li>
+						<li>
+							<a href="../plans/2026-11-17-roster-reconciliation-rollout.md"
+								>Tracked tasks · المهام المتابعة</a
+							>
+						</li>
+						<li>
+							<a href="../plans/2026-11-17-build-handoff.md">Build handoff · تسليم مهام البناء</a>
+						</li>
+						<li>
+							<a href="../plans/2026-11-15-october-excel-reconciliation.md"
+								>Excel reconciliation · تسوية ملفات إكسل</a
+							>
+						</li>
+					</ul>
+				</section>
+			</article>
+			<article lang="en" dir="ltr" data-language="en" hidden>
+				<header>
+					<p class="meta">1 October–17 November 2026 · Work plan for the existing app</p>
+					<h1>Team and roster reconciliation & attendance rollout</h1>
+					<p>
+						Planning document — does not apply data changes. Both languages contain the same plan.
+					</p>
+					<nav aria-label="Plan contents">
+						<ul>
+							<li><a href="#en-scope">1. Goal, status and boundaries</a></li>
+							<li><a href="#en-dates">2. Date boundaries and source coverage</a></li>
+							<li><a href="#en-model">3. What the app must keep separate</a></li>
+							<li><a href="#en-inventory">4. Phase R0 — inventory and protection</a></li>
+							<li><a href="#en-team">5. Phase R1 — one review sheet per team</a></li>
+							<li>
+								<a href="#en-cleanup">6. Phase R2 — clean names, teams and roster references</a>
+							</li>
+							<li><a href="#en-baseline">7. Phase R3 — validate 1–24 October</a></li>
+							<li><a href="#en-later">8. Phase R4 — investigate 25 October–17 November</a></li>
+							<li><a href="#en-build">9. App changes and current build sequence</a></li>
+							<li><a href="#en-import">10. Phase R5 — controlled import and correction</a></li>
+							<li><a href="#en-validation">11. Phase R6 — verification and acceptance</a></li>
+							<li><a href="#en-workflow">12. Who does what and what happens next</a></li>
+							<li><a href="#en-questions">13. Evidence still needed</a></li>
+						</ul>
+					</nav>
+				</header>
+				<section id="en-scope">
+					<h2>1. Goal, status and boundaries</h2>
+					<p>
+						Modify the <strong>existing Attendance App</strong> so every employee has an explainable
+						dated team, roster, required hours and attendance calculation. Clean the historical
+						baseline first, then process later records team by team. No new app and no blanket
+						deletion/re-import.
+					</p>
+					<p>
+						<strong>Plan date and cutoff: 17 November 2026.</strong> “Through today” means through
+						this date; today's incomplete shifts remain provisional. This document authorizes
+						planning only. Implementation, migration application and production writes require their
+						own reviewed briefs and gates.
+					</p>
+					<p>
+						The user approved the direction: review Odoo rosters with useful shift names and cycles,
+						clean teams/shifts, validate the earlier period, then investigate the changes from 25
+						October. Exact mappings, merges, archive lists and data changes are still proposed until
+						reviewed.
+					</p>
+				</section>
+				<section id="en-dates">
+					<h2>2. Date boundaries and source coverage</h2>
+					<div class="table-wrap">
+						<table>
+							<caption>
+								2026 timeline — dates are inclusive
+							</caption>
+							<thead>
+								<tr>
+									<th>Period</th>
+									<th>What we know</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>1–20 October</td>
+									<td>The user confirms this is the attendance currently in the app.</td>
+									<td>
+										Keep it; reconcile roster, required minutes, punches and accepted totals. Fill
+										only verified gaps.
+									</td>
+								</tr>
+								<tr>
+									<td>21–24 October</td>
+									<td>
+										Not yet in the app. No Odoo attendance exists for 21–24 October; its October
+										roster still covers the planned schedule. Reception Excel supplies actual
+										attendance.
+									</td>
+									<td>
+										Verify actual source coverage and record kind before selecting/importing missing
+										attendance.
+									</td>
+								</tr>
+								<tr>
+									<td>25–31 October</td>
+									<td>
+										Some airport groups began new night arrangements. Guards/Operations already had
+										night schedules.
+									</td>
+									<td>
+										Review each affected group's effective change date. New night-overtime factor
+										starts 25 October (TP33).
+									</td>
+								</tr>
+								<tr>
+									<td>1–17 November</td>
+									<td>
+										Other newly approved policies begin 1 November. File coverage through 17
+										November is not yet verified.
+									</td>
+									<td>
+										Obtain missing evidence, confirm dated rosters and import only verified records.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>
+						<strong>Confirmed source split:</strong> Odoo has no recorded attendance for 21–24
+						October. Use its October monthly roster for planned shifts, cycles, off days and
+						required hours, after checking employee assignments and exceptions; use reception Excel
+						for actual attendance. A planned shift never creates a punch.
+					</p>
+				</section>
+				<section id="en-model">
+					<h2>3. What the app must keep separate</h2>
+					<div class="flow" aria-label="Calculation flow">
+						<span>Employee identity + dated team</span><span>→ dated roster + day policy</span
+						><span>→ compare with actual attendance segments</span
+						><span>→ reviewed daily result + report</span>
+					</div>
+					<ul>
+						<li>
+							<strong>Actual attendance:</strong> preserve original entry/exit events and sum valid
+							recorded segments. Gaps are visible; they are not automatically breaks. A mismatch
+							with a schedule does not justify changing a punch.
+						</li>
+						<li>
+							<strong>Roster/policy:</strong> defines required minutes, cycle, off days and night
+							classification for that employee/date. Required hours do not get invented from time
+							spent on site.
+						</li>
+						<li>
+							<strong>Team:</strong> retain dated membership and individual exceptions. An
+							attendance location/group in a workbook is evidence, not an automatic formal team
+							transfer.
+						</li>
+						<li>
+							<strong>Shift span versus required hours:</strong> record both; a long clock span does
+							not prove all of it is required or paid.
+						</li>
+						<li>
+							<strong>Results:</strong> compute against the approved dated policy. Missing identity,
+							schedule or rule remains unresolved; never substitute guessed zero/eight hours. No
+							attendance must be fabricated for days without evidence.
+						</li>
+					</ul>
+				</section>
+				<section id="en-inventory">
+					<h2>4. Phase R0 — inventory and protection</h2>
+					<ol>
+						<li>
+							Prepare source-only scripts and synthetic tests. The user runs real-data inventory
+							scripts locally; agents receive counts, dates and permitted record IDs only.
+						</li>
+						<li>
+							Inventory app coverage by date/team and record type: employees, dated memberships,
+							assignments, shifts, cycles, overrides, punches, credits, absences, import batches and
+							calculated days.
+						</li>
+						<li>
+							Inventory Odoo separately for employees, rosters, calendars, required hours, recorded
+							punches and HR adjustments. Record earliest/latest dates and gaps for each kind.
+						</li>
+						<li>
+							Inventory reception daily and correction files through 17 November: actual coverage,
+							sheets/headers, duplicate files, correction precedence and missing days. Secure
+							reports may retain identifying details; public plan notes may not.
+						</li>
+						<li>
+							Before real writes, create a protected backup and test restoration in an isolated
+							synthetic/non-production target with authorized local handling.
+						</li>
+					</ol>
+					<p class="gate">
+						<strong>Done when:</strong> coverage matrix, counts, missing-source list and recovery
+						method are reviewed. No source coverage is inferred from a file name or calendar alone.
+					</p>
+				</section>
+				<section id="en-team">
+					<h2>5. Phase R1 — one review sheet per team</h2>
+					<p>
+						Reuse the existing evidence inventory and approved required-hours decisions; do not
+						restart discovery or treat candidates as confirmed. Review one team/group at a time,
+						including individual exceptions.
+					</p>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Fields to record</th>
+									<th>Required evidence</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>Team/group, employee mapping and effective membership</td>
+									<td>
+										Stable app/Odoo record mapping; badge cross-check; ambiguous names require
+										review.
+									</td>
+								</tr>
+								<tr>
+									<td>Shift names in EN/AR; start/end; overnight flag; required minutes</td>
+									<td>
+										Dated roster and approved policy, distinguishing planned span from obligation.
+									</td>
+								</tr>
+								<tr>
+									<td>Cycle order, length, anchor date and per-person phase</td>
+									<td>
+										Actual dated Odoo assignments; match generated work/off days, not just a cycle
+										label.
+									</td>
+								</tr>
+								<tr>
+									<td>
+										Weekly rest, holiday behavior, breaks, grace, credit and overtime eligibility
+									</td>
+									<td>
+										Existing approved rules or explicit HR confirmation; unknown stays unknown.
+									</td>
+								</tr>
+								<tr>
+									<td>Change dates, exceptions, leavers and joiners</td>
+									<td>Dated evidence; do not apply present-day team membership backward.</td>
+								</tr>
+								<tr>
+									<td>Confidence, evidence reference, unresolved questions, reviewer</td>
+									<td>
+										Separate observed, proposed and approved values; personal details in secure
+										reports only.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>
+						Include Operations, Guards, drivers, cleaners, porters, airline groups, Lost &amp;
+						Found, office and Aleppo where present in the verified inventory. This is a review
+						checklist, not a claim that every group has identical rules or complete evidence.
+					</p>
+					<p class="gate">
+						<strong>Done when:</strong> the user approves each team's baseline, membership mapping,
+						cycle/anchor and unresolved exceptions. Prior required-hours analysis is retained with
+						its original effective range.
+					</p>
+				</section>
+				<section id="en-cleanup">
+					<h2>6. Phase R2 — clean names, teams and roster references</h2>
+					<ol>
+						<li>
+							Create a proposed crosswalk: old shift/team/pattern ID → retained ID, clear EN/AR
+							name, dated usage, reason and dependency counts.
+						</li>
+						<li>
+							Rename an existing shift only when the underlying meaning is unchanged. A different
+							required duration, span or cycle needs an appropriate dated policy/roster change, not
+							a cosmetic rename.
+						</li>
+						<li>
+							Do not merge shifts merely because names or start times match. Compare required
+							minutes, end day, role in cycles and historical references.
+						</li>
+						<li>
+							Archive genuinely unused/obsolete shifts and teams after checking assignments, cycle
+							elements, overrides, import references and day results. Keep referenced history
+							readable; no hard-delete.
+						</li>
+						<li>
+							Correct team membership with dated records and a reason. Do not deactivate people just
+							to clean a team; preserve confirmed leaver dates and individual assignments.
+						</li>
+						<li>
+							If current archive/rename/service support is insufficient, propose a small audited
+							feature brief, implement with synthetic tests, and review it before production
+							cleanup.
+						</li>
+					</ol>
+					<p class="gate">
+						<strong>Done when:</strong> approved mapping, dependency checks, impact preview and
+						rollback approach exist; the historical roster still resolves to the same approved
+						work/off days and required minutes unless an explicit correction is approved.
+					</p>
+				</section>
+				<section id="en-baseline">
+					<h2>7. Phase R3 — validate 1–24 October</h2>
+					<p>
+						<strong>1–20 October:</strong> compare existing punches, all recorded attendance
+						segments, day states and credits with verified Odoo inputs. Classify same / missing /
+						conflicting / unexplained. Do not overwrite manual corrections or re-import matching
+						records.
+					</p>
+					<p>
+						<strong>21–24 October:</strong> use the Odoo October monthly roster as the planned
+						baseline, including dated assignments and approved exceptions. Import actual attendance
+						from reception Excel; there is no Odoo attendance to import for these dates. Review
+						reception corrections explicitly rather than adding them as extra attendance.
+					</p>
+					<p>
+						For every team/date, compare planned work/off state, required minutes, summed actual
+						minutes, paid credit, shortage and overtime. Preserve the approved nearest-15 overtime
+						rounding difference from Odoo (SP11); explain expected differences rather than forcing
+						false parity.
+					</p>
+					<p class="gate">
+						<strong>Done when:</strong> all in-scope identities are matched, duplicates/conflicts
+						are resolved or explicitly quarantined, baseline differences are explained, and the
+						approved import/recompute preview has no unexplained changes. No incomplete team is
+						silently declared complete.
+					</p>
+				</section>
+				<section id="en-later">
+					<h2>8. Phase R4 — investigate 25 October–17 November</h2>
+					<ol>
+						<li>
+							Read each verified daily/correction source into preserved raw segments. Mark source,
+							date coverage and correction lineage.
+						</li>
+						<li>
+							Group evidence by stable employee mapping and dated team/group. Compare consecutive
+							days without inventing absent records.
+						</li>
+						<li>
+							Suggest day/night windows, cycle candidates, off days and first observed changes.
+							Distinguish an observed attendance pattern from an approved planned roster.
+						</li>
+						<li>
+							Ask each team for duty start/end, required minutes, weekly rest/cycle, effective date,
+							individual exceptions, paid breaks/credits and overtime eligibility. Confirm whether
+							changes really began on 25 October or another date for that team.
+						</li>
+						<li>
+							Preserve earlier Guards/Operations night schedules. Apply only confirmed changes to
+							affected airport groups; do not impose one universal pattern.
+						</li>
+						<li>
+							Save approved new dated roster versions; use day overrides for genuine one-off events.
+							Preview generated calendar days and overnight assignment before import/recompute.
+						</li>
+					</ol>
+					<p>
+						Only the new night factor begins 25 October: initial 1.50 for eligible overtime on
+						ordinary night workdays. Start-day weekly off uses its off-day rule; no stacking or
+						highest-rate choice. Other new policies begin 1 November. Holiday interaction and
+						cancellation overtime contribution remain unresolved and must not be invented.
+					</p>
+					<p class="gate">
+						<strong>Done when:</strong> every processed team/date has source-backed attendance and
+						an approved dated roster, or is listed as pending with a reason. Missing files after
+						October must be obtained before claiming coverage through 17 November.
+					</p>
+				</section>
+				<section id="en-build">
+					<h2>9. App changes and current build sequence</h2>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Work</th>
+									<th>Status / boundary</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>B1 leave-debit conversion helper</td>
+									<td>Accepted: 17 focused tests. Pure logic; no ledger integration.</td>
+								</tr>
+								<tr>
+									<td>B2.1 design; B2.2 storage structure</td>
+									<td>
+										Reviewed. Migrations 0029/0030 generated, not yet applied. Latest review: 612
+										tests, zero type errors, one existing warning.
+									</td>
+								</tr>
+								<tr>
+									<td>B2.3 pure resolvers</td>
+									<td>
+										Current OpenCode task; not accepted until actual local diff/checks reviewed. Do
+										not interrupt or launch another implementation concurrently.
+									</td>
+								</tr>
+								<tr>
+									<td>Remaining B2 service/forms/settings UI</td>
+									<td>
+										Separate briefs: permissions, history, audit, bilingual editing and dated source
+										display. No eight-hour override default.
+									</td>
+								</tr>
+								<tr>
+									<td>B3 leave ledger</td>
+									<td>
+										Separate authorized debit action, duplicate prevention, opening entitlements,
+										negative balances, applied divisor/version and linked reversals. Saving
+										attendance credit alone never debits leave.
+									</td>
+								</tr>
+								<tr>
+									<td>B4 engine/display</td>
+									<td>
+										Integrate night rule by shift start, preserve actual/weighted/premium
+										separation, make hide-only display independent of calculation. Do not repurpose
+										current otEnabled silently.
+									</td>
+								</tr>
+								<tr>
+									<td>Roster/team cleanup support and import reconciliation</td>
+									<td>
+										Inspect existing services first; add only missing audited archive/rename,
+										mapping, preview or import behavior through small reviewed tasks.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>
+						Two coordinated workstreams: finish reviewed app capabilities on synthetic data, and
+						prepare team evidence locally. Production import/recompute waits for both approved data
+						mappings and verified capabilities. Avoid building a second payroll engine.
+					</p>
+				</section>
+				<section id="en-import">
+					<h2>10. Phase R5 — controlled import and correction</h2>
+					<ol>
+						<li>
+							Preview through existing business/import services: matched, new, duplicate, corrected,
+							skipped and blocked counts per team/date/source.
+						</li>
+						<li>
+							Identify repeated source rows and existing saved events; preserve source/batch
+							lineage. Overnight exits keep their real date and are attributed to the approved
+							shift-start day during calculation.
+						</li>
+						<li>
+							Use an explicit correction/undo path for wrong records. Never blanket-delete Odoo
+							attendance or overwrite manually corrected records without a reviewed conflict
+							decision.
+						</li>
+						<li>
+							Test import, repeat-import skipping, correction, undo and recompute on synthetic
+							databases first.
+						</li>
+						<li>
+							Before production: protected backup, row counts, exact approved batch/scope and user's
+							explicit OK. Use audited atomic business-service writes; no direct ad-hoc table edits.
+						</li>
+						<li>
+							Compare committed counts with preview, reconcile results, and stop on discrepancies. A
+							failed batch is diagnosed/reversed through the reviewed path before rerunning.
+						</li>
+					</ol>
+					<p class="gate">
+						<strong>Done when:</strong> source-backed records are present once, corrections are
+						traceable, counts match, and all blocked rows remain visible in the secure review list.
+					</p>
+				</section>
+				<section id="en-validation">
+					<h2>11. Phase R6 — verification and acceptance</h2>
+					<ul>
+						<li>
+							Automated checks: pnpm check, pnpm test, ESLint/Prettier on touched files; Svelte MCP
+							autofixer for every touched Svelte file.
+						</li>
+						<li>
+							Apply reviewed migrations to attendance_app_test and attendance_app_e2e in order, then
+							test constraints, finite values, fractional storage, range boundaries and audit
+							atomicity. Production only after row counts and explicit approval.
+						</li>
+						<li>
+							For each team verify cycle anchor, weekly rest, required minutes, ordinary/overnight
+							shifts, entry/exit segments, gaps, corrections, missing punch and employee exceptions.
+						</li>
+						<li>
+							Boundary checks: 20/21 October source handoff; 24/25 October night-factor activation;
+							31 October/1 November other-policy activation; exclusive version ends and current
+							incomplete day.
+						</li>
+						<li>
+							Calculation checks: actual attendance untouched, approved rounding, false otEnabled
+							preserved until scoped changes, off-day precedence, actual/weighted overtime/premium,
+							no double credit or duplicate leave debit, cancellation unresolved cases blocked.
+						</li>
+						<li>
+							Manual EN/AR and RTL review on the synthetic e2e server (port 5174): rosters,
+							employees, team history, shift archive/rename, attendance entry/import, settings and
+							reports. Archived historical shifts remain readable.
+						</li>
+					</ul>
+					<p class="gate">
+						<strong>Final acceptance:</strong> no unexplained differences in the accepted scope; all
+						source gaps and pending decisions are listed; each team's approved date range and
+						reviewer are recorded; repeat import changes no accepted totals. No claim of full
+						coverage if a team/day remains pending.
+					</p>
+				</section>
+				<section id="en-workflow">
+					<h2>12. Who does what and what happens next</h2>
+					<p>
+						<strong>OpenCode:</strong> one fresh bounded task, source/synthetic inputs only,
+						required checks, uncommitted diff, then stop. <strong>Codex:</strong> prepare/review
+						briefs and actual diffs, rerun checks and report acceptance.
+						<strong>User/authorized HR:</strong> run approved real-data scripts locally, review
+						secure evidence, confirm team policies and authorize specific production changes.
+					</p>
+					<p>
+						<strong>Next:</strong> finish and review the currently running B2.3 task. Then prepare
+						R0's read-only source-coverage/team inventory brief. Continue app service/UI work only
+						in separate reviewed tasks; no automatic dispatch from this document.
+					</p>
+					<p>
+						All real files, backups and reports stay under
+						<code>~/secure/syravia/</code> (directories 700, files 600). No real identifiers or
+						employee records are sent to delegated providers. No commits or pushes unless requested.
+					</p>
+					<p>
+						This plan supplements the configurable-rules, team-policy and Excel-reconciliation
+						plans. It refines the source-check and review order; it does not silently cancel earlier
+						tasks or approve data operations.
+					</p>
+				</section>
+				<section id="en-questions">
+					<h2>13. Evidence still needed</h2>
+					<ul>
+						<li>
+							Verify the employee-specific October roster mapping for 21–24 October and the
+							completeness of reception attendance for those dates; absence of Odoo attendance there
+							is confirmed.
+						</li>
+						<li>
+							Reception/other source coverage for November through the cutoff; missing and duplicate
+							files.
+						</li>
+						<li>
+							Each team's actual change date, new cycle/anchor and required hours from 25 October
+							onward.
+						</li>
+						<li>
+							Identity ambiguities and dated team differences, including office/guards/Aleppo and
+							individual exceptions.
+						</li>
+						<li>
+							Cancellation credit's overtime threshold/premium contribution and holiday/night
+							interaction.
+						</li>
+						<li>Normal-workday divisor when roster data is missing; do not guess a fallback.</li>
+					</ul>
+					<p>
+						Keep unresolved cases outside final payroll acceptance until the relevant decision is
+						confirmed. Existing approved analysis remains evidence; this plan does not approve new
+						numeric policies.
+					</p>
+				</section>
+				<section>
+					<h2>Local references</h2>
+					<ul>
+						<li><a href="team-policies-plan.html">Team policies · سياسات الفرق</a></li>
+						<li><a href="decisions.html">Decision log · سجل القرارات</a></li>
+						<li>
+							<a href="../plans/2026-11-17-roster-reconciliation-rollout.md"
+								>Tracked tasks · المهام المتابعة</a
+							>
+						</li>
+						<li>
+							<a href="../plans/2026-11-17-build-handoff.md">Build handoff · تسليم مهام البناء</a>
+						</li>
+						<li>
+							<a href="../plans/2026-11-15-october-excel-reconciliation.md"
+								>Excel reconciliation · تسوية ملفات إكسل</a
+							>
+						</li>
+					</ul>
+				</section>
+			</article>
+		</main>
+		<script>
+			function setLanguage(lang) {
+				if (!['ar', 'en'].includes(lang)) return;
+				document.documentElement.lang = lang;
+				document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+				document.querySelectorAll('[data-language]').forEach((el) => {
+					el.hidden = el.dataset.language !== lang;
+				});
+				document
+					.querySelectorAll('[data-lang]')
+					.forEach((el) => el.setAttribute('aria-pressed', String(el.dataset.lang === lang)));
+			}
+			document.querySelectorAll('[data-lang]').forEach((button) =>
+				button.addEventListener('click', () => {
+					setLanguage(button.dataset.lang);
+					history.replaceState(null, '', '#' + button.dataset.lang + '-scope');
+				})
+			);
+			function showHashLanguage() {
+				const lang = location.hash.slice(1).split('-')[0];
+				if (lang === 'ar' || lang === 'en') setLanguage(lang);
+			}
+			window.addEventListener('hashchange', showHashLanguage);
+			showHashLanguage();
+		</script>
+	</body>
+</html>

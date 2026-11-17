@@ -1,0 +1,2269 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>كيف يحسب أودو الحضور والتأخر والرصيد؟</title>
+		<style>
+			:root {
+				color-scheme: light;
+				--bg: #f4f5f2;
+				--paper: #fff;
+				--ink: #213330;
+				--muted: #52635e;
+				--line: #d7dfda;
+				--accent: #216552;
+				--soft: #eaf4ee;
+				--notice: #fff5df;
+				--negative: #a3352c;
+				--negative-soft: #fbefec;
+				--positive: #216552;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--ink);
+				font:
+					18px/1.95 system-ui,
+					-apple-system,
+					'Segoe UI',
+					sans-serif;
+			}
+			main {
+				max-width: 1080px;
+				margin: auto;
+				padding: 28px 20px 72px;
+			}
+			a {
+				color: var(--accent);
+				text-underline-offset: 4px;
+			}
+			header {
+				padding: 34px 0 24px;
+			}
+			h1 {
+				font-size: clamp(30px, 5vw, 46px);
+				line-height: 1.5;
+				max-width: 850px;
+				margin: 12px 0;
+			}
+			h2 {
+				font-size: 26px;
+				line-height: 1.6;
+				margin: 0 0 16px;
+			}
+			h3 {
+				font-size: 21px;
+				margin: 12px 0;
+			}
+			p {
+				margin: 10px 0 16px;
+			}
+			.eyebrow {
+				font-size: 15px;
+				color: var(--muted);
+			}
+			.lead {
+				font-size: 21px;
+				color: var(--muted);
+			}
+			section {
+				background: var(--paper);
+				padding: 28px;
+				border: 1px solid var(--line);
+				border-radius: 16px;
+				margin-block: 24px;
+				scroll-margin-top: 24px;
+			}
+			.note,
+			.notice {
+				padding: 18px 22px;
+				border-inline-start: 4px solid var(--accent);
+				background: var(--soft);
+				border-radius: 8px;
+				margin-block: 20px;
+			}
+			.notice {
+				background: var(--notice);
+				border-color: #a06c0e;
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+				gap: 16px;
+			}
+			.box {
+				padding: 18px;
+				background: var(--bg);
+				border-radius: 10px;
+			}
+			.box h3 {
+				margin-top: 0;
+			}
+			.label {
+				color: var(--muted);
+				font-size: 16px;
+			}
+			.big {
+				font-weight: 750;
+				font-size: 28px;
+				line-height: 1.5;
+			}
+			.negative {
+				color: var(--negative);
+			}
+			.positive {
+				color: var(--positive);
+			}
+			.scroll {
+				overflow-x: auto;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 17px;
+			}
+			th,
+			td {
+				padding: 14px 12px;
+				border-bottom: 1px solid var(--line);
+				text-align: start;
+				vertical-align: top;
+			}
+			th {
+				background: var(--soft);
+			}
+			caption {
+				text-align: start;
+				color: var(--muted);
+				margin-bottom: 12px;
+			}
+			ol,
+			ul {
+				padding-inline-start: 28px;
+			}
+			li {
+				margin-block: 9px;
+			}
+			nav {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+			}
+			nav a {
+				padding: 7px 13px;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				background: var(--paper);
+				font-size: 16px;
+			}
+			.formula {
+				text-align: center;
+				padding: 18px;
+				background: var(--soft);
+				border-radius: 8px;
+				font-weight: 700;
+			}
+			.timeline {
+				display: grid;
+				grid-template-columns: 4fr 1fr 6fr;
+				gap: 5px;
+				direction: ltr;
+				margin-block: 16px;
+			}
+			.timeline div {
+				padding: 14px 8px;
+				text-align: center;
+				border-radius: 8px;
+				background: var(--soft);
+			}
+			.timeline .gap {
+				background: var(--notice);
+			}
+			.fields {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+				gap: 16px;
+				margin-block: 20px;
+			}
+			.field {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+			}
+			label {
+				font-weight: 600;
+				font-size: 16px;
+			}
+			input {
+				font: inherit;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				background: var(--paper);
+				color: var(--ink);
+				padding: 9px 12px;
+				min-width: 0;
+				width: 100%;
+			}
+			input[type='time'] {
+				direction: ltr;
+			}
+			input[type='checkbox'] {
+				width: 22px;
+				height: 22px;
+				accent-color: var(--accent);
+			}
+			.check {
+				display: flex;
+				gap: 12px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			.presets {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+			}
+			button {
+				font: inherit;
+				font-size: 15px;
+				cursor: pointer;
+				border: 1px solid var(--line);
+				background: var(--paper);
+				color: var(--ink);
+				padding: 9px 14px;
+				border-radius: 8px;
+			}
+			button:hover {
+				background: var(--soft);
+			}
+			button:focus-visible,
+			input:focus-visible,
+			a:focus-visible {
+				outline: 3px solid var(--accent);
+				outline-offset: 4px;
+			}
+			.results {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+				gap: 12px;
+				margin-block: 20px;
+			}
+			.metric {
+				padding: 16px;
+				background: var(--bg);
+				border-radius: 9px;
+			}
+			.metric strong {
+				display: block;
+				font-size: 25px;
+				direction: ltr;
+				text-align: start;
+			}
+			.metric.total {
+				background: var(--soft);
+				border: 1px solid var(--accent);
+			}
+			small,
+			.small {
+				font-size: 15px;
+				color: var(--muted);
+			}
+			details {
+				padding: 16px;
+				background: var(--bg);
+				border-radius: 8px;
+				margin-top: 16px;
+			}
+			summary {
+				cursor: pointer;
+				font-weight: 700;
+			}
+			footer {
+				font-size: 15px;
+				color: var(--muted);
+				padding-block: 20px;
+			}
+			[hidden] {
+				display: none !important;
+			}
+			@media (max-width: 600px) {
+				section {
+					padding: 20px 16px;
+				}
+				main {
+					padding-inline: 12px;
+				}
+				.timeline {
+					font-size: 13px;
+				}
+				.big {
+					font-size: 24px;
+				}
+				th,
+				td {
+					padding: 10px 8px;
+				}
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					color-scheme: dark;
+					--bg: #14231f;
+					--paper: #1b2d27;
+					--ink: #edf4ef;
+					--muted: #b2c5ba;
+					--line: #40584c;
+					--accent: #94d4b8;
+					--soft: #263f33;
+					--notice: #45391d;
+					--negative: #ffb7a9;
+					--negative-soft: #402824;
+					--positive: #94d4b8;
+				}
+			}
+			@media print {
+				body {
+					background: white;
+					color: black;
+					font-size: 12pt;
+				}
+				main {
+					max-width: none;
+					padding: 0;
+				}
+				nav,
+				.presets,
+				.fields,
+				.check,
+				.print-hide {
+					display: none;
+				}
+				section {
+					break-inside: avoid;
+					border-color: #aaa;
+					margin-block: 14px;
+					padding: 14px;
+				}
+				a {
+					color: inherit;
+				}
+				#calculator {
+					break-before: page;
+				}
+				.results {
+					grid-template-columns: repeat(3, 1fr);
+				}
+				details {
+					display: block;
+				}
+			}
+
+			.decision-group {
+				border: 1px solid var(--line);
+				border-radius: 10px;
+				padding: 20px;
+				margin-block: 22px;
+				min-width: 0;
+			}
+			.decision-group legend {
+				font-weight: 750;
+				font-size: 19px;
+				padding-inline: 8px;
+			}
+			.choice {
+				display: flex;
+				align-items: flex-start;
+				gap: 12px;
+				padding: 10px 0;
+				font-weight: 400;
+			}
+			.choice input[type='radio'] {
+				width: 21px;
+				height: 21px;
+				flex-shrink: 0;
+				margin-top: 8px;
+				accent-color: var(--accent);
+			}
+			.decision-fields {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+				gap: 16px;
+				margin-block: 16px;
+			}
+			textarea {
+				font: inherit;
+				line-height: 1.8;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				background: var(--paper);
+				color: var(--ink);
+				padding: 12px;
+				width: 100%;
+				max-width: 100%;
+				resize: vertical;
+				box-sizing: border-box;
+			}
+			.json-output {
+				font:
+					14px/1.6 ui-monospace,
+					monospace;
+				white-space: pre;
+				overflow: auto;
+				margin-top: 10px;
+			}
+			button:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+			textarea:focus-visible {
+				outline: 3px solid var(--accent);
+				outline-offset: 4px;
+			}
+			@media print {
+				#decisions-form,
+				.json-output,
+				#copy-decisions,
+				#download-decisions {
+					display: none;
+				}
+				.decision-group {
+					break-inside: avoid;
+				}
+			}
+
+			.story {
+				background: var(--soft);
+				border-radius: 9px;
+				padding: 16px 18px;
+				margin-block: 14px 20px;
+			}
+			.story p {
+				margin-bottom: 0;
+			}
+			.wizard-heading {
+				margin-block: 20px;
+			}
+			.wizard-heading p:first-child {
+				font-weight: 750;
+				font-size: 20px;
+			}
+			.wizard-nav {
+				display: flex;
+				gap: 12px;
+				flex-wrap: wrap;
+				margin-block: 20px;
+			}
+			.wizard-nav #next-question {
+				background: var(--accent);
+				color: var(--paper);
+				font-weight: 700;
+			}
+			.decision-step:focus {
+				outline: none;
+			}
+			.decision-step .decision-group {
+				margin-block: 0;
+			}
+			.choice {
+				padding: 14px 10px;
+				border-bottom: 1px solid var(--line);
+			}
+			.choice:last-of-type {
+				border-bottom: 0;
+			}
+			.choice:has(input:checked) {
+				background: var(--soft);
+				border-radius: 8px;
+			}
+			.decision-step .field {
+				margin-block: 14px;
+			}
+			@media print {
+				.wizard-nav,
+				.wizard-heading {
+					display: none;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<header>
+				<div class="eyebrow">دليل مبسط للموارد البشرية · 17 تشرين الثاني 2026</div>
+				<h1>كيف يحسب أودو الحضور والتأخر والرصيد؟</h1>
+				<p class="lead">
+					نمشي من البصمات إلى نتيجة اليوم، ثم نفصل رصيد الحضور عن رصيد الإجازة السنوية. كل الأمثلة
+					هنا افتراضية، ويمكنك تعديل المثال بنفسك.
+				</p>
+				<div class="note">
+					مرجعنا هو
+					<a href="http://127.0.0.1:8069/odoo/action-398">لوحة حضور الموظف في أودو — الإجراء 398</a
+					>. هذه الصفحة تشرح السلوك الذي وجدناه في الكود والإعدادات؛ لا تعدّل بيانات أودو أو تطبيق
+					الحضور.
+				</div>
+			</header>
+			<nav aria-label="محتويات الشرح">
+				<a href="#terms">المصطلحات</a><a href="#grace">السماح</a><a href="#penalties">جزاء التأخر</a
+				><a href="#credits">رصيد الدقائق</a><a href="#balances">نوعا الرصيد</a
+				><a href="#examples">أمثلة محلولة</a><a href="#calculator">جرّب بنفسك</a
+				><a href="#choices">ما اعتمدناه للتطبيق</a>
+			</nav>
+			<section id="terms">
+				<h2>1. نبدأ بأربع أرقام مختلفة</h2>
+				<p>
+					سنستخدم موظفاً افتراضياً من المفقودات: دوامه المخطط <bdi>10:00–21:00</bdi>، أي
+					<strong>11 ساعة = 660 دقيقة</strong>. له يومان راحة أسبوعياً وفق جدوله.
+				</p>
+				<div class="grid">
+					<div class="box">
+						<h3>المطلوب</h3>
+						<p>ما يفترض أن يعمل الموظف في ذلك اليوم حسب الجدول. في مثالنا <bdi>660</bdi> دقيقة.</p>
+						<small>يظهر باسم <bdi>Required</bdi>.</small>
+					</div>
+					<div class="box">
+						<h3>العمل المسجل</h3>
+						<p>مجموع فترات الدخول والخروج. هذا هو وقت الحضور، قبل أي رصيد يدخله HR.</p>
+						<small>قد يختلف عن الوقت المدفوع النهائي.</small>
+					</div>
+					<div class="box">
+						<h3>الوقت المدفوع النهائي</h3>
+						<p>وقت محسوب بعد أرصدة HR والسماح وعلاوة الإضافي وأي جزاء مفعل.</p>
+						<small>يظهر باسم <bdi>Final Works</bdi>. هو دقائق محسوبة، وليس مبلغاً نقدياً.</small>
+					</div>
+					<div class="box">
+						<h3>فرق اليوم</h3>
+						<p>النهائي ناقص المطلوب. الصفر يعني تساويهما، والسالب نقص، والموجب زيادة محسوبة.</p>
+						<small>يظهر باسم <bdi>Deduction / Extra Pay</bdi>.</small>
+					</div>
+				</div>
+				<div class="formula">فرق اليوم = الوقت المدفوع النهائي − الوقت المطلوب</div>
+			</section>
+			<section id="grace">
+				<h2>2. ماذا يعني السماح؟</h2>
+				<p>
+					السماح هو حد التأخر الذي يتسامح معه أودو. ليس واحداً للجميع: وجدنا
+					<strong>12 أو 15 دقيقة</strong> في الأيام المعتمدة التي فحصناها.
+				</p>
+				<ol>
+					<li>يبحث أولاً عن سماح خاص بالموظف، إذا كان أكبر من صفر.</li>
+					<li>ثم سماح القسم، إذا كان أكبر من صفر.</li>
+					<li>ثم سماح سطر الموظف في الجدول؛ والصفر هنا يعني فعلاً عدم وجود سماح.</li>
+					<li>للحالات التي تعتمد تقويم دوام ثابتاً، يرجع إلى سماح التقويم المناسب.</li>
+					<li>إذا لم توجد قيمة مناسبة، فالافتراضي <bdi>15</bdi> دقيقة.</li>
+				</ol>
+				<div class="grid">
+					<div class="box">
+						<h3>وصل <bdi>10:10</bdi> والسماح <bdi>15</bdi></h3>
+						<p>
+							تأخر فعلياً <bdi>10</bdi> دقائق، لكنه ضمن السماح. يظهر التأخر المعروض صفراً، وتسامح
+							الدقائق العشر في حساب الوقت المدفوع.
+						</p>
+						<p>
+							إذا خرج <bdi>21:00</bdi>: عمل مسجل <bdi>650</bdi> + سماح مدفوع <bdi>10</bdi> = نهائي
+							<bdi>660</bdi>.
+						</p>
+					</div>
+					<div class="box">
+						<h3>وصل <bdi>10:21</bdi> والسماح <bdi>15</bdi></h3>
+						<p>
+							تجاوز السماح. التأخر المعروض <bdi>21 − 15 = 6</bdi> دقائق، لكن لا تضاف له دقائق سماح
+							مدفوعة.
+						</p>
+						<p>
+							إذا خرج <bdi>21:00</bdi>: العمل <bdi>639</bdi> والفرق <bdi>−21</bdi> قبل رصيد HR أو
+							الجزاء.
+						</p>
+					</div>
+				</div>
+				<div class="notice">
+					<strong>النقطة المهمة:</strong> عند تجاوز السماح، لا يمنح أودو أول <bdi>15</bdi> دقيقة
+					كرصيد جزئي. لذلك «التأخر المعروض 6 دقائق» لا يعني أن نقص الوقت المدفوع هو 6 دقائق فقط.
+				</div>
+				<details>
+					<summary>وماذا عن الخروج المبكر؟</summary>
+					<p>
+						مؤشر الخروج المبكر يطرح السماح أيضاً، لكنه لا يضيف تلقائياً وقتاً مدفوعاً. مثال: حضور
+						<bdi>10:00–20:50</bdi> مع سماح <bdi>15</bdi> قد يعطي مؤشر خروج مبكر صفراً، لكن العمل
+						يبقى <bdi>650</bdi> دقيقة، أي نقص <bdi>10</bdi> دقائق دون رصيد HR. المؤشر وإجمالي الوقت
+						ليسا الرقم نفسه.
+					</p>
+				</details>
+			</section>
+			<section id="penalties">
+				<h2>3. نقص الوقت مختلف عن جزاء التأخر</h2>
+				<p>
+					<strong>نقص الوقت</strong> يأتي من الحضور الأقل من المطلوب. أما
+					<strong>جزاء التأخر</strong> فهو خصم إضافي اختياري، لا يطبق إلا إذا فعله HR.
+				</p>
+				<div class="scroll">
+					<table>
+						<caption>
+							تستخدم الشريحة التأخر الفعلي من بداية الدوام، قبل طرح السماح، وبعد التأكد من تجاوزه.
+						</caption>
+						<thead>
+							<tr>
+								<th scope="col">التأخر الفعلي</th>
+								<th scope="col">الجزاء الإضافي المحتمل</th>
+								<th scope="col">المعنى</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>ضمن السماح</td>
+								<td><bdi>0</bdi></td>
+								<td>لا شريحة جزاء.</td>
+							</tr>
+							<tr>
+								<td>تجاوز السماح وحتى <bdi>30</bdi> دقيقة</td>
+								<td><bdi>60</bdi> دقيقة</td>
+								<td>ساعة إضافية مخصومة إذا فُعل الجزاء.</td>
+							</tr>
+							<tr>
+								<td>أكثر من <bdi>30</bdi> وحتى <bdi>60</bdi></td>
+								<td><bdi>120</bdi> دقيقة</td>
+								<td>ساعتان.</td>
+							</tr>
+							<tr>
+								<td>أكثر من <bdi>60</bdi> وحتى <bdi>120</bdi></td>
+								<td><bdi>240</bdi> دقيقة</td>
+								<td>أربع ساعات.</td>
+							</tr>
+							<tr>
+								<td>أكثر من <bdi>120</bdi></td>
+								<td><bdi>540</bdi> دقيقة</td>
+								<td>تسع ساعات؛ القيمة الحالية ثابتة في إعداد الشريحة، وليست طول يوم كل موظف.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p>
+					مثلاً: الوصول <bdi>10:45</bdi> يعني تأخراً فعلياً <bdi>45</bdi> دقيقة. مع سماح
+					<bdi>15</bdi> يكون التأخر المعروض <bdi>30</bdi>، لكن شريحة الجزاء هي <bdi>120</bdi> دقيقة
+					لأنها تقرأ <bdi>45</bdi> لا <bdi>30</bdi>.
+				</p>
+				<div class="note">
+					الجزاء غير مفعل افتراضياً. لم نجده مفعلاً في الأيام المعتمدة المفحوصة من
+					<bdi>21 أيلول–20 تشرين الأول</bdi>. عدم تفعيله لا يلغي نقص الحضور الحقيقي. مفتاح الجزاء
+					متاح في أدوات أخرى بأودو، وليس ضمن حقول التعديل في لوحة الإجراء 398 نفسها.
+				</div>
+			</section>
+			<section id="credits">
+				<h2>4. ماذا يفعل HR بحقل «Leave»؟</h2>
+				<p>
+					حقل <bdi>Leave</bdi> في لوحة الحضور يقبل <strong>دقائق رصيد مدفوع</strong>. ويوجد رصيد
+					مماثل للمرض <bdi>Sick</bdi> والمهمة <bdi>Mission</bdi>. يبقى الحضور الأصلي كما هو.
+				</p>
+				<ol>
+					<li>
+						الموظف حضر <bdi>10:21–21:00</bdi>: العمل <bdi>639</bdi> دقيقة، المطلوب <bdi>660</bdi>،
+						والفرق <bdi>−21</bdi>.
+					</li>
+					<li>يدخل HR في <bdi>Leave</bdi> مقدار <bdi>21</bdi> دقيقة، والجزاء غير مفعل.</li>
+					<li>يصبح النهائي <bdi>639 + 21 = 660</bdi>، والفرق صفراً.</li>
+					<li>
+						يبقى وقت الدخول <bdi>10:21</bdi> كما سُجل؛ لا نحوله إلى بصمة وهمية عند <bdi>10:00</bdi>.
+					</li>
+				</ol>
+				<div class="notice">
+					إضافة رصيد Leave لا تلغي جزاءً مفعلاً تلقائياً. إذا كان الجزاء <bdi>60</bdi> مفعلاً، يبقى
+					فرق المثال <bdi>−60</bdi> حتى يراجع HR الجزاء بشكل مستقل.
+				</div>
+				<details>
+					<summary>ما هو إجراء «Close Delay» في أدوات أودو؟</summary>
+					<p>
+						هو إجراء منفصل يغطي التأخر في أيام حضور متأخرة فعلاً. الكود التنفيذي يضيف التأخر الخام:
+						في مثال <bdi>10:21</bdi> يضيف <bdi>21</bdi> دقيقة، وليس التأخر المعروض <bdi>6</bdi>.
+						يمكن لـ HR تحديد سقف يدوي للرصيد. هذا الإجراء لا يمس البصمات ولا يلغي مفتاح الجزاء
+						تلقائياً. بعض تعليقات الكود القديمة تصف ذلك بشكل مختلف؛ اعتمدنا ما ينفذه الكود فعلياً.
+					</p>
+				</details>
+				<p>
+					أرصدة الدقائق لا تنشئ دقائق إضافي. أما تحديد الحالة «إجازة يوم كامل» فمسار آخر يدفع
+					المطلوب لليوم وفق قواعده؛ ولا يجوز جمع الحالات المختلفة بشكل آلي دون قواعد.
+				</p>
+			</section>
+			<section id="balances">
+				<h2>5. يوجد رصيدان مختلفان يجب الفصل بينهما</h2>
+				<div class="grid">
+					<div class="box">
+						<h3>رصيد الحضور / الأجر</h3>
+						<p>
+							هذا هو <bdi>Balance</bdi> في لوحة الحضور. يقاس بالدقائق أو الساعات ويجمع فروق الأيام
+							في الفترة المختارة.
+						</p>
+						<p>
+							<strong>مثال:</strong> يوم <bdi>+25</bdi> دقيقة محسوبة ويوم <bdi>−21</bdi> دقيقة؛
+							الرصيد <bdi>+4</bdi> دقائق.
+						</p>
+					</div>
+					<div class="box">
+						<h3>رصيد الإجازة السنوية</h3>
+						<p>
+							هو حق الموظف المتبقي من إجازاته، مثل <bdi>14</bdi> يوماً. يحتاج سجلاً لعمليات المنح
+							والاستخدام والتسوية.
+						</p>
+						<p>
+							<strong
+								>لم نجد في مسار لوحة الحضور المفحوص خصماً تلقائياً من هذا الرصيد عند إدخال Leave
+								credit.</strong
+							>
+						</p>
+					</div>
+				</div>
+				<div class="notice">
+					تغطية نقص <bdi>21</bdi> دقيقة في لوحة الحضور لا تثبت أن أودو خصم <bdi>21</bdi> دقيقة من
+					الإجازة السنوية. هذا الربط مطلوب الآن في التطبيق الجديد؛ نحتاج تحديد قاعدة واضحة لتحويل
+					الساعات إلى إجازة وسجل تسوية قابل للتتبع. طلبت الآن إضافة هذا الربط إلى التطبيق الجديد؛
+					اختر تفاصيله في القسم 8.
+				</div>
+				<p>
+					اعتماد طلب إجازة فعلي في نظام <bdi>Time Off</bdi> يمكن أن يزامن أيام الجدول كإجازة؛ لكنه
+					مختلف عن كتابة رقم في حقل Leave داخل لوحة الحضور.
+				</p>
+			</section>
+			<section id="examples">
+				<h2>6. أمثلة محلولة يمكنك مقارنتها مع أودو</h2>
+				<p>
+					كل الأمثلة التالية ليوم عمل عادي، المطلوب <bdi>660</bdi> دقيقة، السماح <bdi>15</bdi>، ودون
+					أرصدة أخرى أو فترات خروج، ما لم يذكر خلاف ذلك. الجزاء غير مفعل إلا في الصف المخصص له.
+				</p>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th scope="col">الحالة</th>
+								<th scope="col">الحضور</th>
+								<th scope="col">العمل المسجل</th>
+								<th scope="col">الإضافي الفعلي</th>
+								<th scope="col">الإضافي المحتسب بالمعامل</th>
+								<th scope="col">النهائي المدفوع</th>
+								<th scope="col">فرق اليوم</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>دوام كامل</td>
+								<td><bdi>10:00–21:00</bdi></td>
+								<td><bdi>660</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>660</bdi></td>
+								<td><bdi>0</bdi></td>
+							</tr>
+							<tr>
+								<td>ضمن السماح</td>
+								<td><bdi>10:10–21:00</bdi></td>
+								<td><bdi>650</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>660</bdi></td>
+								<td><bdi>0</bdi></td>
+							</tr>
+							<tr>
+								<td>تأخر خارج السماح</td>
+								<td><bdi>10:21–21:00</bdi></td>
+								<td><bdi>639</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>639</bdi></td>
+								<td><bdi>−21</bdi></td>
+							</tr>
+							<tr>
+								<td>نفس الحالة مع جزاء <bdi>60</bdi></td>
+								<td><bdi>10:21–21:00</bdi></td>
+								<td><bdi>639</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>579</bdi></td>
+								<td><bdi>−81</bdi></td>
+							</tr>
+							<tr>
+								<td>نفس التأخر مع رصيد Leave <bdi>21</bdi> دون جزاء</td>
+								<td><bdi>10:21–21:00</bdi></td>
+								<td><bdi>639</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>660</bdi></td>
+								<td><bdi>0</bdi></td>
+							</tr>
+							<tr>
+								<td>حضور مبكر وزيادة <bdi>20</bdi> دقيقة</td>
+								<td><bdi>09:40–21:00</bdi></td>
+								<td><bdi>680</bdi></td>
+								<td><bdi>20</bdi></td>
+								<td><bdi>25</bdi></td>
+								<td><bdi>685</bdi></td>
+								<td><bdi>+25</bdi></td>
+							</tr>
+							<tr>
+								<td>تأخر ثم عمل أطول، دون علاوة إضافي</td>
+								<td><bdi>10:21–21:30</bdi></td>
+								<td><bdi>669</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>0</bdi></td>
+								<td><bdi>669</bdi></td>
+								<td><bdi>+9</bdi></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<p>
+					في مثال الحضور المبكر: <bdi>20</bdi> دقيقة إضافي × معامل <bdi>1.25</bdi> =
+					<bdi>25</bdi> دقيقة محسوبة. أضيفت علاوة <bdi>5</bdi> فوق العمل الأصلي، ولم يعمل الموظف
+					فعلياً <bdi>685</bdi> دقيقة.
+				</p>
+				<p>
+					في مثال التأخر ثم العمل الأطول: أودو يعامل الزيادة كتعويض وقت عادي، دون علاوة إضافي، بسبب
+					التأخر المتجاوز للسماح. هذه نقطة يجب حفظها عند قولنا «نتبع قواعد أودو».
+				</p>
+				<div class="note">
+					<strong>أعلى لوحة أودو:</strong> مكعب <bdi>OT</bdi> يجمع فروق الأيام الموجبة، ومكعب
+					<bdi>Shortage</bdi> يجمع مقدار الفروق السالبة، و<bdi>Balance</bdi> هو الفرق بينهما. لذلك
+					قد يعرض مكعب OT مقدار <bdi>25</bdi> في مثال الزيادة، بينما دقائق الإضافي الخام في صف اليوم
+					<bdi>20</bdi>.
+					<strong
+						>في التطبيق الجديد سنعرض الاثنين بوضوح: إضافي فعلي 20 دقيقة، معامل 1.25، إضافي محتسب 25
+						دقيقة؛ والعلاوة وحدها 5 دقائق.</strong
+					>
+					رصيد الحضور وأرصدة HR تبقى حقولاً منفصلة ولا يعاد تسمية كل فرق موجب كأنه حضور إضافي فعلي.
+				</div>
+			</section>
+			<section id="calculator">
+				<h2>7. جرّب بنفسك — مثال المفقودات</h2>
+				<p>
+					عدّل الأرقام أو اختر مثالاً جاهزاً. المطلوب ثابت هنا عند <bdi>660</bdi> دقيقة والدوام
+					المخطط <bdi>10:00–21:00</bdi>.
+				</p>
+				<div class="notice small">
+					هذه محاكاة تعليمية ليوم عمل عادي داخل اليوم نفسه، وليست محرك الرواتب. لا تشمل الليل أو
+					العطل أو أيام الراحة أو يوم إجازة كامل أو بصمات ناقصة. لا تطبق تقريب الإضافي إلى 15 دقيقة
+					الخاص بالتطبيق الجديد؛ تعرض مثال سلوك أودو فقط. لا تحفظ شيئاً ولا تتصل بقاعدة البيانات.
+				</div>
+				<div class="presets" aria-label="أمثلة جاهزة">
+					<button type="button" data-preset="ontime">دوام كامل</button
+					><button type="button" data-preset="grace">ضمن السماح</button
+					><button type="button" data-preset="late">تأخر 21 دقيقة</button
+					><button type="button" data-preset="penalty">تأخر مع جزاء</button
+					><button type="button" data-preset="credit">تأخر مع رصيد HR</button
+					><button type="button" data-preset="early">حضور مبكر</button
+					><button type="button" data-preset="makeup">تأخر ثم تعويض</button
+					><button type="button" data-preset="gap">خروج وعودة</button>
+				</div>
+				<div class="fields">
+					<div class="field">
+						<label for="arrival">أول دخول</label
+						><input id="arrival" type="time" value="10:21" required />
+					</div>
+					<div class="field">
+						<label for="departure">آخر خروج</label
+						><input id="departure" type="time" value="21:00" required />
+					</div>
+					<div class="field">
+						<label for="grace-input">السماح بالدقائق</label
+						><input id="grace-input" type="number" min="0" max="240" step="1" value="15" required />
+					</div>
+					<div class="field">
+						<label for="gap-input">مجموع فترات الخروج والعودة بالدقائق</label
+						><input
+							id="gap-input"
+							type="number"
+							min="0"
+							max="1440"
+							step="1"
+							value="0"
+							required
+						/><small>تستبعد من العمل المسجل دون تسميتها استراحة.</small>
+					</div>
+					<div class="field">
+						<label for="credit-input">رصيد Leave الذي أدخله HR بالدقائق</label
+						><input
+							id="credit-input"
+							type="number"
+							min="0"
+							max="1440"
+							step="1"
+							value="0"
+							required
+						/>
+					</div>
+				</div>
+				<div class="check">
+					<input id="apply-penalty" type="checkbox" /><label for="apply-penalty"
+						>افترض أن HR فعّل جزاء التأخر الإضافي</label
+					>
+				</div>
+				<p id="input-error" class="negative" role="alert" hidden></p>
+				<div id="simulation-output">
+					<div class="results">
+						<div class="metric">
+							<span class="label">العمل المسجل</span><strong id="worked-result"></strong
+							><small>دقيقة حضور فعلي محسوبة</small>
+						</div>
+						<div class="metric">
+							<span class="label">التأخر الفعلي قبل السماح</span><strong id="raw-result"></strong
+							><small>دقيقة</small>
+						</div>
+						<div class="metric">
+							<span class="label">التأخر المعروض بعد السماح</span><strong id="late-result"></strong
+							><small>دقيقة</small>
+						</div>
+						<div class="metric">
+							<span class="label">السماح المضاف للوقت المدفوع</span
+							><strong id="forgiven-result"></strong><small>دقيقة</small>
+						</div>
+						<div class="metric">
+							<span class="label">شريحة الجزاء المحتملة</span><strong id="bracket-result"></strong
+							><small>لا تخصم إلا عند تفعيلها</small>
+						</div>
+						<div class="metric">
+							<span class="label">الجزاء المخصوم فعلاً</span><strong id="penalty-result"></strong
+							><small>دقيقة</small>
+						</div>
+						<div class="metric">
+							<span class="label">دقائق الإضافي الخام</span><strong id="ot-result"></strong
+							><small>دقيقة وفق قاعدة أودو في المثال</small>
+						</div>
+						<div class="metric">
+							<span class="label">علاوة الإضافي فوق الوقت الأصلي</span
+							><strong id="bonus-result"></strong><small>دقيقة محسوبة، بالمعامل 1.25</small>
+						</div>
+						<div class="metric">
+							<span class="label">معامل الإضافي</span><strong id="factor-result">1.25</strong
+							><small>معامل يوم العمل العادي في مثال أودو</small>
+						</div>
+						<div class="metric total">
+							<span class="label">الإضافي المحتسب بعد المعامل</span
+							><strong id="weighted-ot-result"></strong
+							><small>دقائق الإضافي الفعلي × المعامل؛ ليست ساعات حضور إضافية</small>
+						</div>
+						<div class="metric total">
+							<span class="label">النهائي المدفوع — Final Works</span
+							><strong id="final-result"></strong><small>دقيقة محسوبة</small>
+						</div>
+						<div class="metric total">
+							<span class="label">فرق اليوم — النهائي ناقص 660</span
+							><strong id="balance-result"></strong><small id="balance-explanation"></small>
+						</div>
+					</div>
+					<div class="formula" id="formula-result" aria-live="polite" aria-atomic="true"></div>
+					<p id="rule-result"></p>
+					<p class="small">
+						رصيد الإجازة السنوية: لا تحسب له هذه المحاكاة أي خصم تلقائي؛ ذلك الربط لم نجد تنفيذه في
+						مسار لوحة الحضور المفحوص. ميزة الربط في التطبيق الجديد مطلوبة الآن، وتحدد تفاصيلها في
+						القسم 8.
+					</p>
+				</div>
+				<noscript
+					><p>الأمثلة والجداول أعلاه تعمل دون جافاسكربت. المحاكاة وحدها تحتاج تفعيله.</p></noscript
+				>
+			</section>
+			<section id="choices">
+				<h2>8. نقرر معاً، سؤالاً سؤالاً</h2>
+				<p class="lead">
+					الموظف تأخر 21 دقيقة. أنت قررت أن تدفع أجر هذه الدقائق، وتأخذها من إجازته بدلاً من خصم
+					أجرها. الأسئلة التالية تسأل فقط: متى نخصم؟ وكم نخصم؟ وماذا نفعل إذا حصل خطأ؟
+				</p>
+				<p>
+					لن تحتاج إلى حساب أجزاء اليوم أو فهم ملفات البرمجة. اقرأ الموقف في كل سؤال واختر الجواب
+					الأقرب لما تريده.
+				</p>
+				<div class="note">
+					<strong>سنأخذ سؤالاً واحداً في كل مرة.</strong> اقرأ المثال، واختر ما تريده للشركة، ثم
+					اضغط «السؤال التالي». إذا لم تعرف الجواب، اختر «لا أعرف بعد». يمكنك إرسال ما أجبت عنه حتى
+					لو بقيت أسئلة.
+				</div>
+				<div class="wizard-heading">
+					<p id="question-progress" role="status"></p>
+					<p class="small">لن نختار أي إجابة بدلاً عنك. إجاباتك السابقة تبقى محفوظة.</p>
+				</div>
+				<form id="decisions-form">
+					<div class="decision-step" data-decision-step="effective_from" tabindex="-1">
+						<fieldset class="decision-group">
+							<legend>من أي يوم نبدأ استخدام القواعد الجديدة؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									إذا اخترت <bdi>1 تشرين الأول 2026</bdi>، نستخدم اختياراتك للأيام من ذلك التاريخ.
+									الأيام الأقدم تحتفظ بقواعدها السابقة.
+								</p>
+							</div>
+							<div class="field">
+								<label for="decision-effective-from"
+									>اختر أول يوم، أو اتركه فارغاً إذا لم تقرر</label
+								><input
+									id="decision-effective-from"
+									type="date"
+									data-answer="effective_from"
+									data-question="effective_from"
+									data-label="من أي يوم نبدأ استخدام القواعد الجديدة؟"
+								/>
+							</div>
+							<details>
+								<summary>هل تريد أن تتوقف هذه القواعد في يوم محدد؟ هذا اختياري</summary>
+								<div class="field">
+									<label for="decision-effective-to">أول يوم لا نستخدم فيه هذه القواعد</label
+									><input id="decision-effective-to" type="date" data-answer="effective_to" /><small
+										>مثلاً: بداية 1 تشرين الأول، وتوقف 1 تشرين الثاني، تعني أن القواعد تشمل تشرين
+										الأول كله. اتركه فارغاً إذا لم تحدد موعداً للتوقف.</small
+									>
+								</div>
+							</details>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="leave_debit_timing" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="leave_debit_timing"
+							data-label="متى نخصم الوقت من إجازة الموظف؟"
+						>
+							<legend>متى نخصم الوقت من إجازة الموظف؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									موظف تأخر 21 دقيقة. قررتَ دفع أجر هذه الدقائق وأخذها من إجازته بدلاً من خصم أجرها.
+									متى ينقص رصيد إجازته؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_timing"
+									data-answer="leave_debit_timing"
+									value="on_hr_approval"
+								/><span>أكتب 21 دقيقة أولاً. لا تنقص الإجازة حتى أضغط زر «موافقة».</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_timing"
+									data-answer="leave_debit_timing"
+									value="on_credit_save"
+								/><span>بمجرد أن أحفظ 21 دقيقة، تنقص إجازته فوراً.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_timing"
+									data-answer="leave_debit_timing"
+									value="separate_hr_action"
+								/><span>أحفظ دفع الدقائق الآن. أخصمها من الإجازة لاحقاً بزر منفصل.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_timing"
+									data-answer="leave_debit_timing"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="leave_debit_amount" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="leave_debit_amount"
+							data-label="كم نأخذ من الإجازة عندما ندفع وقتاً لم يحضره؟"
+						>
+							<legend>كم نأخذ من الإجازة عندما ندفع وقتاً لم يحضره؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									موظف غاب ساعة. قررتَ دفع نصف ساعة منها. النصف الآخر ما زال نقص حضور. كم نخصم من
+									رصيد إجازته؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_amount"
+									data-answer="leave_debit_amount"
+									value="credited_minutes"
+								/><span>نصف ساعة فقط: نفس الوقت الذي قررتُ دفعه.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_amount"
+									data-answer="leave_debit_amount"
+									value="actual_shortage_minutes"
+								/><span>ساعة كاملة: كل وقت الغياب، رغم أنني قررتُ دفع نصف ساعة فقط.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_amount"
+									data-answer="leave_debit_amount"
+									value="hr_entered_minutes"
+								/><span>أختار بنفسي عدد الدقائق التي تخصم في كل حالة.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_debit_amount"
+									data-answer="leave_debit_amount"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="leave_conversion_basis" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="leave_conversion_basis"
+							data-label="كم ساعة نخصم حتى يستهلك الموظف يوم إجازة كاملاً؟"
+						>
+							<legend>كم ساعة نخصم حتى يستهلك الموظف يوم إجازة كاملاً؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									رصيد الموظف مكتوب بالأيام، لكننا نريد خصم وقت بالساعات. مثلاً: هل يوم إجازة موظف
+									المفقودات يساوي 11 ساعة، أم نحسب اليوم للجميع على أساس 8 ساعات؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="leave_conversion_basis"
+									data-answer="leave_conversion_basis"
+									value="scheduled_required_minutes"
+								/><span
+									>حسب دوام الموظف: يوم المفقودات 11 ساعة، ويوم الموظف الذي دوامه 9 ساعات يساوي 9
+									ساعات.</span
+								></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_conversion_basis"
+									data-answer="leave_conversion_basis"
+									value="fixed_day_minutes"
+								/><span>نفس العدد للجميع، مهما كان دوامهم. سأكتب عدد الساعات أدناه.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_conversion_basis"
+									data-answer="leave_conversion_basis"
+									value="hr_per_adjustment"
+								/><span
+									>أحدد بنفسي في كل مرة كم يوماً أو جزءاً من يوم سنأخذ من الإجازة.</span
+								></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_conversion_basis"
+									data-answer="leave_conversion_basis"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+							<div id="fixed-day-fields" class="box" hidden>
+								<label for="decision-fixed-day-hours"
+									>كم ساعة تساوي يوم إجازة واحداً لجميع الموظفين؟</label
+								><input
+									id="decision-fixed-day-hours"
+									type="number"
+									min="0.25"
+									max="24"
+									step="0.25"
+									data-answer="fixed_day_hours"
+									placeholder="مثلاً: 8"
+								/><small>إذا كتبت 8، فخصم 8 ساعات يستهلك يوم إجازة كاملاً.</small>
+							</div>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="leave_rounding" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="leave_rounding"
+							data-label="إذا أردنا خصم 21 دقيقة، كم دقيقة نخصم فعلياً؟"
+						>
+							<legend>إذا أردنا خصم 21 دقيقة، كم دقيقة نخصم فعلياً؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									أحياناً تختار الشركة خصم الوقت كما هو، وأحياناً تقربه. هذه الأمثلة توضح الفرق؛ لا
+									توجد إجابة مختارة مسبقاً.
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="leave_rounding"
+									data-answer="leave_rounding"
+									value="exact_minutes"
+								/><span>21 تبقى 21 دقيقة. نخصم الوقت كما هو.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_rounding"
+									data-answer="leave_rounding"
+									value="nearest_15_minutes"
+								/><span>21 تصبح 15 دقيقة. نختار أقرب ربع ساعة.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_rounding"
+									data-answer="leave_rounding"
+									value="ceil_15_minutes"
+								/><span>21 تصبح 30، و31 تصبح 45 دقيقة. نرفع إلى ربع الساعة التالي.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_rounding"
+									data-answer="leave_rounding"
+									value="ceil_30_minutes"
+								/><span>21 تصبح 30، و31 تصبح 60 دقيقة. نرفع إلى نصف الساعة التالي.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_rounding"
+									data-answer="leave_rounding"
+									value="hr_per_adjustment"
+								/><span>أكتب بنفسي الوقت الذي سيخصم في كل مرة.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_rounding"
+									data-answer="leave_rounding"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="negative_leave_balance" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="negative_leave_balance"
+							data-label="إذا لم يبق للموظف أي إجازة، هل يمكن أن نخصم منه؟"
+						>
+							<legend>إذا لم يبق للموظف أي إجازة، هل يمكن أن نخصم منه؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									رصيده الآن صفر، ونريد أخذ 21 دقيقة من إجازته مقابل دفع وقت غياب. هل نسمح بأن يصبح
+									رصيده «ناقص 21 دقيقة»؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="negative_leave_balance"
+									data-answer="negative_leave_balance"
+									value="allow"
+								/><span>نعم. يمكن أن يصبح رصيده ناقص 21 دقيقة، ويظهر ذلك بوضوح.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="negative_leave_balance"
+									data-answer="negative_leave_balance"
+									value="block"
+								/><span>لا. لا نخصم وقتاً من إجازته إذا لم يكن لديه رصيد يكفي.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="negative_leave_balance"
+									data-answer="negative_leave_balance"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div
+						class="decision-step"
+						data-decision-step="insufficient_balance_action"
+						data-conditional="insufficient_balance_action"
+						tabindex="-1"
+					>
+						<fieldset
+							class="decision-group"
+							data-question="insufficient_balance_action"
+							data-label="رصيده صفر، ولا نسمح بالناقص. ماذا نفعل بدفع وقت الغياب؟"
+						>
+							<legend>رصيده صفر، ولا نسمح بالناقص. ماذا نفعل بدفع وقت الغياب؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									اخترتَ ألا يصبح رصيد الإجازة سالباً. لكنك أردتَ دفع 21 دقيقة لم يحضرها الموظف.
+									نحتاج الآن إلى قرار لهذه الحالة.
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="insufficient_balance_action"
+									data-answer="insufficient_balance_action"
+									value="block_credit_and_debit"
+								/><span>ننتظر. لا نعتمد دفع الدقائق ولا خصم الإجازة حتى أراجع الحالة.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="insufficient_balance_action"
+									data-answer="insufficient_balance_action"
+									value="keep_credit_pending_debit"
+								/><span
+									>ندفع الدقائق الآن، ونترك موضوع خصم الإجازة معلقاً ليُراجع لاحقاً.</span
+								></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="insufficient_balance_action"
+									data-answer="insufficient_balance_action"
+									value="hr_review"
+								/><span>أقرر بنفسي كيف نعالج كل حالة قبل إكمالها.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="insufficient_balance_action"
+									data-answer="insufficient_balance_action"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div
+						class="decision-step"
+						data-decision-step="opening_leave_balance_source"
+						tabindex="-1"
+					>
+						<fieldset
+							class="decision-group"
+							data-question="opening_leave_balance_source"
+							data-label="كيف نعرف كم يوم إجازة بقي لكل موظف عند البداية؟"
+						>
+							<legend>كيف نعرف كم يوم إجازة بقي لكل موظف عند البداية؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									قبل أول خصم، يجب أن نعرف مثلاً أن للموظف 14 يوم إجازة متبقياً. من أين نأخذ هذا
+									العدد؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="opening_leave_balance_source"
+									data-answer="opening_leave_balance_source"
+									value="hr_manual"
+								/><span>أراجع رصيد كل موظف وأكتبه بنفسي في التطبيق.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="opening_leave_balance_source"
+									data-answer="opening_leave_balance_source"
+									value="reviewed_odoo_snapshot"
+								/><span
+									>نأخذه من إجازات أودو بعد مراجعته. لا نأخذ رقم Balance من لوحة الحضور.</span
+								></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="opening_leave_balance_source"
+									data-answer="opening_leave_balance_source"
+									value="reviewed_import"
+								/><span>أجهز ملفاً بأرصدة الإجازات، ثم نراجعه وندخله إلى التطبيق.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="opening_leave_balance_source"
+									data-answer="opening_leave_balance_source"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="leave_approver" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="leave_approver"
+							data-label="من يستطيع الموافقة على خصم وقت من الإجازة؟"
+						>
+							<legend>من يستطيع الموافقة على خصم وقت من الإجازة؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									موظف موارد بشرية كتب طلب خصم 21 دقيقة من إجازة شخص. من يملك قرار الموافقة عليه؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="leave_approver"
+									data-answer="leave_approver"
+									value="hr"
+								/><span>موظف الموارد البشرية الذي لديه صلاحية الموافقة.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_approver"
+									data-answer="leave_approver"
+									value="hr_manager"
+								/><span>مدير الموارد البشرية فقط.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_approver"
+									data-answer="leave_approver"
+									value="designated_role"
+								/><span>مسؤول آخر. سأكتب وظيفته في الملاحظات في النهاية.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_approver"
+									data-answer="leave_approver"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="leave_reversal" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="leave_reversal"
+							data-label="إذا ألغينا خصم 21 دقيقة لأنه كان خطأ، متى نعيدها؟"
+						>
+							<legend>إذا ألغينا خصم 21 دقيقة لأنه كان خطأ، متى نعيدها؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									خصمنا 21 دقيقة من إجازة الموظف، ثم تبين أن الخصم خطأ وألغيناه. هل تعود هذه الدقائق
+									وحدها؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="leave_reversal"
+									data-answer="leave_reversal"
+									value="automatic_linked_reversal"
+								/><span
+									>نعم. بمجرد إلغاء الخصم ترجع 21 دقيقة تلقائياً، ويبقى سجل يوضح ما حدث.</span
+								></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_reversal"
+									data-answer="leave_reversal"
+									value="hr_review_before_reversal"
+								/><span>لا ترجع حتى يراجع HR الإلغاء ويوافق على إعادتها.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="leave_reversal"
+									data-answer="leave_reversal"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="normal_overtime_factor" tabindex="-1">
+						<fieldset class="decision-group">
+							<legend>عمل الموظف ساعة إضافية في يوم عمل عادي. كم نحسبها عند الدفع؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									الساعة الفعلية هي دائماً 60 دقيقة. قد نحسبها عند الدفع كساعة وربع، أي 75 دقيقة.
+									لهذا سنعرض الوقت الفعلي والوقت المحتسب معاً.
+								</p>
+							</div>
+							<div class="presets">
+								<button
+									type="button"
+									data-factor-target="decision-normal-factor"
+									data-factor-value="1.25"
+								>
+									ساعة وربع — مثل أودو</button
+								><button
+									type="button"
+									data-factor-target="decision-normal-factor"
+									data-factor-value="1.5"
+								>
+									ساعة ونصف</button
+								><button
+									type="button"
+									data-factor-target="decision-normal-factor"
+									data-factor-value="2"
+								>
+									ساعتان</button
+								><button
+									type="button"
+									data-factor-target="decision-normal-factor"
+									data-factor-value=""
+								>
+									لا أعرف بعد
+								</button>
+							</div>
+							<div class="field">
+								<label for="decision-normal-factor">يمكنك اختيار زر أعلاه، أو كتابة رقم آخر</label
+								><input
+									id="decision-normal-factor"
+									type="number"
+									min="1"
+									max="10"
+									step="0.01"
+									data-answer="normal_overtime_factor"
+									data-question="normal_overtime_factor"
+									data-label="ساعة الإضافي في يوم العمل العادي: كم نحسبها عند الدفع؟"
+									placeholder="اتركه فارغاً إذا لم تقرر"
+								/>
+								<p id="normal-factor-help" class="note" aria-live="polite"></p>
+							</div>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="off_day_overtime_factor" tabindex="-1">
+						<fieldset class="decision-group">
+							<legend>عمل الموظف ساعة في يوم راحته الأسبوعية. كم نحسبها عند الدفع؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									هذا يوم كان يفترض أن يكون الموظف فيه مرتاحاً. إذا عمل ساعة، هل نحسبها ساعة ونصف أو
+									مقداراً آخر؟ أودو يستخدم ساعة ونصف في هذا المسار.
+								</p>
+							</div>
+							<div class="presets">
+								<button
+									type="button"
+									data-factor-target="decision-off-factor"
+									data-factor-value="1.5"
+								>
+									ساعة ونصف — مثل أودو</button
+								><button
+									type="button"
+									data-factor-target="decision-off-factor"
+									data-factor-value="1.25"
+								>
+									ساعة وربع</button
+								><button
+									type="button"
+									data-factor-target="decision-off-factor"
+									data-factor-value="2"
+								>
+									ساعتان</button
+								><button
+									type="button"
+									data-factor-target="decision-off-factor"
+									data-factor-value=""
+								>
+									لا أعرف بعد
+								</button>
+							</div>
+							<div class="field">
+								<label for="decision-off-factor">يمكنك اختيار زر أعلاه، أو كتابة رقم آخر</label
+								><input
+									id="decision-off-factor"
+									type="number"
+									min="1"
+									max="10"
+									step="0.01"
+									data-answer="off_day_overtime_factor"
+									data-question="off_day_overtime_factor"
+									data-label="ساعة العمل في يوم الراحة: كم نحسبها عند الدفع؟"
+									placeholder="اتركه فارغاً إذا لم تقرر"
+								/>
+								<p id="off-factor-help" class="note" aria-live="polite"></p>
+							</div>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="cancellation_credit_basis" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="cancellation_credit_basis"
+							data-label="إذا ألغت الشركة عمل الموظف، كم ساعة ندفع له؟"
+						>
+							<legend>إذا ألغت الشركة عمل الموظف، كم ساعة ندفع له؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									موظف دوامه المعتاد 11 ساعة، لكن التكليف الذي ألغي كان مدته 4 ساعات فقط. اتفقنا أنه
+									يستحق الدفع لأن الإلغاء ليس خطأه. كم ساعة نعطيه في هذه الحالة؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="cancellation_credit_basis"
+									data-answer="cancellation_credit_basis"
+									value="original_scheduled_hours"
+								/><span>4 ساعات: نفس مدة العمل الذي ألغي.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_credit_basis"
+									data-answer="cancellation_credit_basis"
+									value="daily_required_hours"
+								/><span>11 ساعة: عدد الساعات المطلوبة ليومه الكامل حسب جدوله.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_credit_basis"
+									data-answer="cancellation_credit_basis"
+									value="fixed_guarantee"
+								/><span>ندفع عدداً ثابتاً كل مرة. سأكتبه أدناه.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_credit_basis"
+									data-answer="cancellation_credit_basis"
+									value="hr_per_event"
+								/><span>أحدد بنفسي عدد الساعات التي ندفعها في كل حالة إلغاء.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_credit_basis"
+									data-answer="cancellation_credit_basis"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+							<div id="cancellation-fixed-fields" class="box" hidden>
+								<label for="decision-cancellation-hours">كم ساعة ندفع عند الإلغاء كل مرة؟</label
+								><input
+									id="decision-cancellation-hours"
+									type="number"
+									min="0.25"
+									max="24"
+									step="0.25"
+									data-answer="cancellation_fixed_hours"
+									placeholder="مثلاً: 4"
+								/>
+							</div>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="cancellation_overtime" tabindex="-1">
+						<fieldset
+							class="decision-group"
+							data-question="cancellation_overtime"
+							data-label="ساعة ألغتها الشركة ودفعت أجرها: هل تدخل أيضاً في حساب الإضافي؟"
+						>
+							<legend>ساعة ألغتها الشركة ودفعت أجرها: هل تدخل أيضاً في حساب الإضافي؟</legend>
+							<div class="story">
+								<strong>مثال بسيط</strong>
+								<p>
+									الموظف لم يعمل هذه الساعة، لكننا دفعناها بسبب إلغاء العمل. هل نعاملها كساعة حضور
+									عند حساب استحقاق الإضافي، أم تبقى مدفوعة فقط دون إضافي؟
+								</p>
+							</div>
+							<label class="choice"
+								><input
+									type="radio"
+									name="cancellation_overtime"
+									data-answer="cancellation_overtime"
+									value="eligible"
+								/><span>نعم. يمكن أن تدخل في حساب استحقاق الإضافي، حسب قواعده.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_overtime"
+									data-answer="cancellation_overtime"
+									value="not_eligible"
+								/><span>لا. ندفع أجرها فقط، ولا تتحول إلى إضافي.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_overtime"
+									data-answer="cancellation_overtime"
+									value="hr_per_event"
+								/><span>أقرر ذلك بنفسي في كل حالة إلغاء.</span></label
+							><label class="choice"
+								><input
+									type="radio"
+									name="cancellation_overtime"
+									data-answer="cancellation_overtime"
+									value="pending"
+								/><span>لا أعرف بعد — نترك هذا السؤال لوقت لاحق.</span></label
+							>
+						</fieldset>
+					</div>
+					<div class="decision-step" data-decision-step="notes" tabindex="-1">
+						<fieldset class="decision-group">
+							<legend>هل تريد أن تشرح شيئاً أو تضيف استثناء؟</legend>
+							<p>
+								مثلاً: «أحتاج أن أسأل المدير عن رصيد الإجازة»، أو «هذه القاعدة تختلف في حلب». لا
+								تكتب أسماء الموظفين أو معلوماتهم الشخصية.
+							</p>
+							<div class="field">
+								<label for="decision-notes">اكتب ملاحظتك هنا، أو اتركها فارغة</label
+								><textarea
+									id="decision-notes"
+									rows="5"
+									data-answer="notes"
+									placeholder="اكتب بطريقتك. لا تحتاج إلى مصطلحات خاصة."
+								></textarea>
+							</div>
+						</fieldset>
+					</div>
+				</form>
+				<div class="wizard-nav">
+					<button id="previous-question" type="button">السؤال السابق</button
+					><button id="next-question" type="button">السؤال التالي</button>
+				</div>
+				<p class="small">
+					يمكنك الرجوع وتغيير أي جواب. إذا أردت التوقف الآن، استخدم زر «حمّل إجاباتي» أدناه.
+				</p>
+				<h3 id="answer-review" tabindex="-1">إجاباتك — راجعها ثم أرسلها لي</h3>
+				<details id="plain-answer-review">
+					<summary>اعرض لي ما اخترته بكلام بسيط</summary>
+					<ul id="plain-answers"></ul>
+				</details>
+				<p id="decision-completion" role="status"></p>
+				<p id="decision-validation" class="negative" role="alert" hidden></p>
+				<details>
+					<summary>الأسئلة التي ما زالت بلا إجابة</summary>
+					<ul id="decision-pending"></ul>
+				</details>
+				<p class="small">
+					يمكنك إرسال الإجابات التي تعرفها الآن. كل سؤال تركته أو اخترت فيه «لا أعرف بعد» يبقى بلا
+					قرار، ولا نختار لك جواباً.
+				</p>
+				<div class="presets">
+					<button id="copy-decisions" type="button">انسخ إجاباتي</button
+					><button id="download-decisions" type="button">حمّل إجاباتي لأرسلها لك</button>
+				</div>
+				<p id="decision-transfer-status" role="status" aria-live="polite"></p>
+				<p id="decision-storage-status" class="small"></p>
+				<details>
+					<summary>عرض محتوى ملف الإجابات — اختياري، لا تحتاج إلى قراءته</summary>
+					<label for="decision-json">هذا هو الملف الذي سأقرأه أنا، ولا تحتاج إلى فهمه</label
+					><textarea
+						id="decision-json"
+						class="json-output"
+						rows="18"
+						readonly
+						dir="ltr"
+						lang="en"
+						spellcheck="false"
+					></textarea>
+				</details>
+				<div class="note">
+					اضغط «حمّل إجاباتي لأرسلها لك»، ثم أرفق الملف الذي ينزل في هذه المحادثة. سأقرأه وأخبرك بما
+					فهمته. لا تحتاج إلى فتحه أو تعديل محتواه.
+				</div>
+				<noscript
+					><p>إدخال الإجابات ممكن، لكن إنشاء JSON يحتاج تفعيل جافاسكربت في المتصفح.</p></noscript
+				>
+			</section>
+			<section>
+				<h2>9. كيف تتأكد عند فتح لوحة أودو؟</h2>
+				<ol>
+					<li>اختر موظفاً وفترة، وتحقق من الجدول المطلوب وأوقات الدخول والخروج.</li>
+					<li>راجع رصيد Leave أو Sick أو Mission المدخل في اليوم.</li>
+					<li>قارن Final Works مع Required، وليس مع التأخر المعروض وحده.</li>
+					<li>تذكر أن Balance يجمع فروق الأيام؛ وليس عدد أيام الإجازة السنوية المتبقية.</li>
+					<li>
+						إذا اختلف رقم قديم عن المثال، تحقق من سماح الموظف والقسم وجدوله وأي جزاء أو رصيد أو حالة
+						خاصة قبل الحكم على الحساب.
+					</li>
+				</ol>
+				<details>
+					<summary>ملاحظات فنية تؤثر في المقارنة</summary>
+					<p>
+						تستخدم لوحة الإجراء 398 السطور المعتمدة فقط. قد تجمع أكثر من سطر لنفس الموظف واليوم في
+						صف عرض واحد، بينما تشمل الإجماليات جميع السطور المعتمدة. وفتحها لا يعيد الحساب تلقائياً؛
+						فقد تكون الأرقام المحفوظة من إصدار سابق للمحرك. لذلك نوثق الاختلاف قبل أي إعادة حساب،
+						ولا نعدل بيانات الإنتاج أثناء هذا الشرح.
+					</p>
+				</details>
+			</section>
+			<footer>
+				أعد هذا الشرح من فحص للقراءة فقط للكود وإعدادات أودو في 17 تشرين الثاني 2026. لا توجد أسماء
+				أو بيانات موظفين حقيقية في هذه الصفحة.
+				<a href="odoo-control-panel-rules.md">التفاصيل والمراجع بالعربية والإنكليزية</a> ·
+				<a href="airport-policy-register.md">سجل السياسات التي اتفقنا عليها</a> ·
+				<button type="button" id="print-button" class="print-hide">طباعة / حفظ PDF</button>
+			</footer>
+		</main>
+		<script>
+			const el = (id) => document.getElementById(id);
+			const fields = [
+				'arrival',
+				'departure',
+				'grace-input',
+				'gap-input',
+				'credit-input',
+				'apply-penalty'
+			];
+			const presets = {
+				ontime: ['10:00', '21:00', 15, 0, 0, false],
+				grace: ['10:10', '21:00', 15, 0, 0, false],
+				late: ['10:21', '21:00', 15, 0, 0, false],
+				penalty: ['10:21', '21:00', 15, 0, 0, true],
+				credit: ['10:21', '21:00', 15, 0, 21, false],
+				early: ['09:40', '21:00', 15, 0, 0, false],
+				makeup: ['10:21', '21:30', 15, 0, 0, false],
+				gap: ['10:00', '21:00', 15, 60, 0, false]
+			};
+			const minutes = (value) => {
+				const match = /^(\d{2}):(\d{2})$/.exec(value);
+				return match ? Number(match[1]) * 60 + Number(match[2]) : NaN;
+			};
+			const format = (value) =>
+				new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 }).format(value);
+			function update() {
+				const arrival = minutes(el('arrival').value),
+					departure = minutes(el('departure').value);
+				const grace = Number(el('grace-input').value),
+					gap = Number(el('gap-input').value),
+					credit = Number(el('credit-input').value);
+				const valid =
+					fields.slice(0, 5).every((id) => el(id).checkValidity()) &&
+					Number.isFinite(arrival) &&
+					Number.isFinite(departure) &&
+					departure > arrival &&
+					gap <= departure - arrival;
+				el('input-error').hidden = valid;
+				el('simulation-output').hidden = !valid;
+				if (!valid) {
+					el('input-error').textContent =
+						'أدخل أوقاتاً صحيحة في اليوم نفسه، بحيث يكون الخروج بعد الدخول، وألا تزيد فترة الخروج الوسيطة على مدة اليوم المسجلة.';
+					return;
+				}
+				const required = 660,
+					worked = departure - arrival - gap,
+					raw = Math.max(0, arrival - 600),
+					late = Math.max(0, raw - grace);
+				const forgiven = raw > 0 && late === 0 ? raw : 0;
+				const bracket =
+					raw > grace ? (raw <= 30 ? 60 : raw <= 60 ? 120 : raw <= 120 ? 240 : 540) : 0;
+				const penalty = el('apply-penalty').checked ? bracket : 0;
+				const ot = worked > required && bracket === 0 ? worked - required : 0;
+				const bonus = ot * 0.25,
+					final = Math.max(0, worked + credit + forgiven + bonus - penalty),
+					balance = final - required;
+				for (const [id, value] of Object.entries({
+					'worked-result': worked,
+					'raw-result': raw,
+					'late-result': late,
+					'forgiven-result': forgiven,
+					'bracket-result': bracket,
+					'penalty-result': penalty,
+					'ot-result': ot,
+					'bonus-result': bonus,
+					'weighted-ot-result': ot * 1.25,
+					'final-result': final,
+					'balance-result': balance
+				})) {
+					el(id).dataset.minutes = String(value);
+					el(id).textContent = (id === 'balance-result' && value > 0 ? '+' : '') + format(value);
+				}
+				el('balance-result').className = balance < 0 ? 'negative' : balance > 0 ? 'positive' : '';
+				el('balance-explanation').textContent =
+					balance < 0
+						? 'نقص محسوب في الوقت المدفوع'
+						: balance > 0
+							? 'زيادة محسوبة في الوقت المدفوع'
+							: 'لا فرق عن المطلوب';
+				el('formula-result').textContent =
+					'النهائي = ' +
+					format(worked) +
+					' عمل + ' +
+					format(credit) +
+					' رصيد HR + ' +
+					format(forgiven) +
+					' سماح + ' +
+					format(bonus) +
+					' علاوة إضافي − ' +
+					format(penalty) +
+					' جزاء = ' +
+					format(final) +
+					' دقيقة. فرق اليوم = ' +
+					format(final) +
+					' − 660 = ' +
+					format(balance) +
+					' دقيقة.';
+				let explanation =
+					raw === 0
+						? 'لا يوجد تأخر وصول في هذا المثال.'
+						: late === 0
+							? 'الوصول ضمن السماح؛ تضاف فترة التأخر الفعلية للوقت المدفوع.'
+							: 'الوصول تجاوز السماح؛ لا يضاف سماح مدفوع، والشريحة مبنية على التأخر الخام.';
+				if (worked > required && bracket > 0)
+					explanation +=
+						' الزيادة هنا تعويض وقت عادي دون علاوة إضافي وفق قاعدة أودو لليوم المتأخر.';
+				if (credit > 0 && penalty > 0) explanation += ' إضافة رصيد HR لم تلغ الجزاء المفعّل.';
+				if (gap > 0) explanation += ' استُبعدت فترة الخروج من العمل المسجل دون تصنيفها كاستراحة.';
+				el('rule-result').textContent = explanation;
+			}
+			for (const id of fields) el(id).addEventListener('input', update);
+			for (const button of document.querySelectorAll('[data-preset]'))
+				button.addEventListener('click', () => {
+					const values = presets[button.dataset.preset];
+					fields.forEach((id, index) => {
+						if (index === 5) el(id).checked = values[index];
+						else el(id).value = values[index];
+					});
+					update();
+				});
+			el('print-button').addEventListener('click', () => window.print());
+			update();
+
+			const decisionsForm = el('decisions-form');
+			const draftStorageKey = 'attendance-policy-decisions-ar-v1';
+			const answerControls = [...decisionsForm.querySelectorAll('[data-answer]')];
+			const numericAnswers = new Set([
+				'fixed_day_hours',
+				'normal_overtime_factor',
+				'off_day_overtime_factor',
+				'cancellation_fixed_hours'
+			]);
+
+			const questionSteps = [...decisionsForm.querySelectorAll('[data-decision-step]')];
+			let currentQuestionKey = questionSteps[0].dataset.decisionStep;
+			function availableQuestionSteps() {
+				return questionSteps.filter(
+					(step) => !step.dataset.conditional || rawAnswer('negative_leave_balance') === 'block'
+				);
+			}
+			function renderQuestionStep() {
+				const available = availableQuestionSteps();
+				if (!available.some((step) => step.dataset.decisionStep === currentQuestionKey))
+					currentQuestionKey = available[0].dataset.decisionStep;
+				const index = available.findIndex(
+					(step) => step.dataset.decisionStep === currentQuestionKey
+				);
+				for (const step of questionSteps)
+					step.hidden = step.dataset.decisionStep !== currentQuestionKey;
+				el('question-progress').textContent =
+					'السؤال ' +
+					(index + 1) +
+					' من ' +
+					available.length +
+					' — خذ وقتك، ويمكنك ترك أي جواب لوقت لاحق.';
+				el('previous-question').disabled = index === 0;
+				el('next-question').textContent =
+					index === available.length - 1 ? 'انتهيت — راجع إجاباتي' : 'السؤال التالي';
+			}
+			function moveQuestion(direction) {
+				const available = availableQuestionSteps(),
+					index = available.findIndex((step) => step.dataset.decisionStep === currentQuestionKey);
+				const next = index + direction;
+				if (next >= available.length) {
+					el('plain-answer-review').open = true;
+					el('answer-review').focus();
+					el('answer-review').scrollIntoView({ block: 'start' });
+					return;
+				}
+				if (next < 0) return;
+				currentQuestionKey = available[next].dataset.decisionStep;
+				renderQuestionStep();
+				available[next].focus({ preventScroll: true });
+				available[next].scrollIntoView({ block: 'start' });
+			}
+			function updateFactorExplanation(inputId, outputId) {
+				const input = el(inputId),
+					factor = rawAnswer(input.dataset.answer);
+				el(outputId).textContent =
+					factor === null
+						? 'لم تختر بعد. يمكنك اختيار زر أعلاه أو ترك السؤال لوقت لاحق.'
+						: !input.checkValidity()
+							? 'راجع الرقم؛ يجب أن يكون 1 أو أكثر.'
+							: 'ساعة عمل فعلية = 60 دقيقة. باختيارك، نحسبها عند الدفع ' +
+								format(60 * factor) +
+								' دقيقة. مثال: 20 دقيقة فعلية تصبح ' +
+								format(20 * factor) +
+								' دقيقة محتسبة.';
+			}
+			function renderPlainAnswers() {
+				const list = el('plain-answers');
+				list.replaceChildren();
+				for (const question of decisionsForm.querySelectorAll('[data-question]')) {
+					const key = question.dataset.question,
+						value = rawAnswer(key);
+					if (
+						value === null ||
+						(key === 'insufficient_balance_action' &&
+							rawAnswer('negative_leave_balance') !== 'block')
+					)
+						continue;
+					const controls = answerControls.filter((control) => control.dataset.answer === key);
+					let answer = String(value);
+					if (controls[0].type === 'radio')
+						answer =
+							controls
+								.find((control) => control.checked)
+								?.closest('label')
+								.querySelector('span').textContent ?? answer;
+					if (key === 'normal_overtime_factor' || key === 'off_day_overtime_factor')
+						answer = controls[0].checkValidity()
+							? 'كل ساعة فعلية (60 دقيقة) نحسبها ' + format(60 * value) + ' دقيقة عند الدفع.'
+							: 'هذا الرقم يحتاج تصحيحاً قبل الإرسال.';
+					if (
+						key === 'leave_conversion_basis' &&
+						value === 'fixed_day_minutes' &&
+						rawAnswer('fixed_day_hours') !== null
+					)
+						answer += ' اخترت ' + rawAnswer('fixed_day_hours') + ' ساعات ليوم الإجازة الواحد.';
+					if (
+						key === 'cancellation_credit_basis' &&
+						value === 'fixed_guarantee' &&
+						rawAnswer('cancellation_fixed_hours') !== null
+					)
+						answer += ' اخترت ' + rawAnswer('cancellation_fixed_hours') + ' ساعات مدفوعة.';
+					const item = document.createElement('li');
+					item.textContent = question.dataset.label + ' — ' + answer;
+					list.append(item);
+				}
+				for (const [key, label] of [
+					['effective_to', 'أول يوم نتوقف فيه عن استخدام هذه القواعد'],
+					['notes', 'ملاحظتك']
+				]) {
+					if (rawAnswer(key) !== null) {
+						const item = document.createElement('li');
+						item.textContent = label + ' — ' + rawAnswer(key);
+						list.append(item);
+					}
+				}
+				if (!list.children.length) {
+					const item = document.createElement('li');
+					item.textContent = 'لم تختر إجابات بعد. سنأخذ الأسئلة واحداً واحداً.';
+					list.append(item);
+				}
+				updateFactorExplanation('decision-normal-factor', 'normal-factor-help');
+				updateFactorExplanation('decision-off-factor', 'off-factor-help');
+			}
+
+			function rawAnswer(key) {
+				const controls = answerControls.filter((control) => control.dataset.answer === key);
+				const control = controls[0];
+				if (!control) return null;
+				if (control.type === 'radio') {
+					const value = controls.find((item) => item.checked)?.value;
+					return value && value !== 'pending' ? value : null;
+				}
+				const value = control.value.trim();
+				if (value === '') return null;
+				return numericAnswers.has(key) ? Number(value) : value;
+			}
+			function setConditionalFields() {
+				const fixedDay = rawAnswer('leave_conversion_basis') === 'fixed_day_minutes';
+				el('fixed-day-fields').hidden = !fixedDay;
+				el('decision-fixed-day-hours').disabled = !fixedDay;
+				const fixedCancellation = rawAnswer('cancellation_credit_basis') === 'fixed_guarantee';
+				el('cancellation-fixed-fields').hidden = !fixedCancellation;
+				el('decision-cancellation-hours').disabled = !fixedCancellation;
+				const insufficientGroup = decisionsForm.querySelector(
+					'[data-question="insufficient_balance_action"]'
+				);
+				const applicable = rawAnswer('negative_leave_balance') === 'block';
+				insufficientGroup.hidden = !applicable;
+				for (const control of insufficientGroup.querySelectorAll('input'))
+					control.disabled = !applicable;
+			}
+			function restoreDraft() {
+				try {
+					const saved = JSON.parse(localStorage.getItem(draftStorageKey) || 'null');
+					if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return;
+					for (const control of answerControls) {
+						const value = saved[control.dataset.answer];
+						if (typeof value !== 'string') continue;
+						if (control.type === 'radio') control.checked = control.value === value;
+						else control.value = value;
+					}
+				} catch {
+					el('decision-storage-status').textContent =
+						'لم أستطع استعادة إجابات سابقة. يمكنك الإجابة من جديد ثم تحميل الملف.';
+				}
+			}
+			function persistDraft() {
+				const saved = {};
+				for (const control of answerControls) {
+					const key = control.dataset.answer;
+					if (control.type === 'radio') {
+						if (control.checked) saved[key] = control.value;
+					} else saved[key] = control.value;
+				}
+				try {
+					localStorage.setItem(draftStorageKey, JSON.stringify(saved));
+					el('decision-storage-status').textContent =
+						'حفظت إجاباتك في هذا المتصفح. استخدم زر التحميل عندما تريد إرسالها لي.';
+				} catch {
+					el('decision-storage-status').textContent =
+						'تعذر حفظ إجاباتك في المتصفح. حمّل ملف الإجابات قبل إغلاق الصفحة حتى لا تفقدها.';
+				}
+			}
+			function buildDecisionDocument() {
+				setConditionalFields();
+				const errors = [];
+				for (const control of answerControls) {
+					if (control.disabled || control.type === 'radio') continue;
+					if (control.validity.badInput || (control.value !== '' && !control.checkValidity())) {
+						const label =
+							decisionsForm.querySelector('label[for="' + control.id + '"]')?.textContent ||
+							control.id;
+						errors.push('راجع قيمة: ' + label);
+					}
+				}
+				const from = rawAnswer('effective_from'),
+					to = rawAnswer('effective_to');
+				if (from && to && to <= from)
+					errors.push(
+						'يجب أن يكون يوم التوقف بعد أول يوم اخترته. يوم التوقف نفسه لا يدخل في الحساب.'
+					);
+				const pending = [];
+				for (const question of decisionsForm.querySelectorAll('[data-question]')) {
+					const key = question.dataset.question;
+					if (
+						key === 'insufficient_balance_action' &&
+						rawAnswer('negative_leave_balance') !== 'block'
+					)
+						continue;
+					if (rawAnswer(key) === null) pending.push({ key, question_ar: question.dataset.label });
+				}
+				const fixedDay =
+					rawAnswer('leave_conversion_basis') === 'fixed_day_minutes'
+						? rawAnswer('fixed_day_hours')
+						: null;
+				if (rawAnswer('leave_conversion_basis') === 'fixed_day_minutes' && fixedDay === null)
+					pending.push({
+						key: 'fixed_day_hours',
+						question_ar: 'كم ساعة تساوي يوم إجازة واحداً للجميع؟'
+					});
+				const fixedCancellation =
+					rawAnswer('cancellation_credit_basis') === 'fixed_guarantee'
+						? rawAnswer('cancellation_fixed_hours')
+						: null;
+				if (
+					rawAnswer('cancellation_credit_basis') === 'fixed_guarantee' &&
+					fixedCancellation === null
+				)
+					pending.push({
+						key: 'cancellation_fixed_hours',
+						question_ar: 'كم ساعة ندفع عند الإلغاء كل مرة؟'
+					});
+				if (rawAnswer('leave_approver') === 'designated_role' && rawAnswer('notes') === null)
+					pending.push({
+						key: 'designated_role_details',
+						question_ar: 'اكتب في الملاحظات وظيفة المسؤول الآخر الذي يوافق على الخصم'
+					});
+				const document = {
+					schema_version: 1,
+					document_type: 'attendance_policy_decisions',
+					source_document: 'odoo-attendance-explained-ar.html#choices',
+					exported_at: new Date().toISOString(),
+					completion: pending.length ? 'draft' : 'complete_for_review',
+					applies_changes_to_system: false,
+					confirmed_requirements: {
+						annual_leave_credit_link: true,
+						auditable_reversible_adjustment_ledger: true,
+						preserve_original_punches: true,
+						work_total_method: 'sum_recorded_attendance_segments',
+						gap_classification: 'hr_decides',
+						grace_lateness_deductions_baseline: 'odoo_action_398',
+						dated_policy_versions: true,
+						calculate_overtime_for_all: true,
+						overtime_hide_behavior: 'hide_display_preserve_calculation',
+						display_actual_and_weighted_overtime: true
+					},
+					effective_period: { from, to_exclusive: to },
+					annual_leave: {
+						debit_timing: rawAnswer('leave_debit_timing'),
+						debit_amount_basis: rawAnswer('leave_debit_amount'),
+						day_conversion_basis: rawAnswer('leave_conversion_basis'),
+						fixed_day_hours: fixedDay,
+						fixed_day_minutes: fixedDay === null ? null : fixedDay * 60,
+						debit_rounding: rawAnswer('leave_rounding'),
+						negative_balance_policy: rawAnswer('negative_leave_balance'),
+						insufficient_balance_action:
+							rawAnswer('negative_leave_balance') === 'block'
+								? rawAnswer('insufficient_balance_action')
+								: null,
+						opening_balance_source: rawAnswer('opening_leave_balance_source'),
+						approver: rawAnswer('leave_approver'),
+						reversal_policy: rawAnswer('leave_reversal')
+					},
+					overtime: {
+						display_mode: 'actual_and_weighted',
+						normal_factor: rawAnswer('normal_overtime_factor'),
+						off_day_factor: rawAnswer('off_day_overtime_factor')
+					},
+					cancellation: {
+						credit_basis: rawAnswer('cancellation_credit_basis'),
+						fixed_guarantee_hours: fixedCancellation,
+						overtime_treatment: rawAnswer('cancellation_overtime')
+					},
+					notes_ar: rawAnswer('notes'),
+					unanswered_questions: pending,
+					reference_only: {
+						odoo_page: 'http://127.0.0.1:8069/odoo/action-398',
+						normal_overtime_factor: 1.25,
+						off_day_factor: 1.5,
+						reference_values_do_not_fill_unanswered_questions: true
+					}
+				};
+				return { document, pending, errors };
+			}
+			function renderDecisions() {
+				const result = buildDecisionDocument();
+				el('decision-validation').hidden = result.errors.length === 0;
+				el('decision-validation').textContent = result.errors.join(' · ');
+				el('copy-decisions').disabled = result.errors.length > 0;
+				el('download-decisions').disabled = result.errors.length > 0;
+				el('decision-json').value = result.errors.length
+					? ''
+					: JSON.stringify(result.document, null, 2);
+				el('decision-completion').textContent = result.pending.length
+					? 'يمكنك إرسال ما اخترته الآن. بقي ' +
+						result.pending.length +
+						' سؤالاً يمكننا إكمالها معاً لاحقاً.'
+					: 'أجبت عن الأسئلة. راجع اختياراتك، ثم اضغط «حمّل إجاباتي لأرسلها لك».';
+				el('decision-pending').replaceChildren();
+				for (const pending of result.pending) {
+					const item = document.createElement('li');
+					item.textContent = pending.question_ar;
+					el('decision-pending').append(item);
+				}
+				if (result.pending.length === 0) {
+					const item = document.createElement('li');
+					item.textContent = 'لا توجد أسئلة معلقة في هذه الاستمارة.';
+					el('decision-pending').append(item);
+				}
+				renderQuestionStep();
+				renderPlainAnswers();
+				return result;
+			}
+
+			el('previous-question').addEventListener('click', () => moveQuestion(-1));
+			el('next-question').addEventListener('click', () => moveQuestion(1));
+			for (const button of document.querySelectorAll('[data-factor-target]'))
+				button.addEventListener('click', () => {
+					const input = el(button.dataset.factorTarget);
+					input.value = button.dataset.factorValue;
+					input.dispatchEvent(new Event('input', { bubbles: true }));
+				});
+			restoreDraft();
+			renderDecisions();
+			decisionsForm.addEventListener('input', () => {
+				el('decision-transfer-status').textContent = '';
+				renderDecisions();
+				persistDraft();
+			});
+			decisionsForm.addEventListener('submit', (event) => event.preventDefault());
+			el('copy-decisions').addEventListener('click', async () => {
+				const result = renderDecisions();
+				if (result.errors.length) return;
+				const value = el('decision-json').value;
+				try {
+					if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+					await navigator.clipboard.writeText(value);
+					el('decision-transfer-status').textContent =
+						'نسخت إجاباتك. الصقها في المحادثة وسأقرأها لك.';
+				} catch {
+					el('decision-json').closest('details').open = true;
+					el('decision-json').focus();
+					el('decision-json').select();
+					el('decision-transfer-status').textContent =
+						'تعذر النسخ التلقائي. اضغط «حمّل إجاباتي لأرسلها لك» وأرسل الملف في المحادثة.';
+				}
+			});
+			el('download-decisions').addEventListener('click', () => {
+				const result = renderDecisions();
+				if (result.errors.length) return;
+				const blob = new Blob([el('decision-json').value + '\n'], {
+					type: 'application/json;charset=utf-8'
+				});
+				const url = URL.createObjectURL(blob),
+					link = document.createElement('a');
+				link.href = url;
+				link.download = 'attendance-policy-decisions.json';
+				document.body.append(link);
+				link.click();
+				link.remove();
+				setTimeout(() => URL.revokeObjectURL(url), 1000);
+				el('decision-transfer-status').textContent =
+					'ملف الإجابات جاهز للتنزيل. أرسله في المحادثة بعد حفظه؛ لا تحتاج إلى فتحه.';
+			});
+		</script>
+	</body>
+</html>

@@ -229,7 +229,7 @@ export const staffSchedule = pgTable(
 );
 
 /**
- * A pattern's overtime rule from a date (pay plan PR4–PR6): overtime on/off and the three rates.
+ * A pattern's overtime rule from a date (pay plan PR4–PR6): overtime on/off and the applicable rates.
  * `pattern_id` NULL: the company's own rule (PR35), which every pattern inherits from. `NULL` in a
  * field: inherit (pattern → department rule, S2.3 → company → the built-in `OVERTIME_DEFAULTS`).
  * Versioned like assignments, never edited: a change closes the open version (`effective_to`) and
@@ -249,6 +249,11 @@ export const patternPayRule = pgTable(
 		offDayRate: numeric('off_day_rate', { precision: 4, scale: 2, mode: 'number' }),
 		/** Every minute worked on an overtime-eligible holiday. */
 		holidayRate: numeric('holiday_rate', { precision: 4, scale: 2, mode: 'number' }),
+		/**
+		 * Night overtime, from the night factor's own 25 October 2026 start (TP29, TP33). The
+		 * resolver applies the 1.50 default from that date; `NULL` here inherits.
+		 */
+		nightRate: numeric('night_rate', { precision: 4, scale: 2, mode: 'number' }),
 		effectiveFrom: date('effective_from', { mode: 'string' }).notNull(),
 		/** Exclusive; `null` while the version is open. */
 		effectiveTo: date('effective_to', { mode: 'string' }),
@@ -264,11 +269,11 @@ export const patternPayRule = pgTable(
 		index('pattern_pay_rule_pattern_idx').on(t.patternId, t.effectiveFrom),
 		check(
 			'pattern_pay_rule_has_value',
-			sql`num_nonnulls(${t.otEnabled}, ${t.workDayRate}, ${t.offDayRate}, ${t.holidayRate}) > 0`
+			sql`num_nonnulls(${t.otEnabled}, ${t.workDayRate}, ${t.offDayRate}, ${t.holidayRate}, ${t.nightRate}) > 0`
 		),
 		check(
 			'pattern_pay_rule_rate_range',
-			sql`(${t.workDayRate} IS NULL OR ${t.workDayRate} BETWEEN 1 AND 5) AND (${t.offDayRate} IS NULL OR ${t.offDayRate} BETWEEN 1 AND 5) AND (${t.holidayRate} IS NULL OR ${t.holidayRate} BETWEEN 1 AND 5)`
+			sql`(${t.workDayRate} IS NULL OR ${t.workDayRate} BETWEEN 1 AND 5) AND (${t.offDayRate} IS NULL OR ${t.offDayRate} BETWEEN 1 AND 5) AND (${t.holidayRate} IS NULL OR ${t.holidayRate} BETWEEN 1 AND 5) AND (${t.nightRate} IS NULL OR ${t.nightRate} BETWEEN 1 AND 5)`
 		),
 		check('pattern_pay_rule_reason_present', sql`length(trim(${t.reason})) > 0`),
 		check(

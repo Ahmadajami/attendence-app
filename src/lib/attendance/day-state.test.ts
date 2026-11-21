@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planClear } from './day-state.js';
+import { keepOutsideDates, planClear } from './day-state.js';
 
 // Made-up absence rows of one made-up person.
 const row = (id: string, startsOn: string, endsOn: string) => ({ id, startsOn, endsOn });
@@ -42,5 +42,23 @@ describe('planClear', () => {
 		const plan = planClear([row('a', '2026-03-04', '2026-03-04')], '2026-03-04', '2026-03-04');
 		expect(plan.cancel).toHaveLength(1);
 		expect(plan.keep).toEqual([]);
+	});
+});
+
+describe('keepOutsideDates', () => {
+	it('keeps every unselected segment when selection has gaps', () => {
+		const original = row('a', '2026-02-27', '2026-03-06');
+		const kept = keepOutsideDates(original, ['2026-03-05', '2026-03-01', '2026-03-02']);
+		expect(kept).toEqual([
+			{ startsOn: '2026-02-27', endsOn: '2026-02-28', from: original },
+			{ startsOn: '2026-03-03', endsOn: '2026-03-04', from: original },
+			{ startsOn: '2026-03-06', endsOn: '2026-03-06', from: original }
+		]);
+	});
+
+	it('keeps no segment when every date is selected', () => {
+		expect(
+			keepOutsideDates(row('a', '2026-02-28', '2026-03-01'), ['2026-02-28', '2026-03-01'])
+		).toEqual([]);
 	});
 });

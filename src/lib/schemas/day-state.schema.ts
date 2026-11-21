@@ -8,11 +8,11 @@ import { checkDateRange } from './pattern-pay.schema.js';
 
 const isoDate = z.iso.date({ error: () => m.roster_date_invalid() });
 
-const reason = z
+export const dayStateReason = z
 	.string()
 	.trim()
 	.min(1, { error: () => m.roster_reason_required() })
-	.max(500);
+	.max(500, { error: () => m.day_state_reason_too_long({ max: 500 }) });
 
 /** The states HR may set from the day editor (Q-PR4). */
 export const DAY_STATES = ['leave', 'sick', 'mission', 'no_show', 'other'] as const;
@@ -25,7 +25,7 @@ const range = {
 	staffId: z.uuid({ error: () => m.attendance_error_person() }),
 	startsOn: isoDate,
 	endsOn: isoDate,
-	reason
+	reason: dayStateReason
 };
 
 const limit = {

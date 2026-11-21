@@ -1,10 +1,18 @@
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { AUTH_JWT_SECRET } from '$app/env/private';
 import { m } from '#lib/paraglide/messages.js';
-import { planClear } from '#lib/attendance/day-state.js';
+import { keepOutsideDates, planClear } from '#lib/attendance/day-state.js';
+import { dayKey } from '#lib/attendance/recompute.js';
+import { effectiveEvents } from '#lib/roster/attendance.js';
 import { daysBetween } from '#lib/roster/cycle.js';
+import type {
+	BulkDayReview,
+	BulkDayReviewRow,
+	BulkDayStateInput
+} from '#lib/schemas/bulk-day-state.schema.js';
 import type { DayStateClearInput, DayStateInput } from '#lib/schemas/day-state.schema.js';
 import { auditInsert } from '#lib/server/audit.js';
-import { batch } from '#lib/server/db/index.js';
+import { batch, db } from '#lib/server/db/index.js';
 import { ConflictError, InvalidInputError, NotFoundError } from '#lib/server/errors.js';
 import { todayInDamascus } from '#lib/server/time.js';
 import { pgErrorCode, requireActorPermission, type Actor, type BatchQuery } from '../common.js';
@@ -15,8 +23,13 @@ import {
 	recomputeAfter,
 	type RecomputeCause
 } from '../day-results/day-results.bl.js';
-import { cancelAbsenceRows } from '../pattern-pay/pattern-pay.crud.js';
-import { listActiveStates, type StateAbsenceRow } from './day-state.crud.js';
+import { getDailyAttendance, type DailyFilter } from '../daily/daily.bl.js';
+import {
+	cancelActiveDayStates,
+	listActiveStates,
+	readBulkDayState,
+	type StateAbsenceRow
+} from './day-state.crud.js';
 
 // The day editor (pay plan PR19, task 5.1): HR sets a person's state (leave, sick, mission, no
 // show, other) for one day or a range, with a reason, or clears it. A state is an `absence` row
@@ -53,13 +66,26 @@ async function commit(
 	statements: readonly BatchQuery[],
 	staffId: string,
 	range: { from: string; to: string } | null,
-	cause: RecomputeCause
+	cause: RecomputeCause,
+	cancellation?: { ids: string[]; actorId: string }
 ): Promise<void> {
 	try {
-		await batch([
+		const writes = [
 			...statements,
 			...(range ? markNeedsRecompute([staffId], range.from, range.to) : [])
-		]);
+		];
+		if (cancellation) {
+			await db.transaction(async (tx) => {
+				const canceledRows = await tx.execute(
+					cancelActiveDayStates(cancellation.ids, cancellation.actorId).getSQL()
+				);
+				if (canceledRows.length !== cancellation.ids.length)
+					throw new ConflictError('day_state_overlap', m.day_state_error_overlap_saved());
+				for (const write of writes) await tx.execute(write.getSQL());
+			});
+		} else {
+			await batch(writes);
+		}
 	} catch (error) {
 		if (pgErrorCode(error) === '23P01')
 			throw new ConflictError('day_state_overlap', m.day_state_error_overlap_saved(), {
@@ -153,8 +179,6 @@ export async function clearDayState(
 	const cancelled = plan.cancel.map((r) => r.id);
 	await commit(
 		[
-			// Cancelled first, so the kept parts never overlap the rows they replace.
-			cancelAbsenceRows(cancelled, actor.user.id),
 			...insertAbsences(kept),
 			auditInsert({
 				actor: actor.user,
@@ -172,7 +196,217 @@ export async function clearDayState(
 		],
 		input.staffId,
 		storedRange(input.startsOn, input.endsOn),
-		causeBy(actor, 'day_edit', 'absence', cancelled[0])
+		causeBy(actor, 'day_edit', 'absence', cancelled[0]),
+		{ ids: cancelled, actorId: actor.user.id }
 	);
 	return { cleared: cancelled.length };
+}
+
+const staleReview = () => new ConflictError('day_state_bulk_stale', m.daily_bulk_stale());
+const keyOf = ({ staffId, shiftDate }: { staffId: string; shiftDate: string }) =>
+	dayKey(staffId, shiftDate);
+
+async function bulkPage(actor: Actor, filter: DailyFilter, input: BulkDayStateInput) {
+	requireActorPermission(actor, 'staff.write', 'attendance.record');
+	const page = await getDailyAttendance(actor, filter);
+	const visible = new Map(
+		page.rows.map(({ person, figures }) => [dayKey(person.staffId, figures.shiftDate), person])
+	);
+	if (input.targets.some((target) => !visible.has(keyOf(target)))) throw staleReview();
+	return visible;
+}
+
+function buildBulkReview(
+	actor: Actor,
+	filter: DailyFilter,
+	input: BulkDayStateInput,
+	visible: Awaited<ReturnType<typeof bulkPage>>,
+	{ days, punches }: Awaited<ReturnType<typeof readBulkDayState>>
+) {
+	const selected = new Map(days.map((day) => [keyOf(day), day]));
+	const evidence = Map.groupBy(punches, keyOf);
+	const proposed = input.operation === 'clear' ? null : input.operation;
+	const rows = input.targets.map((target): BulkDayReviewRow => {
+		const key = keyOf(target);
+		const day = selected.get(key);
+		const state = day?.state;
+		const current = state?.type ?? null;
+		let outcome: BulkDayReviewRow['outcome'] = 'change';
+		if (!day?.active) outcome = 'unavailable';
+		else if (state?.patternId || state?.groupId) outcome = 'pattern';
+		else if (state?.importBatchId) outcome = 'owned';
+		else if (current === proposed) outcome = 'unchanged';
+		const person = visible.get(key)!;
+		return {
+			...target,
+			person: { fullName: person.fullName, fullNameAr: person.fullNameAr },
+			current,
+			proposed,
+			hasPunches: effectiveEvents(evidence.get(key) ?? []).length > 0,
+			outcome
+		};
+	});
+	const changes = rows.filter((row) => row.outcome === 'change').length;
+	const unchanged = rows.filter((row) => row.outcome === 'unchanged').length;
+	if (!AUTH_JWT_SECRET) throw new Error('AUTH_JWT_SECRET is not set');
+	const version = createHmac('sha256', AUTH_JWT_SECRET)
+		.update('attendance-bulk-day-state:')
+		.update(
+			JSON.stringify([
+				actor.user.id,
+				filter,
+				input.operation,
+				input.reason,
+				input.targets.map((target) => {
+					const key = keyOf(target);
+					const day = selected.get(key);
+					return [key, day?.active, day?.hash, day?.state?.id, evidence.get(key)];
+				})
+			])
+		)
+		.digest('hex');
+	const review = { rows, changes, unchanged, blocked: rows.length - changes - unchanged, version };
+	return { review, selected };
+}
+
+export async function reviewBulkDayState(
+	actor: Actor,
+	filter: DailyFilter,
+	input: BulkDayStateInput
+): Promise<BulkDayReview> {
+	const visible = await bulkPage(actor, filter, input);
+	return db.transaction(
+		async (tx) =>
+			buildBulkReview(actor, filter, input, visible, await readBulkDayState(input.targets, tx))
+				.review,
+		{ isolationLevel: 'repeatable read', accessMode: 'read only' }
+	);
+}
+
+export async function applyBulkDayState(
+	actor: Actor,
+	filter: DailyFilter,
+	input: BulkDayStateInput
+): Promise<number> {
+	const visible = await bulkPage(actor, filter, input);
+	if (!input.version) throw staleReview();
+
+	const applied = await db
+		.transaction(
+			async (tx) => {
+				const { review, selected } = buildBulkReview(
+					actor,
+					filter,
+					input,
+					visible,
+					await readBulkDayState(input.targets, tx)
+				);
+				if (!timingSafeEqual(Buffer.from(review.version, 'hex'), Buffer.from(input.version, 'hex')))
+					throw staleReview();
+				if (review.blocked)
+					throw new ConflictError('day_state_bulk_blocked', m.daily_bulk_blocked());
+
+				const changed = review.rows
+					.filter((row) => row.outcome === 'change')
+					.map((row) => ({
+						...row,
+						state: selected.get(keyOf(row))?.state ?? null,
+						newAbsenceId: row.proposed === null ? null : randomUUID()
+					}));
+				if (!changed.length) return { changed, byDate: new Map<string, typeof changed>() };
+
+				const replaced = Map.groupBy(
+					changed.filter((row) => row.state),
+					(row) => row.state!.id
+				);
+				const kept: Parameters<typeof insertAbsences>[0] = [];
+				for (const rows of replaced.values()) {
+					const original = rows[0].state!;
+					for (const part of keepOutsideDates(
+						original,
+						rows.map((row) => row.shiftDate)
+					)) {
+						const { staffId, type, reason, recordedBy } = original;
+						kept.push({
+							id: randomUUID(),
+							staffId,
+							type,
+							reason,
+							recordedBy,
+							startsOn: part.startsOn,
+							endsOn: part.endsOn
+						});
+					}
+				}
+				if (replaced.size) {
+					const cancelled = await tx.execute(
+						cancelActiveDayStates([...replaced.keys()], actor.user.id).getSQL()
+					);
+					if (cancelled.length !== replaced.size) throw staleReview();
+				}
+				const inserts = changed.flatMap(({ newAbsenceId, staffId, shiftDate, proposed }) =>
+					newAbsenceId && proposed
+						? [
+								{
+									id: newAbsenceId,
+									staffId,
+									startsOn: shiftDate,
+									endsOn: shiftDate,
+									type: proposed,
+									reason: input.reason,
+									recordedBy: actor.user.id
+								}
+							]
+						: []
+				);
+				const byDate = Map.groupBy(changed, (row) => row.shiftDate);
+				const audit = auditInsert({
+					actor: actor.user,
+					action: 'day_state.bulk',
+					entityType: 'day_state_batch',
+					entityId: randomUUID(),
+					before: changed.map(({ staffId, shiftDate, current, state }) => ({
+						staffId,
+						shiftDate,
+						state: current,
+						absenceId: state?.id ?? null
+					})),
+					after: {
+						days: changed.map(({ staffId, shiftDate, proposed, newAbsenceId }) => ({
+							staffId,
+							shiftDate,
+							state: proposed,
+							absenceId: newAbsenceId
+						})),
+						keptAbsenceIds: kept.map((part) => part.id)
+					},
+					reason: input.operation === 'clear' ? input.reason : null
+				});
+				const flags = [...byDate]
+					.sort(([a], [b]) => a.localeCompare(b))
+					.flatMap(([date, rows]) =>
+						markNeedsRecompute(
+							rows.map((row) => row.staffId),
+							date,
+							date
+						)
+					);
+				for (const write of [...insertAbsences([...kept, ...inserts]), audit, ...flags])
+					await tx.execute(write.getSQL());
+				return { changed, byDate };
+			},
+			{ isolationLevel: 'serializable' }
+		)
+		.catch((error: unknown) => {
+			if (['23P01', '40001', '40P01'].includes(pgErrorCode(error) ?? '')) throw staleReview();
+			throw error;
+		});
+
+	for (const [date, rows] of applied.byDate) {
+		const ids = new Map(rows.map((row) => [row.staffId, row.newAbsenceId ?? row.state!.id]));
+		await recomputeAfter([...ids.keys()], date, date, (staffId) =>
+			causeBy(actor, 'day_edit', 'absence', ids.get(staffId)!)
+		);
+	}
+	return applied.changed.length;
 }

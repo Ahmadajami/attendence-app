@@ -4,6 +4,7 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { personSearch } from '#lib/attendance/person-search.js';
 import { m } from '#lib/paraglide/messages.js';
 import type { AttendanceMessage } from '#lib/schemas/attendance.schema.js';
+import { bulkDayStateSchema, type BulkDayStateInput } from '#lib/schemas/bulk-day-state.schema.js';
 import {
 	DAILY_SOURCES,
 	recomputeDaysSchema,
@@ -21,6 +22,10 @@ import {
 	parseStaffId,
 	recomputeDailyScope
 } from '#lib/server/services/daily/daily.bl.js';
+import {
+	applyBulkDayState,
+	reviewBulkDayState
+} from '#lib/server/services/day-state/day-state.bl.js';
 import {
 	catchUpFlagged,
 	MAX_BACKFILL_DAYS,
@@ -40,27 +45,34 @@ function actorFrom(locals: App.Locals): Actor {
 const oneOf = <T extends string>(values: readonly T[], value: string | null): T | null =>
 	values.includes(value as T) ? (value as T) : null;
 
+const dailyFilter = (params: URLSearchParams) => ({
+	from: params.get('from'),
+	to: params.get('to'),
+	scope: parseScope(params.get('scope')),
+	status: oneOf<DayStatus>(DAY_STATUSES, params.get('status')),
+	source: oneOf<DailySource>(DAILY_SOURCES, params.get('source')),
+	q: personSearch(params.get('q')),
+	staffId: parseStaffId(params.get('staff')),
+	page: parsePage(params.get('page'))
+});
+
+const bulkFormId = 'daily-bulk-day-state';
+
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const actor = actorFrom(locals);
 	// Flagged rows (a recompute that failed after its write) are repaired before they are shown:
 	// one index lookup when there are none (plan 2026-11-12-daily-page-speed, DS4).
 	await catchUpFlagged();
-	const page = await getDailyAttendance(actor, {
-		from: url.searchParams.get('from'),
-		to: url.searchParams.get('to'),
-		scope: parseScope(url.searchParams.get('scope')),
-		status: oneOf<DayStatus>(DAY_STATUSES, url.searchParams.get('status')),
-		source: oneOf<DailySource>(DAILY_SOURCES, url.searchParams.get('source')),
-		q: personSearch(url.searchParams.get('q')),
-		staffId: parseStaffId(url.searchParams.get('staff')),
-		page: parsePage(url.searchParams.get('page'))
-	});
+	const page = await getDailyAttendance(actor, dailyFilter(url.searchParams));
 	const canRecord = actor.permissions.has('attendance.record');
 	const canBackfill = actor.permissions.has('roster.manage');
 	return {
 		page,
 		canRecord,
 		dayStateForms: canRecord ? await dayStateForms(page.to) : null,
+		bulkStateForm: canRecord
+			? await superValidate(zod4(bulkDayStateSchema), { id: bulkFormId, errors: false })
+			: null,
 		maxRecomputeDays: MAX_BACKFILL_DAYS,
 		recomputeForm: canBackfill
 			? await superValidate({ from: page.from }, zod4(recomputeFromSchema), {
@@ -73,6 +85,42 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 export const actions: Actions = {
 	...dayStateActions(actorFrom),
+
+	reviewBulkState: async ({ request, locals, url }) => {
+		const actor = actorFrom(locals);
+		const payload = (await request.formData()).get('payload');
+		let input: unknown;
+		try {
+			input = typeof payload === 'string' ? JSON.parse(payload) : null;
+		} catch {
+			return fail(400, { notice: m.daily_bulk_invalid_selection() });
+		}
+		const parsed = bulkDayStateSchema.safeParse(input);
+		if (!parsed.success) return fail(400, { notice: m.daily_bulk_invalid_selection() });
+		try {
+			return {
+				review: await reviewBulkDayState(actor, dailyFilter(url.searchParams), parsed.data)
+			};
+		} catch (cause) {
+			return failNotice(cause);
+		}
+	},
+
+	applyBulkState: async ({ request, locals, url }) => {
+		const actor = actorFrom(locals);
+		const form = await superValidate<BulkDayStateInput, AttendanceMessage>(
+			request,
+			zod4(bulkDayStateSchema),
+			{ id: bulkFormId }
+		);
+		if (!form.valid) return fail(400, { form });
+		try {
+			const count = await applyBulkDayState(actor, dailyFilter(url.searchParams), form.data);
+			return message(form, { kind: 'success', text: m.daily_bulk_saved({ count }) });
+		} catch (cause) {
+			return failForm(form, cause);
+		}
+	},
 
 	/** Plain action (`{ notice }`): Recompute for the shown range, scope and person filter. */
 	recomputeDays: async ({ request, locals }) => {

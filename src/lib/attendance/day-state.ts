@@ -36,3 +36,19 @@ export function planClear<T extends StateRow>(
 	}
 	return { cancel, keep };
 }
+
+/** Keep the contiguous segments of one absence outside its selected shift dates. */
+export function keepOutsideDates<T extends StateRow>(
+	row: T,
+	dates: readonly string[]
+): KeptPart<T>[] {
+	const keep: KeptPart<T>[] = [];
+	let startsOn = row.startsOn;
+	for (const date of [...new Set(dates)].sort()) {
+		if (date < startsOn || date > row.endsOn) continue;
+		if (startsOn < date) keep.push({ startsOn, endsOn: addDays(date, -1), from: row });
+		startsOn = addDays(date, 1);
+	}
+	if (startsOn <= row.endsOn) keep.push({ startsOn, endsOn: row.endsOn, from: row });
+	return keep;
+}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import ArrowsLeftRightIcon from 'phosphor-svelte/lib/ArrowsLeftRightIcon';
@@ -9,6 +9,7 @@
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import SpinnerGapIcon from 'phosphor-svelte/lib/SpinnerGapIcon';
+	import BulkDayStateDialog from '#lib/app/attendance/BulkDayStateDialog.svelte';
 	import DayColourGuide from '#lib/app/attendance/DayColourGuide.svelte';
 	import DayHistorySheet from '#lib/app/attendance/DayHistorySheet.svelte';
 	import { DAILY_SOURCE_LABEL, DAY_STATUS_LABEL } from '#lib/app/attendance/day-labels.js';
@@ -20,10 +21,12 @@
 	import PersonCombobox from '#lib/app/attendance/PersonCombobox.svelte';
 	import PunchTime from '#lib/app/attendance/PunchTime.svelte';
 	import RecomputeCard from '#lib/app/attendance/RecomputeCard.svelte';
+	import { dayKey } from '#lib/attendance/recompute.js';
 	import { formatCalendarDate, formatPreviewDay } from '#lib/app/roster/labels.js';
 	import ShiftChip from '#lib/app/roster/ShiftChip.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Card from '#lib/components/ui/card/index.js';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
 	import * as Pagination from '#lib/components/ui/pagination/index.js';
@@ -32,6 +35,7 @@
 	import { localizedHref } from '#lib/i18n.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '#lib/roster/overtime.js';
+	import type { BulkDayTarget } from '#lib/schemas/bulk-day-state.schema.js';
 	import { DAILY_SOURCES } from '#lib/schemas/day-results.schema.js';
 	import { DAY_STATUSES, type AbsenceType, type DayStatus } from '#lib/schemas/enums.js';
 	import { lookupName, personName } from '#lib/utils/locale.js';
@@ -116,6 +120,41 @@
 		// eslint-disable-next-line svelte/no-navigation-without-resolve -- pageHref is localizedHref(...) plus the filter query
 		void goto(pageHref(next));
 	}
+
+	let bulkOpen = $state(false);
+	let selectedDays = $state<BulkDayTarget[]>([]);
+	const visibleDays = $derived(
+		page.rows.map(({ person, figures }) => ({
+			staffId: person.staffId,
+			shiftDate: figures.shiftDate
+		}))
+	);
+	const selectedKeys = $derived(
+		new Set(selectedDays.map(({ staffId, shiftDate }) => dayKey(staffId, shiftDate)))
+	);
+	const bulkTargets = $derived(
+		visibleDays.filter(({ staffId, shiftDate }) => selectedKeys.has(dayKey(staffId, shiftDate)))
+	);
+
+	function removeDay({ staffId, shiftDate }: BulkDayTarget) {
+		selectedDays = selectedDays.filter(
+			(day) => day.staffId !== staffId || day.shiftDate !== shiftDate
+		);
+	}
+
+	function toggleDay(target: BulkDayTarget, checked: boolean) {
+		if (checked) selectedDays = [...selectedDays, target];
+		else removeDay(target);
+	}
+
+	function clearSelection() {
+		bulkOpen = false;
+		selectedDays = [];
+	}
+
+	afterNavigate(({ from, to }) => {
+		if (from?.url.href !== to?.url.href) clearSelection();
+	});
 
 	type Target = { staffId: string; name: string; date: string; state: AbsenceType | null };
 	let editing = $state<Target | null>(null);
@@ -276,11 +315,37 @@
 			</Card.Action>
 		</Card.Header>
 		<Card.Content class="px-0">
+			{#if data.bulkStateForm && visibleDays.length}
+				<div class="flex flex-wrap items-center gap-3 px-4 pb-3">
+					<BulkDayStateDialog
+						data={data.bulkStateForm}
+						targets={bulkTargets}
+						pageHref={pageHref(page.window.page)}
+						bind:open={bulkOpen}
+						onRemove={removeDay}
+						onSaved={clearSelection}
+					/>
+					<span class="text-sm text-muted-foreground" aria-live="polite">
+						{m.daily_bulk_selected({ count: bulkTargets.length })}
+					</span>
+				</div>
+			{/if}
 			<!-- One explanation popover for every tag of the table (DT5). -->
 			<DayTagPopover>
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
+							{#if data.bulkStateForm && visibleDays.length}
+								<Table.Head class="w-10">
+									<Checkbox
+										aria-label={m.daily_bulk_select_page()}
+										checked={bulkTargets.length === visibleDays.length}
+										indeterminate={bulkTargets.length > 0 &&
+											bulkTargets.length < visibleDays.length}
+										onCheckedChange={(checked) => (selectedDays = checked ? visibleDays : [])}
+									/>
+								</Table.Head>
+							{/if}
 							<Table.Head>{m.attendance_field_date()}</Table.Head>
 							<Table.Head>{m.attendance_col_person()}</Table.Head>
 							<Table.Head>{m.attendance_col_shift()}</Table.Head>
@@ -294,11 +359,24 @@
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#each page.rows as row (`${row.person.staffId}:${row.figures.shiftDate}`)}
+						{#each page.rows as row (dayKey(row.person.staffId, row.figures.shiftDate))}
 							{const f = $derived(row.figures)}
 							{const name = $derived(personName(row.person))}
 							{const shift = $derived(f.shiftId ? (shiftsById.get(f.shiftId) ?? null) : null)}
 							<Table.Row class="align-top">
+								{#if data.bulkStateForm}
+									<Table.Cell>
+										<Checkbox
+											aria-label={m.daily_bulk_select_day({
+												name,
+												date: formatCalendarDate(f.shiftDate)
+											})}
+											checked={selectedKeys.has(dayKey(row.person.staffId, f.shiftDate))}
+											onCheckedChange={(checked) =>
+												toggleDay({ staffId: row.person.staffId, shiftDate: f.shiftDate }, checked)}
+										/>
+									</Table.Cell>
+								{/if}
 								<Table.Cell class="whitespace-nowrap">
 									<bdi>{formatCalendarDate(f.shiftDate)}</bdi>
 									<div class="text-xs text-muted-foreground">
